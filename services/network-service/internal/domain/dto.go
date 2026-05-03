@@ -21,6 +21,7 @@ type CreateRouterRequest struct {
 	UseSSL                 bool     `json:"use_ssl"`
 	ServiceTypes           []string `json:"service_types" validate:"omitempty,dive,oneof=pppoe hotspot dhcp_binding static"`
 	HealthCheckIntervalSec int      `json:"health_check_interval_sec" validate:"omitempty,min=10,max=3600"`
+	TestOnCreate           bool     `json:"test_on_create"`
 	Notes                  string   `json:"notes,omitempty"`
 }
 

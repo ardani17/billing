@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowClockwise, CheckCircle, WarningCircle } from "@phosphor-icons/react";
-import { Button, DataTable, EmptyState, PageHeader, Section, StatGrid, StatusBadge } from "../components/ui";
+import { Button, DataTable, EmptyState, FormField, PageHeader, Section, StatGrid, StatusBadge, TextInput } from "../components/ui";
 import AppShell from "../components/app-shell";
 
 type RouterRecord = {
@@ -46,6 +46,18 @@ type SummaryResponse = {
     online_count: number;
     offline_count: number;
     maintenance_count: number;
+  };
+};
+
+type CreateRouterResponse = {
+  success: boolean;
+  data?: {
+    router: RouterRecord;
+    warning?: string;
+  };
+  error?: {
+    code: string;
+    message: string;
   };
 };
 
@@ -149,6 +161,7 @@ export function MikrotikLivePage() {
       const json = await response.json();
       if (!response.ok || !json.success) throw new Error(json.error?.message || "Test koneksi gagal");
       setTestResult({ router: router.name, resource: json.data as SystemResource });
+      await loadRouters();
     } catch (testError) {
       setError(extractMessage(testError));
     } finally {
@@ -181,6 +194,7 @@ export function MikrotikLivePage() {
           description="Data router diambil dari network-service dan diuji langsung ke RouterOS API."
           actions={
             <>
+              <Button href="/mikrotik/new">Tambah Router</Button>
               <Button variant="secondary" href="/mikrotik/vpn">VPN</Button>
               <button
                 type="button"
@@ -219,7 +233,11 @@ export function MikrotikLivePage() {
           {loading ? (
             <EmptyState title="Memuat router" description="Mengambil data dari network-service..." />
           ) : routers.length === 0 ? (
-            <EmptyState title="Belum ada router" description="Seed CHR MikroTik akan membuat router pertama untuk tenant demo." />
+            <EmptyState
+              title="Belum ada router"
+              description="Tambahkan CHR atau router kantor pusat. Data disimpan dulu, test koneksi dijalankan manual agar tidak ada login API otomatis."
+              action={<Button href="/mikrotik/new">Tambah Router</Button>}
+            />
           ) : (
             <DataTable
               columns={["Router", "IP", "Port", "Versi", "Board", "Uptime", "Status", "Aksi"]}
@@ -243,6 +261,200 @@ export function MikrotikLivePage() {
               ])}
             />
           )}
+        </Section>
+      </div>
+    </AppShell>
+  );
+}
+
+export function MikrotikCreatePage() {
+  const [form, setForm] = useState({
+    name: "SG MIKROTIK CHR BRONZE",
+    host: "",
+    port: "8728",
+    username: "",
+    password: "",
+    useSsl: false,
+    healthCheckIntervalSec: "300",
+    serviceTypes: ["pppoe"],
+    notes: "",
+    testOnCreate: false,
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState<CreateRouterResponse["data"] | null>(null);
+
+  function updateField(field: keyof typeof form, value: string | boolean | string[]) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function toggleService(service: string) {
+    setForm((current) => {
+      const exists = current.serviceTypes.includes(service);
+      const serviceTypes = exists
+        ? current.serviceTypes.filter((item) => item !== service)
+        : [...current.serviceTypes, service];
+      return { ...current, serviceTypes };
+    });
+  }
+
+  async function submitRouter(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    setSuccess(null);
+    try {
+      const payload = {
+        name: form.name.trim(),
+        host: form.host.trim(),
+        port: Number(form.port || 8728),
+        username: form.username.trim(),
+        password: form.password,
+        use_ssl: form.useSsl,
+        service_types: form.serviceTypes.length > 0 ? form.serviceTypes : ["pppoe"],
+        health_check_interval_sec: Number(form.healthCheckIntervalSec || 300),
+        notes: form.notes.trim(),
+        test_on_create: form.testOnCreate,
+      };
+      const response = await fetch("/api/network/mikrotik/routers", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      const json = (await response.json()) as CreateRouterResponse;
+      if (!response.ok || !json.success || !json.data?.router) {
+        throw new Error(json.error?.message || "Gagal menyimpan router");
+      }
+      setSuccess(json.data);
+      setForm((current) => ({ ...current, password: "" }));
+    } catch (submitError) {
+      setError(extractMessage(submitError));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const createdRouter = success?.router;
+
+  return (
+    <AppShell>
+      <div className="space-y-6">
+        <PageHeader
+          eyebrow="MikroTik"
+          title="Tambah Router"
+          description="Simpan koneksi MikroTik ke database tenant. Test RouterOS API hanya berjalan bila dipilih atau melalui tombol test manual di halaman detail."
+          actions={<Button variant="secondary" href="/mikrotik">Kembali</Button>}
+        />
+
+        {error && (
+          <div className="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <WarningCircle size={20} className="shrink-0" />
+            <span className="min-w-0 [overflow-wrap:anywhere]">{error}</span>
+          </div>
+        )}
+
+        {createdRouter && (
+          <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 sm:flex-row sm:items-center sm:justify-between">
+            <span className="inline-flex items-center gap-2">
+              <CheckCircle size={20} />
+              Router {createdRouter.name} berhasil disimpan.
+            </span>
+            <a className="font-semibold text-emerald-900 underline-offset-4 hover:underline" href={`/mikrotik/${createdRouter.id}`}>
+              Buka detail
+            </a>
+          </div>
+        )}
+
+        <Section
+          title="Koneksi RouterOS"
+          description="Gunakan port 8728 untuk API biasa atau 8729 untuk API-SSL. Untuk CHR lokal testing, pastikan service api/api-ssl di MikroTik sudah di-enable dan firewall mengizinkan IP aplikasi."
+        >
+          <form onSubmit={(event) => void submitRouter(event)} className="grid gap-5">
+            <div className="grid gap-4 lg:grid-cols-2">
+              <FormField label="Nama router">
+                <TextInput value={form.name} onChange={(event) => updateField("name", event.target.value)} required />
+              </FormField>
+              <FormField label="Host / IP publik">
+                <TextInput value={form.host} onChange={(event) => updateField("host", event.target.value)} placeholder="82.41.42.51" required />
+              </FormField>
+              <FormField label="Username">
+                <TextInput value={form.username} onChange={(event) => updateField("username", event.target.value)} autoComplete="username" required />
+              </FormField>
+              <FormField label="Password">
+                <TextInput
+                  type="password"
+                  value={form.password}
+                  onChange={(event) => updateField("password", event.target.value)}
+                  autoComplete="current-password"
+                  required={!createdRouter}
+                />
+              </FormField>
+              <FormField label="Port API">
+                <TextInput type="number" min={1} max={65535} value={form.port} onChange={(event) => updateField("port", event.target.value)} required />
+              </FormField>
+              <FormField label="Interval health check" helper="Scheduler periodik tetap nonaktif secara default; nilai ini dipakai saat fitur monitoring diaktifkan.">
+                <TextInput
+                  type="number"
+                  min={10}
+                  max={3600}
+                  value={form.healthCheckIntervalSec}
+                  onChange={(event) => updateField("healthCheckIntervalSec", event.target.value)}
+                />
+              </FormField>
+            </div>
+
+            <div className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-900">Service yang dikelola</p>
+              <div className="flex flex-wrap gap-3">
+                {["pppoe", "hotspot", "dhcp_binding", "static"].map((service) => (
+                  <label key={service} className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={form.serviceTypes.includes(service)}
+                      onChange={() => toggleService(service)}
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="capitalize">{service.replace("_", " ")}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <FormField label="Catatan">
+              <TextInput value={form.notes} onChange={(event) => updateField("notes", event.target.value)} placeholder="Lokasi, upstream, atau akses VPN" />
+            </FormField>
+
+            <div className="grid gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <label className="inline-flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={form.useSsl}
+                  onChange={(event) => updateField("useSsl", event.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-amber-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>Gunakan API-SSL. Aktifkan ini hanya jika port 8729 dan sertifikat API-SSL sudah siap.</span>
+              </label>
+              <label className="inline-flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={form.testOnCreate}
+                  onChange={(event) => updateField("testOnCreate", event.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-amber-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>Test koneksi saat simpan. Jika tidak dicentang, tidak ada login API ke MikroTik sampai tombol Test Connection ditekan manual.</span>
+              </label>
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <Button variant="secondary" href="/mikrotik">Batal</Button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex min-w-0 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-center text-sm font-semibold leading-5 text-white transition hover:bg-blue-700 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+              >
+                {saving ? "Menyimpan..." : "Simpan Router"}
+              </button>
+            </div>
+          </form>
         </Section>
       </div>
     </AppShell>
@@ -292,6 +504,7 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
       const json = await response.json();
       if (!response.ok || !json.success) throw new Error(json.error?.message || "Test koneksi gagal");
       setSystem(json.data as SystemResource);
+      await loadRouter();
     } catch (testError) {
       setError(extractMessage(testError));
     }

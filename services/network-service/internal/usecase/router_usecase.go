@@ -45,8 +45,9 @@ func NewRouterUsecase(
 	}
 }
 
-// Create membuat router baru, encrypt password, test koneksi (best-effort),
-// auto-detect info dari router, dan publish event jika online.
+// Create membuat router baru dan menyimpan credential terenkripsi.
+// Test koneksi bersifat opt-in lewat TestOnCreate agar router tidak menerima
+// login API saat admin hanya ingin mendaftarkan data koneksi.
 func (uc *routerUsecase) Create(ctx context.Context, tenantID string, req domain.CreateRouterRequest) (*domain.RouterResponse, error) {
 	// Enkripsi password sebelum disimpan
 	encrypted, err := uc.crypto.Encrypt(req.Password)
@@ -87,6 +88,13 @@ func (uc *routerUsecase) Create(ctx context.Context, tenantID string, req domain
 	created, err := uc.repo.Create(ctx, router)
 	if err != nil {
 		return nil, err
+	}
+
+	if !req.TestOnCreate {
+		return &domain.RouterResponse{
+			Router:  created,
+			Warning: "router disimpan sebagai offline; jalankan test koneksi manual untuk membaca info RouterOS",
+		}, nil
 	}
 
 	// Test koneksi dan auto-detect info (best-effort)
@@ -260,6 +268,20 @@ func (uc *routerUsecase) TestConnection(ctx context.Context, id string) (*domain
 	sysRes, err := uc.tryConnect(ctx, router.Host, router.Port, router.Username, password, router.UseSSL)
 	if err != nil {
 		return nil, err
+	}
+
+	router.RouterOSVersion = sysRes.Version
+	router.BoardName = sysRes.BoardName
+	router.CPUCount = sysRes.CPUCount
+	router.TotalRAMMB = int(sysRes.TotalRAM / (1024 * 1024))
+	router.Identity = sysRes.Identity
+	router.Status = domain.StatusOnline
+	now := time.Now()
+	router.LastOnlineAt = &now
+	uptime := sysRes.Uptime
+	router.LastUptimeSec = &uptime
+	if _, updateErr := uc.repo.Update(ctx, router); updateErr != nil {
+		log.Warn().Err(updateErr).Str("router_id", id).Msg("test koneksi berhasil tetapi gagal update metadata router")
 	}
 
 	return sysRes, nil
