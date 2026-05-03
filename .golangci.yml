@@ -1,0 +1,44 @@
+# =============================================================================
+# golangci-lint configuration for ISPBoss
+# =============================================================================
+#
+# Convention: Maximum 200 lines per Go source file.
+# This limit is enforced by code review — if a file exceeds 200 lines,
+# it should be split into smaller, focused files.
+# =============================================================================
+
+linters:
+  enable:
+    - errcheck      # Check for unchecked errors
+    - govet         # Report suspicious constructs
+    - staticcheck   # Advanced static analysis
+    - unused        # Find unused code
+    - gosimple      # Suggest code simplifications
+
+linters-settings:
+  errcheck:
+    # Check for unchecked errors in type assertions
+    check-type-assertions: true
+
+  govet:
+    # Enable all analyzers
+    enable-all: true
+
+  staticcheck:
+    # Use the latest supported Go version checks
+    checks:
+      - "all"
+
+run:
+  # Timeout for the entire linting run
+  timeout: 5m
+
+  # Include Go test files in analysis
+  tests: true
+
+issues:
+  # Maximum number of issues per linter (0 = unlimited)
+  max-issues-per-linter: 0
+
+  # Maximum number of same issues (0 = unlimited)
+  max-same-issues: 0

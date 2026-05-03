@@ -1,0 +1,454 @@
+// customer_usecase.go berisi business logic untuk manajemen pelanggan.
+// Mengimplementasikan Create, GetByID, Update, SoftDelete, List, dan Stats.
+package usecase
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"math"
+	"time"
+
+	"github.com/hibiken/asynq"
+	"github.com/rs/zerolog"
+
+	"github.com/ispboss/ispboss/pkg/queue"
+	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
+)
+
+// ActorInfo berisi informasi aktor yang melakukan operasi.
+// Diambil dari JWT claims dan user data oleh handler.
+type ActorInfo struct {
+	ID   string
+	Name string
+}
+
+// CustomerUsecase mengimplementasikan business logic untuk manajemen pelanggan.
+type CustomerUsecase struct {
+	customerRepo domain.CustomerRepository
+	auditLogRepo domain.AuditLogRepository
+	queueClient  *asynq.Client
+	logger       zerolog.Logger
+}
+
+// NewCustomerUsecase membuat instance baru CustomerUsecase.
+func NewCustomerUsecase(
+	customerRepo domain.CustomerRepository,
+	auditLogRepo domain.AuditLogRepository,
+	queueClient *asynq.Client,
+	logger zerolog.Logger,
+) *CustomerUsecase {
+	return &CustomerUsecase{
+		customerRepo: customerRepo,
+		auditLogRepo: auditLogRepo,
+		queueClient:  queueClient,
+		logger:       logger,
+	}
+}
+
+// Create membuat pelanggan baru.
+// Flow: validate → check phone duplicate → get max seq → generate customer ID →
+// auto-generate PPPoE if needed → create customer with status pending →
+// write audit log → publish customer.created event.
+func (uc *CustomerUsecase) Create(ctx context.Context, tenantID string, req domain.CreateCustomerRequest, actor ActorInfo) (*domain.Customer, error) {
+	// Check phone duplicate
+	exists, err := uc.customerRepo.PhoneExists(ctx, tenantID, req.Phone, "")
+	if err != nil {
+		return nil, fmt.Errorf("usecase: gagal cek phone duplicate: %w", err)
+	}
+	if exists {
+		return nil, domain.ErrPhoneDuplicate
+	}
+
+	// Get max sequence number for this tenant
+	maxSeq, err := uc.customerRepo.GetMaxSeq(ctx, tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("usecase: gagal ambil max seq: %w", err)
+	}
+
+	// Generate customer ID
+	customerIDSeq := domain.GenerateCustomerID(maxSeq)
+
+	// Parse activation date
+	activationDate, err := time.Parse("2006-01-02", req.ActivationDate)
+	if err != nil {
+		return nil, fmt.Errorf("usecase: format activation_date tidak valid: %w", err)
+	}
+
+	// Auto-generate PPPoE credentials if needed
+	pppoeUsername := req.PPPoEUsername
+	pppoePassword := req.PPPoEPassword
+	if domain.ConnectionMethod(req.ConnectionMethod) == domain.ConnectionPPPoE {
+		if pppoeUsername == "" {
+			pppoeUsername = domain.GeneratePPPoEUsername(req.Name, customerIDSeq)
+		}
+		if pppoePassword == "" {
+			pppoePassword = domain.GeneratePPPoEPassword()
+		}
+	}
+
+	// Build customer entity
+	customer := &domain.Customer{
+		TenantID:         tenantID,
+		CustomerIDSeq:    customerIDSeq,
+		Name:             req.Name,
+		Phone:            req.Phone,
+		Email:            req.Email,
+		Address:          req.Address,
+		AreaID:           req.AreaID,
+		Latitude:         req.Latitude,
+		Longitude:        req.Longitude,
+		PackageID:        req.PackageID,
+		ActivationDate:   activationDate,
+		DueDate:          req.DueDate,
+		ConnectionMethod: domain.ConnectionMethod(req.ConnectionMethod),
+		PPPoEUsername:    pppoeUsername,
+		PPPoEPassword:    pppoePassword,
+		MACAddress:       req.MACAddress,
+		RouterID:         req.RouterID,
+		ODPPort:          req.ODPPort,
+		Notes:            req.Notes,
+		Status:           domain.CustomerStatusPending,
+	}
+
+	// Create customer in database
+	created, err := uc.customerRepo.Create(ctx, customer)
+	if err != nil {
+		return nil, fmt.Errorf("usecase: gagal membuat customer: %w", err)
+	}
+
+	// Write audit log
+	uc.writeAuditLog(ctx, tenantID, created.ID, "customer.created", actor, nil)
+
+	// Publish customer.created event
+	uc.publishEvent(tenantID, "customer.created", domain.CustomerCreatedPayload{
+		CustomerID:       created.ID,
+		Name:             created.Name,
+		PackageID:        created.PackageID,
+		ConnectionMethod: string(created.ConnectionMethod),
+		RouterID:         created.RouterID,
+	})
+
+	return created, nil
+}
+
+// GetByID mengambil detail pelanggan berdasarkan ID.
+// Jika includeAudit true, audit logs juga disertakan.
+func (uc *CustomerUsecase) GetByID(ctx context.Context, id string, includeAudit bool) (*domain.CustomerDetail, error) {
+	customer, err := uc.customerRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if soft-deleted
+	if customer.DeletedAt != nil {
+		return nil, domain.ErrCustomerNotFound
+	}
+
+	detail := &domain.CustomerDetail{
+		Customer: customer,
+	}
+
+	// Optionally fetch audit logs
+	if includeAudit {
+		logs, err := uc.auditLogRepo.ListByEntity(ctx, "customer", id)
+		if err != nil {
+			uc.logger.Error().Err(err).Str("customer_id", id).Msg("gagal mengambil audit logs")
+			// Don't fail the request, just skip audit logs
+		} else {
+			detail.AuditLogs = logs
+		}
+	}
+
+	return detail, nil
+}
+
+// Update memperbarui data pelanggan.
+// Flow: validate → check phone duplicate → update → compute changed fields →
+// write audit log with old/new values.
+func (uc *CustomerUsecase) Update(ctx context.Context, id string, req domain.UpdateCustomerRequest, actor ActorInfo) (*domain.Customer, error) {
+	// Fetch existing customer
+	existing, err := uc.customerRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if existing.DeletedAt != nil {
+		return nil, domain.ErrCustomerNotFound
+	}
+
+	// Check phone duplicate if phone is being changed
+	if req.Phone != "" && req.Phone != existing.Phone {
+		exists, err := uc.customerRepo.PhoneExists(ctx, existing.TenantID, req.Phone, id)
+		if err != nil {
+			return nil, fmt.Errorf("usecase: gagal cek phone duplicate: %w", err)
+		}
+		if exists {
+			return nil, domain.ErrPhoneDuplicate
+		}
+	}
+
+	// Apply updates to existing customer (only non-zero values)
+	updated := applyCustomerUpdates(existing, req)
+
+	// Save to database
+	result, err := uc.customerRepo.Update(ctx, updated)
+	if err != nil {
+		return nil, fmt.Errorf("usecase: gagal memperbarui customer: %w", err)
+	}
+
+	// Compute changed fields for audit log
+	changes := computeChanges(existing, result)
+
+	// Write audit log with old/new values
+	if len(changes) > 0 {
+		uc.writeAuditLog(ctx, existing.TenantID, id, "customer.updated", actor, changes)
+	}
+
+	return result, nil
+}
+
+// SoftDelete menghapus pelanggan secara soft delete.
+// Flow: fetch customer → verify confirmation_name matches → soft delete →
+// write audit log → publish customer.terminated event.
+func (uc *CustomerUsecase) SoftDelete(ctx context.Context, id string, confirmationName string, actor ActorInfo) error {
+	// Fetch existing customer
+	customer, err := uc.customerRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if customer.DeletedAt != nil {
+		return domain.ErrCustomerNotFound
+	}
+
+	// Verify confirmation name matches (case-sensitive)
+	if confirmationName != customer.Name {
+		return domain.ErrConfirmationMismatch
+	}
+
+	// Soft delete
+	if err := uc.customerRepo.SoftDelete(ctx, id); err != nil {
+		return fmt.Errorf("usecase: gagal soft-delete customer: %w", err)
+	}
+
+	// Write audit log
+	uc.writeAuditLog(ctx, customer.TenantID, id, "customer.deleted", actor, nil)
+
+	// Publish customer.terminated event
+	uc.publishEvent(customer.TenantID, "customer.terminated", domain.CustomerTerminatedPayload{
+		CustomerID:    customer.ID,
+		Name:          customer.Name,
+		RouterID:      customer.RouterID,
+		PPPoEUsername: customer.PPPoEUsername,
+	})
+
+	return nil
+}
+
+// List mengambil daftar pelanggan dengan paginasi, filter, dan sorting.
+// Menerapkan default: page=1, page_size=25.
+func (uc *CustomerUsecase) List(ctx context.Context, params domain.CustomerListParams) (*domain.CustomerListResult, error) {
+	// Apply defaults
+	if params.Page < 1 {
+		params.Page = 1
+	}
+	if params.PageSize < 1 {
+		params.PageSize = 25
+	}
+
+	return uc.customerRepo.List(ctx, params)
+}
+
+// Stats mengembalikan jumlah pelanggan per status.
+func (uc *CustomerUsecase) Stats(ctx context.Context) (map[domain.CustomerStatus]int64, error) {
+	return uc.customerRepo.CountByStatus(ctx)
+}
+
+// --- Helper functions ---
+
+// writeAuditLog menulis audit log entry. Tidak mengembalikan error agar
+// operasi utama tidak gagal karena audit log.
+func (uc *CustomerUsecase) writeAuditLog(ctx context.Context, tenantID, entityID, action string, actor ActorInfo, changes map[string]interface{}) {
+	log := &domain.AuditLog{
+		TenantID:   tenantID,
+		EntityType: "customer",
+		EntityID:   entityID,
+		Action:     action,
+		ActorID:    actor.ID,
+		ActorName:  actor.Name,
+		Changes:    changes,
+	}
+
+	if err := uc.auditLogRepo.Create(ctx, log); err != nil {
+		uc.logger.Error().Err(err).
+			Str("entity_id", entityID).
+			Str("action", action).
+			Msg("gagal menulis audit log")
+	}
+}
+
+// publishEvent mempublikasikan event ke Redis queue.
+// Tidak mengembalikan error agar operasi utama tidak gagal.
+func (uc *CustomerUsecase) publishEvent(tenantID, eventType string, payload interface{}) {
+	if uc.queueClient == nil {
+		return
+	}
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		uc.logger.Error().Err(err).Str("event_type", eventType).Msg("gagal marshal event payload")
+		return
+	}
+
+	envelope := queue.TaskEnvelope{
+		EventType: eventType,
+		TenantID:  tenantID,
+		Payload:   payloadJSON,
+	}
+
+	if err := queue.EnqueueTask(uc.queueClient, envelope); err != nil {
+		uc.logger.Error().Err(err).Str("event_type", eventType).Msg("gagal publish event")
+	}
+}
+
+// applyCustomerUpdates menerapkan perubahan dari UpdateCustomerRequest ke Customer.
+// Hanya field yang non-zero/non-empty yang diperbarui.
+func applyCustomerUpdates(existing *domain.Customer, req domain.UpdateCustomerRequest) *domain.Customer {
+	updated := *existing // copy
+
+	if req.Name != "" {
+		updated.Name = req.Name
+	}
+	if req.Phone != "" {
+		updated.Phone = req.Phone
+	}
+	if req.Email != "" {
+		updated.Email = req.Email
+	}
+	if req.Address != "" {
+		updated.Address = req.Address
+	}
+	if req.AreaID != "" {
+		updated.AreaID = req.AreaID
+	}
+	if req.Latitude != nil {
+		updated.Latitude = *req.Latitude
+	}
+	if req.Longitude != nil {
+		updated.Longitude = *req.Longitude
+	}
+	if req.PackageID != "" {
+		updated.PackageID = req.PackageID
+	}
+	if req.ActivationDate != "" {
+		if t, err := time.Parse("2006-01-02", req.ActivationDate); err == nil {
+			updated.ActivationDate = t
+		}
+	}
+	if req.DueDate != nil {
+		updated.DueDate = *req.DueDate
+	}
+	if req.ConnectionMethod != "" {
+		updated.ConnectionMethod = domain.ConnectionMethod(req.ConnectionMethod)
+	}
+	if req.PPPoEUsername != "" {
+		updated.PPPoEUsername = req.PPPoEUsername
+	}
+	if req.PPPoEPassword != "" {
+		updated.PPPoEPassword = req.PPPoEPassword
+	}
+	if req.MACAddress != "" {
+		updated.MACAddress = req.MACAddress
+	}
+	if req.RouterID != "" {
+		updated.RouterID = req.RouterID
+	}
+	if req.ODPPort != "" {
+		updated.ODPPort = req.ODPPort
+	}
+	if req.Notes != "" {
+		updated.Notes = req.Notes
+	}
+
+	return &updated
+}
+
+// computeChanges menghitung field yang berubah antara old dan new customer.
+// Mengembalikan map dengan format {"field": {"old": oldVal, "new": newVal}}.
+func computeChanges(old, new *domain.Customer) map[string]interface{} {
+	changes := make(map[string]interface{})
+
+	if old.Name != new.Name {
+		changes["name"] = map[string]interface{}{"old": old.Name, "new": new.Name}
+	}
+	if old.Phone != new.Phone {
+		changes["phone"] = map[string]interface{}{"old": old.Phone, "new": new.Phone}
+	}
+	if old.Email != new.Email {
+		changes["email"] = map[string]interface{}{"old": old.Email, "new": new.Email}
+	}
+	if old.Address != new.Address {
+		changes["address"] = map[string]interface{}{"old": old.Address, "new": new.Address}
+	}
+	if old.AreaID != new.AreaID {
+		changes["area_id"] = map[string]interface{}{"old": old.AreaID, "new": new.AreaID}
+	}
+	if old.Latitude != new.Latitude {
+		changes["latitude"] = map[string]interface{}{"old": old.Latitude, "new": new.Latitude}
+	}
+	if old.Longitude != new.Longitude {
+		changes["longitude"] = map[string]interface{}{"old": old.Longitude, "new": new.Longitude}
+	}
+	if old.PackageID != new.PackageID {
+		changes["package_id"] = map[string]interface{}{"old": old.PackageID, "new": new.PackageID}
+	}
+	if !old.ActivationDate.Equal(new.ActivationDate) {
+		changes["activation_date"] = map[string]interface{}{"old": old.ActivationDate, "new": new.ActivationDate}
+	}
+	if old.DueDate != new.DueDate {
+		changes["due_date"] = map[string]interface{}{"old": old.DueDate, "new": new.DueDate}
+	}
+	if old.ConnectionMethod != new.ConnectionMethod {
+		changes["connection_method"] = map[string]interface{}{"old": old.ConnectionMethod, "new": new.ConnectionMethod}
+	}
+	if old.PPPoEUsername != new.PPPoEUsername {
+		changes["pppoe_username"] = map[string]interface{}{"old": old.PPPoEUsername, "new": new.PPPoEUsername}
+	}
+	if old.PPPoEPassword != new.PPPoEPassword {
+		changes["pppoe_password"] = map[string]interface{}{"old": "***", "new": "***"}
+	}
+	if old.MACAddress != new.MACAddress {
+		changes["mac_address"] = map[string]interface{}{"old": old.MACAddress, "new": new.MACAddress}
+	}
+	if old.RouterID != new.RouterID {
+		changes["router_id"] = map[string]interface{}{"old": old.RouterID, "new": new.RouterID}
+	}
+	if old.ODPPort != new.ODPPort {
+		changes["odp_port"] = map[string]interface{}{"old": old.ODPPort, "new": new.ODPPort}
+	}
+	if old.Notes != new.Notes {
+		changes["notes"] = map[string]interface{}{"old": old.Notes, "new": new.Notes}
+	}
+	if old.Status != new.Status {
+		changes["status"] = map[string]interface{}{"old": old.Status, "new": new.Status}
+	}
+
+	return changes
+}
+
+// ComputePaginationMeta menghitung metadata paginasi.
+// Digunakan oleh usecase dan test.
+func ComputePaginationMeta(total int64, page, pageSize int) domain.PaginationMeta {
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+	if totalPages < 1 {
+		totalPages = 1
+	}
+
+	return domain.PaginationMeta{
+		Total:      total,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+	}
+}

@@ -1,0 +1,15 @@
+go 1.25.0
+
+use (
+	// Shared Go packages
+	./pkg/auth
+	./pkg/database
+	./pkg/logger
+	./pkg/queue
+	./pkg/tenant
+
+	// Go services
+	./services/billing-api
+	./services/network-service
+	./services/notification
+)

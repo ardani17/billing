@@ -1,0 +1,9 @@
+meta {
+  name: Health Check - Notification
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{notification_url}}/healthz
+}

@@ -1,0 +1,131 @@
+# Docker Compose — ISPBoss Development Environment
+# Jalankan: docker compose up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ispboss-postgres
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_USER: ${DB_USER:-ispboss}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ispboss_secret}
+      POSTGRES_DB: ${DB_NAME:-ispboss}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ispboss"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ispboss-redis
+    ports: ["6379:6379"]
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  billing-api:
+    build: {context: .., dockerfile: services/billing-api/Dockerfile}
+    container_name: ispboss-billing-api
+    ports: ["3001:3001"]
+    environment:
+      APP_NAME: billing-api
+      APP_PORT: "3001"
+      APP_ENV: development
+      LOG_LEVEL: debug
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-ispboss}
+      DB_PASSWORD: ${DB_PASSWORD:-ispboss_secret}
+      DB_NAME: ${DB_NAME:-ispboss}
+      DB_SSL_MODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-strong-secret}
+      JWT_EXPIRY: 24h
+      NETWORK_SERVICE_URL: http://network-service:3002
+      ISOLIR_AUTOMATION_ENABLED: ${ISOLIR_AUTOMATION_ENABLED:-false}
+      ISOLIR_PERIODIC_SYNC_ENABLED: ${ISOLIR_PERIODIC_SYNC_ENABLED:-false}
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3001/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  network-service:
+    build: {context: .., dockerfile: services/network-service/Dockerfile}
+    container_name: ispboss-network-service
+    ports: ["3002:3002"]
+    environment:
+      APP_NAME: network-service
+      APP_PORT: "3002"
+      APP_ENV: development
+      LOG_LEVEL: debug
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-ispboss}
+      DB_PASSWORD: ${DB_PASSWORD:-ispboss_secret}
+      DB_NAME: ${DB_NAME:-ispboss}
+      DB_SSL_MODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-strong-secret}
+      JWT_EXPIRY: 24h
+      NETWORK_MODE: ${NETWORK_MODE:-live}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+      ROUTER_HEALTH_CHECK_ENABLED: ${ROUTER_HEALTH_CHECK_ENABLED:-false}
+      PPPOE_SYNC_SCHEDULER_ENABLED: ${PPPOE_SYNC_SCHEDULER_ENABLED:-false}
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3002/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  notification:
+    build: {context: .., dockerfile: services/notification/Dockerfile}
+    container_name: ispboss-notification
+    ports: ["3003:3003"]
+    environment:
+      APP_NAME: notification
+      APP_PORT: "3003"
+      APP_ENV: development
+      LOG_LEVEL: debug
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-ispboss}
+      DB_PASSWORD: ${DB_PASSWORD:-ispboss_secret}
+      DB_NAME: ${DB_NAME:-ispboss}
+      DB_SSL_MODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-strong-secret}
+      JWT_EXPIRY: 24h
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3003/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: ispboss_postgres_data
+  redis_data:
+    name: ispboss_redis_data

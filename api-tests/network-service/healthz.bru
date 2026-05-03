@@ -1,0 +1,9 @@
+meta {
+  name: Health Check - Network Service
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{network_service_url}}/healthz
+}

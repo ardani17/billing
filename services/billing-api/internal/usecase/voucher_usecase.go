@@ -1,0 +1,280 @@
+// voucher_usecase.go berisi business logic untuk manajemen voucher (admin).
+// Mengimplementasikan Generate, List, GetByID pada VoucherUsecase.
+package usecase
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+
+	"github.com/hibiken/asynq"
+	"github.com/rs/zerolog"
+
+	"github.com/ispboss/ispboss/pkg/queue"
+	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
+)
+
+// VoucherUsecase mengimplementasikan business logic untuk manajemen voucher.
+type VoucherUsecase struct {
+	voucherRepo     domain.VoucherRepository
+	voucherAuditLog domain.VoucherAuditLogRepository
+	packageRepo     domain.PackageRepository
+	queueClient     *asynq.Client
+	logger          zerolog.Logger
+}
+
+// NewVoucherUsecase membuat instance baru VoucherUsecase.
+func NewVoucherUsecase(
+	voucherRepo domain.VoucherRepository,
+	voucherAuditLog domain.VoucherAuditLogRepository,
+	packageRepo domain.PackageRepository,
+	queueClient *asynq.Client,
+	logger zerolog.Logger,
+) *VoucherUsecase {
+	return &VoucherUsecase{
+		voucherRepo:     voucherRepo,
+		voucherAuditLog: voucherAuditLog,
+		packageRepo:     packageRepo,
+		queueClient:     queueClient,
+		logger:          logger,
+	}
+}
+
+// Generate menghasilkan batch voucher baru untuk paket tertentu.
+// Flow: validasi paket ada dan type=voucher → jika quantity ≤ 500: generate kode
+// via GenerateVoucherCodes → BulkCreate voucher dengan status tersedia →
+// tulis voucher audit logs (voucher.generated) → publish event voucher.batch_generated →
+// kembalikan hasil dengan voucher.
+// Jika quantity > 500: enqueue job voucher.async_generate → kembalikan hasil dengan job_id.
+func (uc *VoucherUsecase) Generate(ctx context.Context, tenantID string, req domain.GenerateVoucherRequest, actor domain.ActorInfo) (*domain.GenerateVoucherResult, error) {
+	// Validasi paket ada dan bertipe voucher
+	pkg, err := uc.packageRepo.GetByID(ctx, req.PackageID)
+	if err != nil {
+		return nil, err
+	}
+	if pkg.Type != domain.PackageTypeVoucher {
+		return nil, domain.ErrInvalidPackageType
+	}
+
+	// Jika quantity > 500, enqueue job async
+	if req.Quantity > 500 {
+		return uc.enqueueAsyncGenerate(tenantID, req, actor)
+	}
+
+	// Generate kode voucher secara sinkron
+	return uc.generateSync(ctx, tenantID, req, actor)
+}
+
+// generateSync menghasilkan voucher secara sinkron (quantity ≤ 500).
+// Flow: generate kode → buat voucher di database → tulis audit log → publish event.
+func (uc *VoucherUsecase) generateSync(ctx context.Context, tenantID string, req domain.GenerateVoucherRequest, actor domain.ActorInfo) (*domain.GenerateVoucherResult, error) {
+	// Generate kode voucher unik menggunakan crypto/rand
+	codeFormat := domain.CodeFormat(req.CodeFormat)
+	existingCodes := make(map[string]struct{})
+	codes, failed := domain.GenerateVoucherCodes(codeFormat, req.CodeLength, req.Prefix, req.Quantity, existingCodes, 3)
+
+	// Bangun slice voucher untuk BulkCreate
+	vouchers := make([]*domain.Voucher, 0, len(codes))
+	for _, code := range codes {
+		vouchers = append(vouchers, &domain.Voucher{
+			TenantID:  tenantID,
+			Code:      code,
+			PackageID: req.PackageID,
+			Status:    domain.VoucherStatusTersedia,
+		})
+	}
+
+	// Simpan voucher ke database
+	created, err := uc.voucherRepo.BulkCreate(ctx, vouchers)
+	if err != nil {
+		return nil, fmt.Errorf("usecase: gagal bulk create voucher: %w", err)
+	}
+
+	// Tulis voucher audit log untuk setiap voucher yang berhasil dibuat
+	auditLogs := make([]*domain.VoucherAuditLog, 0, len(created))
+	for _, v := range created {
+		auditLogs = append(auditLogs, &domain.VoucherAuditLog{
+			TenantID:  tenantID,
+			VoucherID: v.ID,
+			Action:    "voucher.generated",
+			ActorID:   actor.ActorID,
+			ActorName: actor.ActorName,
+			Metadata: map[string]interface{}{
+				"package_id":  req.PackageID,
+				"code_format": req.CodeFormat,
+				"code_length": req.CodeLength,
+				"prefix":      req.Prefix,
+			},
+		})
+	}
+
+	if len(auditLogs) > 0 {
+		if err := uc.voucherAuditLog.BulkCreate(ctx, auditLogs); err != nil {
+			uc.logger.Error().Err(err).
+				Int("count", len(auditLogs)).
+				Msg("gagal menulis voucher audit logs saat generate")
+		}
+	}
+
+	// Publish event voucher.batch_generated
+	uc.publishEvent(tenantID, "voucher.batch_generated", domain.VoucherBatchGeneratedPayload{
+		TenantID:    tenantID,
+		PackageID:   req.PackageID,
+		Quantity:    len(created),
+		GeneratedBy: actor.ActorID,
+	})
+
+	return &domain.GenerateVoucherResult{
+		TotalRequested: req.Quantity,
+		TotalGenerated: len(created),
+		TotalFailed:    failed,
+		Vouchers:       created,
+	}, nil
+}
+
+// enqueueAsyncGenerate mengirim job generate voucher ke queue untuk diproses secara async.
+// Digunakan saat quantity > 500 agar HTTP response tetap cepat.
+func (uc *VoucherUsecase) enqueueAsyncGenerate(tenantID string, req domain.GenerateVoucherRequest, actor domain.ActorInfo) (*domain.GenerateVoucherResult, error) {
+	// Bangun payload job async
+	payload := map[string]interface{}{
+		"package_id":  req.PackageID,
+		"quantity":    req.Quantity,
+		"code_format": req.CodeFormat,
+		"code_length": req.CodeLength,
+		"prefix":      req.Prefix,
+		"actor_id":    actor.ActorID,
+		"actor_name":  actor.ActorName,
+	}
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("usecase: gagal marshal async generate payload: %w", err)
+	}
+
+	// Enqueue job ke queue
+	envelope := queue.TaskEnvelope{
+		EventType: "voucher.async_generate",
+		TenantID:  tenantID,
+		Payload:   payloadJSON,
+	}
+
+	if err := queue.EnqueueTask(uc.queueClient, envelope); err != nil {
+		return nil, fmt.Errorf("usecase: gagal enqueue async generate job: %w", err)
+	}
+
+	// Gunakan correlation ID sebagai job_id
+	jobID := envelope.CorrelationID
+	if jobID == "" {
+		jobID = "voucher-generate-" + tenantID
+	}
+
+	return &domain.GenerateVoucherResult{
+		TotalRequested: req.Quantity,
+		TotalGenerated: 0,
+		TotalFailed:    0,
+		JobID:          jobID,
+	}, nil
+}
+
+// List mengambil daftar voucher dengan paginasi, filter, dan sorting.
+// Menerapkan default: page=1, page_size=25.
+func (uc *VoucherUsecase) List(ctx context.Context, params domain.VoucherListParams) (*domain.VoucherListResult, error) {
+	// Terapkan default paginasi
+	if params.Page < 1 {
+		params.Page = 1
+	}
+	if params.PageSize < 1 {
+		params.PageSize = 25
+	}
+
+	return uc.voucherRepo.List(ctx, params)
+}
+
+// GetByID mengambil detail voucher berdasarkan ID, termasuk audit logs.
+// Flow: fetch voucher → fetch voucher audit logs → kembalikan VoucherDetail.
+func (uc *VoucherUsecase) GetByID(ctx context.Context, id string) (*domain.VoucherDetail, error) {
+	// Ambil voucher berdasarkan ID
+	voucher, err := uc.voucherRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ambil audit logs untuk voucher ini
+	auditLogs, err := uc.voucherAuditLog.ListByVoucher(ctx, id)
+	if err != nil {
+		uc.logger.Error().Err(err).Str("voucher_id", id).Msg("gagal mengambil voucher audit logs")
+		// Jangan gagalkan request, skip audit logs saja
+	}
+
+	return &domain.VoucherDetail{
+		Voucher:   voucher,
+		AuditLogs: auditLogs,
+	}, nil
+}
+
+// ListByReseller mengambil daftar voucher milik reseller tertentu dengan paginasi.
+// Menerapkan default: page=1, page_size=25.
+func (uc *VoucherUsecase) ListByReseller(ctx context.Context, params domain.ResellerVoucherListParams) (*domain.VoucherListResult, error) {
+	// Terapkan default paginasi
+	if params.Page < 1 {
+		params.Page = 1
+	}
+	if params.PageSize < 1 {
+		params.PageSize = 25
+	}
+
+	return uc.voucherRepo.ListByReseller(ctx, params)
+}
+
+// CountSoldToday menghitung jumlah voucher yang dibeli reseller hari ini.
+func (uc *VoucherUsecase) CountSoldToday(ctx context.Context, resellerID string) (int, error) {
+	return uc.voucherRepo.CountSoldToday(ctx, resellerID)
+}
+
+// CountAvailableByReseller menghitung jumlah voucher tersedia (status terjual) milik reseller.
+func (uc *VoucherUsecase) CountAvailableByReseller(ctx context.Context, resellerID string) (int, error) {
+	return uc.voucherRepo.CountByResellerAndStatus(ctx, resellerID, []domain.VoucherStatus{domain.VoucherStatusTerjual})
+}
+
+// VerifyOwnership memverifikasi bahwa semua voucher milik reseller tertentu.
+// Mengembalikan ErrVoucherForbidden jika ada voucher yang bukan milik reseller.
+func (uc *VoucherUsecase) VerifyOwnership(ctx context.Context, voucherIDs []string, resellerID string) error {
+	vouchers, err := uc.voucherRepo.GetByIDs(ctx, voucherIDs)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range vouchers {
+		if v.ResellerID != resellerID {
+			return domain.ErrVoucherForbidden
+		}
+	}
+
+	return nil
+}
+
+// --- Helper methods ---
+
+// publishEvent mempublikasikan event ke Redis queue.
+// Tidak mengembalikan error agar operasi utama tidak gagal.
+func (uc *VoucherUsecase) publishEvent(tenantID, eventType string, payload interface{}) {
+	if uc.queueClient == nil {
+		return
+	}
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		uc.logger.Error().Err(err).Str("event_type", eventType).Msg("gagal marshal event payload")
+		return
+	}
+
+	envelope := queue.TaskEnvelope{
+		EventType: eventType,
+		TenantID:  tenantID,
+		Payload:   payloadJSON,
+	}
+
+	if err := queue.EnqueueTask(uc.queueClient, envelope); err != nil {
+		uc.logger.Error().Err(err).Str("event_type", eventType).Msg("gagal publish event")
+	}
+}
