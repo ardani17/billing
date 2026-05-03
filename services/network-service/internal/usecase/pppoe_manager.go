@@ -44,6 +44,9 @@ type PPPoEManager interface {
 	// DisconnectSession memutus satu active session di router.
 	DisconnectSession(ctx context.Context, routerID, sessionID string) error
 
+	// DisconnectUser memutus active session milik satu PPPoE user terkelola.
+	DisconnectUser(ctx context.Context, routerID, userID string) error
+
 	// GetSessionCount mengambil jumlah active sessions di router.
 	GetSessionCount(ctx context.Context, routerID string) (int, error)
 

@@ -23,20 +23,33 @@ type mockPPPoEMgr struct {
 	syncFn   func(context.Context, string) (*domain.SyncResult, error)
 }
 
-func (m *mockPPPoEMgr) HandleCustomerActivated(context.Context, domain.CustomerActivatedPayload) error { return nil }
-func (m *mockPPPoEMgr) HandleIsolir(context.Context, domain.CustomerIsolirPayload) error             { return nil }
-func (m *mockPPPoEMgr) HandleUnIsolir(context.Context, domain.CustomerUnIsolirPayload) error         { return nil }
-func (m *mockPPPoEMgr) HandleSuspend(context.Context, domain.CustomerSuspendPayload) error           { return nil }
-func (m *mockPPPoEMgr) HandlePackageChanged(context.Context, domain.PackageChangedPayload) error     { return nil }
-func (m *mockPPPoEMgr) SyncProfile(context.Context, *domain.PPPoEProfile) error                     { return nil }
+func (m *mockPPPoEMgr) HandleCustomerActivated(context.Context, domain.CustomerActivatedPayload) error {
+	return nil
+}
+func (m *mockPPPoEMgr) HandleIsolir(context.Context, domain.CustomerIsolirPayload) error { return nil }
+func (m *mockPPPoEMgr) HandleUnIsolir(context.Context, domain.CustomerUnIsolirPayload) error {
+	return nil
+}
+func (m *mockPPPoEMgr) HandleSuspend(context.Context, domain.CustomerSuspendPayload) error {
+	return nil
+}
+func (m *mockPPPoEMgr) HandlePackageChanged(context.Context, domain.PackageChangedPayload) error {
+	return nil
+}
+func (m *mockPPPoEMgr) SyncProfile(context.Context, *domain.PPPoEProfile) error { return nil }
 func (m *mockPPPoEMgr) ListUsers(context.Context, string, domain.PPPoEUserListParams) (*domain.PPPoEUserListResult, error) {
 	return nil, nil
 }
-func (m *mockPPPoEMgr) DeleteUser(context.Context, string, string) error                       { return nil }
-func (m *mockPPPoEMgr) GetSyncStatus(context.Context, string) (*domain.SyncStatusSummary, error) { return nil, nil }
-func (m *mockPPPoEMgr) GetActiveSessions(context.Context, string) ([]domain.PPPoESession, error) { return nil, nil }
-func (m *mockPPPoEMgr) DisconnectSession(context.Context, string, string) error                   { return nil }
-func (m *mockPPPoEMgr) GetSessionCount(context.Context, string) (int, error)                      { return 0, nil }
+func (m *mockPPPoEMgr) DeleteUser(context.Context, string, string) error { return nil }
+func (m *mockPPPoEMgr) GetSyncStatus(context.Context, string) (*domain.SyncStatusSummary, error) {
+	return nil, nil
+}
+func (m *mockPPPoEMgr) GetActiveSessions(context.Context, string) ([]domain.PPPoESession, error) {
+	return nil, nil
+}
+func (m *mockPPPoEMgr) DisconnectSession(context.Context, string, string) error { return nil }
+func (m *mockPPPoEMgr) DisconnectUser(context.Context, string, string) error    { return nil }
+func (m *mockPPPoEMgr) GetSessionCount(context.Context, string) (int, error)    { return 0, nil }
 func (m *mockPPPoEMgr) CreateUser(ctx context.Context, rid string, req domain.CreatePPPoEUserRequest) (*domain.PPPoEUser, error) {
 	if m.createFn != nil {
 		return m.createFn(ctx, rid, req)
@@ -145,7 +158,7 @@ func TestCreateUser_SuccessFormat(t *testing.T) {
 	app := setupPPPoETestApp(mgr)
 	b, _ := json.Marshal(domain.CreatePPPoEUserRequest{
 		CustomerID: "550e8400-e29b-41d4-a716-446655440000",
-		Username: "user1", Password: "pass1", ProfileName: "10mbps",
+		Username:   "user1", Password: "pass1", ProfileName: "10mbps",
 	})
 	req := httptest.NewRequest("POST", "/api/v1/mikrotik/routers/r1/pppoe/users", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")

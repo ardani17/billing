@@ -81,9 +81,14 @@ func (a *LiveAdapter) Execute(ctx context.Context, command string, params map[st
 		return nil, domain.ErrConnectionFailed
 	}
 
-	// Bangun argumen: command + parameter dalam format =key=value
+	// Bangun argumen: command + parameter dalam format =key=value.
+	// Sebagian command builder lama sudah menyimpan key dengan prefix "=".
 	args := []string{command}
 	for k, v := range params {
+		if strings.HasPrefix(k, "=") {
+			args = append(args, k+"="+v)
+			continue
+		}
 		args = append(args, "="+k+"="+v)
 	}
 

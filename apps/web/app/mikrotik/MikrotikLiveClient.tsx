@@ -471,6 +471,7 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
   const [loading, setLoading] = useState(true);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   async function loadRouter() {
@@ -538,6 +539,55 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
       setError(extractMessage(syncError));
     } finally {
       setSyncing(false);
+    }
+  }
+
+  async function disconnectSession(sessionId: string) {
+    setActionBusy(`session:${sessionId}`);
+    setError("");
+    try {
+      const response = await fetch(`/api/network/mikrotik/routers/${routerId}/pppoe/sessions/${sessionId}/disconnect`, { method: "POST" });
+      const json = await response.json();
+      if (!response.ok || !json.success) throw new Error(json.error?.message || "Disconnect session gagal");
+      await loadLiveSessions();
+    } catch (disconnectError) {
+      setError(extractMessage(disconnectError));
+    } finally {
+      setActionBusy(null);
+    }
+  }
+
+  async function disconnectPppoeUser(userId: string) {
+    setActionBusy(`user-disconnect:${userId}`);
+    setError("");
+    try {
+      const response = await fetch(`/api/network/mikrotik/routers/${routerId}/pppoe/users/${userId}/disconnect`, { method: "POST" });
+      const json = await response.json();
+      if (!response.ok || !json.success) throw new Error(json.error?.message || "Disconnect PPPoE user gagal");
+      if (sessionsLoaded) await loadLiveSessions();
+    } catch (disconnectError) {
+      setError(extractMessage(disconnectError));
+    } finally {
+      setActionBusy(null);
+    }
+  }
+
+  async function deletePppoeUser(user: PPPoEUser) {
+    const ok = window.confirm(`Hapus PPPoE user ${user.username} dari router dan database?`);
+    if (!ok) return;
+
+    setActionBusy(`user-delete:${user.id}`);
+    setError("");
+    try {
+      const response = await fetch(`/api/network/mikrotik/routers/${routerId}/pppoe/users/${user.id}`, { method: "DELETE" });
+      const json = await response.json();
+      if (!response.ok || !json.success) throw new Error(json.error?.message || "Hapus PPPoE user gagal");
+      await loadRouter();
+      if (sessionsLoaded) await loadLiveSessions();
+    } catch (deleteError) {
+      setError(extractMessage(deleteError));
+    } finally {
+      setActionBusy(null);
     }
   }
 
@@ -667,13 +717,22 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
                       </button>
                     </div>
                     <DataTable
-                      columns={["User", "IP", "Caller ID", "Uptime", "Traffic"]}
+                      columns={["User", "IP", "Caller ID", "Uptime", "Traffic", "Aksi"]}
                       rows={sessions.map((session) => [
                         session.username,
                         session.address || "-",
                         session.caller_id || "-",
                         session.uptime || "-",
                         `${formatMemory(session.bytes_in + session.bytes_out)}`,
+                        <button
+                          key={`${session.id}-disconnect`}
+                          type="button"
+                          disabled={actionBusy === `session:${session.id}`}
+                          onClick={() => void disconnectSession(session.id)}
+                          className="rounded-md px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {actionBusy === `session:${session.id}` ? "Memutus..." : "Disconnect"}
+                        </button>,
                       ])}
                     />
                   </div>
@@ -690,13 +749,31 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
                   />
                 ) : (
                   <DataTable
-                    columns={["Username", "Profile", "Remote IP", "Sync", "Status"]}
+                    columns={["Username", "Profile", "Remote IP", "Sync", "Status", "Aksi"]}
                     rows={pppoeUsers.map((user) => [
                       user.username,
                       user.profile_name,
                       user.remote_address || "-",
                       user.sync_status,
                       <StatusBadge key={user.id} status={user.disabled ? "disabled" : user.status} />,
+                      <div key={`${user.id}-actions`} className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={actionBusy === `user-disconnect:${user.id}`}
+                          onClick={() => void disconnectPppoeUser(user.id)}
+                          className="rounded-md px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {actionBusy === `user-disconnect:${user.id}` ? "Memutus..." : "Disconnect"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={actionBusy === `user-delete:${user.id}`}
+                          onClick={() => void deletePppoeUser(user)}
+                          className="rounded-md px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {actionBusy === `user-delete:${user.id}` ? "Menghapus..." : "Hapus"}
+                        </button>
+                      </div>,
                     ])}
                   />
                 )}

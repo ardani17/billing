@@ -81,6 +81,61 @@ func (m *pppoeManager) DisconnectSession(ctx context.Context, routerID, sessionI
 	return nil
 }
 
+// DisconnectUser memutus active session milik satu PPPoE user terkelola.
+// User ID dipakai untuk lookup username lebih dulu agar tidak memutus session pelanggan lain.
+func (m *pppoeManager) DisconnectUser(ctx context.Context, routerID, userID string) error {
+	pppoeUser, err := m.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("gagal mengambil PPPoE user: %w", err)
+	}
+	if pppoeUser.RouterID != routerID {
+		return domain.ErrPPPoEUserNotFound
+	}
+
+	router, pool, adapter, err := m.getRouterAndPool(ctx, routerID, domain.PriorityHigh)
+	if err != nil {
+		return err
+	}
+	defer pool.Put(adapter)
+
+	cmdBuilder := m.buildCommandBuilder(router)
+	cmd, args := cmdBuilder.PrintActiveSessions()
+
+	results, err := adapter.Execute(ctx, cmd, args)
+	if err != nil {
+		m.logger.Error().Err(err).
+			Str("router_id", routerID).
+			Str("user_id", userID).
+			Str("username", pppoeUser.Username).
+			Msg("gagal ambil active sessions untuk disconnect user")
+		return fmt.Errorf("gagal ambil active sessions: %w", err)
+	}
+
+	for _, session := range results {
+		if session["name"] != pppoeUser.Username {
+			continue
+		}
+		sessionID := session[".id"]
+		if sessionID == "" {
+			continue
+		}
+
+		removeCmd, removeArgs := cmdBuilder.RemoveActiveSession(sessionID)
+		if _, err := adapter.Execute(ctx, removeCmd, removeArgs); err != nil {
+			m.logger.Error().Err(err).
+				Str("router_id", routerID).
+				Str("user_id", userID).
+				Str("session_id", sessionID).
+				Msg("gagal disconnect session PPPoE user")
+			return fmt.Errorf("gagal disconnect session %s: %w", sessionID, err)
+		}
+
+		return nil
+	}
+
+	return domain.ErrSessionNotFound
+}
+
 // GetSessionCount mengambil jumlah active PPPoE sessions di router.
 // Menggunakan PriorityLow karena operasi monitoring.
 func (m *pppoeManager) GetSessionCount(ctx context.Context, routerID string) (int, error) {

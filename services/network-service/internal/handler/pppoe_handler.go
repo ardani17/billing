@@ -101,22 +101,13 @@ func (h *PPPoEHandler) DisconnectUser(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "router ID dan user ID wajib diisi")
 	}
 
-	// Ambil active sessions dari router, cari yang cocok dengan user
-	sessions, err := h.manager.GetActiveSessions(c.UserContext(), routerID)
-	if err != nil {
+	if err := h.manager.DisconnectUser(c.UserContext(), routerID, userID); err != nil {
+		if errors.Is(err, domain.ErrSessionNotFound) {
+			return domain.SuccessResponse(c, fiber.StatusOK, fiber.Map{"message": "tidak ada active session untuk user ini"})
+		}
 		return h.mapError(c, err)
 	}
-
-	// Coba disconnect session pertama yang ditemukan
-	_ = userID // user_id digunakan untuk lookup di masa depan
-	for _, s := range sessions {
-		if err := h.manager.DisconnectSession(c.UserContext(), routerID, s.ID); err != nil {
-			h.logger.Warn().Err(err).Str("session_id", s.ID).Msg("gagal disconnect session")
-			continue
-		}
-		return domain.SuccessResponse(c, fiber.StatusOK, fiber.Map{"message": "session berhasil diputus"})
-	}
-	return domain.SuccessResponse(c, fiber.StatusOK, fiber.Map{"message": "tidak ada active session untuk user ini"})
+	return domain.SuccessResponse(c, fiber.StatusOK, fiber.Map{"message": "session berhasil diputus"})
 }
 
 // GetSyncStatus menangani GET /api/v1/mikrotik/routers/:id/pppoe/sync-status.
