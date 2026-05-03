@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/ispboss/ispboss/services/notification/internal/domain"
@@ -37,7 +38,11 @@ func (h *ConfigHandler) Get(c *fiber.Ctx) error {
 	// Ambil pengaturan umum notifikasi untuk tenant
 	settings, err := h.configRepo.GetSettings(c.UserContext(), tenantID)
 	if err != nil {
-		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal mengambil pengaturan")
+		if errors.Is(err, domain.ErrConfigNotFound) {
+			settings = &domain.ConfigSettings{}
+		} else {
+			return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal mengambil pengaturan")
+		}
 	}
 
 	// Mask credential pada setiap konfigurasi sebelum dikembalikan

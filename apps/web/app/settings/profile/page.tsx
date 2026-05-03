@@ -1,5 +1,5 @@
-import { GenericSettingsPage, settingsConfigs } from "../../components/module-pages";
+import { SettingsGenericLivePage } from "../../components/settings-live-pages";
 
 export default function Page() {
-  return <GenericSettingsPage {...settingsConfigs.profile} />;
+  return <SettingsGenericLivePage title="Profil ISP" description="Identitas tenant, alamat, kontak, dan legal invoice." />;
 }

@@ -1,5 +1,5 @@
-import { GenericSettingsPage, settingsConfigs } from "../../components/module-pages";
+import { SettingsGenericLivePage } from "../../components/settings-live-pages";
 
 export default function Page() {
-  return <GenericSettingsPage {...settingsConfigs.mikrotik} />;
+  return <SettingsGenericLivePage title="MikroTik" description="Default koneksi dan profil sinkronisasi router." />;
 }

@@ -1,5 +1,5 @@
-import { GenericSettingsPage, settingsConfigs } from "../../components/module-pages";
+import { SettingsPaymentLivePage } from "../../components/settings-live-pages";
 
 export default function Page() {
-  return <GenericSettingsPage {...settingsConfigs.payment} />;
+  return <SettingsPaymentLivePage />;
 }

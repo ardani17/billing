@@ -1,5 +1,5 @@
-import { GenericSettingsPage, settingsConfigs } from "../../components/module-pages";
+import { SettingsGenericLivePage } from "../../components/settings-live-pages";
 
 export default function Page() {
-  return <GenericSettingsPage {...settingsConfigs.billing} />;
+  return <SettingsGenericLivePage title="Billing" description="Aturan jatuh tempo, pajak, denda, isolir, dan billing cycle." />;
 }

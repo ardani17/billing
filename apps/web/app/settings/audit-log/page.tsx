@@ -1,5 +1,5 @@
-import { AuditLogPage } from "../../components/module-pages";
+import { SettingsGenericLivePage } from "../../components/settings-live-pages";
 
 export default function Page() {
-  return <AuditLogPage />;
+  return <SettingsGenericLivePage title="Audit Log" description="Jejak perubahan penting pada tenant." />;
 }

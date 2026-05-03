@@ -1,5 +1,5 @@
-import { GenericSettingsPage, settingsConfigs } from "../../components/module-pages";
+import { SettingsGenericLivePage } from "../../components/settings-live-pages";
 
 export default function Page() {
-  return <GenericSettingsPage {...settingsConfigs.invoice} />;
+  return <SettingsGenericLivePage title="Invoice" description="Format nomor, footer, dan aturan dokumen tagihan." />;
 }

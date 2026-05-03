@@ -1,5 +1,5 @@
-import { SettingsIndexPage } from "../components/module-pages";
+import { SettingsIndexLivePage } from "../components/settings-live-pages";
 
 export default function Page() {
-  return <SettingsIndexPage />;
+  return <SettingsIndexLivePage />;
 }

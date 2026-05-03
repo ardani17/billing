@@ -1,5 +1,5 @@
-import { GenericSettingsPage, settingsConfigs } from "../../components/module-pages";
+import { SettingsGenericLivePage } from "../../components/settings-live-pages";
 
 export default function Page() {
-  return <GenericSettingsPage {...settingsConfigs.subscription} />;
+  return <SettingsGenericLivePage title="Subscription" description="Status paket SaaS tenant." />;
 }

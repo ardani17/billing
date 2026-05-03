@@ -1,5 +1,5 @@
-import { GenericSettingsPage, settingsConfigs } from "../../components/module-pages";
+import { SettingsGenericLivePage } from "../../components/settings-live-pages";
 
 export default function Page() {
-  return <GenericSettingsPage {...settingsConfigs.voucher} />;
+  return <SettingsGenericLivePage title="Voucher" description="Format kode dan aturan penjualan voucher." />;
 }

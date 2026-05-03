@@ -1,5 +1,5 @@
-import { GenericSettingsPage, settingsConfigs } from "../../components/module-pages";
+import { SettingsGenericLivePage } from "../../components/settings-live-pages";
 
 export default function Page() {
-  return <GenericSettingsPage {...settingsConfigs.olt} />;
+  return <SettingsGenericLivePage title="OLT" description="Default SNMP/CLI dan provisioning OLT." />;
 }
