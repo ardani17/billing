@@ -26,7 +26,11 @@ func (uc *GatewayUsecase) GetWalledGardenPaymentInfo(ctx context.Context, custom
 		return nil, fmt.Errorf("gagal mengambil invoice terbuka: %w", err)
 	}
 	if len(invoices) == 0 {
-		return nil, fmt.Errorf("tidak ada invoice terbuka untuk customer")
+		return &domain.WalledGardenPaymentInfo{
+			TotalArrears: 0,
+			Invoices:     []domain.OpenInvoiceItem{},
+			CustomerName: customer.Name,
+		}, nil
 	}
 
 	items, totalArrears := buildOpenInvoiceItems(invoices)

@@ -1,5 +1,5 @@
-import { PublicWalledGardenPage } from "../../components/module-pages";
+import { WalledGardenLiveClient } from "./WalledGardenLiveClient";
 
 export default function Page() {
-  return <PublicWalledGardenPage />;
+  return <WalledGardenLiveClient />;
 }
