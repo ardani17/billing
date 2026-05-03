@@ -41,9 +41,9 @@ import type {
   ExportRequest,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
-const REPORTS_BASE = `${API_BASE}/v1/reports`;
-const EXPENSES_BASE = `${API_BASE}/v1/expenses`;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/billing";
+const REPORTS_BASE = `${API_BASE}/reports`;
+const EXPENSES_BASE = `${API_BASE}/expenses`;
 
 // --- Helper ---
 
@@ -69,7 +69,11 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
     const body = await res.text();
     throw new Error(`API error ${res.status}: ${body}`);
   }
-  return res.json();
+  const body = await res.json();
+  if (body && typeof body === "object" && "success" in body && "data" in body) {
+    return body.data as T;
+  }
+  return body as T;
 }
 
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
