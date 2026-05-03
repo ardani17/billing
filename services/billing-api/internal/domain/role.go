@@ -3,7 +3,7 @@ package domain
 // RedirectPathMap memetakan setiap role ke path redirect setelah login berhasil.
 // Frontend menggunakan nilai ini untuk mengarahkan user ke halaman yang sesuai.
 var RedirectPathMap = map[UserRole]string{
-	RoleSuperAdmin:  "/admin",
+	RoleSuperAdmin:  "/super-admin",
 	RoleTenantAdmin: "/dashboard",
 	RoleOperator:    "/dashboard",
 	RoleTeknisi:     "/network",

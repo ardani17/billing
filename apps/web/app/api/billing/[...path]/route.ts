@@ -12,8 +12,10 @@ async function proxy(request: NextRequest, context: RouteContext) {
     const targetPath = `/api/v1/${path.join("/")}${query}`;
     const method = request.method;
     const hasBody = !["GET", "HEAD"].includes(method);
+    const sessionToken = request.cookies.get("ispboss_access_token")?.value;
     const data = await billingApi(targetPath, {
       method,
+      headers: sessionToken ? { Authorization: `Bearer ${sessionToken}` } : undefined,
       body: hasBody ? await request.text() : undefined,
     });
 

@@ -188,7 +188,7 @@ func TestProperty_InputValidationRejectsInvalidData(t *testing.T) {
 func TestProperty_LoginReturnsCorrectRedirectPathPerRole(t *testing.T) {
 	// Expected mapping from the requirements
 	expectedPaths := map[domain.UserRole]string{
-		domain.RoleSuperAdmin:  "/admin",
+		domain.RoleSuperAdmin:  "/super-admin",
 		domain.RoleTenantAdmin: "/dashboard",
 		domain.RoleOperator:    "/dashboard",
 		domain.RoleTeknisi:     "/network",

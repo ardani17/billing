@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   ArrowRight,
   CheckCircle,
@@ -5,8 +8,45 @@ import {
   GoogleLogo,
   LockKey,
   User,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@phosphor-icons/react";
 import { Button, FormField, TextInput } from "./ui";
+
+type AuthEnvelope<T> = {
+  success: boolean;
+  data?: T;
+  error?: {
+    message?: string;
+    details?: { field: string; message: string }[];
+  };
+};
+
+type LoginResponse = {
+  redirect_path?: string;
+  user?: {
+    role: string;
+  };
+};
+
+function authErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return "Terjadi kesalahan autentikasi";
+}
+
+async function authPost<T>(action: string, payload: unknown) {
+  const response = await fetch(`/api/auth/${action}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const envelope = (await response.json()) as AuthEnvelope<T>;
+
+  if (!response.ok || !envelope.success) {
+    const detail = envelope.error?.details?.[0]?.message;
+    throw new Error(detail || envelope.error?.message || "Request auth gagal");
+  }
+
+  return envelope.data as T;
+}
 
 function AuthFrame({
   title,
@@ -62,31 +102,77 @@ function AuthFrame({
 }
 
 export function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await authPost<LoginResponse>("login", {
+        email,
+        password,
+        remember_me: rememberMe,
+      });
+      window.location.href = result.redirect_path || (result.user?.role === "super_admin" ? "/super-admin" : "/dashboard");
+    } catch (err) {
+      setError(authErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <AuthFrame title="Masuk ke Dashboard" description="Gunakan akun tenant admin, operator, teknisi, atau kasir.">
-      <form className="mt-8 grid gap-5">
+      <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
         <FormField label="Email">
           <div className="relative">
             <EnvelopeSimple className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input className="h-11 w-full rounded-md border border-slate-300 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="admin@isp.net" />
+            <input
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              type="email"
+              className="h-11 w-full rounded-md border border-slate-300 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              placeholder="admin@isp.net"
+              required
+            />
           </div>
         </FormField>
         <FormField label="Password">
           <div className="relative">
             <LockKey className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input type="password" className="h-11 w-full rounded-md border border-slate-300 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Minimal 8 karakter" />
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              type="password"
+              className="h-11 w-full rounded-md border border-slate-300 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              placeholder="Minimal 8 karakter"
+              required
+            />
           </div>
         </FormField>
         <div className="flex items-center justify-between text-sm">
           <label className="inline-flex items-center gap-2 text-slate-600">
-            <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+            <input checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} type="checkbox" className="h-4 w-4 rounded border-slate-300 text-blue-600" />
             Remember me
           </label>
           <a href="/forgot-password" className="font-semibold text-blue-700">
             Lupa password
           </a>
         </div>
-        <Button href="/dashboard">Masuk</Button>
+        {error && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="inline-flex h-11 items-center justify-center rounded-md bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {loading ? "Memproses..." : "Masuk"}
+        </button>
         <button type="button" className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
           <GoogleLogo size={18} />
           Masuk dengan Google
@@ -97,20 +183,62 @@ export function LoginPage() {
 }
 
 export function RegisterPage() {
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    company_name: "",
+    password: "",
+    password_confirmation: "",
+    agree_terms: true,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function updateForm(field: keyof typeof form, value: string | boolean) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await authPost("register", form);
+      window.location.href = "/verify-email";
+    } catch (err) {
+      setError(authErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <AuthFrame title="Buat akun trial" description="Trial Starter 3 hari dibuat setelah email diverifikasi.">
-      <form className="mt-8 grid gap-5">
+      <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
         <div className="grid gap-5 sm:grid-cols-2">
-          <FormField label="Nama lengkap"><TextInput placeholder="Budi Santoso" /></FormField>
-          <FormField label="No. WhatsApp"><TextInput placeholder="+62 812..." /></FormField>
+          <FormField label="Nama lengkap"><TextInput value={form.name} onChange={(event) => updateForm("name", event.target.value)} placeholder="Budi Santoso" required /></FormField>
+          <FormField label="No. WhatsApp"><TextInput value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} placeholder="+62812..." required /></FormField>
         </div>
-        <FormField label="Email"><TextInput placeholder="owner@isp.net" /></FormField>
-        <FormField label="Nama ISP / Perusahaan"><TextInput placeholder="NusaFiber Depok" /></FormField>
+        <FormField label="Email"><TextInput value={form.email} onChange={(event) => updateForm("email", event.target.value)} type="email" placeholder="owner@isp.net" required /></FormField>
+        <FormField label="Nama ISP / Perusahaan"><TextInput value={form.company_name} onChange={(event) => updateForm("company_name", event.target.value)} placeholder="NusaFiber Depok" required /></FormField>
         <div className="grid gap-5 sm:grid-cols-2">
-          <FormField label="Password"><TextInput placeholder="Minimal 8 karakter" /></FormField>
-          <FormField label="Konfirmasi"><TextInput placeholder="Ulangi password" /></FormField>
+          <FormField label="Password"><TextInput value={form.password} onChange={(event) => updateForm("password", event.target.value)} type="password" placeholder="Minimal 8 karakter" required /></FormField>
+          <FormField label="Konfirmasi"><TextInput value={form.password_confirmation} onChange={(event) => updateForm("password_confirmation", event.target.value)} type="password" placeholder="Ulangi password" required /></FormField>
         </div>
-        <Button href="/verify-email">Coba Gratis 3 Hari</Button>
+        <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+          <input checked={form.agree_terms} onChange={(event) => updateForm("agree_terms", event.target.checked)} type="checkbox" className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+          Saya menyetujui syarat penggunaan ISPBoss
+        </label>
+        {error && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="inline-flex h-11 items-center justify-center rounded-md bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {loading ? "Memproses..." : "Coba Gratis 3 Hari"}
+        </button>
         <button type="button" className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
           <GoogleLogo size={18} />
           Daftar dengan Google
