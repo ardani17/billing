@@ -1,5 +1,5 @@
-import { PaymentsPage } from "../components/module-pages";
+import { PaymentsLivePage } from "../components/real-pages";
 
 export default function Page() {
-  return <PaymentsPage />;
+  return <PaymentsLivePage />;
 }

@@ -342,33 +342,6 @@ func RegisterRoutes(cfg RouterConfig) {
 	packagesAdmin.Post("/:id/deactivate", packageHandler.Deactivate)
 	packagesAdmin.Post("/:id/duplicate", packageHandler.Duplicate)
 
-	// --- Reseller auth routes (publik, tanpa auth middleware) ---
-	// Login dan refresh token reseller menggunakan phone+password, terpisah dari admin auth.
-	resellerAuthPublic := cfg.App.Group("/api/v1/reseller/auth")
-	resellerAuthPublic.Post("/login",
-		middleware.ResellerLoginRateLimiterMiddleware(cfg.ResellerRateLimiter),
-		cfg.ResellerAuthHandler.Login,
-	)
-	resellerAuthPublic.Post("/refresh", cfg.ResellerAuthHandler.Refresh)
-
-	// --- Reseller auth protected routes (reseller JWT, tanpa tenant context) ---
-	// Logout memerlukan token reseller yang valid.
-	resellerAuthProtected := cfg.App.Group("/api/v1/reseller/auth")
-	resellerAuthProtected.Use(middleware.ResellerAuth(cfg.JWTSecret))
-	resellerAuthProtected.Post("/logout", cfg.ResellerAuthHandler.Logout)
-
-	// --- Reseller dashboard routes (reseller JWT + tenant context) ---
-	// Endpoint yang diakses oleh reseller untuk dashboard, beli voucher, dll.
-	resellerDashboard := cfg.App.Group("/api/v1/reseller")
-	resellerDashboard.Use(middleware.ResellerAuth(cfg.JWTSecret))
-	resellerDashboard.Use(middleware.TenantContext(cfg.JWTSecret))
-	resellerDashboard.Get("/dashboard", cfg.ResellerDashboardHandler.Summary)
-	resellerDashboard.Post("/vouchers/buy", cfg.ResellerDashboardHandler.Buy)
-	resellerDashboard.Get("/vouchers", cfg.ResellerDashboardHandler.MyVouchers)
-	resellerDashboard.Post("/vouchers/print", cfg.ResellerDashboardHandler.Print)
-	resellerDashboard.Get("/deposit", cfg.ResellerDashboardHandler.DepositHistory)
-	resellerDashboard.Get("/history", cfg.ResellerDashboardHandler.TransactionHistory)
-
 	// --- Admin reseller routes (auth + tenant + RBAC) ---
 	resellerHandler := cfg.ResellerHandler
 	resellerActionHandler := cfg.ResellerActionHandler
@@ -400,6 +373,33 @@ func RegisterRoutes(cfg RouterConfig) {
 	resellersAdmin.Post("/:id/reset-password", resellerActionHandler.ResetPassword)
 	resellersAdmin.Post("/:id/deposit", resellerActionHandler.Deposit)
 	resellersAdmin.Post("/:id/withdraw", resellerActionHandler.Withdraw)
+
+	// --- Reseller auth routes (publik, tanpa auth middleware) ---
+	// Login dan refresh token reseller menggunakan phone+password, terpisah dari admin auth.
+	resellerAuthPublic := cfg.App.Group("/api/v1/reseller/auth")
+	resellerAuthPublic.Post("/login",
+		middleware.ResellerLoginRateLimiterMiddleware(cfg.ResellerRateLimiter),
+		cfg.ResellerAuthHandler.Login,
+	)
+	resellerAuthPublic.Post("/refresh", cfg.ResellerAuthHandler.Refresh)
+
+	// --- Reseller auth protected routes (reseller JWT, tanpa tenant context) ---
+	// Logout memerlukan token reseller yang valid.
+	resellerAuthProtected := cfg.App.Group("/api/v1/reseller/auth")
+	resellerAuthProtected.Use(middleware.ResellerAuth(cfg.JWTSecret))
+	resellerAuthProtected.Post("/logout", cfg.ResellerAuthHandler.Logout)
+
+	// --- Reseller dashboard routes (reseller JWT + tenant context) ---
+	// Endpoint yang diakses oleh reseller untuk dashboard, beli voucher, dll.
+	resellerDashboard := cfg.App.Group("/api/v1/reseller")
+	resellerDashboard.Use(middleware.ResellerAuth(cfg.JWTSecret))
+	resellerDashboard.Use(middleware.TenantContext(cfg.JWTSecret))
+	resellerDashboard.Get("/dashboard", cfg.ResellerDashboardHandler.Summary)
+	resellerDashboard.Post("/vouchers/buy", cfg.ResellerDashboardHandler.Buy)
+	resellerDashboard.Get("/vouchers", cfg.ResellerDashboardHandler.MyVouchers)
+	resellerDashboard.Post("/vouchers/print", cfg.ResellerDashboardHandler.Print)
+	resellerDashboard.Get("/deposit", cfg.ResellerDashboardHandler.DepositHistory)
+	resellerDashboard.Get("/history", cfg.ResellerDashboardHandler.TransactionHistory)
 
 	// --- Admin voucher routes (auth + tenant + RBAC) ---
 	voucherHandler := cfg.VoucherHandler

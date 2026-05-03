@@ -50,6 +50,7 @@ coverage/
 *.coverprofile
 *.tsbuildinfo
 **/testdata/rapid/*.fail
+**/testdata/rapid/
 
 # Temporary files
 tmp/

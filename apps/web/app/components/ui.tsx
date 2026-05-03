@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 
 type Tone = "slate" | "blue" | "green" | "amber" | "red" | "violet";
 
@@ -259,11 +259,10 @@ export function FormField({
   );
 }
 
-export function TextInput({ placeholder, defaultValue }: { placeholder?: string; defaultValue?: string }) {
+export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      defaultValue={defaultValue}
-      placeholder={placeholder}
+      {...props}
       className="h-10 w-full min-w-0 rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
     />
   );

@@ -1,5 +1,5 @@
-import { MikrotikVpnPage } from "../../components/module-pages";
+import { MikrotikVpnLivePage } from "../../components/real-pages";
 
 export default function Page() {
-  return <MikrotikVpnPage />;
+  return <MikrotikVpnLivePage />;
 }

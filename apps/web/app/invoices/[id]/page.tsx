@@ -1,5 +1,6 @@
-import { InvoiceDetailPage } from "../../components/module-pages";
+import { InvoiceDetailLivePage } from "../../components/real-pages";
 
-export default function Page() {
-  return <InvoiceDetailPage />;
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <InvoiceDetailLivePage id={id} />;
 }

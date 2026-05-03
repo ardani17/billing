@@ -1,5 +1,5 @@
-import { PackagesPage } from "../components/module-pages";
+import { PackagesLivePage } from "../components/real-pages";
 
 export default function Page() {
-  return <PackagesPage />;
+  return <PackagesLivePage />;
 }

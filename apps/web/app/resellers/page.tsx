@@ -1,5 +1,5 @@
-import { ResellersPage } from "../components/module-pages";
+import { ResellersLivePage } from "../components/real-pages";
 
 export default function Page() {
-  return <ResellersPage />;
+  return <ResellersLivePage />;
 }

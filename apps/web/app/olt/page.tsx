@@ -1,5 +1,5 @@
-import { OltPage } from "../components/module-pages";
+import { OltLivePage } from "../components/real-pages";
 
 export default function Page() {
-  return <OltPage />;
+  return <OltLivePage />;
 }

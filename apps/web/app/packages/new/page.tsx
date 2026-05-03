@@ -1,5 +1,5 @@
-import { PackageFormPage } from "../../components/module-pages";
+import { PackageFormLivePage } from "../../components/real-pages";
 
 export default function Page() {
-  return <PackageFormPage />;
+  return <PackageFormLivePage />;
 }

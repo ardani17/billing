@@ -1,5 +1,5 @@
-import { NotificationsPage } from "../components/module-pages";
+import { NotificationsLivePage } from "../components/real-pages";
 
 export default function Page() {
-  return <NotificationsPage />;
+  return <NotificationsLivePage />;
 }

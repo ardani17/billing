@@ -25,6 +25,19 @@ type RouterSummary = {
   maintenance_count: number;
 };
 
+type OltSummary = {
+  total?: number;
+  total_olts?: number;
+  online?: number;
+  online_count?: number;
+  offline?: number;
+  offline_count?: number;
+  maintenance?: number;
+  maintenance_count?: number;
+  active_alarms?: number;
+  active_alarm_count?: number;
+};
+
 type ApiResponse<T> = {
   success: boolean;
   data?: T;
@@ -110,6 +123,7 @@ function RevenueSnapshot({ metrics }: { metrics: DashboardMetrics }) {
 export default function DashboardLiveClient() {
   const [metrics, setMetrics] = useState<DashboardMetrics>(emptyMetrics);
   const [routerSummary, setRouterSummary] = useState<RouterSummary | null>(null);
+  const [oltSummary, setOltSummary] = useState<OltSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -117,18 +131,21 @@ export default function DashboardLiveClient() {
     setLoading(true);
     setError("");
     try {
-      const [dashboardResponse, routerResponse] = await Promise.all([
+      const [dashboardResponse, routerResponse, oltResponse] = await Promise.all([
         fetch("/api/billing/reports/dashboard", { cache: "no-store" }),
         fetch("/api/network/mikrotik/status/summary", { cache: "no-store" }),
+        fetch("/api/network-service/olt/summary", { cache: "no-store" }),
       ]);
       const dashboardJson = (await dashboardResponse.json()) as ApiResponse<DashboardMetrics>;
       const routerJson = (await routerResponse.json()) as ApiResponse<RouterSummary>;
+      const oltJson = (await oltResponse.json()) as ApiResponse<OltSummary>;
 
       if (!dashboardResponse.ok || !dashboardJson.success) {
         throw new Error(dashboardJson.error?.message || "Gagal mengambil dashboard");
       }
       setMetrics(dashboardJson.data || emptyMetrics);
       if (routerResponse.ok && routerJson.success) setRouterSummary(routerJson.data || null);
+      if (oltResponse.ok && oltJson.success) setOltSummary(oltJson.data || null);
     } catch (loadError) {
       setError(extractMessage(loadError));
     } finally {
@@ -151,6 +168,11 @@ export default function DashboardLiveClient() {
       { label: "Router online", value: `${online}/${totalRouters}`, delta: `${offline} offline`, tone: offline > 0 ? ("red" as const) : undefined },
     ];
   }, [metrics, routerSummary]);
+
+  const oltTotal = oltSummary?.total ?? oltSummary?.total_olts ?? 0;
+  const oltOnline = oltSummary?.online ?? oltSummary?.online_count ?? 0;
+  const oltOffline = oltSummary?.offline ?? oltSummary?.offline_count ?? 0;
+  const oltAlarms = oltSummary?.active_alarms ?? oltSummary?.active_alarm_count ?? 0;
 
   return (
     <AppShell>
@@ -192,10 +214,13 @@ export default function DashboardLiveClient() {
             <DataTable
               columns={["Metric", "Nilai", "Status"]}
               rows={[
-                ["Router terdaftar", String(routerSummary?.total_routers ?? 0), <StatusBadge key="total" status="info" />],
-                ["Online", String(routerSummary?.online_count ?? metrics.routers_online), <StatusBadge key="online" status="online" />],
-                ["Offline", String(routerSummary?.offline_count ?? metrics.routers_offline), <StatusBadge key="offline" status={(routerSummary?.offline_count ?? metrics.routers_offline) > 0 ? "offline" : "online"} />],
-                ["Maintenance", String(routerSummary?.maintenance_count ?? 0), <StatusBadge key="maintenance" status="maintenance" />],
+                ["Router terdaftar", String(routerSummary?.total_routers ?? 0), <StatusBadge key="router-total" status="info" />],
+                ["Router online", String(routerSummary?.online_count ?? metrics.routers_online), <StatusBadge key="router-online" status="online" />],
+                ["Router offline", String(routerSummary?.offline_count ?? metrics.routers_offline), <StatusBadge key="router-offline" status={(routerSummary?.offline_count ?? metrics.routers_offline) > 0 ? "offline" : "online"} />],
+                ["OLT terdaftar", String(oltTotal), <StatusBadge key="olt-total" status="info" />],
+                ["OLT online", String(oltOnline), <StatusBadge key="olt-online" status="online" />],
+                ["OLT offline", String(oltOffline), <StatusBadge key="olt-offline" status={oltOffline > 0 ? "offline" : "online"} />],
+                ["Alarm OLT", String(oltAlarms), <StatusBadge key="olt-alarm" status={oltAlarms > 0 ? "warning" : "normal"} />],
               ]}
             />
           </Section>

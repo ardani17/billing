@@ -1,5 +1,5 @@
-import { VouchersPage } from "../components/module-pages";
+import { VouchersLivePage } from "../components/real-pages";
 
 export default function Page() {
-  return <VouchersPage />;
+  return <VouchersLivePage />;
 }

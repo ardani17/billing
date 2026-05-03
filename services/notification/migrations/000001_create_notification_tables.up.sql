@@ -124,5 +124,4 @@ CREATE INDEX idx_notif_log_dedup ON notification_logs (dedup_key);
 CREATE UNIQUE INDEX uq_notif_log_dedup_active
     ON notification_logs (dedup_key)
     WHERE dedup_key IS NOT NULL
-      AND status NOT IN ('skipped', 'failed')
-      AND created_at > NOW() - INTERVAL '1 hour';
+      AND status NOT IN ('skipped', 'failed');

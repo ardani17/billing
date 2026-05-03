@@ -1,5 +1,5 @@
-import { ProvisioningPage } from "../../components/module-pages";
+import { ProvisioningLivePage } from "../../components/real-pages";
 
 export default function Page() {
-  return <ProvisioningPage />;
+  return <ProvisioningLivePage />;
 }

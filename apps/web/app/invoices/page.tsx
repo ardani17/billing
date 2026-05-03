@@ -1,5 +1,5 @@
-import { InvoicesPage } from "../components/module-pages";
+import { InvoicesLivePage } from "../components/real-pages";
 
 export default function Page() {
-  return <InvoicesPage />;
+  return <InvoicesLivePage />;
 }

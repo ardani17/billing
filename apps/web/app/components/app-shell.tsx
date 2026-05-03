@@ -59,7 +59,7 @@ const navGroups = [
   },
   {
     label: "Laporan",
-    items: [{ href: "#reports-in-progress", label: "Laporan", icon: ChartLineUp, badge: "Tim" }],
+    items: [{ href: "/reports", label: "Laporan", icon: ChartLineUp }],
   },
   {
     label: "Sistem",
@@ -130,22 +130,19 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <div className="grid gap-1">
                 {group.items.map((item) => {
                   const Icon = item.icon;
-                  const active = item.href !== "#reports-in-progress" && pathname.startsWith(item.href);
+                  const active = pathname.startsWith(item.href);
                   return (
                     <a
                       key={item.label}
                       href={item.href}
                       onClick={(event) => {
-                        if (item.href === "#reports-in-progress") event.preventDefault();
                         setMobileOpen(false);
                       }}
                       title={collapsed ? item.label : undefined}
                       className={`flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition ${
                         active
                           ? "bg-blue-50 text-blue-700"
-                          : item.href === "#reports-in-progress"
-                            ? "cursor-default text-slate-400"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
                       } ${collapsed ? "justify-center" : ""}`}
                     >
                       <Icon size={19} />

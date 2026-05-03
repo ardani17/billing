@@ -1,5 +1,5 @@
-import { CustomersPage } from "../components/module-pages";
+import { CustomersLivePage } from "../components/real-pages";
 
 export default function Page() {
-  return <CustomersPage />;
+  return <CustomersLivePage />;
 }

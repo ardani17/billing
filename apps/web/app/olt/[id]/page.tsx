@@ -1,5 +1,6 @@
-import { OltDetailPage } from "../../components/module-pages";
+import { OltDetailLivePage } from "../../components/real-pages";
 
-export default function Page() {
-  return <OltDetailPage />;
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <OltDetailLivePage id={id} />;
 }
