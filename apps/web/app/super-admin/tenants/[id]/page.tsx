@@ -1,5 +1,10 @@
 import { SuperAdminTenantDetailPage } from "../../../components/super-admin-pages";
 
-export default function Page() {
-  return <SuperAdminTenantDetailPage />;
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function Page({ params }: PageProps) {
+  const { id } = await params;
+  return <SuperAdminTenantDetailPage tenantId={id} />;
 }

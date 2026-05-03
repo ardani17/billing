@@ -263,6 +263,13 @@ func RegisterRoutes(cfg RouterConfig) {
 	}))
 	admin.Post("/impersonate", cfg.AdminHandler.Start)
 	admin.Post("/stop-impersonate", cfg.AdminHandler.Stop)
+	admin.Get("/platform/overview", cfg.AdminHandler.PlatformOverview)
+	admin.Get("/platform/tenants", cfg.AdminHandler.PlatformTenants)
+	admin.Get("/platform/tenants/:id", cfg.AdminHandler.PlatformTenantDetail)
+	admin.Get("/platform/subscriptions", cfg.AdminHandler.PlatformSubscriptions)
+	admin.Get("/platform/support", cfg.AdminHandler.PlatformSupport)
+	admin.Get("/platform/health", cfg.AdminHandler.PlatformHealth)
+	admin.Get("/platform/audit", cfg.AdminHandler.PlatformAudit)
 
 	// --- Protected business routes (auth + tenant middleware) ---
 	// Grup route yang dilindungi oleh auth dan tenant middleware untuk endpoint bisnis

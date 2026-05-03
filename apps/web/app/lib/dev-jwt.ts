@@ -4,13 +4,13 @@ function base64Url(input: string) {
   return Buffer.from(input).toString("base64url");
 }
 
-export function createDevJwt() {
+export function createDevJwt(options?: { role?: string; userId?: string; tenantId?: string }) {
   const secret = process.env.JWT_SECRET || "change-me-to-a-strong-secret";
   const now = Math.floor(Date.now() / 1000);
   const payload = {
-    tenant_id: process.env.DEV_TENANT_ID || "11111111-1111-4111-8111-111111111111",
-    user_id: process.env.DEV_USER_ID || "22222222-2222-4222-8222-222222222222",
-    role: process.env.DEV_USER_ROLE || "tenant_admin",
+    tenant_id: options?.tenantId || process.env.DEV_TENANT_ID || "11111111-1111-4111-8111-111111111111",
+    user_id: options?.userId || process.env.DEV_USER_ID || "22222222-2222-4222-8222-222222222222",
+    role: options?.role || process.env.DEV_USER_ROLE || "tenant_admin",
     iss: "ispboss-web-dev",
     iat: now,
     exp: now + 60 * 60 * 24,

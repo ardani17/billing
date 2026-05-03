@@ -286,7 +286,7 @@ func main() {
 	authHandler := handler.NewAuthHandler(authUsecase, appLogger)
 	userHandler := handler.NewUserHandler(userManagementUsecase, appLogger)
 	sessionHandler := handler.NewSessionHandler(sessionRepo, appLogger)
-	adminHandler := handler.NewAdminHandler(impersonationUsecase, appLogger)
+	adminHandler := handler.NewAdminHandler(impersonationUsecase, dbPool, appLogger)
 	customerHandler := handler.NewCustomerHandler(customerUsecase, appLogger)
 	areaHandler := handler.NewAreaHandler(areaUsecase, appLogger)
 	packageHandler := handler.NewPackageHandler(packageUsecase, appLogger)
