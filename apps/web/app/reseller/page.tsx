@@ -1,5 +1,5 @@
-import { ResellerDashboardPage } from "../components/module-pages";
+import { ResellerPortalClient } from "./ResellerPortalClient";
 
 export default function Page() {
-  return <ResellerDashboardPage />;
+  return <ResellerPortalClient />;
 }

@@ -27,7 +27,7 @@ type ResellerActionUsecase struct {
 	voucherAuditLog domain.VoucherAuditLogRepository
 	txRepo          domain.ResellerTransactionRepository
 	auditLogRepo    domain.AuditLogRepository
-	sessionRepo     domain.SessionRepository
+	sessionRepo     domain.ResellerSessionRepository
 	pool            *pgxpool.Pool
 	queries         *repository.Queries
 	queueClient     *asynq.Client
@@ -41,7 +41,7 @@ func NewResellerActionUsecase(
 	voucherAuditLog domain.VoucherAuditLogRepository,
 	txRepo domain.ResellerTransactionRepository,
 	auditLogRepo domain.AuditLogRepository,
-	sessionRepo domain.SessionRepository,
+	sessionRepo domain.ResellerSessionRepository,
 	pool *pgxpool.Pool,
 	queries *repository.Queries,
 	queueClient *asynq.Client,

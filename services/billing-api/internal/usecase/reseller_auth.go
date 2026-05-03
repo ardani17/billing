@@ -19,7 +19,7 @@ import (
 // ResellerAuthUsecaseConfig berisi semua dependensi yang dibutuhkan ResellerAuthUsecase.
 type ResellerAuthUsecaseConfig struct {
 	ResellerRepo domain.ResellerRepository
-	SessionRepo  domain.SessionRepository
+	SessionRepo  domain.ResellerSessionRepository
 	RateLimiter  *middleware.LoginRateLimiter
 	JWTSecret    string
 	JWTExpiry    time.Duration
@@ -30,7 +30,7 @@ type ResellerAuthUsecaseConfig struct {
 // ResellerAuthUsecase mengimplementasikan business logic autentikasi reseller.
 type ResellerAuthUsecase struct {
 	resellerRepo  domain.ResellerRepository
-	sessionRepo   domain.SessionRepository
+	sessionRepo   domain.ResellerSessionRepository
 	rateLimiter   *middleware.LoginRateLimiter
 	jwtSecret     string
 	jwtExpiry     time.Duration

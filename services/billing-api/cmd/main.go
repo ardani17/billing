@@ -87,6 +87,7 @@ func main() {
 	// --- Instantiate repositories ---
 	userRepo := repository.NewUserRepo(queries, dbPool)
 	sessionRepo := repository.NewSessionRepo(queries)
+	resellerSessionRepo := repository.NewResellerSessionRepo(dbPool)
 	tokenRepo := repository.NewTokenRepo(queries)
 	customerRepo := repository.NewCustomerRepo(queries, dbPool)
 	areaRepo := repository.NewAreaRepo(queries)
@@ -178,11 +179,11 @@ func main() {
 	resellerUsecase := usecase.NewResellerUsecase(resellerRepo, auditLogRepo, queueClient, appLogger)
 	resellerActionUsecase := usecase.NewResellerActionUsecase(
 		resellerRepo, voucherRepo, voucherAuditLogRepo, resellerTxRepo,
-		auditLogRepo, sessionRepo, dbPool, queries, queueClient, appLogger,
+		auditLogRepo, resellerSessionRepo, dbPool, queries, queueClient, appLogger,
 	)
 	resellerAuthUsecase := usecase.NewResellerAuthUsecase(usecase.ResellerAuthUsecaseConfig{
 		ResellerRepo: resellerRepo,
-		SessionRepo:  sessionRepo,
+		SessionRepo:  resellerSessionRepo,
 		RateLimiter:  resellerRateLimiter,
 		JWTSecret:    cfg.JWTSecret,
 		JWTExpiry:    cfg.JWTExpiry,

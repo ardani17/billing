@@ -59,6 +59,17 @@ type SessionRepository interface {
 	DeleteExpired(ctx context.Context) error
 }
 
+// ResellerSessionRepository mendefinisikan operasi data untuk sesi reseller.
+// Sesi reseller dipisahkan dari sessions user admin karena tabel sessions
+// memiliki foreign key ke users.
+type ResellerSessionRepository interface {
+	CreateSession(ctx context.Context, session *Session) (*Session, error)
+	GetByTokenHash(ctx context.Context, tokenHash string) (*Session, error)
+	DeleteByTokenHash(ctx context.Context, tokenHash string) error
+	DeleteByUserID(ctx context.Context, resellerID string) error
+	DeleteExpired(ctx context.Context) error
+}
+
 // TokenRepository mendefinisikan operasi data untuk password_resets dan email_verifications.
 // Diimplementasikan oleh repository.TokenRepo.
 type TokenRepository interface {
@@ -969,7 +980,7 @@ type InvoiceDetail struct {
 
 // InvoiceSummary berisi ringkasan invoice per status untuk dashboard.
 type InvoiceSummary struct {
-	Total    InvoiceSummaryStat                    `json:"total"`
+	Total    InvoiceSummaryStat                   `json:"total"`
 	ByStatus map[InvoiceStatus]InvoiceSummaryStat `json:"by_status"`
 }
 
@@ -1030,9 +1041,9 @@ type DebitNoteItemRequest struct {
 
 // InvoiceBulkActionResult berisi hasil bulk action untuk invoice.
 type InvoiceBulkActionResult struct {
-	Total        int                   `json:"total"`
-	SuccessCount int                   `json:"success_count"`
-	FailureCount int                   `json:"failure_count"`
+	Total        int                  `json:"total"`
+	SuccessCount int                  `json:"success_count"`
+	FailureCount int                  `json:"failure_count"`
 	Failures     []InvoiceBulkFailure `json:"failures,omitempty"`
 }
 
@@ -1092,9 +1103,9 @@ type PaymentSummaryStat struct {
 
 // PaymentSummary berisi ringkasan pembayaran untuk dashboard.
 type PaymentSummary struct {
-	Today    PaymentSummaryStat            `json:"today"`
-	ThisMonth PaymentSummaryStat           `json:"this_month"`
-	ByMethod map[string]PaymentSummaryStat `json:"by_method"`
+	Today     PaymentSummaryStat            `json:"today"`
+	ThisMonth PaymentSummaryStat            `json:"this_month"`
+	ByMethod  map[string]PaymentSummaryStat `json:"by_method"`
 }
 
 // OpenInvoiceItem merepresentasikan satu invoice terbuka untuk pembayaran cepat.
