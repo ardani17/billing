@@ -17,6 +17,16 @@ type CreatePPPoEUserRequest struct {
 	UseSimpleQueue bool   `json:"use_simple_queue"`
 }
 
+// UpdatePPPoEUserRequest adalah payload untuk PUT /api/v1/mikrotik/routers/:id/pppoe/users/:user_id.
+// Field pointer hanya diterapkan jika dikirim oleh client.
+type UpdatePPPoEUserRequest struct {
+	Password       *string `json:"password,omitempty" validate:"omitempty,min=1"`
+	ProfileName    *string `json:"profile_name,omitempty" validate:"omitempty,min=1,max=100"`
+	RemoteAddress  *string `json:"remote_address,omitempty" validate:"omitempty,max=45"`
+	Disabled       *bool   `json:"disabled,omitempty"`
+	UseSimpleQueue *bool   `json:"use_simple_queue,omitempty"`
+}
+
 // PPPoEUserListParams berisi parameter untuk list PPPoE user dengan paginasi.
 type PPPoEUserListParams struct {
 	RouterID   string

@@ -114,6 +114,90 @@ func (m *pppoeManager) CreateUser(ctx context.Context, routerID string, req doma
 	return created, nil
 }
 
+// UpdateUser mengubah PPPoE user di router dan database.
+// Flow: get user -> get router & pool -> /ppp/secret/set -> update DB.
+func (m *pppoeManager) UpdateUser(ctx context.Context, routerID, userID string, req domain.UpdatePPPoEUserRequest) (*domain.PPPoEUser, error) {
+	log := m.logger.With().
+		Str("router_id", routerID).
+		Str("user_id", userID).
+		Logger()
+
+	pppoeUser, err := m.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("gagal mengambil PPPoE user: %w", err)
+	}
+	if pppoeUser.RouterID != routerID {
+		return nil, domain.ErrPPPoEUserNotFound
+	}
+
+	router, pool, adapter, err := m.getRouterAndPool(ctx, routerID, domain.PriorityMedium)
+	if err != nil {
+		log.Error().Err(err).Msg("gagal mendapatkan router dan koneksi pool")
+		return nil, err
+	}
+	defer pool.Put(adapter)
+
+	cmdBuilder := m.buildCommandBuilder(router)
+	params := make(map[string]string)
+
+	if req.Password != nil {
+		encryptedPassword, err := m.crypto.Encrypt(*req.Password)
+		if err != nil {
+			log.Error().Err(err).Msg("gagal enkripsi password PPPoE")
+			return nil, fmt.Errorf("gagal enkripsi password: %w", err)
+		}
+		pppoeUser.PasswordEncrypted = encryptedPassword
+		params["=password"] = *req.Password
+	}
+	if req.ProfileName != nil {
+		pppoeUser.ProfileName = *req.ProfileName
+		params["=profile"] = *req.ProfileName
+	}
+	if req.RemoteAddress != nil {
+		pppoeUser.RemoteAddress = *req.RemoteAddress
+		params["=remote-address"] = *req.RemoteAddress
+	}
+	if req.Disabled != nil {
+		pppoeUser.Disabled = *req.Disabled
+		if *req.Disabled {
+			params["=disabled"] = "yes"
+			pppoeUser.Status = "disabled"
+		} else {
+			params["=disabled"] = "no"
+			pppoeUser.Status = "active"
+		}
+	}
+	if req.UseSimpleQueue != nil {
+		pppoeUser.UseSimpleQueue = *req.UseSimpleQueue
+	}
+
+	if len(params) > 0 {
+		cmd, args := cmdBuilder.SetSecret(pppoeUser.Username, params)
+		log.Info().Str("command", cmd).Msg("menjalankan SetSecret di router")
+		if _, execErr := adapter.Execute(ctx, cmd, args); execErr != nil {
+			log.Error().Err(execErr).Msg("gagal update PPPoE secret di router")
+			return nil, fmt.Errorf("gagal update PPPoE secret di router %s: %w", routerID, execErr)
+		}
+		if req.Disabled != nil && *req.Disabled {
+			if disconnectErr := m.disconnectActiveSessionByUsername(ctx, adapter, cmdBuilder, pppoeUser.Username, log); disconnectErr != nil {
+				log.Warn().Err(disconnectErr).Msg("gagal disconnect session setelah disable PPPoE user")
+			}
+		}
+	}
+
+	now := time.Now()
+	pppoeUser.SyncStatus = domain.SyncStatusSynced
+	pppoeUser.LastSyncAt = &now
+
+	updated, saveErr := m.userRepo.Update(ctx, pppoeUser)
+	if saveErr != nil {
+		log.Error().Err(saveErr).Msg("gagal menyimpan update PPPoE user ke database")
+		return nil, fmt.Errorf("gagal menyimpan update PPPoE user: %w", saveErr)
+	}
+
+	return updated, nil
+}
+
 // DeleteUser menghapus PPPoE user dari router dan soft-delete dari database.
 // Flow: get user → get router & pool → disconnect → remove secret → remove queue → remove firewall → soft-delete DB.
 func (m *pppoeManager) DeleteUser(ctx context.Context, routerID, userID string) error {

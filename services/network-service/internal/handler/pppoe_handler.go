@@ -79,6 +79,27 @@ func (h *PPPoEHandler) CreateUser(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, user)
 }
 
+// UpdateUser menangani PUT /api/v1/mikrotik/routers/:id/pppoe/users/:user_id.
+func (h *PPPoEHandler) UpdateUser(c *fiber.Ctx) error {
+	routerID := c.Params("id")
+	userID := c.Params("user_id")
+	if routerID == "" || userID == "" {
+		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "router ID dan user ID wajib diisi")
+	}
+	var req domain.UpdatePPPoEUserRequest
+	if err := c.BodyParser(&req); err != nil {
+		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "request body tidak valid")
+	}
+	if err := h.validate.Struct(req); err != nil {
+		return h.validationError(c, err)
+	}
+	user, err := h.manager.UpdateUser(c.UserContext(), routerID, userID, req)
+	if err != nil {
+		return h.mapError(c, err)
+	}
+	return domain.SuccessResponse(c, fiber.StatusOK, user)
+}
+
 // DeleteUser menangani DELETE /api/v1/mikrotik/routers/:id/pppoe/users/:user_id.
 func (h *PPPoEHandler) DeleteUser(c *fiber.Ctx) error {
 	routerID := c.Params("id")

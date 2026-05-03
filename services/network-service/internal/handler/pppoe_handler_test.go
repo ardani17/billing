@@ -41,6 +41,9 @@ func (m *mockPPPoEMgr) ListUsers(context.Context, string, domain.PPPoEUserListPa
 	return nil, nil
 }
 func (m *mockPPPoEMgr) DeleteUser(context.Context, string, string) error { return nil }
+func (m *mockPPPoEMgr) UpdateUser(context.Context, string, string, domain.UpdatePPPoEUserRequest) (*domain.PPPoEUser, error) {
+	return nil, nil
+}
 func (m *mockPPPoEMgr) GetSyncStatus(context.Context, string) (*domain.SyncStatusSummary, error) {
 	return nil, nil
 }

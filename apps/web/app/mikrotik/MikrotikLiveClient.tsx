@@ -572,6 +572,24 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
     }
   }
 
+  async function updatePppoeUserStatus(user: PPPoEUser, disabled: boolean) {
+    setActionBusy(`user-toggle:${user.id}`);
+    setError("");
+    try {
+      const response = await fetch(`/api/network/mikrotik/routers/${routerId}/pppoe/users/${user.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ disabled }),
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) throw new Error(json.error?.message || "Update PPPoE user gagal");
+      await loadRouter();
+    } catch (updateError) {
+      setError(extractMessage(updateError));
+    } finally {
+      setActionBusy(null);
+    }
+  }
+
   async function deletePppoeUser(user: PPPoEUser) {
     const ok = window.confirm(`Hapus PPPoE user ${user.username} dari router dan database?`);
     if (!ok) return;
@@ -757,6 +775,14 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
                       user.sync_status,
                       <StatusBadge key={user.id} status={user.disabled ? "disabled" : user.status} />,
                       <div key={`${user.id}-actions`} className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={actionBusy === `user-toggle:${user.id}`}
+                          onClick={() => void updatePppoeUserStatus(user, !user.disabled)}
+                          className="rounded-md px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {actionBusy === `user-toggle:${user.id}` ? "Menyimpan..." : user.disabled ? "Enable" : "Disable"}
+                        </button>
                         <button
                           type="button"
                           disabled={actionBusy === `user-disconnect:${user.id}`}

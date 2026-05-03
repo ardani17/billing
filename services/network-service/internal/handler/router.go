@@ -111,6 +111,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	pppoe := routers.Group("/:id/pppoe")
 	pppoe.Get("/users", cfg.PPPoEHandler.ListUsers)
 	pppoe.Post("/users", cfg.PPPoEHandler.CreateUser)
+	pppoe.Put("/users/:user_id", cfg.PPPoEHandler.UpdateUser)
 	pppoe.Delete("/users/:user_id", cfg.PPPoEHandler.DeleteUser)
 	pppoe.Post("/users/:user_id/disconnect", cfg.PPPoEHandler.DisconnectUser)
 	pppoe.Get("/sync-status", cfg.PPPoEHandler.GetSyncStatus)

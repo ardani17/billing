@@ -53,6 +53,9 @@ type PPPoEManager interface {
 	// CreateUser membuat PPPoE user secara manual (dari API).
 	CreateUser(ctx context.Context, routerID string, req domain.CreatePPPoEUserRequest) (*domain.PPPoEUser, error)
 
+	// UpdateUser mengubah PPPoE user secara manual (dari API).
+	UpdateUser(ctx context.Context, routerID, userID string, req domain.UpdatePPPoEUserRequest) (*domain.PPPoEUser, error)
+
 	// DeleteUser menghapus PPPoE user dari router dan database.
 	DeleteUser(ctx context.Context, routerID, userID string) error
 
