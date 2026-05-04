@@ -38,22 +38,21 @@ func (m *MockAdapter) Close() error {
 }
 
 // Execute menjalankan perintah RouterOS dan mengembalikan response simulasi.
-// Mendukung command: /system/resource/print, /system/identity/print.
 func (m *MockAdapter) Execute(_ context.Context, command string, _ map[string]string) ([]map[string]string, error) {
 	switch command {
 	case "/system/resource/print":
 		return []map[string]string{
 			{
-				"version":                "6.49.10 (stable)",
-				"board-name":             "RB750Gr3",
-				"cpu-count":              "2",
-				"cpu-load":               "15",
-				"total-memory":           strconv.FormatInt(256*1024*1024, 10),
-				"free-memory":            strconv.FormatInt(180*1024*1024, 10),
-				"uptime":                 "45d00:00:00",
-				"architecture-name":      "mmips",
-				"total-hdd-space":        strconv.FormatInt(16*1024*1024, 10),
-				"free-hdd-space":         strconv.FormatInt(10*1024*1024, 10),
+				"version":                 "6.49.10 (stable)",
+				"board-name":              "RB750Gr3",
+				"cpu-count":               "2",
+				"cpu-load":                "15",
+				"total-memory":            strconv.FormatInt(256*1024*1024, 10),
+				"free-memory":             strconv.FormatInt(180*1024*1024, 10),
+				"uptime":                  "45d00:00:00",
+				"architecture-name":       "mmips",
+				"total-hdd-space":         strconv.FormatInt(16*1024*1024, 10),
+				"free-hdd-space":          strconv.FormatInt(10*1024*1024, 10),
 				"write-sect-since-reboot": "1024",
 			},
 		}, nil
@@ -63,6 +62,84 @@ func (m *MockAdapter) Execute(_ context.Context, command string, _ map[string]st
 			{
 				"name": "ISPBoss-Router-Mock",
 			},
+		}, nil
+
+	case "/interface/print":
+		return []map[string]string{
+			{
+				".id":         "*1",
+				"name":        "ether1-wan",
+				"type":        "ether",
+				"mtu":         "1500",
+				"mac-address": "AA:BB:CC:00:01:01",
+				"running":     "true",
+				"disabled":    "false",
+				"rx-byte":     "928122344",
+				"tx-byte":     "321780011",
+				"rx-packet":   "782110",
+				"tx-packet":   "512009",
+				"comment":     "ISPBoss: uplink utama",
+			},
+			{
+				".id":         "*2",
+				"name":        "pppoe-bridge",
+				"type":        "bridge",
+				"mtu":         "1500",
+				"mac-address": "AA:BB:CC:00:01:02",
+				"running":     "true",
+				"disabled":    "false",
+				"rx-byte":     "2211334455",
+				"tx-byte":     "1988776655",
+				"rx-packet":   "1822110",
+				"tx-packet":   "1512009",
+			},
+		}, nil
+
+	case "/interface/monitor-traffic":
+		return []map[string]string{
+			{
+				"name":                  "ether1-wan",
+				"rx-bits-per-second":    "12800000",
+				"tx-bits-per-second":    "7400000",
+				"rx-packets-per-second": "940",
+				"tx-packets-per-second": "611",
+			},
+		}, nil
+
+	case "/ip/pool/print":
+		return []map[string]string{
+			{".id": "*10", "name": "pool-pppoe-reguler", "ranges": "10.10.10.2-10.10.10.254"},
+			{".id": "*11", "name": "pool-pppoe-isolir", "ranges": "10.99.0.2-10.99.0.100"},
+		}, nil
+
+	case "/ip/pool/used/print":
+		return []map[string]string{
+			{"pool": "pool-pppoe-reguler", "address": "10.10.10.2"},
+			{"pool": "pool-pppoe-reguler", "address": "10.10.10.3"},
+			{"pool": "pool-pppoe-isolir", "address": "10.99.0.2"},
+		}, nil
+
+	case "/ip/firewall/nat/print":
+		return []map[string]string{
+			{".id": "*20", "chain": "dstnat", "action": "redirect", "disabled": "false", "comment": "ISPBoss: isolir walled garden"},
+		}, nil
+
+	case "/ip/firewall/filter/print":
+		return []map[string]string{
+			{".id": "*21", "chain": "forward", "action": "drop", "disabled": "false", "comment": "ISPBoss: block isolated customer"},
+		}, nil
+
+	case "/ip/firewall/address-list/print":
+		return []map[string]string{
+			{".id": "*22", "list": "isolated-customers", "address": "10.99.0.2", "disabled": "false", "comment": "ISPBoss: customer overdue"},
+			{".id": "*23", "list": "walled-garden-allow", "address": "payment.ispboss.local", "disabled": "false", "comment": "ISPBoss: payment portal"},
+		}, nil
+
+	case "/log/print":
+		return []map[string]string{
+			{".id": "*30", "time": "may/04/2026 09:00:00", "topics": "system,info,account", "message": "user api logged in from mock"},
+			{".id": "*31", "time": "may/04/2026 09:02:10", "topics": "pppoe,info", "message": "ISPBoss: customer pppoe-test connected"},
+			{".id": "*32", "time": "may/04/2026 09:05:42", "topics": "firewall,info", "message": "ISPBoss: isolated customer redirected"},
 		}, nil
 
 	default:

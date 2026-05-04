@@ -7,35 +7,35 @@ Rencana ini mengubah daftar fitur besar di `diskusi/08-mikrotik.md` menjadi urut
 ## Tasks
 
 - [ ] 1. Phase 1 - Operational read-only domain and adapter support
-  - [ ] 1.1 Add domain DTOs for router interfaces, traffic samples, IP pool usage, managed firewall rules, and router logs
-  - [ ] 1.2 Add RouterOS command builder methods for interface print, monitor traffic, IP pool print/used, firewall managed print, and log print
-  - [ ] 1.3 Add parser helpers that normalize RouterOS v6/v7 response maps into typed DTOs
+  - [x] 1.1 Add domain DTOs for router interfaces, traffic samples, IP pool usage, managed firewall rules, and router logs
+  - [x] 1.2 Add on-demand RouterOS execution support for interface print, monitor traffic, IP pool print/used, firewall managed print, and log print
+  - [x] 1.3 Add parser helpers that normalize RouterOS v6/v7 response maps into typed DTOs
   - [ ] 1.4 Add unit tests for parser helpers using RouterOS v6.49-style sample responses
-  - [ ] 1.5 Ensure read-only operations use on-demand adapter execution and do not trigger scheduler/polling
+  - [x] 1.5 Ensure read-only operations use on-demand adapter execution and do not trigger scheduler/polling
   - _Requirements: 1, 2, 3, 4, 5, 14_
 
 - [ ] 2. Phase 1 - Operational read-only usecase and handlers
-  - [ ] 2.1 Add MikroTik operational usecase with methods: ListInterfaces, GetTraffic, ListIPPools, ListManagedFirewall, ListLogs
-  - [ ] 2.2 Add Fiber handlers and network-service routes for the five read-only endpoints
-  - [ ] 2.3 Add web proxy routes under `apps/web/app/api/network/mikrotik/routers/[id]/...`
+  - [x] 2.1 Add MikroTik operational usecase with methods: ListInterfaces, GetTraffic, ListIPPools, ListManagedFirewall, ListLogs
+  - [x] 2.2 Add Fiber handlers and network-service routes for the five read-only endpoints
+  - [x] 2.3 Add web proxy routes under `apps/web/app/api/network/mikrotik/routers/[id]/...`
   - [ ] 2.4 Add handler tests for validation, router not found, and successful response mapping
-  - [ ] 2.5 Smoke test against local network-service and CHR where safe
+  - [x] 2.5 Smoke test against local network-service and CHR where safe
   - _Requirements: 1, 2, 3, 4, 5_
 
 - [ ] 3. Phase 1 - Web UI submenu panels
-  - [ ] 3.1 Extend sidebar MikroTik detail submenu with Traffic, Interfaces, IP Pool, Firewall, and Logs
-  - [ ] 3.2 Add Next route pages: `/mikrotik/[id]/traffic`, `/interfaces`, `/ip-pool`, `/firewall`, `/logs`
-  - [ ] 3.3 Add focused panel components under `components/router-detail/`
-  - [ ] 3.4 Add inline loading, empty, and error states for each panel
+  - [x] 3.1 Extend sidebar MikroTik detail submenu with Traffic, Interfaces, IP Pool, Firewall, and Logs
+  - [x] 3.2 Add Next route pages: `/mikrotik/[id]/traffic`, `/interfaces`, `/ip-pool`, `/firewall`, `/logs`
+  - [x] 3.3 Add focused panel components under `components/router-detail/`
+  - [x] 3.4 Add inline loading, empty, and error states for each panel
   - [ ] 3.5 Verify mobile layout does not require horizontal page scrolling
   - _Requirements: 1, 2, 3, 4, 5_
 
 - [ ] 4. Checkpoint - Phase 1 verification
-  - [ ] 4.1 Run `go test ./...` in `services/network-service`
-  - [ ] 4.2 Run `npm.cmd --workspace @ispboss/web run build`
-  - [ ] 4.3 Restart localhost dev server cleanly
-  - [ ] 4.4 Verify all new pages return HTTP 200
-  - [ ] 4.5 Commit and push Phase 1
+  - [x] 4.1 Run `go test ./...` in `services/network-service`
+  - [x] 4.2 Run `npm.cmd --workspace @ispboss/web run build`
+  - [x] 4.3 Restart localhost dev server cleanly
+  - [x] 4.4 Verify all new pages return HTTP 200
+  - [x] 4.5 Commit and push Phase 1
 
 - [ ] 5. Phase 2 - DHCP read model
   - [ ] 5.1 Add domain DTOs for DHCP servers, leases, static bindings, and networks

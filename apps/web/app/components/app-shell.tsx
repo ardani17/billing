@@ -150,6 +150,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
                         { href: `/mikrotik/${mikrotikDetailId}/pppoe`, label: "PPPoE users", icon: ListChecks },
                         { href: `/mikrotik/${mikrotikDetailId}/sessions`, label: "Session live", icon: Pulse },
                         { href: `/mikrotik/${mikrotikDetailId}/sync`, label: "Sinkronisasi", icon: ArrowsClockwise },
+                        { href: `/mikrotik/${mikrotikDetailId}/traffic`, label: "Traffic", icon: ChartLineUp },
+                        { href: `/mikrotik/${mikrotikDetailId}/interfaces`, label: "Interface", icon: List },
+                        { href: `/mikrotik/${mikrotikDetailId}/ip-pool`, label: "IP pool", icon: MapTrifold },
+                        { href: `/mikrotik/${mikrotikDetailId}/firewall`, label: "Firewall", icon: Gauge },
+                        { href: `/mikrotik/${mikrotikDetailId}/logs`, label: "Log router", icon: Receipt },
                       ]
                     : [];
                   return (

@@ -16,11 +16,16 @@ import type {
   SyncStatus,
   SystemResource,
 } from "../../lib/types";
+import { FirewallPanel } from "./FirewallPanel";
+import { InterfacesPanel } from "./InterfacesPanel";
+import { IPPoolsPanel } from "./IPPoolsPanel";
+import { LogsPanel } from "./LogsPanel";
 import { OverviewPanel } from "./OverviewPanel";
 import { PppoeUsersPanel } from "./PppoeUsersPanel";
 import { RouterEditPanel } from "./RouterEditPanel";
 import { SessionsPanel } from "./SessionsPanel";
 import { SyncPanel } from "./SyncPanel";
+import { TrafficPanel } from "./TrafficPanel";
 
 export function MikrotikRouterWorkspace({
   routerId,
@@ -332,6 +337,11 @@ export function MikrotikRouterWorkspace({
                   />
                 )}
                 {section === "sync" && <SyncPanel syncStatus={syncStatus} syncing={syncing} onSync={() => void syncPppoe()} />}
+                {section === "traffic" && <TrafficPanel routerId={routerId} onError={setError} />}
+                {section === "interfaces" && <InterfacesPanel routerId={routerId} onError={setError} />}
+                {section === "ip-pool" && <IPPoolsPanel routerId={routerId} onError={setError} />}
+                {section === "firewall" && <FirewallPanel routerId={routerId} onError={setError} />}
+                {section === "logs" && <LogsPanel routerId={routerId} onError={setError} />}
               </>
             )}
         </main>

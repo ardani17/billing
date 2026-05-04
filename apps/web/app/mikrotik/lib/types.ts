@@ -74,4 +74,64 @@ export type SyncStatus = {
   last_sync_at?: string;
 };
 
-export type MikrotikDetailSection = "overview" | "pppoe" | "sessions" | "sync";
+export type RouterInterface = {
+  id: string;
+  name: string;
+  type: string;
+  mtu: number;
+  mac_address?: string;
+  running: boolean;
+  disabled: boolean;
+  rx_byte: number;
+  tx_byte: number;
+  rx_packet: number;
+  tx_packet: number;
+  comment?: string;
+};
+
+export type RouterTrafficSample = {
+  interface: string;
+  rx_bps: number;
+  tx_bps: number;
+  rx_packets_per_second: number;
+  tx_packets_per_second: number;
+};
+
+export type RouterIPPoolUsage = {
+  name: string;
+  ranges: string[];
+  used: number;
+  total: number;
+  available: number;
+  usage_percent: number;
+  warning_level: string;
+};
+
+export type RouterFirewallRule = {
+  id: string;
+  kind: string;
+  chain?: string;
+  action?: string;
+  list?: string;
+  address?: string;
+  disabled: boolean;
+  comment?: string;
+};
+
+export type RouterLogEntry = {
+  id: string;
+  time: string;
+  topics: string;
+  message: string;
+};
+
+export type MikrotikDetailSection =
+  | "overview"
+  | "pppoe"
+  | "sessions"
+  | "sync"
+  | "traffic"
+  | "interfaces"
+  | "ip-pool"
+  | "firewall"
+  | "logs";

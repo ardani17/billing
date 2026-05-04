@@ -29,6 +29,9 @@ type RouterConfig struct {
 	// VPNHandler adalah handler untuk manajemen VPN tunnel
 	VPNHandler *VPNHandler
 
+	// OperationalHandler adalah handler untuk data operasional RouterOS on-demand
+	OperationalHandler *MikroTikOperationalHandler
+
 	// OLTHandler adalah handler untuk manajemen OLT device
 	OLTHandler *OLTHandler
 
@@ -121,6 +124,13 @@ func RegisterRoutes(cfg RouterConfig) {
 	pppoe.Get("/sessions", cfg.SessionHandler.GetSessions)
 	pppoe.Post("/sessions/:session_id/disconnect", cfg.SessionHandler.DisconnectSession)
 	pppoe.Get("/sessions/count", cfg.SessionHandler.GetSessionCount)
+
+	// Route operasional RouterOS. Semua dibaca manual/on-demand dari UI/API.
+	routers.Get("/:id/interfaces", cfg.OperationalHandler.ListInterfaces)
+	routers.Get("/:id/traffic", cfg.OperationalHandler.GetTraffic)
+	routers.Get("/:id/ip-pools", cfg.OperationalHandler.ListIPPools)
+	routers.Get("/:id/firewall/managed", cfg.OperationalHandler.ListManagedFirewall)
+	routers.Get("/:id/logs", cfg.OperationalHandler.ListLogs)
 
 	// Route status summary router MikroTik
 	status := api.Group("/mikrotik/status")

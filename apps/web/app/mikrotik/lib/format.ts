@@ -15,6 +15,30 @@ export function formatMemory(bytes?: number) {
   return `${Math.round(bytes / 1024 / 1024)} MB`;
 }
 
+export function formatBytes(bytes?: number) {
+  if (!bytes) return "-";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  return `${value >= 10 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`;
+}
+
+export function formatBps(value?: number) {
+  if (!value) return "0 bps";
+  const units = ["bps", "Kbps", "Mbps", "Gbps"];
+  let current = value;
+  let unit = 0;
+  while (current >= 1000 && unit < units.length - 1) {
+    current /= 1000;
+    unit += 1;
+  }
+  return `${current >= 10 ? Math.round(current) : current.toFixed(1)} ${units[unit]}`;
+}
+
 export function extractMessage(error: unknown) {
   return error instanceof Error ? error.message : "Terjadi kesalahan";
 }

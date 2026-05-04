@@ -186,11 +186,13 @@ func main() {
 	)
 
 	// 20. HTTP handlers (MikroTik)
+	operationalManager := usecase.NewMikroTikOperationalManager(routerRepo, encryptor, adapterFactory)
 	routerHandler := handler.NewRouterHandler(routerUsecase)
 	statusHandler := handler.NewStatusHandler(routerUsecase)
 	pppoeHandler := handler.NewPPPoEHandler(pppoeManager, appLogger)
 	sessionHandler := handler.NewSessionHandler(pppoeManager, appLogger)
 	vpnHandler := handler.NewVPNHandler(vpnManager, appLogger)
+	operationalHandler := handler.NewMikroTikOperationalHandler(operationalManager, appLogger)
 
 	// --- OLT Dependency Injection ---
 
@@ -330,6 +332,7 @@ func main() {
 		PPPoEHandler:          pppoeHandler,
 		SessionHandler:        sessionHandler,
 		VPNHandler:            vpnHandler,
+		OperationalHandler:    operationalHandler,
 		OLTHandler:            oltHandler,
 		ODPHandler:            odpHandler,
 		ProvisioningHandler:   provisioningHandler,
