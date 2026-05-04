@@ -1,6 +1,7 @@
 "use client";
 
 import { ChartLineUp, ClockCounterClockwise, FileText, Pulse } from "@phosphor-icons/react";
+import AppShell from "../components/app-shell";
 import { FilterBar } from "./components/FilterBar";
 import { TabNavigation } from "./components/TabNavigation";
 import { useFilters } from "./hooks/useFilters";
@@ -38,14 +39,14 @@ export default function ReportPage() {
   const periodLabel = formatReportPeriod(filters.periodPreset, filters.periodStart, filters.periodEnd);
 
   return (
-    <main className="min-h-dvh bg-slate-50/70">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-3 py-4 sm:px-4 md:px-6 md:py-6">
+    <AppShell>
+      <div className="flex w-full flex-col gap-6">
         <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/70">
           <div className="flex flex-col gap-5 border-b border-slate-100 px-4 py-5 sm:px-5 lg:flex-row lg:items-end lg:justify-between lg:px-6">
             <div className="min-w-0">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
                 <ChartLineUp className="h-4 w-4" weight="duotone" />
-                Reporting
+                Laporan
               </div>
               <h1 className="text-balance text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
                 Laporan dan analitik
@@ -120,7 +121,7 @@ export default function ReportPage() {
           )}
         </div>
       </div>
-    </main>
+    </AppShell>
   );
 }
 

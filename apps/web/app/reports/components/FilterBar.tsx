@@ -71,7 +71,7 @@ export function FilterBar({
             <select
               value={periodPreset}
               onChange={(e) => onPeriodPresetChange(e.target.value as PeriodPreset)}
-              className="min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10"
+              className="min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               {PERIOD_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -87,7 +87,7 @@ export function FilterBar({
                   type="date"
                   value={periodStart}
                   onChange={(e) => onCustomPeriodChange(e.target.value, periodEnd)}
-                  className="min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10"
+                  className="min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
               <div className="min-w-0">
@@ -96,7 +96,7 @@ export function FilterBar({
                   type="date"
                   value={periodEnd}
                   onChange={(e) => onCustomPeriodChange(periodStart, e.target.value)}
-                  className="min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10"
+                  className="min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
             </div>
@@ -107,7 +107,7 @@ export function FilterBar({
             <select
               value={comparisonType ?? ""}
               onChange={(e) => onComparisonChange(e.target.value ? (e.target.value as ComparisonType) : undefined)}
-              className="min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10"
+              className="min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               {COMPARISON_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -118,7 +118,7 @@ export function FilterBar({
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/60 hover:text-blue-700 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-100"
           >
             <ArrowCounterClockwise className="h-4 w-4" />
             Reset

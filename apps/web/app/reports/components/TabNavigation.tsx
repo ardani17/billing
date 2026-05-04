@@ -39,15 +39,15 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               role="tab"
               aria-selected={isActive}
               onClick={() => onTabChange(tab.value)}
-              className={`group flex min-h-16 min-w-0 items-center gap-3 rounded-lg border px-3 py-3 text-left transition duration-200 focus:outline-none focus:ring-2 focus:ring-slate-900/10 ${
+              className={`group flex min-h-16 min-w-0 items-center gap-3 rounded-lg border px-3 py-3 text-left transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-100 ${
                 isActive
-                  ? "border-slate-900 bg-slate-950 text-white shadow-sm"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                  ? "border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-200"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50/40"
               }`}
             >
               <span
                 className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md ${
-                  isActive ? "bg-white/12 text-white" : "bg-slate-100 text-slate-500 group-hover:text-slate-900"
+                  isActive ? "bg-white/15 text-white" : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-700"
                 }`}
                 aria-hidden="true"
               >
@@ -55,7 +55,7 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold">{tab.label}</span>
-                <span className={`mt-0.5 block truncate text-xs ${isActive ? "text-slate-300" : "text-slate-500"}`}>
+                <span className={`mt-0.5 block truncate text-xs ${isActive ? "text-blue-50" : "text-slate-500"}`}>
                   {tab.description}
                 </span>
               </span>
