@@ -38,6 +38,9 @@ type RouterConfig struct {
 	// StaticIPHandler adalah handler untuk pelanggan static IP
 	StaticIPHandler *StaticIPHandler
 
+	// WalledGardenHandler adalah handler untuk rule isolir/walled garden
+	WalledGardenHandler *WalledGardenHandler
+
 	// OLTHandler adalah handler untuk manajemen OLT device
 	OLTHandler *OLTHandler
 
@@ -156,6 +159,12 @@ func RegisterRoutes(cfg RouterConfig) {
 	staticIP.Delete("/assignments/:assignment_id", cfg.StaticIPHandler.DeleteAssignment)
 	staticIP.Post("/assignments/:assignment_id/isolate", cfg.StaticIPHandler.IsolateAssignment)
 	staticIP.Post("/assignments/:assignment_id/unisolate", cfg.StaticIPHandler.UnisolateAssignment)
+
+	// Route walled garden isolir. Semua write manual dan idempotent by comment prefix.
+	walledGarden := routers.Group("/:id/walled-garden")
+	walledGarden.Get("", cfg.WalledGardenHandler.GetStatus)
+	walledGarden.Post("/apply", cfg.WalledGardenHandler.Apply)
+	walledGarden.Post("/remove", cfg.WalledGardenHandler.Remove)
 
 	// Route status summary router MikroTik
 	status := api.Group("/mikrotik/status")

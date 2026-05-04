@@ -130,15 +130,16 @@ func (m *mikrotikOperationalManager) ListManagedFirewall(ctx context.Context, ro
 
 	rules := make([]domain.RouterFirewallRule, 0)
 	for _, source := range []struct {
-		kind    string
-		command string
+		kind     string
+		command  string
+		proplist string
 	}{
-		{"nat", "/ip/firewall/nat/print"},
-		{"filter", "/ip/firewall/filter/print"},
-		{"address_list", "/ip/firewall/address-list/print"},
+		{"nat", "/ip/firewall/nat/print", ".id,chain,action,disabled,comment"},
+		{"filter", "/ip/firewall/filter/print", ".id,chain,action,disabled,comment"},
+		{"address_list", "/ip/firewall/address-list/print", ".id,list,address,disabled,comment"},
 	} {
 		rows, readErr := adapter.Execute(ctx, source.command, map[string]string{
-			"=.proplist": ".id,chain,action,list,address,disabled,comment",
+			"=.proplist": source.proplist,
 		})
 		if readErr != nil {
 			return nil, readErr

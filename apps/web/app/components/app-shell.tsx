@@ -157,6 +157,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                         { href: `/mikrotik/${mikrotikDetailId}/logs`, label: "Log router", icon: Receipt },
                         { href: `/mikrotik/${mikrotikDetailId}/dhcp`, label: "DHCP", icon: ListChecks },
                         { href: `/mikrotik/${mikrotikDetailId}/static-ip`, label: "Static IP", icon: MapTrifold },
+                        { href: `/mikrotik/${mikrotikDetailId}/walled-garden`, label: "Walled Garden", icon: Gauge },
                       ]
                     : [];
                   return (

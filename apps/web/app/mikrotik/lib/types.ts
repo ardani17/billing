@@ -118,6 +118,23 @@ export type RouterFirewallRule = {
   comment?: string;
 };
 
+export type WalledGardenConfig = {
+  method: string;
+  walled_garden_ip: string;
+  dns_server_ip: string;
+  isolated_address_list: string;
+  allowed_address_list: string;
+  allowed_destinations: string[];
+};
+
+export type WalledGardenStatus = {
+  config: WalledGardenConfig;
+  rules: RouterFirewallRule[];
+  isolated_count: number;
+  allowed_count: number;
+  applied: boolean;
+};
+
 export type RouterLogEntry = {
   id: string;
   time: string;
@@ -206,4 +223,5 @@ export type MikrotikDetailSection =
   | "firewall"
   | "logs"
   | "dhcp"
-  | "static-ip";
+  | "static-ip"
+  | "walled-garden";

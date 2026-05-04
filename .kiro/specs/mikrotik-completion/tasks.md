@@ -61,11 +61,11 @@ Rencana ini mengubah daftar fitur besar di `diskusi/08-mikrotik.md` menjadi urut
   - _Requirements: 7, 9, 13, 14_
 
 - [ ] 8. Phase 4 - Walled garden completion
-  - [ ] 8.1 Complete RouterOS command builders for DNS redirect, HTTP redirect, and block-all whitelist
+  - [x] 8.1 Complete RouterOS command builders for DNS redirect, HTTP redirect, and block-all whitelist
   - [ ] 8.2 Add tenant settings lookup for isolir method
-  - [ ] 8.3 Ensure firewall rules and address lists are prefixed with `ISPBoss:`
-  - [ ] 8.4 Add UI status showing current managed walled garden rules per router
-  - [ ] 8.5 Add integration tests for isolir/unisolir idempotency using mock adapter
+  - [x] 8.3 Ensure firewall rules and address lists are prefixed with `ISPBoss:`
+  - [x] 8.4 Add UI status showing current managed walled garden rules per router
+  - [x] 8.5 Add integration tests for isolir/unisolir idempotency using mock adapter and real CHR smoke test
   - _Requirements: 9, 13, 14_
 
 - [ ] 9. Phase 5 - Hotspot and voucher integration

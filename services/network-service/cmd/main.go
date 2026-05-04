@@ -192,6 +192,7 @@ func main() {
 	operationalManager := usecase.NewMikroTikOperationalManager(routerRepo, encryptor, adapterFactory)
 	dhcpManager := usecase.NewDHCPManager(routerRepo, dhcpBindingRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	staticIPManager := usecase.NewStaticIPManager(routerRepo, staticIPRepo, mikrotikAuditRepo, encryptor, adapterFactory)
+	walledGardenManager := usecase.NewWalledGardenManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	routerHandler := handler.NewRouterHandler(routerUsecase)
 	statusHandler := handler.NewStatusHandler(routerUsecase)
 	pppoeHandler := handler.NewPPPoEHandler(pppoeManager, appLogger)
@@ -200,6 +201,7 @@ func main() {
 	operationalHandler := handler.NewMikroTikOperationalHandler(operationalManager, appLogger)
 	dhcpHandler := handler.NewDHCPHandler(dhcpManager, appLogger)
 	staticIPHandler := handler.NewStaticIPHandler(staticIPManager, appLogger)
+	walledGardenHandler := handler.NewWalledGardenHandler(walledGardenManager, appLogger)
 
 	// --- OLT Dependency Injection ---
 
@@ -342,6 +344,7 @@ func main() {
 		OperationalHandler:    operationalHandler,
 		DHCPHandler:           dhcpHandler,
 		StaticIPHandler:       staticIPHandler,
+		WalledGardenHandler:   walledGardenHandler,
 		OLTHandler:            oltHandler,
 		ODPHandler:            odpHandler,
 		ProvisioningHandler:   provisioningHandler,

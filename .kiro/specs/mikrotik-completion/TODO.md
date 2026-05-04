@@ -27,10 +27,10 @@
 
 ## Phase 4 - Walled Garden
 
-- [ ] DNS redirect, HTTP redirect, and block-all whitelist builders.
+- [x] DNS redirect, HTTP redirect, and block-all whitelist builders.
 - [ ] Tenant setting lookup for isolir method.
-- [ ] Managed firewall status in UI.
-- [ ] Idempotency tests.
+- [x] Managed firewall status in UI.
+- [x] Idempotency tests against CHR.
 
 ## Phase 5 - Hotspot
 

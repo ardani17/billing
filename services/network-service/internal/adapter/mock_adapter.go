@@ -161,6 +161,12 @@ func (m *MockAdapter) Execute(_ context.Context, command string, _ map[string]st
 	case "/ip/dhcp-server/lease/add", "/ip/dhcp-server/lease/set", "/ip/dhcp-server/lease/remove":
 		return []map[string]string{}, nil
 
+	case "/ip/firewall/nat/add", "/ip/firewall/nat/set", "/ip/firewall/nat/remove":
+		return []map[string]string{}, nil
+
+	case "/ip/firewall/filter/add", "/ip/firewall/filter/set", "/ip/firewall/filter/remove":
+		return []map[string]string{}, nil
+
 	case "/ip/firewall/address-list/add", "/ip/firewall/address-list/set", "/ip/firewall/address-list/remove":
 		return []map[string]string{}, nil
 
