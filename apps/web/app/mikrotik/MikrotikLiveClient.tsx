@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowClockwise, CheckCircle, WarningCircle } from "@phosphor-icons/react";
 import { Button, DataTable, EmptyState, FormField, PageHeader, Section, StatGrid, StatusBadge, TextInput } from "../components/ui";
 import AppShell from "../components/app-shell";
@@ -26,6 +27,18 @@ type RouterRecord = {
   last_uptime_sec?: number;
   failure_count: number;
   notes?: string;
+};
+
+type RouterEditForm = {
+  name: string;
+  host: string;
+  port: string;
+  username: string;
+  password: string;
+  useSsl: boolean;
+  status: string;
+  healthCheckIntervalSec: string;
+  notes: string;
 };
 
 type RouterListResponse = {
@@ -123,12 +136,27 @@ function extractMessage(error: unknown) {
   return error instanceof Error ? error.message : "Terjadi kesalahan";
 }
 
+function routerToEditForm(router: RouterRecord): RouterEditForm {
+  return {
+    name: router.name,
+    host: router.host,
+    port: String(router.port || 8728),
+    username: router.username,
+    password: "",
+    useSsl: router.use_ssl,
+    status: router.status,
+    healthCheckIntervalSec: String(router.health_check_interval_sec || 300),
+    notes: router.notes || "",
+  };
+}
+
 export function MikrotikLivePage() {
   const [routers, setRouters] = useState<RouterRecord[]>([]);
   const [summary, setSummary] = useState<SummaryResponse["data"]>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<{ router: string; resource: SystemResource } | null>(null);
 
   async function loadRouters() {
@@ -167,6 +195,24 @@ export function MikrotikLivePage() {
       setError(extractMessage(testError));
     } finally {
       setTestingId(null);
+    }
+  }
+
+  async function deleteRouterFromList(router: RouterRecord) {
+    const ok = window.confirm(`Hapus router ${router.name}? Data router akan dihapus dari aplikasi, tanpa mengubah konfigurasi di MikroTik.`);
+    if (!ok) return;
+
+    setDeletingId(router.id);
+    setError("");
+    try {
+      const response = await fetch(`/api/network/mikrotik/routers/${router.id}`, { method: "DELETE" });
+      const json = await response.json();
+      if (!response.ok || !json.success) throw new Error(json.error?.message || "Gagal menghapus router");
+      await loadRouters();
+    } catch (deleteError) {
+      setError(extractMessage(deleteError));
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -251,15 +297,27 @@ export function MikrotikLivePage() {
                 router.board_name || "-",
                 formatUptime(router.last_uptime_sec),
                 <StatusBadge key={`${router.id}-status`} status={router.status} />,
-                <button
-                  key={`${router.id}-test`}
-                  type="button"
-                  disabled={testingId === router.id}
-                  onClick={() => void testConnection(router)}
-                  className="rounded-md px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60"
-                >
-                  {testingId === router.id ? "Testing..." : "Test"}
-                </button>,
+                <div key={`${router.id}-actions`} className="flex flex-wrap gap-2">
+                  <a href={`/mikrotik/${router.id}`} className="rounded-md px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50">
+                    Edit
+                  </a>
+                  <button
+                    type="button"
+                    disabled={testingId === router.id}
+                    onClick={() => void testConnection(router)}
+                    className="rounded-md px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {testingId === router.id ? "Testing..." : "Test"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deletingId === router.id}
+                    onClick={() => void deleteRouterFromList(router)}
+                    className="rounded-md px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {deletingId === router.id ? "Menghapus..." : "Hapus"}
+                  </button>
+                </div>,
               ])}
             />
           )}
@@ -466,17 +524,23 @@ export function MikrotikCreatePage() {
 }
 
 export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
+  const navigation = useRouter();
   const [router, setRouter] = useState<RouterRecord | null>(null);
   const [system, setSystem] = useState<SystemResource | null>(null);
   const [pppoeUsers, setPppoeUsers] = useState<PPPoEUser[]>([]);
   const [sessions, setSessions] = useState<PPPoESession[]>([]);
   const [sessionsLoaded, setSessionsLoaded] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState<RouterEditForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [savingRouter, setSavingRouter] = useState(false);
+  const [deletingRouter, setDeletingRouter] = useState(false);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   async function loadRouter() {
     setLoading(true);
@@ -489,7 +553,9 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
       ]);
       const json = await response.json();
       if (!response.ok || !json.success) throw new Error(json.error?.message || "Gagal mengambil router");
-      setRouter(json.data.router as RouterRecord);
+      const routerData = json.data.router as RouterRecord;
+      setRouter(routerData);
+      setEditForm(routerToEditForm(routerData));
       const usersJson = await usersResponse.json();
       const syncJson = await syncResponse.json();
       if (usersResponse.ok && usersJson.success) setPppoeUsers(usersJson.data?.items || []);
@@ -504,6 +570,7 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
   async function testConnection() {
     setSystem(null);
     setError("");
+    setSuccess("");
     try {
       const response = await fetch(`/api/network/mikrotik/routers/${routerId}/test`, { method: "POST" });
       const json = await response.json();
@@ -515,9 +582,78 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
     }
   }
 
+  function updateEditField(field: keyof RouterEditForm, value: string | boolean) {
+    setEditForm((current) => (current ? { ...current, [field]: value } : current));
+  }
+
+  async function submitRouterUpdate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editForm) return;
+
+    setSavingRouter(true);
+    setError("");
+    setSuccess("");
+    try {
+      const payload: Record<string, unknown> = {
+        name: editForm.name.trim(),
+        host: editForm.host.trim(),
+        port: Number(editForm.port || 8728),
+        username: editForm.username.trim(),
+        use_ssl: editForm.useSsl,
+        status: editForm.status,
+        health_check_interval_sec: Number(editForm.healthCheckIntervalSec || 300),
+        notes: editForm.notes.trim(),
+      };
+      if (editForm.password.trim()) {
+        payload.password = editForm.password;
+      }
+
+      const response = await fetch(`/api/network/mikrotik/routers/${routerId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.error?.message || "Gagal mengubah router");
+      }
+
+      setSuccess("Router berhasil diperbarui.");
+      setEditMode(false);
+      await loadRouter();
+    } catch (updateError) {
+      setError(extractMessage(updateError));
+    } finally {
+      setSavingRouter(false);
+    }
+  }
+
+  async function deleteRouter() {
+    if (!router) return;
+    const ok = window.confirm(`Hapus router ${router.name}? Data router akan dihapus dari aplikasi, tanpa mengubah konfigurasi di MikroTik.`);
+    if (!ok) return;
+
+    setDeletingRouter(true);
+    setError("");
+    setSuccess("");
+    try {
+      const response = await fetch(`/api/network/mikrotik/routers/${routerId}`, { method: "DELETE" });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.error?.message || "Gagal menghapus router");
+      }
+      navigation.push("/mikrotik");
+      navigation.refresh();
+    } catch (deleteError) {
+      setError(extractMessage(deleteError));
+    } finally {
+      setDeletingRouter(false);
+    }
+  }
+
   async function loadLiveSessions() {
     setLoadingSessions(true);
     setError("");
+    setSuccess("");
     try {
       const response = await fetch(`/api/network/mikrotik/routers/${routerId}/pppoe/sessions`, { cache: "no-store" });
       const json = await response.json();
@@ -626,11 +762,17 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
           description={router ? `${router.host}:${router.port} - ${router.router_os_version || "RouterOS"}` : "Memuat data router live"}
           actions={
             <>
+              <button type="button" onClick={() => setEditMode((value) => !value)} className="rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">
+                {editMode ? "Tutup Edit" : "Edit Router"}
+              </button>
               <button type="button" onClick={() => void syncPppoe()} disabled={syncing} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60">
                 {syncing ? "Syncing..." : "Sync PPPoE"}
               </button>
               <button type="button" onClick={() => void testConnection()} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                 Test Connection
+              </button>
+              <button type="button" onClick={() => void deleteRouter()} disabled={deletingRouter} className="rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60">
+                {deletingRouter ? "Menghapus..." : "Hapus"}
               </button>
             </>
           }
@@ -642,6 +784,13 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
           <div className="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             <WarningCircle size={20} className="shrink-0" />
             <span className="min-w-0 [overflow-wrap:anywhere]">{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div className="flex gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+            <CheckCircle size={20} className="shrink-0" />
+            <span className="min-w-0 [overflow-wrap:anywhere]">{success}</span>
           </div>
         )}
 
@@ -658,6 +807,100 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
                 { label: "PPPoE aktif", value: sessionsLoaded ? String(sessions.length) : "-" },
               ]}
             />
+            {editMode && editForm && (
+              <Section
+                title="Edit router"
+                description="Mengubah data koneksi hanya menyimpan konfigurasi aplikasi. RouterOS tidak akan di-login sampai Anda menekan Test Connection atau aksi manual lain."
+              >
+                <form onSubmit={(event) => void submitRouterUpdate(event)} className="grid gap-5">
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <FormField label="Nama router">
+                      <TextInput value={editForm.name} onChange={(event) => updateEditField("name", event.target.value)} required />
+                    </FormField>
+                    <FormField label="Host / IP">
+                      <TextInput value={editForm.host} onChange={(event) => updateEditField("host", event.target.value)} required />
+                    </FormField>
+                    <FormField label="Username">
+                      <TextInput value={editForm.username} onChange={(event) => updateEditField("username", event.target.value)} required />
+                    </FormField>
+                    <FormField label="Password baru" helper="Kosongkan jika password tidak berubah.">
+                      <TextInput
+                        type="password"
+                        value={editForm.password}
+                        onChange={(event) => updateEditField("password", event.target.value)}
+                        autoComplete="new-password"
+                        placeholder="Tidak diubah"
+                      />
+                    </FormField>
+                    <FormField label="Port API">
+                      <TextInput
+                        type="number"
+                        min={1}
+                        max={65535}
+                        value={editForm.port}
+                        onChange={(event) => updateEditField("port", event.target.value)}
+                        required
+                      />
+                    </FormField>
+                    <FormField label="Interval health check">
+                      <TextInput
+                        type="number"
+                        min={10}
+                        max={3600}
+                        value={editForm.healthCheckIntervalSec}
+                        onChange={(event) => updateEditField("healthCheckIntervalSec", event.target.value)}
+                        required
+                      />
+                    </FormField>
+                    <FormField label="Status">
+                      <select
+                        value={editForm.status}
+                        onChange={(event) => updateEditField("status", event.target.value)}
+                        className="h-10 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="online">Online</option>
+                        <option value="offline">Offline</option>
+                        <option value="maintenance">Maintenance</option>
+                      </select>
+                    </FormField>
+                    <label className="flex min-h-10 items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={editForm.useSsl}
+                        onChange={(event) => updateEditField("useSsl", event.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      Gunakan API-SSL
+                    </label>
+                    <div className="lg:col-span-2">
+                      <FormField label="Catatan">
+                        <TextInput value={editForm.notes} onChange={(event) => updateEditField("notes", event.target.value)} placeholder="Lokasi, upstream, atau akses VPN" />
+                      </FormField>
+                    </div>
+                  </div>
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditForm(routerToEditForm(router));
+                        setEditMode(false);
+                        setError("");
+                      }}
+                      className="inline-flex min-w-0 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-center text-sm font-semibold leading-5 text-slate-700 transition hover:bg-slate-50 active:scale-[0.98]"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingRouter}
+                      className="inline-flex min-w-0 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-center text-sm font-semibold leading-5 text-white transition hover:bg-blue-700 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+                    >
+                      {savingRouter ? "Menyimpan..." : "Simpan Perubahan"}
+                    </button>
+                  </div>
+                </form>
+              </Section>
+            )}
             <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
               <Section title="Konfigurasi router">
                 <DataTable
