@@ -212,6 +212,46 @@ export type StaticIPAssignment = {
   updated_at: string;
 };
 
+export type HotspotUser = {
+  id: string;
+  name: string;
+  password?: string;
+  profile?: string;
+  limit_uptime?: string;
+  uptime?: string;
+  bytes_in: number;
+  bytes_out: number;
+  disabled: boolean;
+  comment?: string;
+  managed: boolean;
+};
+
+export type HotspotProfile = {
+  id: string;
+  name: string;
+  rate_limit?: string;
+  shared_users?: string;
+  address_pool?: string;
+  transparent_proxy: boolean;
+  comment?: string;
+};
+
+export type HotspotActiveSession = {
+  id: string;
+  user: string;
+  address?: string;
+  mac_address?: string;
+  uptime?: string;
+  bytes_in: number;
+  bytes_out: number;
+  server?: string;
+};
+
+export type HotspotLoginTemplate = {
+  file_name: string;
+  html: string;
+};
+
 export type MikrotikDetailSection =
   | "overview"
   | "pppoe"
@@ -224,4 +264,5 @@ export type MikrotikDetailSection =
   | "logs"
   | "dhcp"
   | "static-ip"
-  | "walled-garden";
+  | "walled-garden"
+  | "hotspot";

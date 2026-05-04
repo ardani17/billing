@@ -34,10 +34,10 @@
 
 ## Phase 5 - Hotspot
 
-- [ ] Hotspot user/profile/active endpoints.
+- [x] Hotspot user/profile/active endpoints.
 - [ ] Voucher activation integration.
-- [ ] Hotspot submenu UI.
-- [ ] Branded login template generation.
+- [x] Hotspot submenu UI.
+- [x] Branded login template generation.
 
 ## Phase 6 - Terminal And Audit
 

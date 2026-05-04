@@ -6,19 +6,25 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 )
 
 // MockAdapter mengimplementasikan RouterOSAdapter tanpa koneksi ke router fisik.
 // Digunakan saat NETWORK_MODE=mock untuk development dan testing.
 type MockAdapter struct {
-	mu        sync.Mutex
-	connected bool
+	mu           sync.Mutex
+	connected    bool
+	hotspotUsers []map[string]string
 }
 
 // NewMockAdapter membuat instance MockAdapter baru.
 func NewMockAdapter() *MockAdapter {
-	return &MockAdapter{}
+	return &MockAdapter{
+		hotspotUsers: []map[string]string{
+			{".id": "*60", "name": "voucher-demo", "password": "123456", "profile": "default", "limit-uptime": "1d", "uptime": "0s", "bytes-in": "0", "bytes-out": "0", "disabled": "false", "comment": "ISPBoss:hotspot:voucher-demo"},
+		},
+	}
 }
 
 // Connect mensimulasikan koneksi ke router (selalu sukses, no-op).
@@ -38,7 +44,10 @@ func (m *MockAdapter) Close() error {
 }
 
 // Execute menjalankan perintah RouterOS dan mengembalikan response simulasi.
-func (m *MockAdapter) Execute(_ context.Context, command string, _ map[string]string) ([]map[string]string, error) {
+func (m *MockAdapter) Execute(_ context.Context, command string, params map[string]string) ([]map[string]string, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	switch command {
 	case "/system/resource/print":
 		return []map[string]string{
@@ -175,6 +184,71 @@ func (m *MockAdapter) Execute(_ context.Context, command string, _ map[string]st
 
 	case "/queue/simple/add", "/queue/simple/set", "/queue/simple/remove":
 		return []map[string]string{}, nil
+
+	case "/ip/hotspot/user/print":
+		rows := make([]map[string]string, 0, len(m.hotspotUsers))
+		for _, row := range m.hotspotUsers {
+			copyRow := make(map[string]string, len(row))
+			for key, value := range row {
+				copyRow[key] = value
+			}
+			rows = append(rows, copyRow)
+		}
+		return rows, nil
+
+	case "/ip/hotspot/user/add":
+		id := fmt.Sprintf("*%d", 60+len(m.hotspotUsers))
+		row := map[string]string{
+			".id":          id,
+			"name":         params["=name"],
+			"password":     params["=password"],
+			"profile":      params["=profile"],
+			"limit-uptime": params["=limit-uptime"],
+			"uptime":       "0s",
+			"bytes-in":     "0",
+			"bytes-out":    "0",
+			"disabled":     "false",
+			"comment":      params["=comment"],
+		}
+		m.hotspotUsers = append(m.hotspotUsers, row)
+		return []map[string]string{}, nil
+
+	case "/ip/hotspot/user/set":
+		number := params["=numbers"]
+		for _, row := range m.hotspotUsers {
+			if row[".id"] == number || row["name"] == number {
+				for key, value := range params {
+					if key == "=numbers" {
+						continue
+					}
+					row[strings.TrimPrefix(key, "=")] = value
+				}
+				return []map[string]string{}, nil
+			}
+		}
+		return []map[string]string{}, nil
+
+	case "/ip/hotspot/user/remove":
+		number := params["=numbers"]
+		next := m.hotspotUsers[:0]
+		for _, row := range m.hotspotUsers {
+			if row[".id"] != number && row["name"] != number {
+				next = append(next, row)
+			}
+		}
+		m.hotspotUsers = next
+		return []map[string]string{}, nil
+
+	case "/ip/hotspot/user/profile/print":
+		return []map[string]string{
+			{".id": "*70", "name": "default", "rate-limit": "5M/5M", "shared-users": "1", "address-pool": "pool-hotspot", "transparent-proxy": "false", "comment": "Default hotspot profile"},
+			{".id": "*71", "name": "voucher-1d", "rate-limit": "10M/10M", "shared-users": "1", "address-pool": "pool-hotspot", "transparent-proxy": "false", "comment": "ISPBoss voucher harian"},
+		}, nil
+
+	case "/ip/hotspot/active/print":
+		return []map[string]string{
+			{".id": "*80", "user": "voucher-demo", "address": "10.30.0.10", "mac-address": "02:00:00:00:30:10", "uptime": "12m30s", "bytes-in": "1024000", "bytes-out": "9040000", "server": "hotspot1"},
+		}, nil
 
 	default:
 		return nil, fmt.Errorf("mock: perintah tidak dikenali: %s", command)

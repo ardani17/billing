@@ -18,6 +18,7 @@ import type {
 } from "../../lib/types";
 import { DHCPPanel } from "./DHCPPanel";
 import { FirewallPanel } from "./FirewallPanel";
+import { HotspotPanel } from "./HotspotPanel";
 import { InterfacesPanel } from "./InterfacesPanel";
 import { IPPoolsPanel } from "./IPPoolsPanel";
 import { LogsPanel } from "./LogsPanel";
@@ -348,6 +349,7 @@ export function MikrotikRouterWorkspace({
                 {section === "dhcp" && <DHCPPanel routerId={routerId} onError={setError} />}
                 {section === "static-ip" && <StaticIPPanel routerId={routerId} onError={setError} />}
                 {section === "walled-garden" && <WalledGardenPanel routerId={routerId} onError={setError} />}
+                {section === "hotspot" && <HotspotPanel routerId={routerId} onError={setError} />}
               </>
             )}
         </main>

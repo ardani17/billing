@@ -69,11 +69,11 @@ Rencana ini mengubah daftar fitur besar di `diskusi/08-mikrotik.md` menjadi urut
   - _Requirements: 9, 13, 14_
 
 - [ ] 9. Phase 5 - Hotspot and voucher integration
-  - [ ] 9.1 Add Hotspot domain DTOs and RouterOS command builders
-  - [ ] 9.2 Add hotspot user/profile/active endpoints
+  - [x] 9.1 Add Hotspot domain DTOs and RouterOS command builders
+  - [x] 9.2 Add hotspot user/profile/active endpoints
   - [ ] 9.3 Connect voucher activation event to hotspot user creation
-  - [ ] 9.4 Generate custom hotspot login page from tenant branding
-  - [ ] 9.5 Add Hotspot submenu UI
+  - [x] 9.4 Generate custom hotspot login page from tenant branding
+  - [x] 9.5 Add Hotspot submenu UI
   - _Requirements: 8, 13, 14_
 
 - [ ] 10. Phase 6 - Terminal safety and audit

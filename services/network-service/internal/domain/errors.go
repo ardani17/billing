@@ -78,6 +78,11 @@ var (
 	// ErrSessionNotFound dikembalikan saat session PPPoE tidak ditemukan.
 	ErrSessionNotFound = errors.New("session pppoe tidak ditemukan")
 
+	// --- Hotspot Domain Errors ---
+
+	// ErrHotspotUserNotFound dikembalikan saat Hotspot user tidak ditemukan di RouterOS.
+	ErrHotspotUserNotFound = errors.New("hotspot user tidak ditemukan")
+
 	// --- DHCP Domain Errors ---
 
 	// ErrDHCPBindingNotFound dikembalikan saat binding DHCP tidak ditemukan.

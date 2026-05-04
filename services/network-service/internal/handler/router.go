@@ -41,6 +41,9 @@ type RouterConfig struct {
 	// WalledGardenHandler adalah handler untuk rule isolir/walled garden
 	WalledGardenHandler *WalledGardenHandler
 
+	// HotspotHandler adalah handler untuk user/profile/session Hotspot
+	HotspotHandler *HotspotHandler
+
 	// OLTHandler adalah handler untuk manajemen OLT device
 	OLTHandler *OLTHandler
 
@@ -165,6 +168,16 @@ func RegisterRoutes(cfg RouterConfig) {
 	walledGarden.Get("", cfg.WalledGardenHandler.GetStatus)
 	walledGarden.Post("/apply", cfg.WalledGardenHandler.Apply)
 	walledGarden.Post("/remove", cfg.WalledGardenHandler.Remove)
+
+	// Route Hotspot voucher users, profiles, active sessions, dan template login.
+	hotspot := routers.Group("/:id/hotspot")
+	hotspot.Get("/users", cfg.HotspotHandler.ListUsers)
+	hotspot.Post("/users", cfg.HotspotHandler.CreateUser)
+	hotspot.Put("/users/:user_id", cfg.HotspotHandler.UpdateUser)
+	hotspot.Delete("/users/:user_id", cfg.HotspotHandler.DeleteUser)
+	hotspot.Get("/profiles", cfg.HotspotHandler.ListProfiles)
+	hotspot.Get("/active", cfg.HotspotHandler.ListActive)
+	hotspot.Post("/login-template/generate", cfg.HotspotHandler.GenerateLoginTemplate)
 
 	// Route status summary router MikroTik
 	status := api.Group("/mikrotik/status")
