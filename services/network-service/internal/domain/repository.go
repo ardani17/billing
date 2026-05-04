@@ -276,6 +276,16 @@ type MikroTikCommandAuditRepository interface {
 	Create(ctx context.Context, log MikroTikCommandAuditLog) error
 }
 
+type StaticIPAssignmentRepository interface {
+	Create(ctx context.Context, assignment *StaticIPAssignment) (*StaticIPAssignment, error)
+	GetByID(ctx context.Context, id string) (*StaticIPAssignment, error)
+	GetByRouterAndIP(ctx context.Context, routerID, ip string) (*StaticIPAssignment, error)
+	Update(ctx context.Context, assignment *StaticIPAssignment) (*StaticIPAssignment, error)
+	SoftDelete(ctx context.Context, id string) error
+	List(ctx context.Context, params StaticIPAssignmentListParams) (*StaticIPAssignmentListResult, error)
+	UpdateSyncState(ctx context.Context, id, syncStatus string, syncAt *time.Time) error
+}
+
 // =============================================================================
 // PPPoEProfileRepository — operasi data untuk tabel pppoe_profiles
 // =============================================================================

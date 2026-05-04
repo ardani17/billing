@@ -179,6 +179,22 @@ export type DHCPBinding = {
   updated_at: string;
 };
 
+export type StaticIPAssignment = {
+  id: string;
+  router_id: string;
+  customer_id?: string;
+  ip_address: string;
+  address_list: string;
+  queue_name?: string;
+  rate_limit?: string;
+  comment: string;
+  status: string;
+  last_sync_at?: string;
+  sync_status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type MikrotikDetailSection =
   | "overview"
   | "pppoe"
@@ -189,4 +205,5 @@ export type MikrotikDetailSection =
   | "ip-pool"
   | "firewall"
   | "logs"
-  | "dhcp";
+  | "dhcp"
+  | "static-ip";

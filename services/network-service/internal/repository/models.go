@@ -324,6 +324,24 @@ type ServiceProfile struct {
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 }
 
+type StaticIpAssignment struct {
+	ID          pgtype.UUID        `json:"id"`
+	TenantID    pgtype.UUID        `json:"tenant_id"`
+	RouterID    pgtype.UUID        `json:"router_id"`
+	CustomerID  pgtype.UUID        `json:"customer_id"`
+	IpAddress   netip.Addr         `json:"ip_address"`
+	AddressList string             `json:"address_list"`
+	QueueName   pgtype.Text        `json:"queue_name"`
+	RateLimit   pgtype.Text        `json:"rate_limit"`
+	Comment     string             `json:"comment"`
+	Status      string             `json:"status"`
+	LastSyncAt  pgtype.Timestamptz `json:"last_sync_at"`
+	SyncStatus  string             `json:"sync_status"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt   pgtype.Timestamptz `json:"deleted_at"`
+}
+
 type Tenant struct {
 	ID        pgtype.UUID        `json:"id"`
 	Name      string             `json:"name"`

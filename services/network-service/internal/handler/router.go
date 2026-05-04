@@ -35,6 +35,9 @@ type RouterConfig struct {
 	// DHCPHandler adalah handler untuk DHCP server/lease/static binding
 	DHCPHandler *DHCPHandler
 
+	// StaticIPHandler adalah handler untuk pelanggan static IP
+	StaticIPHandler *StaticIPHandler
+
 	// OLTHandler adalah handler untuk manajemen OLT device
 	OLTHandler *OLTHandler
 
@@ -144,6 +147,15 @@ func RegisterRoutes(cfg RouterConfig) {
 	dhcp.Put("/bindings/:binding_id", cfg.DHCPHandler.UpdateBinding)
 	dhcp.Delete("/bindings/:binding_id", cfg.DHCPHandler.DeleteBinding)
 	dhcp.Get("/networks", cfg.DHCPHandler.ListNetworks)
+
+	// Route static IP customer management
+	staticIP := routers.Group("/:id/static-ip")
+	staticIP.Get("/assignments", cfg.StaticIPHandler.ListAssignments)
+	staticIP.Post("/assignments", cfg.StaticIPHandler.CreateAssignment)
+	staticIP.Put("/assignments/:assignment_id", cfg.StaticIPHandler.UpdateAssignment)
+	staticIP.Delete("/assignments/:assignment_id", cfg.StaticIPHandler.DeleteAssignment)
+	staticIP.Post("/assignments/:assignment_id/isolate", cfg.StaticIPHandler.IsolateAssignment)
+	staticIP.Post("/assignments/:assignment_id/unisolate", cfg.StaticIPHandler.UnisolateAssignment)
 
 	// Route status summary router MikroTik
 	status := api.Group("/mikrotik/status")

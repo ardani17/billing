@@ -161,6 +161,15 @@ func (m *MockAdapter) Execute(_ context.Context, command string, _ map[string]st
 	case "/ip/dhcp-server/lease/add", "/ip/dhcp-server/lease/set", "/ip/dhcp-server/lease/remove":
 		return []map[string]string{}, nil
 
+	case "/ip/firewall/address-list/add", "/ip/firewall/address-list/set", "/ip/firewall/address-list/remove":
+		return []map[string]string{}, nil
+
+	case "/queue/simple/print":
+		return []map[string]string{}, nil
+
+	case "/queue/simple/add", "/queue/simple/set", "/queue/simple/remove":
+		return []map[string]string{}, nil
+
 	default:
 		return nil, fmt.Errorf("mock: perintah tidak dikenali: %s", command)
 	}

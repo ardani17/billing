@@ -92,6 +92,14 @@ var (
 	// ErrInvalidIPAddress dikembalikan saat format IP address tidak valid.
 	ErrInvalidIPAddress = errors.New("format ip address tidak valid")
 
+	// --- Static IP Domain Errors ---
+
+	// ErrStaticIPAssignmentNotFound dikembalikan saat static IP assignment tidak ditemukan.
+	ErrStaticIPAssignmentNotFound = errors.New("static ip assignment tidak ditemukan")
+
+	// ErrStaticIPAssignmentExists dikembalikan saat IP address sudah dipakai.
+	ErrStaticIPAssignmentExists = errors.New("static ip assignment sudah ada")
+
 	// --- VPN Domain Errors ---
 
 	// ErrVPNTunnelNotFound dikembalikan saat VPN tunnel tidak ditemukan.

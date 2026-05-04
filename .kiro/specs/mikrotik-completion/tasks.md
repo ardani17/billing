@@ -53,11 +53,11 @@ Rencana ini mengubah daftar fitur besar di `diskusi/08-mikrotik.md` menjadi urut
   - _Requirements: 6, 13, 14_
 
 - [ ] 7. Phase 3 - Static IP management
-  - [ ] 7.1 Add `static_ip_assignments` migration, queries, repository, and domain model
-  - [ ] 7.2 Add provisioning usecase for address-list and optional simple queue
-  - [ ] 7.3 Add isolate/unisolate for static IP customers
-  - [ ] 7.4 Add Static IP submenu UI
-  - [ ] 7.5 Add tests for idempotency and confirmation safety
+  - [x] 7.1 Add `static_ip_assignments` migration, queries, repository, and domain model
+  - [x] 7.2 Add provisioning usecase for address-list and optional simple queue
+  - [x] 7.3 Add isolate/unisolate for static IP customers
+  - [x] 7.4 Add Static IP submenu UI
+  - [x] 7.5 Add tests for idempotency and confirmation safety
   - _Requirements: 7, 9, 13, 14_
 
 - [ ] 8. Phase 4 - Walled garden completion

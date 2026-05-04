@@ -25,6 +25,7 @@ import { OverviewPanel } from "./OverviewPanel";
 import { PppoeUsersPanel } from "./PppoeUsersPanel";
 import { RouterEditPanel } from "./RouterEditPanel";
 import { SessionsPanel } from "./SessionsPanel";
+import { StaticIPPanel } from "./StaticIPPanel";
 import { SyncPanel } from "./SyncPanel";
 import { TrafficPanel } from "./TrafficPanel";
 
@@ -344,6 +345,7 @@ export function MikrotikRouterWorkspace({
                 {section === "firewall" && <FirewallPanel routerId={routerId} onError={setError} />}
                 {section === "logs" && <LogsPanel routerId={routerId} onError={setError} />}
                 {section === "dhcp" && <DHCPPanel routerId={routerId} onError={setError} />}
+                {section === "static-ip" && <StaticIPPanel routerId={routerId} onError={setError} />}
               </>
             )}
         </main>

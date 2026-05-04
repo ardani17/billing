@@ -20,10 +20,10 @@
 
 ## Phase 3 - Static IP
 
-- [ ] `static_ip_assignments` storage.
-- [ ] Address-list and optional simple queue provisioning.
-- [ ] Isolate/unisolate static IP customers.
-- [ ] Static IP submenu UI and tests.
+- [x] `static_ip_assignments` storage.
+- [x] Address-list and optional simple queue provisioning.
+- [x] Isolate/unisolate static IP customers.
+- [x] Static IP submenu UI and tests.
 
 ## Phase 4 - Walled Garden
 
