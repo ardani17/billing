@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, WarningCircle } from "@phosphor-icons/react";
 import AppShell from "../../../components/app-shell";
-import { EmptyState, PageHeader, StatGrid } from "../../../components/ui";
+import { EmptyState, PageHeader } from "../../../components/ui";
 import { extractMessage, routerToEditForm } from "../../lib/format";
 import type {
   MikrotikDetailSection,
@@ -296,14 +296,6 @@ export function MikrotikRouterWorkspace({
               <EmptyState title="Memuat detail router" description="Mengambil detail dari network-service..." />
             ) : (
               <>
-                <StatGrid
-                  stats={[
-                    { label: "Status", value: router.status },
-                    { label: "RouterOS", value: router.router_os_version || "-" },
-                    { label: "Board", value: router.board_name || "-" },
-                    { label: "RAM", value: router.total_ram_mb ? `${router.total_ram_mb} MB` : "-" },
-                  ]}
-                />
                 {editMode && (
                   <RouterEditPanel
                     router={router}
