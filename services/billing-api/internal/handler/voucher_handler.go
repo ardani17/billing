@@ -139,6 +139,33 @@ func (h *VoucherHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, detail)
 }
 
+// Activate menangani POST /v1/vouchers/activate.
+// Mengaktifkan kode voucher dan menerbitkan event untuk provisioning Hotspot.
+func (h *VoucherHandler) Activate(c *fiber.Ctx) error {
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant tidak teridentifikasi")
+	}
+
+	var req domain.ActivateVoucherRequest
+	if err := c.BodyParser(&req); err != nil {
+		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "request body tidak valid")
+	}
+	if err := h.validate.Struct(req); err != nil {
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return domain.ErrorResponse(c, fiber.StatusBadRequest, "VALIDATION_ERROR", "validasi gagal", mapValidationErrors(ve)...)
+		}
+		return domain.ErrorResponse(c, fiber.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+	}
+
+	voucher, err := h.voucherUsecase.Activate(c.Context(), tenantID, req, h.extractActor(c))
+	if err != nil {
+		return h.mapVoucherError(c, err)
+	}
+	return domain.SuccessResponse(c, fiber.StatusOK, voucher)
+}
+
 // BulkVoid menangani POST /v1/vouchers/bulk/void.
 // Mem-void beberapa voucher sekaligus (hanya status tersedia).
 func (h *VoucherHandler) BulkVoid(c *fiber.Ctx) error {

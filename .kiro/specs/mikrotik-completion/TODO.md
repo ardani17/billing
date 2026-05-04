@@ -35,7 +35,7 @@
 ## Phase 5 - Hotspot
 
 - [x] Hotspot user/profile/active endpoints.
-- [ ] Voucher activation integration.
+- [x] Voucher activation integration.
 - [x] Hotspot submenu UI.
 - [x] Branded login template generation.
 

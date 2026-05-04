@@ -6,6 +6,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
@@ -212,6 +214,63 @@ func (uc *VoucherUsecase) GetByID(ctx context.Context, id string) (*domain.Vouch
 	}, nil
 }
 
+// Activate mengaktifkan voucher Hotspot dan mengirim event agar network-service membuat user RouterOS.
+func (uc *VoucherUsecase) Activate(ctx context.Context, tenantID string, req domain.ActivateVoucherRequest, actor domain.ActorInfo) (*domain.Voucher, error) {
+	code := strings.TrimSpace(req.Code)
+	voucher, err := uc.voucherRepo.GetByCode(ctx, tenantID, code)
+	if err != nil {
+		return nil, err
+	}
+	if voucher.Status != domain.VoucherStatusTerjual {
+		return nil, fmt.Errorf("%w: voucher status %s, hanya voucher terjual yang bisa diaktifkan", domain.ErrInvalidVoucherTransition, voucher.Status)
+	}
+
+	pkg, err := uc.packageRepo.GetByID(ctx, voucher.PackageID)
+	if err != nil {
+		return nil, err
+	}
+	if pkg.Type != domain.PackageTypeVoucher {
+		return nil, domain.ErrInvalidPackageType
+	}
+
+	expiresAt := time.Now().Add(voucherDuration(pkg))
+	activated, err := uc.voucherRepo.Activate(ctx, voucher.ID, expiresAt)
+	if err != nil {
+		return nil, err
+	}
+	activated.PackageName = pkg.Name
+
+	if err := uc.voucherAuditLog.Create(ctx, &domain.VoucherAuditLog{
+		TenantID:  tenantID,
+		VoucherID: activated.ID,
+		Action:    "voucher.activated",
+		ActorID:   actor.ActorID,
+		ActorName: actor.ActorName,
+		Metadata: map[string]interface{}{
+			"router_id":            strings.TrimSpace(req.RouterID),
+			"hotspot_profile_name": pkg.HotspotProfileName,
+			"limit_uptime":         routerOSLimitUptime(pkg),
+			"mac_address":          strings.TrimSpace(req.MACAddress),
+		},
+	}); err != nil {
+		uc.logger.Error().Err(err).Str("voucher_id", activated.ID).Msg("gagal menulis audit log voucher activation")
+	}
+
+	uc.publishEvent(tenantID, "voucher.activated", domain.VoucherActivatedPayload{
+		TenantID:           tenantID,
+		VoucherID:          activated.ID,
+		Code:               activated.Code,
+		PackageID:          activated.PackageID,
+		PackageName:        pkg.Name,
+		RouterID:           strings.TrimSpace(req.RouterID),
+		HotspotProfileName: pkg.HotspotProfileName,
+		LimitUptime:        routerOSLimitUptime(pkg),
+		MACAddress:         strings.TrimSpace(req.MACAddress),
+	})
+
+	return activated, nil
+}
+
 // ListByReseller mengambil daftar voucher milik reseller tertentu dengan paginasi.
 // Menerapkan default: page=1, page_size=25.
 func (uc *VoucherUsecase) ListByReseller(ctx context.Context, params domain.ResellerVoucherListParams) (*domain.VoucherListResult, error) {
@@ -229,6 +288,40 @@ func (uc *VoucherUsecase) ListByReseller(ctx context.Context, params domain.Rese
 // CountSoldToday menghitung jumlah voucher yang dibeli reseller hari ini.
 func (uc *VoucherUsecase) CountSoldToday(ctx context.Context, resellerID string) (int, error) {
 	return uc.voucherRepo.CountSoldToday(ctx, resellerID)
+}
+
+func voucherDuration(pkg *domain.Package) time.Duration {
+	value := 1
+	if pkg.DurationValue != nil && *pkg.DurationValue > 0 {
+		value = *pkg.DurationValue
+	}
+	switch pkg.DurationUnit {
+	case string(domain.DurationHours):
+		return time.Duration(value) * time.Hour
+	case string(domain.DurationWeeks):
+		return time.Duration(value) * 7 * 24 * time.Hour
+	case string(domain.DurationMonths):
+		return time.Duration(value) * 30 * 24 * time.Hour
+	default:
+		return time.Duration(value) * 24 * time.Hour
+	}
+}
+
+func routerOSLimitUptime(pkg *domain.Package) string {
+	value := 1
+	if pkg.DurationValue != nil && *pkg.DurationValue > 0 {
+		value = *pkg.DurationValue
+	}
+	switch pkg.DurationUnit {
+	case string(domain.DurationHours):
+		return fmt.Sprintf("%dh", value)
+	case string(domain.DurationWeeks):
+		return fmt.Sprintf("%dw", value)
+	case string(domain.DurationMonths):
+		return fmt.Sprintf("%dw", value*4)
+	default:
+		return fmt.Sprintf("%dd", value)
+	}
 }
 
 // CountAvailableByReseller menghitung jumlah voucher tersedia (status terjual) milik reseller.

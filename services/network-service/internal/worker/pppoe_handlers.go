@@ -6,6 +6,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hibiken/asynq"
 
@@ -51,6 +52,89 @@ func (w *PPPoEEventWorker) handleCustomerActivated(ctx context.Context, task *as
 	}
 
 	return nil
+}
+
+// handleVoucherActivated memproses event voucher.activated.
+// Event ini membuat atau mengaktifkan ulang user Hotspot sesuai kode voucher.
+func (w *PPPoEEventWorker) handleVoucherActivated(ctx context.Context, task *asynq.Task) error {
+	var payload domain.VoucherActivatedPayload
+	envelope, err := w.decodePayload(task, &payload)
+	if err != nil {
+		return err
+	}
+	payload.TenantID = envelope.TenantID
+	ctx = tenant.SetForTest(ctx, envelope.TenantID)
+
+	if payload.Code == "" {
+		return fmt.Errorf("worker: payload voucher.activated tidak lengkap")
+	}
+	routerID, err := w.resolveHotspotRouter(ctx, payload.RouterID)
+	if err != nil {
+		return w.handleRetryOrFail(ctx, envelope, "hotspot_voucher_activate", payload.VoucherID, payload.RouterID, payload.TenantID, err)
+	}
+
+	profile := strings.TrimSpace(payload.HotspotProfileName)
+	if profile == "" {
+		profile = "default"
+	}
+	comment := fmt.Sprintf("voucher:%s", payload.VoucherID)
+	req := domain.CreateHotspotUserRequest{
+		Name:        strings.TrimSpace(payload.Code),
+		Password:    strings.TrimSpace(payload.Code),
+		Profile:     profile,
+		LimitUptime: strings.TrimSpace(payload.LimitUptime),
+		Comment:     comment,
+	}
+
+	users, listErr := w.hotspotManager.ListUsers(ctx, routerID)
+	if listErr == nil {
+		for _, user := range users {
+			if user.Name == req.Name {
+				disabled := false
+				_, updateErr := w.hotspotManager.UpdateUser(ctx, routerID, user.ID, domain.UpdateHotspotUserRequest{
+					Password:    &req.Password,
+					Profile:     &req.Profile,
+					LimitUptime: &req.LimitUptime,
+					Disabled:    &disabled,
+					Comment:     &req.Comment,
+				})
+				if updateErr != nil {
+					return w.handleRetryOrFail(ctx, envelope, "hotspot_voucher_update", payload.VoucherID, routerID, payload.TenantID, updateErr)
+				}
+				return nil
+			}
+		}
+	}
+
+	if _, err := w.hotspotManager.CreateUser(ctx, routerID, req); err != nil {
+		return w.handleRetryOrFail(ctx, envelope, "hotspot_voucher_create", payload.VoucherID, routerID, payload.TenantID, err)
+	}
+	return nil
+}
+
+func (w *PPPoEEventWorker) resolveHotspotRouter(ctx context.Context, routerID string) (string, error) {
+	if strings.TrimSpace(routerID) != "" {
+		return strings.TrimSpace(routerID), nil
+	}
+	routers, err := w.routerRepo.GetActiveRouters(ctx)
+	if err != nil {
+		return "", err
+	}
+	for _, router := range routers {
+		if router.Status == domain.StatusOnline && routerHasService(router.ServiceTypes, "hotspot") {
+			return router.ID, nil
+		}
+	}
+	return "", domain.ErrRouterNotFound
+}
+
+func routerHasService(values []string, target string) bool {
+	for _, value := range values {
+		if strings.EqualFold(value, target) {
+			return true
+		}
+	}
+	return false
 }
 
 // handleIsolir memproses event customer.isolir.

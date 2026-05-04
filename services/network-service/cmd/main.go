@@ -194,6 +194,7 @@ func main() {
 	staticIPManager := usecase.NewStaticIPManager(routerRepo, staticIPRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	walledGardenManager := usecase.NewWalledGardenManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	hotspotManager := usecase.NewHotspotManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
+	pppoeWorker.SetHotspotDependencies(hotspotManager, routerRepo)
 	routerHandler := handler.NewRouterHandler(routerUsecase)
 	statusHandler := handler.NewStatusHandler(routerUsecase)
 	pppoeHandler := handler.NewPPPoEHandler(pppoeManager, appLogger)

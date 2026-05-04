@@ -431,6 +431,7 @@ func RegisterRoutes(cfg RouterConfig) {
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
 	}))
 	vouchersAdmin.Post("/generate", voucherHandler.Generate)
+	vouchersAdmin.Post("/activate", voucherHandler.Activate)
 	vouchersAdmin.Post("/bulk/print", voucherPrintHandler.BulkPrint)
 	vouchersAdmin.Post("/bulk/void", voucherHandler.BulkVoid)
 	vouchersAdmin.Post("/bulk/assign", voucherHandler.BulkAssign)

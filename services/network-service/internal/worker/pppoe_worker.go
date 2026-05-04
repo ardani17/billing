@@ -28,6 +28,7 @@ const (
 	EventCustomerSuspend    = "customer.suspend"
 	EventCustomerTerminated = "customer.terminated"
 	EventPackageChanged     = "package.changed"
+	EventVoucherActivated   = "voucher.activated"
 )
 
 // maxRetries adalah jumlah maksimal retry sebelum ditandai failed_permanent.
@@ -46,9 +47,11 @@ var PPPoERetryDelays = []time.Duration{
 // PPPoEEventWorker memproses event PPPoE dari Billing API via asynq.
 // Mendaftarkan handler untuk semua event lifecycle pelanggan.
 type PPPoEEventWorker struct {
-	manager  usecase.PPPoEManager
-	eventPub domain.PPPoEEventPublisher
-	logger   zerolog.Logger
+	manager        usecase.PPPoEManager
+	hotspotManager usecase.HotspotManager
+	routerRepo     domain.RouterRepository
+	eventPub       domain.PPPoEEventPublisher
+	logger         zerolog.Logger
 }
 
 // NewPPPoEEventWorker membuat instance baru PPPoEEventWorker.
@@ -64,6 +67,12 @@ func NewPPPoEEventWorker(
 	}
 }
 
+// SetHotspotDependencies menambahkan handler event voucher Hotspot tanpa mengubah constructor lama.
+func (w *PPPoEEventWorker) SetHotspotDependencies(manager usecase.HotspotManager, routerRepo domain.RouterRepository) {
+	w.hotspotManager = manager
+	w.routerRepo = routerRepo
+}
+
 // RegisterHandlers mendaftarkan semua handler task ke asynq ServeMux.
 func (w *PPPoEEventWorker) RegisterHandlers(mux *asynq.ServeMux) {
 	mux.HandleFunc(EventCustomerActivated, w.handleCustomerActivated)
@@ -74,6 +83,9 @@ func (w *PPPoEEventWorker) RegisterHandlers(mux *asynq.ServeMux) {
 	mux.HandleFunc(EventCustomerSuspend, w.handleSuspend)
 	mux.HandleFunc(EventCustomerTerminated, w.handleSuspend)
 	mux.HandleFunc(EventPackageChanged, w.handlePackageChanged)
+	if w.hotspotManager != nil {
+		mux.HandleFunc(EventVoucherActivated, w.handleVoucherActivated)
+	}
 }
 
 // PPPoERetryDelay menghitung delay retry berdasarkan nomor percobaan.

@@ -454,6 +454,8 @@ type VoucherRepository interface {
 	GetByCode(ctx context.Context, tenantID, code string) (*Voucher, error)
 	// UpdateStatus memperbarui status voucher.
 	UpdateStatus(ctx context.Context, id string, status VoucherStatus) (*Voucher, error)
+	// Activate memperbarui voucher menjadi aktif, set activated_at dan expires_at penggunaan.
+	Activate(ctx context.Context, id string, expiresAt time.Time) (*Voucher, error)
 	// List mengambil daftar voucher dengan filter, search, sorting, dan paginasi (admin).
 	List(ctx context.Context, params VoucherListParams) (*VoucherListResult, error)
 	// ListByReseller mengambil daftar voucher milik reseller tertentu.
@@ -644,6 +646,13 @@ type BulkVoucherIDsRequest struct {
 type BulkAssignRequest struct {
 	VoucherIDs []string `json:"voucher_ids" validate:"required,min=1,dive,uuid"`
 	ResellerID string   `json:"reseller_id" validate:"required,uuid"`
+}
+
+// ActivateVoucherRequest adalah payload untuk mengaktifkan voucher Hotspot.
+type ActivateVoucherRequest struct {
+	Code       string `json:"code" validate:"required"`
+	RouterID   string `json:"router_id" validate:"omitempty,uuid"`
+	MACAddress string `json:"mac_address" validate:"omitempty"`
 }
 
 // =============================================================================

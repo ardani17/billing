@@ -68,10 +68,10 @@ Rencana ini mengubah daftar fitur besar di `diskusi/08-mikrotik.md` menjadi urut
   - [x] 8.5 Add integration tests for isolir/unisolir idempotency using mock adapter and real CHR smoke test
   - _Requirements: 9, 13, 14_
 
-- [ ] 9. Phase 5 - Hotspot and voucher integration
+- [x] 9. Phase 5 - Hotspot and voucher integration
   - [x] 9.1 Add Hotspot domain DTOs and RouterOS command builders
   - [x] 9.2 Add hotspot user/profile/active endpoints
-  - [ ] 9.3 Connect voucher activation event to hotspot user creation
+  - [x] 9.3 Connect voucher activation event to hotspot user creation
   - [x] 9.4 Generate custom hotspot login page from tenant branding
   - [x] 9.5 Add Hotspot submenu UI
   - _Requirements: 8, 13, 14_

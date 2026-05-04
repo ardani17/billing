@@ -193,6 +193,34 @@ func (r *VoucherRepo) UpdateStatus(ctx context.Context, id string, status domain
 	return mapVoucherRow(row), nil
 }
 
+// Activate memperbarui voucher menjadi aktif serta mencatat waktu aktivasi dan kedaluwarsa penggunaan.
+func (r *VoucherRepo) Activate(ctx context.Context, id string, expiresAt time.Time) (*domain.Voucher, error) {
+	query := `UPDATE vouchers SET
+		status = 'aktif',
+		activated_at = NOW(),
+		expires_at = $2,
+		updated_at = NOW()
+		WHERE id = $1
+		RETURNING id, tenant_id, code, package_id, reseller_id, status,
+			sell_price_snapshot, reseller_price_snapshot,
+			purchased_at, activated_at, expires_at, voided_at,
+			created_at, updated_at`
+
+	var row Voucher
+	if err := r.pool.QueryRow(ctx, query, stringToUUID(id), expiresAt).Scan(
+		&row.ID, &row.TenantID, &row.Code, &row.PackageID, &row.ResellerID, &row.Status,
+		&row.SellPriceSnapshot, &row.ResellerPriceSnapshot,
+		&row.PurchasedAt, &row.ActivatedAt, &row.ExpiresAt, &row.VoidedAt,
+		&row.CreatedAt, &row.UpdatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrVoucherNotFound
+		}
+		return nil, fmt.Errorf("repository: gagal mengaktifkan voucher: %w", err)
+	}
+	return mapVoucherRow(row), nil
+}
+
 // allowedVoucherSortColumns adalah whitelist kolom yang diizinkan untuk sorting voucher.
 // Mencegah SQL injection pada ORDER BY clause.
 var allowedVoucherSortColumns = map[string]string{
