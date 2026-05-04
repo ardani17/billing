@@ -87,7 +87,7 @@ const bottomNav = [
 function getMikrotikDetailId(pathname: string) {
   const match = pathname.match(/^\/mikrotik\/([^/]+)/);
   const id = match?.[1];
-  if (!id || id === "new" || id === "vpn") return null;
+  if (!id || id === "new" || id === "vpn" || id === "bulk") return null;
   return id;
 }
 

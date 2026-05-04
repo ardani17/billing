@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, ShieldCheck, TreeStructure, WifiHigh } from "@phosphor-icons/react";
+import { ListChecks, Plus, ShieldCheck, TreeStructure, WifiHigh } from "@phosphor-icons/react";
 import type { Icon } from "@phosphor-icons/react";
 import { usePathname } from "next/navigation";
 
@@ -34,10 +34,17 @@ const baseItems: NavItem[] = [
     icon: ShieldCheck,
     match: (pathname) => pathname.startsWith("/mikrotik/vpn"),
   },
+  {
+    href: "/mikrotik/bulk",
+    label: "Bulk actions",
+    description: "Backup dan sync massal",
+    icon: ListChecks,
+    match: (pathname) => pathname.startsWith("/mikrotik/bulk"),
+  },
 ];
 
 function isRouterDetail(pathname: string) {
-  return pathname.startsWith("/mikrotik/") && pathname !== "/mikrotik/new" && !pathname.startsWith("/mikrotik/vpn");
+  return pathname.startsWith("/mikrotik/") && pathname !== "/mikrotik/new" && !pathname.startsWith("/mikrotik/vpn") && !pathname.startsWith("/mikrotik/bulk");
 }
 
 export function MikrotikModuleNav() {

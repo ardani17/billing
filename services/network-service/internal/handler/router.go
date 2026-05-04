@@ -50,6 +50,9 @@ type RouterConfig struct {
 	// BackupHandler adalah handler untuk backup export dan firmware MikroTik
 	BackupHandler *BackupHandler
 
+	// BulkHandler adalah handler untuk bulk action MikroTik on-demand
+	BulkHandler *MikroTikBulkHandler
+
 	// OLTHandler adalah handler untuk manajemen OLT device
 	OLTHandler *OLTHandler
 
@@ -197,6 +200,12 @@ func RegisterRoutes(cfg RouterConfig) {
 	backups.Get("/:backup_id/download", cfg.BackupHandler.Download)
 	backups.Delete("/:backup_id", cfg.BackupHandler.Delete)
 	routers.Get("/:id/firmware", cfg.BackupHandler.Firmware)
+
+	// Route bulk action MikroTik. Semua action berjalan manual/on-demand.
+	bulkJobs := api.Group("/mikrotik/bulk-jobs")
+	bulkJobs.Get("/", cfg.BulkHandler.List)
+	bulkJobs.Post("/", cfg.BulkHandler.Create)
+	bulkJobs.Get("/:id", cfg.BulkHandler.Get)
 
 	// Route status summary router MikroTik
 	status := api.Group("/mikrotik/status")

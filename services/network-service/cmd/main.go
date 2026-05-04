@@ -100,6 +100,7 @@ func main() {
 	dhcpBindingRepo := repository.NewDHCPBindingRepo(queries)
 	mikrotikAuditRepo := repository.NewMikroTikAuditRepo(queries)
 	routerBackupRepo := repository.NewRouterBackupRepo(queries)
+	mikrotikBulkJobRepo := repository.NewMikroTikBulkJobRepo(queries)
 	staticIPRepo := repository.NewStaticIPAssignmentRepo(queries)
 	vpnTunnelRepo := repository.NewVPNTunnelRepo(queries)
 	vpnSubnetRepo := repository.NewVPNSubnetRepo(queries)
@@ -197,6 +198,7 @@ func main() {
 	hotspotManager := usecase.NewHotspotManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	terminalManager := usecase.NewTerminalManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	backupManager := usecase.NewBackupManager(routerRepo, routerBackupRepo, mikrotikAuditRepo, encryptor, adapterFactory)
+	mikrotikBulkManager := usecase.NewMikroTikBulkManager(routerRepo, mikrotikBulkJobRepo, backupManager, pppoeManager)
 	pppoeWorker.SetHotspotDependencies(hotspotManager, routerRepo)
 	routerHandler := handler.NewRouterHandler(routerUsecase)
 	statusHandler := handler.NewStatusHandler(routerUsecase)
@@ -210,6 +212,7 @@ func main() {
 	hotspotHandler := handler.NewHotspotHandler(hotspotManager, appLogger)
 	terminalHandler := handler.NewTerminalHandler(terminalManager, appLogger)
 	backupHandler := handler.NewBackupHandler(backupManager, appLogger)
+	mikrotikBulkHandler := handler.NewMikroTikBulkHandler(mikrotikBulkManager, appLogger)
 
 	// --- OLT Dependency Injection ---
 
@@ -356,6 +359,7 @@ func main() {
 		HotspotHandler:        hotspotHandler,
 		TerminalHandler:       terminalHandler,
 		BackupHandler:         backupHandler,
+		BulkHandler:           mikrotikBulkHandler,
 		OLTHandler:            oltHandler,
 		ODPHandler:            odpHandler,
 		ProvisioningHandler:   provisioningHandler,

@@ -8,11 +8,11 @@
   - [x] 1.5 Tambah UI submenu Backup/Firmware
   - [x] 1.6 Test service, web build, dan CHR smoke
 
-- [ ] 2. MikroTik Bulk Actions
-  - [ ] 2.1 Tambah `mikrotik_bulk_jobs`
-  - [ ] 2.2 Tambah job handler bulk sync/backup/firmware
-  - [ ] 2.3 Tambah UI progress dan confirmation
-  - [ ] 2.4 Test tenant isolation dan status transition
+- [x] 2. MikroTik Bulk Actions
+  - [x] 2.1 Tambah `mikrotik_bulk_jobs`
+  - [x] 2.2 Tambah job handler bulk sync/backup/firmware
+  - [x] 2.3 Tambah UI progress dan confirmation
+  - [x] 2.4 Test tenant isolation dan status transition
 
 - [ ] 3. Tenant Settings Persistence
   - [ ] 3.1 Billing settings

@@ -56,9 +56,9 @@
 
 ## Phase 8 - Bulk Actions
 
-- [ ] Bulk jobs table and status model.
-- [ ] Bulk sync, backup, firmware check, export status.
-- [ ] UI confirmation and progress.
+- [x] Bulk jobs table and status model.
+- [x] Bulk sync, backup, firmware check, export status.
+- [x] UI confirmation and progress.
 
 ## Final Hardening
 

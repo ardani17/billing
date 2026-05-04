@@ -10,10 +10,10 @@
 ## Now
 
 - [x] MikroTik Backup/Firmware.
+- [x] MikroTik Bulk Actions.
 
 ## Next
 
-- [ ] MikroTik Bulk Actions.
 - [ ] Tenant Settings Persistence.
 - [ ] Notification Production.
 - [ ] Tenant Admin End-to-End smoke.

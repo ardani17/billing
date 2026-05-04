@@ -92,6 +92,12 @@ var (
 	// ErrRouterBackupNotFound dikembalikan saat backup router tidak ditemukan.
 	ErrRouterBackupNotFound = errors.New("backup router tidak ditemukan")
 
+	// ErrMikroTikBulkJobNotFound dikembalikan saat job bulk MikroTik tidak ditemukan.
+	ErrMikroTikBulkJobNotFound = errors.New("bulk job mikrotik tidak ditemukan")
+
+	// ErrInvalidBulkAction dikembalikan saat action bulk MikroTik tidak dikenali.
+	ErrInvalidBulkAction = errors.New("action bulk mikrotik tidak valid")
+
 	// --- DHCP Domain Errors ---
 
 	// ErrDHCPBindingNotFound dikembalikan saat binding DHCP tidak ditemukan.

@@ -284,6 +284,14 @@ type RouterBackupRepository interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type MikroTikBulkJobRepository interface {
+	Create(ctx context.Context, input CreateMikroTikBulkJobInput) (*MikroTikBulkJob, error)
+	GetByID(ctx context.Context, id string) (*MikroTikBulkJob, error)
+	List(ctx context.Context, params MikroTikBulkJobListParams) (*MikroTikBulkJobListResult, error)
+	MarkRunning(ctx context.Context, id string, startedAt time.Time) error
+	Complete(ctx context.Context, input UpdateMikroTikBulkJobResultInput) (*MikroTikBulkJob, error)
+}
+
 type StaticIPAssignmentRepository interface {
 	Create(ctx context.Context, assignment *StaticIPAssignment) (*StaticIPAssignment, error)
 	GetByID(ctx context.Context, id string) (*StaticIPAssignment, error)
