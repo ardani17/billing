@@ -217,12 +217,12 @@ func (m *pppoeManager) fixOutOfSyncUser(
 	dbUser *domain.PPPoEUser,
 ) error {
 	params := map[string]string{
-		"profile": dbUser.ProfileName,
+		"=profile": dbUser.ProfileName,
 	}
 	if dbUser.Disabled {
-		params["disabled"] = "yes"
+		params["=disabled"] = "yes"
 	} else {
-		params["disabled"] = "no"
+		params["=disabled"] = "no"
 	}
 	cmd, args := cmdBuilder.SetSecret(dbUser.Username, params)
 	_, err := adapter.Execute(ctx, cmd, args)
