@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { CheckCircle, WarningCircle } from "@phosphor-icons/react";
 import AppShell from "../../../components/app-shell";
 import { EmptyState, PageHeader, StatGrid } from "../../../components/ui";
-import { MikrotikModuleNav } from "../MikrotikModuleNav";
 import { extractMessage, routerToEditForm } from "../../lib/format";
 import type {
   MikrotikDetailSection,
@@ -279,8 +278,6 @@ export function MikrotikRouterWorkspace({
             </>
           }
         />
-
-        <MikrotikModuleNav />
 
         <main className="min-w-0 space-y-6">
             {error && (
