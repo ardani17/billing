@@ -48,11 +48,11 @@
 
 ## Phase 7 - Backup And Firmware
 
-- [ ] Manual export backup.
-- [ ] Backup metadata and retention.
+- [x] Manual export backup.
+- [x] Backup metadata and retention.
 - [ ] Restore with confirmation.
-- [ ] Firmware read and outdated warning.
-- [ ] Backup/Firmware UI.
+- [x] Firmware read and outdated warning.
+- [x] Backup/Firmware UI.
 
 ## Phase 8 - Bulk Actions
 

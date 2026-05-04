@@ -28,6 +28,9 @@ var (
 	// ErrConnectionTimeout dikembalikan saat koneksi ke router timeout.
 	ErrConnectionTimeout = errors.New("koneksi ke router timeout")
 
+	// ErrRouterPermissionDenied dikembalikan saat user API tidak punya policy RouterOS yang dibutuhkan.
+	ErrRouterPermissionDenied = errors.New("permission user router tidak mencukupi")
+
 	// ErrPoolExhausted dikembalikan saat pool koneksi penuh dan timeout menunggu.
 	ErrPoolExhausted = errors.New("pool koneksi penuh")
 
@@ -85,6 +88,9 @@ var (
 
 	// ErrTerminalCommandDenied dikembalikan saat command terminal tidak termasuk allowlist read-only.
 	ErrTerminalCommandDenied = errors.New("perintah terminal ditolak oleh validator keamanan")
+
+	// ErrRouterBackupNotFound dikembalikan saat backup router tidak ditemukan.
+	ErrRouterBackupNotFound = errors.New("backup router tidak ditemukan")
 
 	// --- DHCP Domain Errors ---
 

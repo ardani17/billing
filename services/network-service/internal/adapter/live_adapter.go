@@ -103,6 +103,9 @@ func (a *LiveAdapter) Execute(ctx context.Context, command string, params map[st
 
 	reply, err := client.RunArgsContext(ctx, args)
 	if err != nil {
+		if strings.Contains(err.Error(), "not enough permissions") {
+			return nil, fmt.Errorf("%w: %s", domain.ErrRouterPermissionDenied, err.Error())
+		}
 		return nil, fmt.Errorf("%w: %s", domain.ErrConnectionFailed, err.Error())
 	}
 
@@ -110,6 +113,9 @@ func (a *LiveAdapter) Execute(ctx context.Context, command string, params map[st
 	results := make([]map[string]string, 0, len(reply.Re))
 	for _, sen := range reply.Re {
 		results = append(results, sen.Map)
+	}
+	if len(results) == 0 && reply.Done != nil && len(reply.Done.Map) > 0 {
+		results = append(results, reply.Done.Map)
 	}
 	return results, nil
 }

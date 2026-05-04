@@ -15,6 +15,7 @@ import type {
   SyncStatus,
   SystemResource,
 } from "../../lib/types";
+import { BackupPanel } from "./BackupPanel";
 import { DHCPPanel } from "./DHCPPanel";
 import { FirewallPanel } from "./FirewallPanel";
 import { HotspotPanel } from "./HotspotPanel";
@@ -339,8 +340,9 @@ export function MikrotikRouterWorkspace({
                 {section === "dhcp" && <DHCPPanel routerId={routerId} onError={setError} />}
                 {section === "static-ip" && <StaticIPPanel routerId={routerId} onError={setError} />}
                 {section === "walled-garden" && <WalledGardenPanel routerId={routerId} onError={setError} />}
-                {section === "hotspot" && <HotspotPanel routerId={routerId} onError={setError} />}
-                {section === "terminal" && <TerminalPanel routerId={routerId} onError={setError} />}
+				{section === "hotspot" && <HotspotPanel routerId={routerId} onError={setError} />}
+				{section === "terminal" && <TerminalPanel routerId={routerId} onError={setError} />}
+				{section === "backup" && <BackupPanel routerId={routerId} onError={setError} />}
               </>
             )}
         </main>

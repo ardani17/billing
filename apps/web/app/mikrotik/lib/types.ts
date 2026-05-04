@@ -280,6 +280,44 @@ export type MikroTikCommandAuditList = {
   total_pages: number;
 };
 
+export type RouterBackup = {
+  id: string;
+  router_id: string;
+  file_name: string;
+  format: string;
+  size_bytes: number;
+  checksum?: string;
+  created_by?: string;
+  created_at: string;
+};
+
+export type RouterBackupList = {
+  data: RouterBackup[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+};
+
+export type RouterOSPackage = {
+  name: string;
+  version: string;
+  disabled: boolean;
+  scheduled?: string;
+};
+
+export type RouterFirmwareInfo = {
+  routeros_version: string;
+  architecture?: string;
+  board_name?: string;
+  factory_firmware?: string;
+  current_firmware?: string;
+  upgrade_firmware?: string;
+  packages: RouterOSPackage[];
+  outdated: boolean;
+  warning?: string;
+};
+
 export type MikrotikDetailSection =
   | "overview"
   | "pppoe"
@@ -294,4 +332,5 @@ export type MikrotikDetailSection =
   | "static-ip"
   | "walled-garden"
   | "hotspot"
-  | "terminal";
+  | "terminal"
+  | "backup";

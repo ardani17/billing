@@ -47,6 +47,9 @@ type RouterConfig struct {
 	// TerminalHandler adalah handler untuk terminal read-only dan audit command
 	TerminalHandler *TerminalHandler
 
+	// BackupHandler adalah handler untuk backup export dan firmware MikroTik
+	BackupHandler *BackupHandler
+
 	// OLTHandler adalah handler untuk manajemen OLT device
 	OLTHandler *OLTHandler
 
@@ -186,6 +189,14 @@ func RegisterRoutes(cfg RouterConfig) {
 	terminal := routers.Group("/:id/terminal")
 	terminal.Post("/execute", cfg.TerminalHandler.Execute)
 	terminal.Get("/audit", cfg.TerminalHandler.ListAudit)
+
+	// Route backup export dan firmware read-only MikroTik.
+	backups := routers.Group("/:id/backups")
+	backups.Get("/", cfg.BackupHandler.List)
+	backups.Post("/", cfg.BackupHandler.Create)
+	backups.Get("/:backup_id/download", cfg.BackupHandler.Download)
+	backups.Delete("/:backup_id", cfg.BackupHandler.Delete)
+	routers.Get("/:id/firmware", cfg.BackupHandler.Firmware)
 
 	// Route status summary router MikroTik
 	status := api.Group("/mikrotik/status")

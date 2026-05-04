@@ -14,6 +14,7 @@ import {
   CreditCard,
   GearSix,
   Gauge,
+  HardDrives,
   House,
   List,
   ListChecks,
@@ -161,6 +162,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                         { href: `/mikrotik/${mikrotikDetailId}/walled-garden`, label: "Walled Garden", icon: Gauge },
                         { href: `/mikrotik/${mikrotikDetailId}/hotspot`, label: "Hotspot", icon: Ticket },
                         { href: `/mikrotik/${mikrotikDetailId}/terminal`, label: "Terminal", icon: TerminalWindow },
+                        { href: `/mikrotik/${mikrotikDetailId}/backup`, label: "Backup", icon: HardDrives },
                       ]
                     : [];
                   return (

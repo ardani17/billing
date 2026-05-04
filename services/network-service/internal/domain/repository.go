@@ -277,6 +277,13 @@ type MikroTikCommandAuditRepository interface {
 	List(ctx context.Context, params MikroTikCommandAuditListParams) (*MikroTikCommandAuditListResult, error)
 }
 
+type RouterBackupRepository interface {
+	Create(ctx context.Context, input CreateRouterBackupInput) (*RouterBackup, error)
+	GetByID(ctx context.Context, id string) (*RouterBackup, error)
+	List(ctx context.Context, params RouterBackupListParams) (*RouterBackupListResult, error)
+	Delete(ctx context.Context, id string) error
+}
+
 type StaticIPAssignmentRepository interface {
 	Create(ctx context.Context, assignment *StaticIPAssignment) (*StaticIPAssignment, error)
 	GetByID(ctx context.Context, id string) (*StaticIPAssignment, error)

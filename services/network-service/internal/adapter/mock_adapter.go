@@ -73,6 +73,24 @@ func (m *MockAdapter) Execute(_ context.Context, command string, params map[stri
 			},
 		}, nil
 
+	case "/export":
+		return []map[string]string{
+			{"ret": "# mock RouterOS export"},
+			{"ret": "/interface bridge add name=pppoe-bridge comment=ISPBoss"},
+			{"ret": "/ppp profile add name=default rate-limit=10M/10M"},
+		}, nil
+
+	case "/system/package/print":
+		return []map[string]string{
+			{"name": "routeros-mmips", "version": "6.49.10", "disabled": "false", "scheduled": ""},
+			{"name": "security", "version": "6.49.10", "disabled": "false", "scheduled": ""},
+		}, nil
+
+	case "/system/routerboard/print":
+		return []map[string]string{
+			{"routerboard": "true", "factory-firmware": "6.49.8", "current-firmware": "6.49.10", "upgrade-firmware": "6.49.10"},
+		}, nil
+
 	case "/interface/print":
 		return []map[string]string{
 			{

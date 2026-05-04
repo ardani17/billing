@@ -99,6 +99,7 @@ func main() {
 	pppoeProfileRepo := repository.NewPPPoEProfileRepo(queries)
 	dhcpBindingRepo := repository.NewDHCPBindingRepo(queries)
 	mikrotikAuditRepo := repository.NewMikroTikAuditRepo(queries)
+	routerBackupRepo := repository.NewRouterBackupRepo(queries)
 	staticIPRepo := repository.NewStaticIPAssignmentRepo(queries)
 	vpnTunnelRepo := repository.NewVPNTunnelRepo(queries)
 	vpnSubnetRepo := repository.NewVPNSubnetRepo(queries)
@@ -195,6 +196,7 @@ func main() {
 	walledGardenManager := usecase.NewWalledGardenManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	hotspotManager := usecase.NewHotspotManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	terminalManager := usecase.NewTerminalManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
+	backupManager := usecase.NewBackupManager(routerRepo, routerBackupRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	pppoeWorker.SetHotspotDependencies(hotspotManager, routerRepo)
 	routerHandler := handler.NewRouterHandler(routerUsecase)
 	statusHandler := handler.NewStatusHandler(routerUsecase)
@@ -207,6 +209,7 @@ func main() {
 	walledGardenHandler := handler.NewWalledGardenHandler(walledGardenManager, appLogger)
 	hotspotHandler := handler.NewHotspotHandler(hotspotManager, appLogger)
 	terminalHandler := handler.NewTerminalHandler(terminalManager, appLogger)
+	backupHandler := handler.NewBackupHandler(backupManager, appLogger)
 
 	// --- OLT Dependency Injection ---
 
@@ -352,6 +355,7 @@ func main() {
 		WalledGardenHandler:   walledGardenHandler,
 		HotspotHandler:        hotspotHandler,
 		TerminalHandler:       terminalHandler,
+		BackupHandler:         backupHandler,
 		OLTHandler:            oltHandler,
 		ODPHandler:            odpHandler,
 		ProvisioningHandler:   provisioningHandler,
