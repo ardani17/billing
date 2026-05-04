@@ -12,6 +12,7 @@ import {
   Users,
 } from "@phosphor-icons/react";
 import AppShell from "./app-shell";
+import { MikrotikModuleNav } from "../mikrotik/components/MikrotikModuleNav";
 import {
   Button,
   DataTable,
@@ -1452,6 +1453,7 @@ export function MikrotikVpnLivePage() {
   return (
     <RealShell>
       <PageHeader eyebrow="MikroTik" title="VPN tunnel" description="Manajemen tunnel VPN dari network-service. Test koneksi dan auto-configure tetap aksi manual." />
+      <MikrotikModuleNav />
       <StatGrid
         stats={[
           { label: "Tunnel", value: String(summary.data.total_tunnels ?? rows.length) },

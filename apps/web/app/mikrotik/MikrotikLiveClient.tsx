@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowClockwise, CheckCircle, WarningCircle } from "@phosphor-icons/react";
 import { Button, DataTable, EmptyState, FormField, PageHeader, Section, StatGrid, StatusBadge, TextInput } from "../components/ui";
 import AppShell from "../components/app-shell";
+import { MikrotikModuleNav } from "./components/MikrotikModuleNav";
 
 type RouterRecord = {
   id: string;
@@ -195,7 +196,6 @@ export function MikrotikLivePage() {
           actions={
             <>
               <Button href="/mikrotik/new">Tambah Router</Button>
-              <Button variant="secondary" href="/mikrotik/vpn">VPN</Button>
               <button
                 type="button"
                 onClick={() => void loadRouters()}
@@ -207,6 +207,8 @@ export function MikrotikLivePage() {
             </>
           }
         />
+
+        <MikrotikModuleNav />
 
         <StatGrid stats={stats} />
 
@@ -344,6 +346,8 @@ export function MikrotikCreatePage() {
           description="Simpan koneksi MikroTik ke database tenant. Test RouterOS API hanya berjalan bila dipilih atau melalui tombol test manual di halaman detail."
           actions={<Button variant="secondary" href="/mikrotik">Kembali</Button>}
         />
+
+        <MikrotikModuleNav />
 
         {error && (
           <div className="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -631,6 +635,8 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
             </>
           }
         />
+
+        <MikrotikModuleNav />
 
         {error && (
           <div className="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
