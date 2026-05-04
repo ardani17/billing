@@ -18,7 +18,6 @@ import type {
 } from "../../lib/types";
 import { OverviewPanel } from "./OverviewPanel";
 import { PppoeUsersPanel } from "./PppoeUsersPanel";
-import { RouterDetailSubnav } from "./RouterDetailSubnav";
 import { RouterEditPanel } from "./RouterEditPanel";
 import { SessionsPanel } from "./SessionsPanel";
 import { SyncPanel } from "./SyncPanel";
@@ -273,9 +272,7 @@ export function MikrotikRouterWorkspace({
 
         <MikrotikModuleNav />
 
-        <div className="grid min-w-0 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
-          <RouterDetailSubnav routerId={routerId} active={section} />
-          <main className="min-w-0 space-y-6">
+        <main className="min-w-0 space-y-6">
             {error && (
               <div className="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 <WarningCircle size={20} className="shrink-0" />
@@ -337,8 +334,7 @@ export function MikrotikRouterWorkspace({
                 {section === "sync" && <SyncPanel syncStatus={syncStatus} syncing={syncing} onSync={() => void syncPppoe()} />}
               </>
             )}
-          </main>
-        </div>
+        </main>
       </div>
     </AppShell>
   );

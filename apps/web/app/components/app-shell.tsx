@@ -6,17 +6,21 @@ import { usePathname } from "next/navigation";
 import {
   Bell,
   Broadcast,
+  ArrowsClockwise,
   CaretLeft,
   CaretRight,
   ChartLineUp,
   ChatCircleDots,
   CreditCard,
   GearSix,
+  Gauge,
   House,
   List,
+  ListChecks,
   MagnifyingGlass,
   MapTrifold,
   Package,
+  Pulse,
   Question,
   Receipt,
   SquaresFour,
@@ -78,10 +82,18 @@ const bottomNav = [
   { href: "/settings", label: "More", icon: List },
 ];
 
+function getMikrotikDetailId(pathname: string) {
+  const match = pathname.match(/^\/mikrotik\/([^/]+)/);
+  const id = match?.[1];
+  if (!id || id === "new" || id === "vpn") return null;
+  return id;
+}
+
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const mikrotikDetailId = getMikrotikDetailId(pathname);
 
   const currentLabel = useMemo(() => {
     for (const group of navGroups) {
@@ -131,28 +143,63 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const active = pathname.startsWith(item.href);
+                  const showMikrotikChildren = item.href === "/mikrotik" && !collapsed && mikrotikDetailId;
+                  const mikrotikChildren = showMikrotikChildren
+                    ? [
+                        { href: `/mikrotik/${mikrotikDetailId}`, label: "Overview", icon: Gauge },
+                        { href: `/mikrotik/${mikrotikDetailId}/pppoe`, label: "PPPoE users", icon: ListChecks },
+                        { href: `/mikrotik/${mikrotikDetailId}/sessions`, label: "Session live", icon: Pulse },
+                        { href: `/mikrotik/${mikrotikDetailId}/sync`, label: "Sinkronisasi", icon: ArrowsClockwise },
+                      ]
+                    : [];
                   return (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      onClick={(event) => {
-                        setMobileOpen(false);
-                      }}
-                      title={collapsed ? item.label : undefined}
-                      className={`flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition ${
-                        active
-                          ? "bg-blue-50 text-blue-700"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-                      } ${collapsed ? "justify-center" : ""}`}
-                    >
-                      <Icon size={19} />
-                      {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
-                      {!collapsed && item.badge && (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
-                          {item.badge}
-                        </span>
+                    <div key={item.label}>
+                      <a
+                        href={item.href}
+                        onClick={() => {
+                          setMobileOpen(false);
+                        }}
+                        title={collapsed ? item.label : undefined}
+                        className={`flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition ${
+                          active
+                            ? "bg-blue-50 text-blue-700"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                        } ${collapsed ? "justify-center" : ""}`}
+                      >
+                        <Icon size={19} />
+                        {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+                        {!collapsed && item.badge && (
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+                            {item.badge}
+                          </span>
+                        )}
+                      </a>
+                      {mikrotikChildren.length > 0 && (
+                        <div className="ml-8 mt-1 grid gap-1 border-l border-blue-100 pl-3">
+                          {mikrotikChildren.map((child) => {
+                            const ChildIcon = child.icon;
+                            const childActive = pathname === child.href;
+                            return (
+                              <a
+                                key={child.href}
+                                href={child.href}
+                                onClick={() => {
+                                  setMobileOpen(false);
+                                }}
+                                className={`flex h-9 min-w-0 items-center gap-2 rounded-md px-2 text-sm font-medium transition ${
+                                  childActive
+                                    ? "bg-blue-600 text-white shadow-sm shadow-blue-100"
+                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                }`}
+                              >
+                                <ChildIcon size={16} />
+                                <span className="truncate">{child.label}</span>
+                              </a>
+                            );
+                          })}
+                        </div>
                       )}
-                    </a>
+                    </div>
                   );
                 })}
               </div>
