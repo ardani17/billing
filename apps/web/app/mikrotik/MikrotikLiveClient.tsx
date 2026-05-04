@@ -600,10 +600,12 @@ export function MikrotikLiveDetailPage({ routerId }: { routerId: string }) {
         port: Number(editForm.port || 8728),
         username: editForm.username.trim(),
         use_ssl: editForm.useSsl,
-        status: editForm.status,
         health_check_interval_sec: Number(editForm.healthCheckIntervalSec || 300),
         notes: editForm.notes.trim(),
       };
+      if (router && editForm.status !== router.status) {
+        payload.status = editForm.status;
+      }
       if (editForm.password.trim()) {
         payload.password = editForm.password;
       }
