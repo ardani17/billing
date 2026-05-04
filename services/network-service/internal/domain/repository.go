@@ -274,6 +274,7 @@ type DHCPBindingRepository interface {
 
 type MikroTikCommandAuditRepository interface {
 	Create(ctx context.Context, log MikroTikCommandAuditLog) error
+	List(ctx context.Context, params MikroTikCommandAuditListParams) (*MikroTikCommandAuditListResult, error)
 }
 
 type StaticIPAssignmentRepository interface {

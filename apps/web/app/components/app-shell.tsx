@@ -25,6 +25,7 @@ import {
   Receipt,
   SquaresFour,
   Storefront,
+  TerminalWindow,
   Ticket,
   Users,
   WifiHigh,
@@ -159,6 +160,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                         { href: `/mikrotik/${mikrotikDetailId}/static-ip`, label: "Static IP", icon: MapTrifold },
                         { href: `/mikrotik/${mikrotikDetailId}/walled-garden`, label: "Walled Garden", icon: Gauge },
                         { href: `/mikrotik/${mikrotikDetailId}/hotspot`, label: "Hotspot", icon: Ticket },
+                        { href: `/mikrotik/${mikrotikDetailId}/terminal`, label: "Terminal", icon: TerminalWindow },
                       ]
                     : [];
                   return (

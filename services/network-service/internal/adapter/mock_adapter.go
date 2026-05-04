@@ -115,6 +115,21 @@ func (m *MockAdapter) Execute(_ context.Context, command string, params map[stri
 			},
 		}, nil
 
+	case "/ip/address/print":
+		return []map[string]string{
+			{".id": "*90", "address": "10.10.10.1/24", "interface": "pppoe-bridge", "network": "10.10.10.0", "disabled": "false"},
+		}, nil
+
+	case "/ip/route/print":
+		return []map[string]string{
+			{".id": "*91", "dst-address": "0.0.0.0/0", "gateway": "192.0.2.1", "distance": "1", "active": "true"},
+		}, nil
+
+	case "/ip/dns/print":
+		return []map[string]string{
+			{"servers": "1.1.1.1,8.8.8.8", "allow-remote-requests": "true", "cache-size": "2048KiB"},
+		}, nil
+
 	case "/ip/pool/print":
 		return []map[string]string{
 			{".id": "*10", "name": "pool-pppoe-reguler", "ranges": "10.10.10.2-10.10.10.254"},
@@ -248,6 +263,21 @@ func (m *MockAdapter) Execute(_ context.Context, command string, params map[stri
 	case "/ip/hotspot/active/print":
 		return []map[string]string{
 			{".id": "*80", "user": "voucher-demo", "address": "10.30.0.10", "mac-address": "02:00:00:00:30:10", "uptime": "12m30s", "bytes-in": "1024000", "bytes-out": "9040000", "server": "hotspot1"},
+		}, nil
+
+	case "/ppp/secret/print":
+		return []map[string]string{
+			{".id": "*100", "name": "pppoe-demo", "profile": "default", "service": "pppoe", "disabled": "false", "comment": "ISPBoss:mock"},
+		}, nil
+
+	case "/ppp/profile/print":
+		return []map[string]string{
+			{".id": "*101", "name": "default", "rate-limit": "10M/10M", "local-address": "10.10.10.1", "remote-address": "pool-pppoe-reguler"},
+		}, nil
+
+	case "/ppp/active/print":
+		return []map[string]string{
+			{".id": "*102", "name": "pppoe-demo", "address": "10.10.10.2", "caller-id": "02:00:00:10:10:02", "uptime": "15m", "service": "pppoe"},
 		}, nil
 
 	default:

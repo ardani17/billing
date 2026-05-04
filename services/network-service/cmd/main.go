@@ -194,6 +194,7 @@ func main() {
 	staticIPManager := usecase.NewStaticIPManager(routerRepo, staticIPRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	walledGardenManager := usecase.NewWalledGardenManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	hotspotManager := usecase.NewHotspotManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
+	terminalManager := usecase.NewTerminalManager(routerRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	pppoeWorker.SetHotspotDependencies(hotspotManager, routerRepo)
 	routerHandler := handler.NewRouterHandler(routerUsecase)
 	statusHandler := handler.NewStatusHandler(routerUsecase)
@@ -205,6 +206,7 @@ func main() {
 	staticIPHandler := handler.NewStaticIPHandler(staticIPManager, appLogger)
 	walledGardenHandler := handler.NewWalledGardenHandler(walledGardenManager, appLogger)
 	hotspotHandler := handler.NewHotspotHandler(hotspotManager, appLogger)
+	terminalHandler := handler.NewTerminalHandler(terminalManager, appLogger)
 
 	// --- OLT Dependency Injection ---
 
@@ -349,6 +351,7 @@ func main() {
 		StaticIPHandler:       staticIPHandler,
 		WalledGardenHandler:   walledGardenHandler,
 		HotspotHandler:        hotspotHandler,
+		TerminalHandler:       terminalHandler,
 		OLTHandler:            oltHandler,
 		ODPHandler:            odpHandler,
 		ProvisioningHandler:   provisioningHandler,

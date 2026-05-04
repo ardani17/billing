@@ -252,6 +252,34 @@ export type HotspotLoginTemplate = {
   html: string;
 };
 
+export type TerminalExecuteResult = {
+  command: string;
+  rows: Record<string, string>[];
+};
+
+export type MikroTikCommandAuditLog = {
+  id: string;
+  tenant_id?: string;
+  router_id?: string;
+  user_id?: string;
+  action: string;
+  command: string;
+  target_type?: string;
+  target_id?: string;
+  status: string;
+  error_message?: string;
+  remote_addr?: string;
+  created_at?: string;
+};
+
+export type MikroTikCommandAuditList = {
+  data: MikroTikCommandAuditLog[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+};
+
 export type MikrotikDetailSection =
   | "overview"
   | "pppoe"
@@ -265,4 +293,5 @@ export type MikrotikDetailSection =
   | "dhcp"
   | "static-ip"
   | "walled-garden"
-  | "hotspot";
+  | "hotspot"
+  | "terminal";

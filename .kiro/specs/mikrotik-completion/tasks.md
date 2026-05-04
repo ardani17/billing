@@ -76,12 +76,12 @@ Rencana ini mengubah daftar fitur besar di `diskusi/08-mikrotik.md` menjadi urut
   - [x] 9.5 Add Hotspot submenu UI
   - _Requirements: 8, 13, 14_
 
-- [ ] 10. Phase 6 - Terminal safety and audit
-  - [ ] 10.1 Add `mikrotik_command_audit_logs` migration and repository
-  - [ ] 10.2 Add terminal command validator with denylist and optional allowlist mode
-  - [ ] 10.3 Add terminal execute endpoint with RBAC guard
-  - [ ] 10.4 Write audit rows for every terminal attempt
-  - [ ] 10.5 Add Terminal submenu UI with warning and command history
+- [x] 10. Phase 6 - Terminal safety and audit
+  - [x] 10.1 Add `mikrotik_command_audit_logs` migration and repository
+  - [x] 10.2 Add terminal command validator with denylist and optional allowlist mode
+  - [x] 10.3 Add terminal execute endpoint with RBAC guard
+  - [x] 10.4 Write audit rows for every terminal attempt
+  - [x] 10.5 Add Terminal submenu UI with warning and command history
   - _Requirements: 10, 13, 14_
 
 - [ ] 11. Phase 7 - Backup and firmware

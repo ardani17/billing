@@ -28,6 +28,7 @@ import { RouterEditPanel } from "./RouterEditPanel";
 import { SessionsPanel } from "./SessionsPanel";
 import { StaticIPPanel } from "./StaticIPPanel";
 import { SyncPanel } from "./SyncPanel";
+import { TerminalPanel } from "./TerminalPanel";
 import { TrafficPanel } from "./TrafficPanel";
 import { WalledGardenPanel } from "./WalledGardenPanel";
 
@@ -350,6 +351,7 @@ export function MikrotikRouterWorkspace({
                 {section === "static-ip" && <StaticIPPanel routerId={routerId} onError={setError} />}
                 {section === "walled-garden" && <WalledGardenPanel routerId={routerId} onError={setError} />}
                 {section === "hotspot" && <HotspotPanel routerId={routerId} onError={setError} />}
+                {section === "terminal" && <TerminalPanel routerId={routerId} onError={setError} />}
               </>
             )}
         </main>

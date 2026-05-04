@@ -41,10 +41,10 @@
 
 ## Phase 6 - Terminal And Audit
 
-- [ ] `mikrotik_command_audit_logs`.
-- [ ] Safe command validator and denylist.
-- [ ] Terminal execute endpoint and UI.
-- [ ] Append-only audit for every attempt.
+- [x] `mikrotik_command_audit_logs`.
+- [x] Safe command validator and denylist.
+- [x] Terminal execute endpoint and UI.
+- [x] Append-only audit for every attempt.
 
 ## Phase 7 - Backup And Firmware
 

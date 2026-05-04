@@ -44,6 +44,9 @@ type RouterConfig struct {
 	// HotspotHandler adalah handler untuk user/profile/session Hotspot
 	HotspotHandler *HotspotHandler
 
+	// TerminalHandler adalah handler untuk terminal read-only dan audit command
+	TerminalHandler *TerminalHandler
+
 	// OLTHandler adalah handler untuk manajemen OLT device
 	OLTHandler *OLTHandler
 
@@ -178,6 +181,11 @@ func RegisterRoutes(cfg RouterConfig) {
 	hotspot.Get("/profiles", cfg.HotspotHandler.ListProfiles)
 	hotspot.Get("/active", cfg.HotspotHandler.ListActive)
 	hotspot.Post("/login-template/generate", cfg.HotspotHandler.GenerateLoginTemplate)
+
+	// Route terminal read-only dan audit command MikroTik.
+	terminal := routers.Group("/:id/terminal")
+	terminal.Post("/execute", cfg.TerminalHandler.Execute)
+	terminal.Get("/audit", cfg.TerminalHandler.ListAudit)
 
 	// Route status summary router MikroTik
 	status := api.Group("/mikrotik/status")

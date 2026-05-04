@@ -83,6 +83,9 @@ var (
 	// ErrHotspotUserNotFound dikembalikan saat Hotspot user tidak ditemukan di RouterOS.
 	ErrHotspotUserNotFound = errors.New("hotspot user tidak ditemukan")
 
+	// ErrTerminalCommandDenied dikembalikan saat command terminal tidak termasuk allowlist read-only.
+	ErrTerminalCommandDenied = errors.New("perintah terminal ditolak oleh validator keamanan")
+
 	// --- DHCP Domain Errors ---
 
 	// ErrDHCPBindingNotFound dikembalikan saat binding DHCP tidak ditemukan.
