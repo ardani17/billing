@@ -142,6 +142,25 @@ func (m *MockAdapter) Execute(_ context.Context, command string, _ map[string]st
 			{".id": "*32", "time": "may/04/2026 09:05:42", "topics": "firewall,info", "message": "ISPBoss: isolated customer redirected"},
 		}, nil
 
+	case "/ip/dhcp-server/print":
+		return []map[string]string{
+			{".id": "*40", "name": "dhcp-lan", "interface": "pppoe-bridge", "address-pool": "pool-dhcp-lan", "lease-time": "1d", "authoritative": "yes", "disabled": "false", "comment": "LAN subscribers"},
+		}, nil
+
+	case "/ip/dhcp-server/lease/print":
+		return []map[string]string{
+			{".id": "*41", "server": "dhcp-lan", "address": "10.20.0.10", "mac-address": "02:00:00:00:00:10", "host-name": "cpe-001", "status": "bound", "dynamic": "true", "disabled": "false", "last-seen": "5m", "comment": ""},
+			{".id": "*42", "server": "dhcp-lan", "address": "10.20.0.20", "mac-address": "02:00:00:00:00:20", "host-name": "static-cpe", "status": "bound", "dynamic": "false", "disabled": "false", "comment": "ISPBoss:dhcp:mock managed static binding"},
+		}, nil
+
+	case "/ip/dhcp-server/network/print":
+		return []map[string]string{
+			{".id": "*43", "address": "10.20.0.0/24", "gateway": "10.20.0.1", "dns-server": "8.8.8.8,1.1.1.1", "domain": "ispboss.local", "comment": "LAN DHCP"},
+		}, nil
+
+	case "/ip/dhcp-server/lease/add", "/ip/dhcp-server/lease/set", "/ip/dhcp-server/lease/remove":
+		return []map[string]string{}, nil
+
 	default:
 		return nil, fmt.Errorf("mock: perintah tidak dikenali: %s", command)
 	}

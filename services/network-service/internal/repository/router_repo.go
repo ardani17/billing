@@ -359,7 +359,7 @@ func (r *RouterRepo) UpdateHealthCheck(ctx context.Context, id string, params do
 		LastOnlineAt:  timePtrToTimestamptz(params.LastOnlineAt),
 		LastUptimeSec: int64PtrToInt8(params.LastUptimeSec),
 		FailureCount:  int32(params.FailureCount),
-		Status:        status,
+		Column6:       status,
 	})
 	if err != nil {
 		return fmt.Errorf("repository: gagal memperbarui health check: %w", err)

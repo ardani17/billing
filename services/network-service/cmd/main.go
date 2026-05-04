@@ -97,6 +97,8 @@ func main() {
 	routerRepo := repository.NewRouterRepo(queries)
 	pppoeUserRepo := repository.NewPPPoEUserRepo(queries)
 	pppoeProfileRepo := repository.NewPPPoEProfileRepo(queries)
+	dhcpBindingRepo := repository.NewDHCPBindingRepo(queries)
+	mikrotikAuditRepo := repository.NewMikroTikAuditRepo(queries)
 	vpnTunnelRepo := repository.NewVPNTunnelRepo(queries)
 	vpnSubnetRepo := repository.NewVPNSubnetRepo(queries)
 
@@ -187,12 +189,14 @@ func main() {
 
 	// 20. HTTP handlers (MikroTik)
 	operationalManager := usecase.NewMikroTikOperationalManager(routerRepo, encryptor, adapterFactory)
+	dhcpManager := usecase.NewDHCPManager(routerRepo, dhcpBindingRepo, mikrotikAuditRepo, encryptor, adapterFactory)
 	routerHandler := handler.NewRouterHandler(routerUsecase)
 	statusHandler := handler.NewStatusHandler(routerUsecase)
 	pppoeHandler := handler.NewPPPoEHandler(pppoeManager, appLogger)
 	sessionHandler := handler.NewSessionHandler(pppoeManager, appLogger)
 	vpnHandler := handler.NewVPNHandler(vpnManager, appLogger)
 	operationalHandler := handler.NewMikroTikOperationalHandler(operationalManager, appLogger)
+	dhcpHandler := handler.NewDHCPHandler(dhcpManager, appLogger)
 
 	// --- OLT Dependency Injection ---
 
@@ -333,6 +337,7 @@ func main() {
 		SessionHandler:        sessionHandler,
 		VPNHandler:            vpnHandler,
 		OperationalHandler:    operationalHandler,
+		DHCPHandler:           dhcpHandler,
 		OLTHandler:            oltHandler,
 		ODPHandler:            odpHandler,
 		ProvisioningHandler:   provisioningHandler,

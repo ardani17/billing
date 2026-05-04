@@ -125,6 +125,60 @@ export type RouterLogEntry = {
   message: string;
 };
 
+export type DHCPServer = {
+  id: string;
+  name: string;
+  interface: string;
+  address_pool: string;
+  lease_time: string;
+  authoritative?: string;
+  disabled: boolean;
+  comment?: string;
+};
+
+export type DHCPLease = {
+  id: string;
+  server?: string;
+  address?: string;
+  mac_address: string;
+  host_name?: string;
+  client_id?: string;
+  status?: string;
+  dynamic: boolean;
+  disabled: boolean;
+  expires_after?: string;
+  last_seen?: string;
+  comment?: string;
+  managed: boolean;
+};
+
+export type DHCPNetwork = {
+  id: string;
+  address: string;
+  gateway?: string;
+  dns_server?: string[];
+  domain?: string;
+  comment?: string;
+};
+
+export type DHCPBinding = {
+  id: string;
+  router_id: string;
+  customer_id?: string;
+  router_lease_id?: string;
+  server: string;
+  mac_address: string;
+  ip_address: string;
+  host_name?: string;
+  comment: string;
+  disabled: boolean;
+  status: string;
+  last_sync_at?: string;
+  sync_status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type MikrotikDetailSection =
   | "overview"
   | "pppoe"
@@ -134,4 +188,5 @@ export type MikrotikDetailSection =
   | "interfaces"
   | "ip-pool"
   | "firewall"
-  | "logs";
+  | "logs"
+  | "dhcp";

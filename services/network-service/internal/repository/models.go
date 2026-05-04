@@ -5,6 +5,8 @@
 package repository
 
 import (
+	"net/netip"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -21,6 +23,26 @@ type CableRoute struct {
 	DeletedAt      pgtype.Timestamptz `json:"deleted_at"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type DhcpBinding struct {
+	ID            pgtype.UUID        `json:"id"`
+	TenantID      pgtype.UUID        `json:"tenant_id"`
+	RouterID      pgtype.UUID        `json:"router_id"`
+	CustomerID    pgtype.UUID        `json:"customer_id"`
+	RouterLeaseID pgtype.Text        `json:"router_lease_id"`
+	Server        string             `json:"server"`
+	MacAddress    string             `json:"mac_address"`
+	IpAddress     netip.Addr         `json:"ip_address"`
+	HostName      pgtype.Text        `json:"host_name"`
+	Comment       string             `json:"comment"`
+	Disabled      bool               `json:"disabled"`
+	Status        string             `json:"status"`
+	LastSyncAt    pgtype.Timestamptz `json:"last_sync_at"`
+	SyncStatus    string             `json:"sync_status"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
 }
 
 type GeocodingCache struct {
@@ -79,6 +101,21 @@ type MapShareLink struct {
 	AccessCount   int32              `json:"access_count"`
 	CreatedBy     string             `json:"created_by"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type MikrotikCommandAuditLog struct {
+	ID           pgtype.UUID        `json:"id"`
+	TenantID     pgtype.UUID        `json:"tenant_id"`
+	RouterID     pgtype.UUID        `json:"router_id"`
+	UserID       pgtype.UUID        `json:"user_id"`
+	Action       string             `json:"action"`
+	Command      string             `json:"command"`
+	TargetType   pgtype.Text        `json:"target_type"`
+	TargetID     pgtype.Text        `json:"target_id"`
+	Status       string             `json:"status"`
+	ErrorMessage pgtype.Text        `json:"error_message"`
+	RemoteAddr   pgtype.Text        `json:"remote_addr"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
 type NodePhoto struct {

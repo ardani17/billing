@@ -78,6 +78,20 @@ var (
 	// ErrSessionNotFound dikembalikan saat session PPPoE tidak ditemukan.
 	ErrSessionNotFound = errors.New("session pppoe tidak ditemukan")
 
+	// --- DHCP Domain Errors ---
+
+	// ErrDHCPBindingNotFound dikembalikan saat binding DHCP tidak ditemukan.
+	ErrDHCPBindingNotFound = errors.New("dhcp binding tidak ditemukan")
+
+	// ErrDHCPBindingExists dikembalikan saat MAC/IP binding sudah dipakai.
+	ErrDHCPBindingExists = errors.New("dhcp binding sudah ada")
+
+	// ErrInvalidMACAddress dikembalikan saat format MAC address tidak valid.
+	ErrInvalidMACAddress = errors.New("format mac address tidak valid")
+
+	// ErrInvalidIPAddress dikembalikan saat format IP address tidak valid.
+	ErrInvalidIPAddress = errors.New("format ip address tidak valid")
+
 	// --- VPN Domain Errors ---
 
 	// ErrVPNTunnelNotFound dikembalikan saat VPN tunnel tidak ditemukan.

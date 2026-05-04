@@ -258,6 +258,25 @@ type PPPoEUserRepository interface {
 }
 
 // =============================================================================
+// DHCPBindingRepository — operasi data untuk tabel dhcp_bindings
+// =============================================================================
+
+type DHCPBindingRepository interface {
+	Create(ctx context.Context, binding *DHCPBinding) (*DHCPBinding, error)
+	GetByID(ctx context.Context, id string) (*DHCPBinding, error)
+	GetByRouterAndMAC(ctx context.Context, routerID, mac string) (*DHCPBinding, error)
+	GetByRouterAndIP(ctx context.Context, routerID, ip string) (*DHCPBinding, error)
+	Update(ctx context.Context, binding *DHCPBinding) (*DHCPBinding, error)
+	SoftDelete(ctx context.Context, id string) error
+	List(ctx context.Context, params DHCPBindingListParams) (*DHCPBindingListResult, error)
+	UpdateSyncState(ctx context.Context, id, routerLeaseID, syncStatus string, syncAt *time.Time) error
+}
+
+type MikroTikCommandAuditRepository interface {
+	Create(ctx context.Context, log MikroTikCommandAuditLog) error
+}
+
+// =============================================================================
 // PPPoEProfileRepository — operasi data untuk tabel pppoe_profiles
 // =============================================================================
 

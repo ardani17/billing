@@ -38,18 +38,18 @@ Rencana ini mengubah daftar fitur besar di `diskusi/08-mikrotik.md` menjadi urut
   - [x] 4.5 Commit and push Phase 1
 
 - [ ] 5. Phase 2 - DHCP read model
-  - [ ] 5.1 Add domain DTOs for DHCP servers, leases, static bindings, and networks
-  - [ ] 5.2 Add read-only command builders and parsers for `/ip/dhcp-server/print`, `/ip/dhcp-server/lease/print`, and networks
-  - [ ] 5.3 Add read endpoints and web proxy routes
-  - [ ] 5.4 Add DHCP submenu UI with Servers, Leases, Static Bindings, Networks sections
+  - [x] 5.1 Add domain DTOs for DHCP servers, leases, static bindings, and networks
+  - [x] 5.2 Add read-only command builders and parsers for `/ip/dhcp-server/print`, `/ip/dhcp-server/lease/print`, and networks
+  - [x] 5.3 Add read endpoints and web proxy routes
+  - [x] 5.4 Add DHCP submenu UI with Servers, Leases, Static Bindings, Networks sections
   - _Requirements: 6_
 
 - [ ] 6. Phase 2 - DHCP static binding writes
-  - [ ] 6.1 Add `dhcp_bindings` migration, queries, repository, and domain model
-  - [ ] 6.2 Add create/update/delete binding usecases with idempotent RouterOS writes
-  - [ ] 6.3 Add explicit confirmation for delete/disable actions
-  - [ ] 6.4 Add audit rows for DHCP binding write operations
-  - [ ] 6.5 Add UI forms for managed static bindings
+  - [x] 6.1 Add `dhcp_bindings` migration, queries, repository, and domain model
+  - [x] 6.2 Add create/update/delete binding usecases with idempotent RouterOS writes
+  - [x] 6.3 Add explicit confirmation for delete/disable actions
+  - [x] 6.4 Add audit rows for DHCP binding write operations
+  - [x] 6.5 Add UI forms for managed static bindings
   - _Requirements: 6, 13, 14_
 
 - [ ] 7. Phase 3 - Static IP management

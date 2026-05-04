@@ -32,6 +32,9 @@ type RouterConfig struct {
 	// OperationalHandler adalah handler untuk data operasional RouterOS on-demand
 	OperationalHandler *MikroTikOperationalHandler
 
+	// DHCPHandler adalah handler untuk DHCP server/lease/static binding
+	DHCPHandler *DHCPHandler
+
 	// OLTHandler adalah handler untuk manajemen OLT device
 	OLTHandler *OLTHandler
 
@@ -131,6 +134,16 @@ func RegisterRoutes(cfg RouterConfig) {
 	routers.Get("/:id/ip-pools", cfg.OperationalHandler.ListIPPools)
 	routers.Get("/:id/firewall/managed", cfg.OperationalHandler.ListManagedFirewall)
 	routers.Get("/:id/logs", cfg.OperationalHandler.ListLogs)
+
+	// Route DHCP server, leases, static bindings, dan networks
+	dhcp := routers.Group("/:id/dhcp")
+	dhcp.Get("/servers", cfg.DHCPHandler.ListServers)
+	dhcp.Get("/leases", cfg.DHCPHandler.ListLeases)
+	dhcp.Get("/bindings", cfg.DHCPHandler.ListBindings)
+	dhcp.Post("/bindings", cfg.DHCPHandler.CreateBinding)
+	dhcp.Put("/bindings/:binding_id", cfg.DHCPHandler.UpdateBinding)
+	dhcp.Delete("/bindings/:binding_id", cfg.DHCPHandler.DeleteBinding)
+	dhcp.Get("/networks", cfg.DHCPHandler.ListNetworks)
 
 	// Route status summary router MikroTik
 	status := api.Group("/mikrotik/status")

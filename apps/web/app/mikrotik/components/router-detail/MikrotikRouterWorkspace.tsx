@@ -16,6 +16,7 @@ import type {
   SyncStatus,
   SystemResource,
 } from "../../lib/types";
+import { DHCPPanel } from "./DHCPPanel";
 import { FirewallPanel } from "./FirewallPanel";
 import { InterfacesPanel } from "./InterfacesPanel";
 import { IPPoolsPanel } from "./IPPoolsPanel";
@@ -342,6 +343,7 @@ export function MikrotikRouterWorkspace({
                 {section === "ip-pool" && <IPPoolsPanel routerId={routerId} onError={setError} />}
                 {section === "firewall" && <FirewallPanel routerId={routerId} onError={setError} />}
                 {section === "logs" && <LogsPanel routerId={routerId} onError={setError} />}
+                {section === "dhcp" && <DHCPPanel routerId={routerId} onError={setError} />}
               </>
             )}
         </main>

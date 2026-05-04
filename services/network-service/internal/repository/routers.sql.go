@@ -373,7 +373,7 @@ type UpdateHealthCheckParams struct {
 	LastOnlineAt  pgtype.Timestamptz `json:"last_online_at"`
 	LastUptimeSec pgtype.Int8        `json:"last_uptime_sec"`
 	FailureCount  int32              `json:"failure_count"`
-	Status        string             `json:"status"`
+	Column6       interface{}        `json:"column_6"`
 }
 
 func (q *Queries) UpdateHealthCheck(ctx context.Context, arg UpdateHealthCheckParams) error {
@@ -383,7 +383,7 @@ func (q *Queries) UpdateHealthCheck(ctx context.Context, arg UpdateHealthCheckPa
 		arg.LastOnlineAt,
 		arg.LastUptimeSec,
 		arg.FailureCount,
-		arg.Status,
+		arg.Column6,
 	)
 	return err
 }
