@@ -47,8 +47,9 @@ const TOOLTIP_STYLE = {
   contentStyle: {
     borderRadius: "8px",
     border: "1px solid #e2e8f0",
-    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+    boxShadow: "0 18px 40px -24px rgb(15 23 42 / 0.45)",
     fontSize: "13px",
+    color: "#0f172a",
   },
 };
 
@@ -64,7 +65,7 @@ export function LineChart({
   showLegend = true,
 }: LineChartProps) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto rounded-md">
       <div style={{ minWidth: Math.max(data.length * 60, 300) }}>
         <ResponsiveContainer width="100%" height={height}>
           <RechartsLineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
