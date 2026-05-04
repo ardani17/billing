@@ -4,6 +4,7 @@ package adapter
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"strconv"
@@ -38,8 +39,12 @@ func (a *LiveAdapter) Connect(_ context.Context, cfg ConnectionConfig) error {
 	)
 
 	if cfg.UseSSL {
+		tlsConfig := &tls.Config{
+			MinVersion:         tls.VersionTLS12,
+			InsecureSkipVerify: true, // RouterOS labs often use self-signed API-SSL certificates.
+		}
 		client, err = routeros.DialTLSTimeout(
-			addr, cfg.Username, cfg.Password, nil, cfg.ConnectTimeout,
+			addr, cfg.Username, cfg.Password, tlsConfig, cfg.ConnectTimeout,
 		)
 	} else {
 		client, err = routeros.DialTimeout(
