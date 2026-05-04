@@ -26,3 +26,14 @@ type PPPoEProfile struct {
 	CreatedAt              time.Time `json:"created_at"`
 	UpdatedAt              time.Time `json:"updated_at"`
 }
+
+// PackageProfilePayload membawa metadata paket dari billing-api untuk fallback
+// saat tabel pppoe_profiles network-service belum punya mapping package_id.
+type PackageProfilePayload struct {
+	TenantID            string
+	PackageID           string
+	MikrotikProfileName string
+	DownloadMbps        int
+	UploadMbps          int
+	AddressPool         string
+}

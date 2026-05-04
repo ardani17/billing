@@ -216,10 +216,12 @@ func (uc *CustomerUsecase) BulkDelete(ctx context.Context, ids []string, actor A
 			// Publish customer.terminated event
 			if customer != nil {
 				uc.publishEvent(customer.TenantID, "customer.terminated", domain.CustomerTerminatedPayload{
-					CustomerID:    customer.ID,
-					Name:          customer.Name,
-					RouterID:      customer.RouterID,
-					PPPoEUsername: customer.PPPoEUsername,
+					CustomerID:       customer.ID,
+					TenantID:         customer.TenantID,
+					Name:             customer.Name,
+					RouterID:         customer.RouterID,
+					PPPoEUsername:    customer.PPPoEUsername,
+					ConnectionMethod: string(customer.ConnectionMethod),
 				})
 			}
 		} else {

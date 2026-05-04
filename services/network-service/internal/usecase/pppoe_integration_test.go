@@ -17,15 +17,31 @@ import (
 
 type integRouterRepo struct{ router *domain.Router }
 
-func (m *integRouterRepo) GetByID(_ context.Context, _ string) (*domain.Router, error)  { return m.router, nil }
-func (m *integRouterRepo) Create(_ context.Context, r *domain.Router) (*domain.Router, error) { return r, nil }
-func (m *integRouterRepo) Update(_ context.Context, r *domain.Router) (*domain.Router, error) { return r, nil }
-func (m *integRouterRepo) SoftDelete(_ context.Context, _ string) error                 { return nil }
-func (m *integRouterRepo) List(_ context.Context, _ domain.RouterListParams) (*domain.RouterListResult, error) { return nil, nil }
-func (m *integRouterRepo) CountByStatus(_ context.Context) (map[domain.RouterStatus]int64, error) { return nil, nil }
-func (m *integRouterRepo) GetActiveRouters(_ context.Context) ([]*domain.Router, error) { return nil, nil }
-func (m *integRouterRepo) NameExists(_ context.Context, _, _, _ string) (bool, error)   { return false, nil }
-func (m *integRouterRepo) UpdateHealthCheck(_ context.Context, _ string, _ domain.HealthCheckUpdate) error { return nil }
+func (m *integRouterRepo) GetByID(_ context.Context, _ string) (*domain.Router, error) {
+	return m.router, nil
+}
+func (m *integRouterRepo) Create(_ context.Context, r *domain.Router) (*domain.Router, error) {
+	return r, nil
+}
+func (m *integRouterRepo) Update(_ context.Context, r *domain.Router) (*domain.Router, error) {
+	return r, nil
+}
+func (m *integRouterRepo) SoftDelete(_ context.Context, _ string) error { return nil }
+func (m *integRouterRepo) List(_ context.Context, _ domain.RouterListParams) (*domain.RouterListResult, error) {
+	return nil, nil
+}
+func (m *integRouterRepo) CountByStatus(_ context.Context) (map[domain.RouterStatus]int64, error) {
+	return nil, nil
+}
+func (m *integRouterRepo) GetActiveRouters(_ context.Context) ([]*domain.Router, error) {
+	return nil, nil
+}
+func (m *integRouterRepo) NameExists(_ context.Context, _, _, _ string) (bool, error) {
+	return false, nil
+}
+func (m *integRouterRepo) UpdateHealthCheck(_ context.Context, _ string, _ domain.HealthCheckUpdate) error {
+	return nil
+}
 
 type integUserRepo struct{ created []*domain.PPPoEUser }
 
@@ -34,42 +50,77 @@ func (m *integUserRepo) Create(_ context.Context, u *domain.PPPoEUser) (*domain.
 	m.created = append(m.created, u)
 	return u, nil
 }
-func (m *integUserRepo) GetByID(_ context.Context, _ string) (*domain.PPPoEUser, error) { return nil, domain.ErrPPPoEUserNotFound }
-func (m *integUserRepo) GetByUsername(_ context.Context, _, _ string) (*domain.PPPoEUser, error) { return nil, domain.ErrPPPoEUserNotFound }
+func (m *integUserRepo) GetByID(_ context.Context, _ string) (*domain.PPPoEUser, error) {
+	return nil, domain.ErrPPPoEUserNotFound
+}
+func (m *integUserRepo) GetByUsername(_ context.Context, _, _ string) (*domain.PPPoEUser, error) {
+	return nil, domain.ErrPPPoEUserNotFound
+}
 func (m *integUserRepo) GetByCustomerID(_ context.Context, cid string) (*domain.PPPoEUser, error) {
 	for _, u := range m.created {
-		if u.CustomerID == cid { return u, nil }
+		if u.CustomerID == cid {
+			return u, nil
+		}
 	}
 	return nil, domain.ErrPPPoEUserNotFound
 }
-func (m *integUserRepo) Update(_ context.Context, u *domain.PPPoEUser) (*domain.PPPoEUser, error) { return u, nil }
+func (m *integUserRepo) Update(_ context.Context, u *domain.PPPoEUser) (*domain.PPPoEUser, error) {
+	return u, nil
+}
 func (m *integUserRepo) SoftDelete(_ context.Context, _ string) error { return nil }
-func (m *integUserRepo) List(_ context.Context, _ domain.PPPoEUserListParams) (*domain.PPPoEUserListResult, error) { return nil, nil }
-func (m *integUserRepo) GetByRouterID(_ context.Context, _ string) ([]*domain.PPPoEUser, error) { return nil, nil }
-func (m *integUserRepo) GetSyncStatusSummary(_ context.Context, _ string) (*domain.SyncStatusSummary, error) { return nil, nil }
-func (m *integUserRepo) UpdateSyncStatus(_ context.Context, _ string, _ domain.SyncStatus, _ *time.Time) error { return nil }
-func (m *integUserRepo) BulkUpdateSyncStatus(_ context.Context, _ []string, _ domain.SyncStatus, _ *time.Time) error { return nil }
+func (m *integUserRepo) List(_ context.Context, _ domain.PPPoEUserListParams) (*domain.PPPoEUserListResult, error) {
+	return nil, nil
+}
+func (m *integUserRepo) GetByRouterID(_ context.Context, _ string) ([]*domain.PPPoEUser, error) {
+	return nil, nil
+}
+func (m *integUserRepo) GetSyncStatusSummary(_ context.Context, _ string) (*domain.SyncStatusSummary, error) {
+	return nil, nil
+}
+func (m *integUserRepo) UpdateSyncStatus(_ context.Context, _ string, _ domain.SyncStatus, _ *time.Time) error {
+	return nil
+}
+func (m *integUserRepo) BulkUpdateSyncStatus(_ context.Context, _ []string, _ domain.SyncStatus, _ *time.Time) error {
+	return nil
+}
 
 type integProfileRepo struct{ profile *domain.PPPoEProfile }
 
-func (m *integProfileRepo) GetByPackageID(_ context.Context, _ string) (*domain.PPPoEProfile, error) { return m.profile, nil }
-func (m *integProfileRepo) Create(_ context.Context, p *domain.PPPoEProfile) (*domain.PPPoEProfile, error) { return p, nil }
-func (m *integProfileRepo) GetByID(_ context.Context, _ string) (*domain.PPPoEProfile, error) { return m.profile, nil }
-func (m *integProfileRepo) GetByProfileName(_ context.Context, _, _ string) (*domain.PPPoEProfile, error) { return m.profile, nil }
-func (m *integProfileRepo) Update(_ context.Context, p *domain.PPPoEProfile) (*domain.PPPoEProfile, error) { return p, nil }
-func (m *integProfileRepo) ListByTenant(_ context.Context, _ string) ([]*domain.PPPoEProfile, error) { return nil, nil }
+func (m *integProfileRepo) GetByPackageID(_ context.Context, _ string) (*domain.PPPoEProfile, error) {
+	return m.profile, nil
+}
+func (m *integProfileRepo) Create(_ context.Context, p *domain.PPPoEProfile) (*domain.PPPoEProfile, error) {
+	return p, nil
+}
+func (m *integProfileRepo) GetByID(_ context.Context, _ string) (*domain.PPPoEProfile, error) {
+	return m.profile, nil
+}
+func (m *integProfileRepo) GetByProfileName(_ context.Context, _, _ string) (*domain.PPPoEProfile, error) {
+	return m.profile, nil
+}
+func (m *integProfileRepo) Update(_ context.Context, p *domain.PPPoEProfile) (*domain.PPPoEProfile, error) {
+	return p, nil
+}
+func (m *integProfileRepo) ListByTenant(_ context.Context, _ string) ([]*domain.PPPoEProfile, error) {
+	return nil, nil
+}
 
 // integAdapter merekam perintah yang dieksekusi.
 type integAdapter struct{ commands []string }
 
 func (m *integAdapter) Execute(_ context.Context, cmd string, _ map[string]string) ([]map[string]string, error) {
 	m.commands = append(m.commands, cmd)
+	if cmd == "/ppp/profile/print" {
+		return []map[string]string{{".id": "*1", "name": "10mbps"}}, nil
+	}
 	return nil, nil
 }
-func (m *integAdapter) Connect(_ context.Context, _ domain.ConnectionConfig) error       { return nil }
-func (m *integAdapter) Close() error                                                    { return nil }
-func (m *integAdapter) GetSystemResource(_ context.Context) (*domain.SystemResource, error) { return nil, nil }
-func (m *integAdapter) Ping(_ context.Context) error                                    { return nil }
+func (m *integAdapter) Connect(_ context.Context, _ domain.ConnectionConfig) error { return nil }
+func (m *integAdapter) Close() error                                               { return nil }
+func (m *integAdapter) GetSystemResource(_ context.Context) (*domain.SystemResource, error) {
+	return nil, nil
+}
+func (m *integAdapter) Ping(_ context.Context) error { return nil }
 
 type integConnPool struct{ adapter *integAdapter }
 
@@ -83,9 +134,11 @@ func (m *integConnPool) WarmUp(_ context.Context) error { return nil }
 
 type integPoolManager struct{ pool *integConnPool }
 
-func (m *integPoolManager) GetPool(_ string, _ domain.ConnectionConfig) domain.ConnPool { return m.pool }
-func (m *integPoolManager) ClosePool(_ string)                                          {}
-func (m *integPoolManager) CloseAll()                                                   {}
+func (m *integPoolManager) GetPool(_ string, _ domain.ConnectionConfig) domain.ConnPool {
+	return m.pool
+}
+func (m *integPoolManager) ClosePool(_ string) {}
+func (m *integPoolManager) CloseAll()          {}
 
 type integEncryptor struct{}
 
@@ -131,12 +184,15 @@ func TestIntegration_HandleCustomerActivated_Success(t *testing.T) {
 	if err := mgr.HandleCustomerActivated(context.Background(), payload); err != nil {
 		t.Fatalf("HandleCustomerActivated gagal: %v", err)
 	}
-	// Verifikasi: adapter menerima CreateSecret command
-	if len(adpt.commands) == 0 {
+	// Verifikasi: adapter mengecek profile lebih dulu lalu membuat secret.
+	if len(adpt.commands) < 2 {
 		t.Fatal("adapter tidak menerima command apapun")
 	}
-	if adpt.commands[0] != "/ppp/secret/add" {
-		t.Fatalf("expected /ppp/secret/add, got %s", adpt.commands[0])
+	if adpt.commands[0] != "/ppp/profile/print" {
+		t.Fatalf("expected /ppp/profile/print, got %s", adpt.commands[0])
+	}
+	if adpt.commands[1] != "/ppp/secret/add" {
+		t.Fatalf("expected /ppp/secret/add, got %s", adpt.commands[1])
 	}
 	// Verifikasi: user tersimpan di DB mock
 	if len(userRepo.created) != 1 {

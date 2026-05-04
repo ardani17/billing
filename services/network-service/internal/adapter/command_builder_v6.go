@@ -67,11 +67,15 @@ func (b *commandBuilderV6) PrintActiveSessions() (string, map[string]string) {
 // Burst parameters hanya ditambahkan jika nilainya tidak kosong.
 func (b *commandBuilderV6) CreateProfile(params domain.PPPoEProfileParams) (string, map[string]string) {
 	args := map[string]string{
-		"=name":           params.Name,
-		"=local-address":  params.LocalAddress,
-		"=remote-address": params.RemoteAddress,
-		"=rate-limit":     params.RateLimit,
-		"=only-one":       params.OnlyOne,
+		"=name":       params.Name,
+		"=rate-limit": params.RateLimit,
+		"=only-one":   params.OnlyOne,
+	}
+	if params.LocalAddress != "" {
+		args["=local-address"] = params.LocalAddress
+	}
+	if params.RemoteAddress != "" {
+		args["=remote-address"] = params.RemoteAddress
 	}
 	if params.BurstLimit != "" {
 		args["=burst-limit"] = params.BurstLimit

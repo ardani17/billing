@@ -9,6 +9,7 @@ import (
 
 	"github.com/hibiken/asynq"
 
+	"github.com/ispboss/ispboss/pkg/tenant"
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
@@ -20,6 +21,8 @@ func (w *PPPoEEventWorker) handleCustomerActivated(ctx context.Context, task *as
 	if err != nil {
 		return err
 	}
+	payload.TenantID = envelope.TenantID
+	ctx = tenant.SetForTest(ctx, envelope.TenantID)
 
 	// Skip jika bukan PPPoE
 	if payload.ConnectionMethod != "pppoe" {
@@ -57,6 +60,8 @@ func (w *PPPoEEventWorker) handleIsolir(ctx context.Context, task *asynq.Task) e
 	if err != nil {
 		return err
 	}
+	payload.TenantID = envelope.TenantID
+	ctx = tenant.SetForTest(ctx, envelope.TenantID)
 
 	if payload.ConnectionMethod != "pppoe" {
 		w.logger.Debug().
@@ -92,6 +97,8 @@ func (w *PPPoEEventWorker) handleUnIsolir(ctx context.Context, task *asynq.Task)
 	if err != nil {
 		return err
 	}
+	payload.TenantID = envelope.TenantID
+	ctx = tenant.SetForTest(ctx, envelope.TenantID)
 
 	if payload.ConnectionMethod != "pppoe" {
 		w.logger.Debug().
@@ -128,6 +135,8 @@ func (w *PPPoEEventWorker) handleSuspend(ctx context.Context, task *asynq.Task) 
 	if err != nil {
 		return err
 	}
+	payload.TenantID = envelope.TenantID
+	ctx = tenant.SetForTest(ctx, envelope.TenantID)
 
 	if payload.ConnectionMethod != "pppoe" {
 		w.logger.Debug().
@@ -170,6 +179,8 @@ func (w *PPPoEEventWorker) handlePackageChanged(ctx context.Context, task *asynq
 	if err != nil {
 		return err
 	}
+	payload.TenantID = envelope.TenantID
+	ctx = tenant.SetForTest(ctx, envelope.TenantID)
 
 	if payload.ConnectionMethod != "pppoe" {
 		w.logger.Debug().

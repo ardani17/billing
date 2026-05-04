@@ -76,11 +76,15 @@ func (m *pppoeManager) HandleIsolir(ctx context.Context, payload domain.Customer
 		srcAddress = pppoeUser.RemoteAddress
 	}
 
-	execErr = m.addIsolirFirewallRule(ctx, adapter, cmdBuilder, payload, srcAddress, log)
-	if execErr != nil {
-		log.Error().Err(execErr).Msg("gagal menambahkan firewall rule isolir")
-		m.publishIsolirResult(ctx, correlationID, payload, startTime, execErr)
-		return fmt.Errorf("gagal menambahkan firewall rule isolir: %w", execErr)
+	if payload.IsolirMethod == "" {
+		log.Warn().Msg("isolir_method kosong; hanya disable dan disconnect PPPoE user")
+	} else {
+		execErr = m.addIsolirFirewallRule(ctx, adapter, cmdBuilder, payload, srcAddress, log)
+		if execErr != nil {
+			log.Error().Err(execErr).Msg("gagal menambahkan firewall rule isolir")
+			m.publishIsolirResult(ctx, correlationID, payload, startTime, execErr)
+			return fmt.Errorf("gagal menambahkan firewall rule isolir: %w", execErr)
+		}
 	}
 
 	// Update PPPoE user di DB: set disabled=true

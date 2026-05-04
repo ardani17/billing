@@ -26,6 +26,7 @@ type ActorInfo struct {
 // CustomerUsecase mengimplementasikan business logic untuk manajemen pelanggan.
 type CustomerUsecase struct {
 	customerRepo domain.CustomerRepository
+	packageRepo  domain.PackageRepository
 	auditLogRepo domain.AuditLogRepository
 	queueClient  *asynq.Client
 	logger       zerolog.Logger
@@ -44,6 +45,12 @@ func NewCustomerUsecase(
 		queueClient:  queueClient,
 		logger:       logger,
 	}
+}
+
+// SetPackageRepository memasang package repository opsional untuk memperkaya event jaringan.
+// Constructor lama dipertahankan agar test dan modul lain tetap kompatibel.
+func (uc *CustomerUsecase) SetPackageRepository(packageRepo domain.PackageRepository) {
+	uc.packageRepo = packageRepo
 }
 
 // Create membuat pelanggan baru.
@@ -237,13 +244,27 @@ func (uc *CustomerUsecase) SoftDelete(ctx context.Context, id string, confirmati
 
 	// Publish customer.terminated event
 	uc.publishEvent(customer.TenantID, "customer.terminated", domain.CustomerTerminatedPayload{
-		CustomerID:    customer.ID,
-		Name:          customer.Name,
-		RouterID:      customer.RouterID,
-		PPPoEUsername: customer.PPPoEUsername,
+		CustomerID:       customer.ID,
+		TenantID:         customer.TenantID,
+		Name:             customer.Name,
+		RouterID:         customer.RouterID,
+		PPPoEUsername:    customer.PPPoEUsername,
+		ConnectionMethod: string(customer.ConnectionMethod),
 	})
 
 	return nil
+}
+
+func (uc *CustomerUsecase) packageNetworkFields(ctx context.Context, packageID string) (profileName string, downloadMbps int, uploadMbps int, addressPool string) {
+	if uc.packageRepo == nil || packageID == "" {
+		return "", 0, 0, ""
+	}
+	pkg, err := uc.packageRepo.GetByID(ctx, packageID)
+	if err != nil {
+		uc.logger.Warn().Err(err).Str("package_id", packageID).Msg("gagal mengambil paket untuk payload network")
+		return "", 0, 0, ""
+	}
+	return pkg.MikrotikProfileName, pkg.DownloadMbps, pkg.UploadMbps, pkg.AddressPool
 }
 
 // List mengambil daftar pelanggan dengan paginasi, filter, dan sorting.
@@ -307,8 +328,22 @@ func (uc *CustomerUsecase) publishEvent(tenantID, eventType string, payload inte
 		Payload:   payloadJSON,
 	}
 
-	if err := queue.EnqueueTask(uc.queueClient, envelope); err != nil {
+	if err := queue.EnqueueTaskWithOptions(uc.queueClient, envelope, customerEventQueueOptions(eventType)...); err != nil {
 		uc.logger.Error().Err(err).Str("event_type", eventType).Msg("gagal publish event")
+	}
+}
+
+func customerEventQueueOptions(eventType string) []asynq.Option {
+	switch eventType {
+	case "customer.activated",
+		domain.TaskCustomerIsolir,
+		domain.TaskCustomerUnIsolir,
+		domain.TaskCustomerSuspend,
+		"customer.terminated",
+		"package.changed":
+		return []asynq.Option{asynq.Queue("critical")}
+	default:
+		return nil
 	}
 }
 

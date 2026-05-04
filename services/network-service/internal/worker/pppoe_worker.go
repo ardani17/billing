@@ -20,12 +20,14 @@ import (
 
 // Event type constants untuk PPPoE events dari Billing API.
 const (
-	EventCustomerActivated = "customer.activated"
-	EventCustomerIsolir    = "customer.isolir"
-	EventCustomerUnIsolir  = "customer.un_isolir"
-	EventCustomerSuspend   = "customer.suspend"
+	EventCustomerActivated  = "customer.activated"
+	EventCustomerIsolir     = "customer.isolir"
+	EventCustomerIsolated   = "customer.isolated"
+	EventCustomerUnIsolir   = "customer.un_isolir"
+	EventCustomerUnblocked  = "customer.unblocked"
+	EventCustomerSuspend    = "customer.suspend"
 	EventCustomerTerminated = "customer.terminated"
-	EventPackageChanged    = "package.changed"
+	EventPackageChanged     = "package.changed"
 )
 
 // maxRetries adalah jumlah maksimal retry sebelum ditandai failed_permanent.
@@ -66,7 +68,9 @@ func NewPPPoEEventWorker(
 func (w *PPPoEEventWorker) RegisterHandlers(mux *asynq.ServeMux) {
 	mux.HandleFunc(EventCustomerActivated, w.handleCustomerActivated)
 	mux.HandleFunc(EventCustomerIsolir, w.handleIsolir)
+	mux.HandleFunc(EventCustomerIsolated, w.handleIsolir)
 	mux.HandleFunc(EventCustomerUnIsolir, w.handleUnIsolir)
+	mux.HandleFunc(EventCustomerUnblocked, w.handleUnIsolir)
 	mux.HandleFunc(EventCustomerSuspend, w.handleSuspend)
 	mux.HandleFunc(EventCustomerTerminated, w.handleSuspend)
 	mux.HandleFunc(EventPackageChanged, w.handlePackageChanged)

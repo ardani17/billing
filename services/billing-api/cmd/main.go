@@ -172,6 +172,7 @@ func main() {
 	})
 
 	customerUsecase := usecase.NewCustomerUsecase(customerRepo, auditLogRepo, queueClient, appLogger)
+	customerUsecase.SetPackageRepository(packageRepo)
 	areaUsecase := usecase.NewAreaUsecase(areaRepo, auditLogRepo, appLogger)
 	packageUsecase := usecase.NewPackageUsecase(packageRepo, auditLogRepo, queueClient, appLogger)
 

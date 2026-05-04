@@ -45,12 +45,15 @@ func (uc *CustomerUsecase) Isolir(ctx context.Context, id string, actor ActorInf
 	}
 	uc.writeAuditLog(ctx, customer.TenantID, id, "customer.status_changed", actor, changes)
 
-	// Publish customer.isolated event
-	uc.publishEvent(customer.TenantID, "customer.isolated", domain.CustomerIsolatedPayload{
-		CustomerID:    customer.ID,
-		Name:          customer.Name,
-		RouterID:      customer.RouterID,
-		PPPoEUsername: customer.PPPoEUsername,
+	// Publish customer.isolir event for network-service.
+	uc.publishEvent(customer.TenantID, domain.TaskCustomerIsolir, domain.CustomerIsolirPayload{
+		CustomerID:       customer.ID,
+		TenantID:         customer.TenantID,
+		CustomerName:     customer.Name,
+		RouterID:         customer.RouterID,
+		PPPoEUsername:    customer.PPPoEUsername,
+		ConnectionMethod: string(customer.ConnectionMethod),
+		Reason:           "admin_manual",
 	})
 
 	return updated, nil
@@ -95,21 +98,30 @@ func (uc *CustomerUsecase) Activate(ctx context.Context, id string, actor ActorI
 
 	// Publish event: unblocked if from isolir, activated otherwise
 	if previousStatus == domain.CustomerStatusIsolir {
-		uc.publishEvent(customer.TenantID, "customer.unblocked", domain.CustomerUnblockedPayload{
-			CustomerID:    customer.ID,
-			Name:          customer.Name,
-			RouterID:      customer.RouterID,
-			PPPoEUsername: customer.PPPoEUsername,
+		uc.publishEvent(customer.TenantID, domain.TaskCustomerUnIsolir, domain.CustomerUnIsolirPayload{
+			CustomerID:       customer.ID,
+			TenantID:         customer.TenantID,
+			CustomerName:     customer.Name,
+			RouterID:         customer.RouterID,
+			PPPoEUsername:    customer.PPPoEUsername,
+			ConnectionMethod: string(customer.ConnectionMethod),
+			Trigger:          "admin_manual",
 		})
 	} else {
+		profileName, downloadMbps, uploadMbps, addressPool := uc.packageNetworkFields(ctx, customer.PackageID)
 		uc.publishEvent(customer.TenantID, "customer.activated", domain.CustomerActivatedPayload{
-			CustomerID:       customer.ID,
-			Name:             customer.Name,
-			PackageID:        customer.PackageID,
-			ConnectionMethod: string(customer.ConnectionMethod),
-			PPPoEUsername:    customer.PPPoEUsername,
-			PPPoEPassword:    customer.PPPoEPassword,
-			RouterID:         customer.RouterID,
+			CustomerID:          customer.ID,
+			TenantID:            customer.TenantID,
+			Name:                customer.Name,
+			PackageID:           customer.PackageID,
+			ConnectionMethod:    string(customer.ConnectionMethod),
+			PPPoEUsername:       customer.PPPoEUsername,
+			PPPoEPassword:       customer.PPPoEPassword,
+			RouterID:            customer.RouterID,
+			MikrotikProfileName: profileName,
+			DownloadMbps:        downloadMbps,
+			UploadMbps:          uploadMbps,
+			AddressPool:         addressPool,
 		})
 	}
 
@@ -152,13 +164,20 @@ func (uc *CustomerUsecase) ChangePackage(ctx context.Context, id string, package
 	}
 	uc.writeAuditLog(ctx, customer.TenantID, id, "customer.package_changed", actor, changes)
 
+	profileName, downloadMbps, uploadMbps, addressPool := uc.packageNetworkFields(ctx, packageID)
+
 	// Publish package.changed event
 	uc.publishEvent(customer.TenantID, "package.changed", domain.PackageChangedPayload{
-		CustomerID:       customer.ID,
-		OldPackageID:     oldPackageID,
-		NewPackageID:     packageID,
-		ConnectionMethod: string(customer.ConnectionMethod),
-		RouterID:         customer.RouterID,
+		CustomerID:          customer.ID,
+		TenantID:            customer.TenantID,
+		OldPackageID:        oldPackageID,
+		NewPackageID:        packageID,
+		ConnectionMethod:    string(customer.ConnectionMethod),
+		RouterID:            customer.RouterID,
+		MikrotikProfileName: profileName,
+		DownloadMbps:        downloadMbps,
+		UploadMbps:          uploadMbps,
+		AddressPool:         addressPool,
 	})
 
 	return updated, nil

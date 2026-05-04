@@ -5,6 +5,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -41,7 +42,34 @@ func (m *pppoeManager) HandlePackageChanged(ctx context.Context, payload domain.
 
 	log.Info().Msg("memulai sequence package change PPPoE user")
 
-	// Ambil router dan koneksi dari pool dengan PriorityMedium
+	// Ambil PPPoE user dari DB sebelum membuka koneksi router.
+	pppoeUser, userErr := m.userRepo.GetByCustomerID(ctx, payload.CustomerID)
+	if userErr != nil {
+		if errors.Is(userErr, domain.ErrPPPoEUserNotFound) {
+			log.Warn().Msg("skip package change: PPPoE user belum ada di DB")
+			return nil
+		}
+		log.Error().Err(userErr).Msg("gagal ambil PPPoE user dari DB")
+		m.publishPackageChangeResult(ctx, correlationID, payload, startTime, userErr)
+		return fmt.Errorf("gagal ambil PPPoE user: %w", userErr)
+	}
+
+	// Resolve new profile dari profileRepo atau fallback metadata dari billing-api.
+	newProfile, err := m.resolveProfileForPackage(ctx, domain.PackageProfilePayload{
+		TenantID:            payload.TenantID,
+		PackageID:           payload.NewPackageID,
+		MikrotikProfileName: payload.MikrotikProfileName,
+		DownloadMbps:        payload.DownloadMbps,
+		UploadMbps:          payload.UploadMbps,
+		AddressPool:         payload.AddressPool,
+	})
+	if err != nil {
+		log.Error().Err(err).Str("package_id", payload.NewPackageID).
+			Msg("gagal resolve profile dari new_package_id")
+		return fmt.Errorf("gagal resolve profile untuk package %s: %w", payload.NewPackageID, err)
+	}
+
+	// Ambil router dan koneksi dari pool dengan PriorityMedium setelah guard DB lolos.
 	router, pool, adapter, err := m.getRouterAndPool(ctx, payload.RouterID, domain.PriorityMedium)
 	if err != nil {
 		log.Error().Err(err).Msg("gagal mendapatkan router dan koneksi pool")
@@ -51,28 +79,12 @@ func (m *pppoeManager) HandlePackageChanged(ctx context.Context, payload domain.
 
 	cmdBuilder := m.buildCommandBuilder(router)
 
-	// Resolve new profile dari profileRepo berdasarkan new_package_id
-	newProfile, err := m.profileRepo.GetByPackageID(ctx, payload.NewPackageID)
-	if err != nil {
-		log.Error().Err(err).Str("package_id", payload.NewPackageID).
-			Msg("gagal resolve profile dari new_package_id")
-		return fmt.Errorf("gagal resolve profile untuk package %s: %w", payload.NewPackageID, err)
-	}
-
 	// Cek apakah profile sudah ada di router, jika belum buat dulu
 	err = m.ensureProfileOnRouter(ctx, adapter, cmdBuilder, newProfile, log)
 	if err != nil {
 		log.Error().Err(err).Msg("gagal memastikan profile ada di router")
 		m.publishPackageChangeResult(ctx, correlationID, payload, startTime, err)
 		return fmt.Errorf("gagal memastikan profile di router: %w", err)
-	}
-
-	// Ambil PPPoE user dari DB untuk mendapatkan username dan use_simple_queue
-	pppoeUser, userErr := m.userRepo.GetByCustomerID(ctx, payload.CustomerID)
-	if userErr != nil {
-		log.Error().Err(userErr).Msg("gagal ambil PPPoE user dari DB")
-		m.publishPackageChangeResult(ctx, correlationID, payload, startTime, userErr)
-		return fmt.Errorf("gagal ambil PPPoE user: %w", userErr)
 	}
 
 	// Update PPPoE secret profile → /ppp/secret/set profile=new_profile_name
@@ -141,20 +153,18 @@ func (m *pppoeManager) ensureProfileOnRouter(
 	profile *domain.PPPoEProfile,
 	log zerolog.Logger,
 ) error {
-	// Cek apakah profile sudah ada di router dengan print secrets
-	printCmd, printArgs := cmdBuilder.PrintSecrets()
-	secrets, err := adapter.Execute(ctx, printCmd, printArgs)
+	profiles, err := adapter.Execute(ctx, "/ppp/profile/print", map[string]string{"?name": profile.ProfileName})
 	if err != nil {
-		return fmt.Errorf("gagal print secrets untuk cek profile: %w", err)
+		return fmt.Errorf("gagal print profile untuk cek profile: %w", err)
 	}
 
-	// Cek apakah ada secret yang sudah menggunakan profile ini
-	// Jika ada, berarti profile sudah ada di router
-	for _, secret := range secrets {
-		if secret["profile"] == profile.ProfileName {
-			log.Debug().Str("profile", profile.ProfileName).Msg("profile sudah ada di router")
-			return nil
-		}
+	if len(profiles) > 0 {
+		log.Debug().Str("profile", profile.ProfileName).Msg("profile sudah ada di router")
+		return nil
+	}
+
+	if profile.DownloadLimit == "" || profile.UploadLimit == "" {
+		return fmt.Errorf("profile %s tidak ada di router dan limit paket tidak tersedia untuk membuat profile", profile.ProfileName)
 	}
 
 	// Profile belum ada, buat baru

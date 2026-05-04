@@ -74,14 +74,18 @@ type SyncStatusSummary struct {
 // CustomerActivatedPayload adalah payload event customer.activated.
 // Diterima saat pelanggan baru diaktivasi dan perlu dibuatkan PPPoE user di router.
 type CustomerActivatedPayload struct {
-	CustomerID       string `json:"customer_id"`
-	TenantID         string `json:"tenant_id"`
-	Name             string `json:"name"`
-	PackageID        string `json:"package_id"`
-	ConnectionMethod string `json:"connection_method"`
-	PPPoEUsername    string `json:"pppoe_username"`
-	PPPoEPassword    string `json:"pppoe_password"`
-	RouterID         string `json:"router_id"`
+	CustomerID          string `json:"customer_id"`
+	TenantID            string `json:"tenant_id"`
+	Name                string `json:"name"`
+	PackageID           string `json:"package_id"`
+	ConnectionMethod    string `json:"connection_method"`
+	PPPoEUsername       string `json:"pppoe_username"`
+	PPPoEPassword       string `json:"pppoe_password"`
+	RouterID            string `json:"router_id"`
+	MikrotikProfileName string `json:"mikrotik_profile_name,omitempty"`
+	DownloadMbps        int    `json:"download_mbps,omitempty"`
+	UploadMbps          int    `json:"upload_mbps,omitempty"`
+	AddressPool         string `json:"address_pool,omitempty"`
 }
 
 // CustomerIsolirPayload adalah payload event customer.isolir.
@@ -127,12 +131,16 @@ type CustomerTerminatedPayload = CustomerSuspendPayload
 // PackageChangedPayload adalah payload event package.changed.
 // Diterima saat pelanggan upgrade/downgrade paket dan perlu update profile di router.
 type PackageChangedPayload struct {
-	CustomerID       string `json:"customer_id"`
-	TenantID         string `json:"tenant_id"`
-	OldPackageID     string `json:"old_package_id"`
-	NewPackageID     string `json:"new_package_id"`
-	ConnectionMethod string `json:"connection_method"`
-	RouterID         string `json:"router_id"`
+	CustomerID          string `json:"customer_id"`
+	TenantID            string `json:"tenant_id"`
+	OldPackageID        string `json:"old_package_id"`
+	NewPackageID        string `json:"new_package_id"`
+	ConnectionMethod    string `json:"connection_method"`
+	RouterID            string `json:"router_id"`
+	MikrotikProfileName string `json:"mikrotik_profile_name,omitempty"`
+	DownloadMbps        int    `json:"download_mbps,omitempty"`
+	UploadMbps          int    `json:"upload_mbps,omitempty"`
+	AddressPool         string `json:"address_pool,omitempty"`
 }
 
 // =============================================================================

@@ -5,6 +5,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -39,18 +40,15 @@ func (m *pppoeManager) HandleCustomerActivated(ctx context.Context, payload doma
 
 	log.Info().Msg("memulai pembuatan PPPoE user di router")
 
-	// Ambil router dan koneksi dari pool
-	router, pool, adapter, err := m.getRouterAndPool(ctx, payload.RouterID, domain.PriorityMedium)
-	if err != nil {
-		log.Error().Err(err).Msg("gagal mendapatkan router dan koneksi pool")
-		return err
+	existingUser, existingErr := m.userRepo.GetByCustomerID(ctx, payload.CustomerID)
+	if existingErr == nil && existingUser != nil && existingUser.SyncStatus == domain.SyncStatusSynced {
+		log.Info().Str("user_id", existingUser.ID).Msg("skip customer.activated: PPPoE user sudah synced")
+		return nil
 	}
-	defer pool.Put(adapter)
+	if existingErr != nil && !errors.Is(existingErr, domain.ErrPPPoEUserNotFound) {
+		return fmt.Errorf("gagal cek PPPoE user existing: %w", existingErr)
+	}
 
-	// Build command builder sesuai versi RouterOS
-	cmdBuilder := m.buildCommandBuilder(router)
-
-	// Enkripsi password untuk disimpan di database
 	encryptedPassword, err := m.crypto.Encrypt(payload.PPPoEPassword)
 	if err != nil {
 		log.Error().Err(err).Msg("gagal enkripsi password PPPoE")
@@ -60,11 +58,31 @@ func (m *pppoeManager) HandleCustomerActivated(ctx context.Context, payload doma
 	// Build comment untuk tracking ownership di router
 	comment := domain.BuildComment(payload.CustomerID, payload.TenantID)
 
-	// Resolve profile dari database berdasarkan package_id
-	profile, err := m.profileRepo.GetByPackageID(ctx, payload.PackageID)
+	profile, err := m.resolveProfileForPackage(ctx, domain.PackageProfilePayload{
+		TenantID:            payload.TenantID,
+		PackageID:           payload.PackageID,
+		MikrotikProfileName: payload.MikrotikProfileName,
+		DownloadMbps:        payload.DownloadMbps,
+		UploadMbps:          payload.UploadMbps,
+		AddressPool:         payload.AddressPool,
+	})
 	if err != nil {
 		log.Error().Err(err).Str("package_id", payload.PackageID).Msg("gagal resolve profile dari package_id")
 		return fmt.Errorf("gagal resolve profile untuk package %s: %w", payload.PackageID, err)
+	}
+
+	// Ambil router dan koneksi dari pool setelah guard idempotency lolos.
+	router, pool, adapter, err := m.getRouterAndPool(ctx, payload.RouterID, domain.PriorityMedium)
+	if err != nil {
+		log.Error().Err(err).Msg("gagal mendapatkan router dan koneksi pool")
+		return err
+	}
+	defer pool.Put(adapter)
+
+	cmdBuilder := m.buildCommandBuilder(router)
+	if err := m.ensureProfileOnRouter(ctx, adapter, cmdBuilder, profile, log); err != nil {
+		log.Error().Err(err).Msg("gagal memastikan PPPoE profile di router")
+		return fmt.Errorf("gagal memastikan PPPoE profile di router: %w", err)
 	}
 
 	// Build parameter PPPoE secret untuk router
@@ -120,7 +138,13 @@ func (m *pppoeManager) HandleCustomerActivated(ctx context.Context, payload doma
 		LastSyncAt:        lastSyncAt,
 	}
 
-	_, saveErr := m.userRepo.Create(ctx, pppoeUser)
+	var saveErr error
+	if existingUser != nil {
+		pppoeUser.ID = existingUser.ID
+		_, saveErr = m.userRepo.Update(ctx, pppoeUser)
+	} else {
+		_, saveErr = m.userRepo.Create(ctx, pppoeUser)
+	}
 	if saveErr != nil {
 		log.Error().Err(saveErr).Msg("gagal menyimpan PPPoE user ke database")
 		// Tetap publish event meskipun save gagal

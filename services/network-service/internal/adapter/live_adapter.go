@@ -85,6 +85,10 @@ func (a *LiveAdapter) Execute(ctx context.Context, command string, params map[st
 	// Sebagian command builder lama sudah menyimpan key dengan prefix "=".
 	args := []string{command}
 	for k, v := range params {
+		if strings.HasPrefix(k, "?") {
+			args = append(args, k+"="+v)
+			continue
+		}
 		if strings.HasPrefix(k, "=") {
 			args = append(args, k+"="+v)
 			continue

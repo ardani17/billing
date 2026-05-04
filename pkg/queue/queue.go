@@ -94,6 +94,12 @@ func NewServer(cfg ClientConfig, concurrency int, queues map[string]int) (*asynq
 // Jika CorrelationID kosong, akan di-generate UUID v4 baru.
 // Jika Timestamp kosong (zero value), akan diisi dengan waktu saat ini.
 func EnqueueTask(client *asynq.Client, envelope TaskEnvelope) error {
+	return EnqueueTaskWithOptions(client, envelope)
+}
+
+// EnqueueTaskWithOptions membuat asynq.Task dari TaskEnvelope dan mengirimnya
+// dengan opsi asynq tambahan, misalnya asynq.Queue("critical").
+func EnqueueTaskWithOptions(client *asynq.Client, envelope TaskEnvelope, opts ...asynq.Option) error {
 	if envelope.EventType == "" {
 		return ErrEmptyEventType
 	}
@@ -121,7 +127,7 @@ func EnqueueTask(client *asynq.Client, envelope TaskEnvelope) error {
 	task := asynq.NewTask(envelope.EventType, payload)
 
 	// Kirim task ke queue
-	_, err = client.Enqueue(task)
+	_, err = client.Enqueue(task, opts...)
 	if err != nil {
 		return fmt.Errorf("gagal mengirim task ke queue: %w", err)
 	}
