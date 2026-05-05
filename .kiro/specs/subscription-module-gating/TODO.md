@@ -14,9 +14,9 @@
 
 ## Next
 
-- [ ] Implement tenant module entitlement backend.
-- [ ] Add backend route/event guards.
-- [ ] Add frontend menu/widget gating.
+- [x] Implement tenant module entitlement backend.
+- [x] Add backend route/event guards.
+- [x] Add frontend menu/widget gating.
 - [ ] Add Super Admin entitlement UI.
 - [ ] Add Tenant Admin subscription view.
 - [ ] Run Billing Core smoke with add-ons disabled.

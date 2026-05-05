@@ -121,6 +121,7 @@ func main() {
 	reportJobRepo := repository.NewReportJobRepo(queries, dbPool)
 	customReportTemplateRepo := repository.NewCustomReportTemplateRepo(queries, dbPool)
 	reportAggregationRepo := repository.NewReportAggregationRepo(queries, dbPool)
+	tenantModuleRepo := repository.NewTenantModuleRepo(dbPool)
 
 	// --- Instantiate gateway-related repositories ---
 	gatewayConfigRepo := repository.NewGatewayConfigRepo(queries, dbPool)
@@ -274,6 +275,7 @@ func main() {
 		reportAggregationRepo, networkClient, kpiTargetRepo, redisClient, appLogger,
 	)
 	kpiTargetUsecase := usecase.NewKPITargetUsecase(kpiTargetRepo, appLogger)
+	tenantModuleUsecase := usecase.NewTenantModuleUsecase(tenantModuleRepo)
 
 	reportManager := usecase.NewReportManager(
 		reportAggregationRepo, expenseRepo, kpiTargetRepo,
@@ -330,6 +332,7 @@ func main() {
 	comparisonHandler := handler.NewComparisonHandler(comparisonEngine, appLogger)
 	customReportHandler := handler.NewCustomReportHandler(customReportBuilder, appLogger)
 	dashboardHandler := handler.NewDashboardHandler(reportManager, appLogger)
+	tenantModuleHandler := handler.NewTenantModuleHandler(tenantModuleUsecase, appLogger)
 
 	// Buat Fiber app dengan konfigurasi dasar
 	app := fiber.New(fiber.Config{
@@ -377,6 +380,7 @@ func main() {
 		ComparisonHandler:        comparisonHandler,
 		CustomReportHandler:      customReportHandler,
 		DashboardHandler:         dashboardHandler,
+		TenantModuleHandler:      tenantModuleHandler,
 		RateLimiter:              rateLimiter,
 		ResellerRateLimiter:      resellerRateLimiter,
 		JWTSecret:                cfg.JWTSecret,

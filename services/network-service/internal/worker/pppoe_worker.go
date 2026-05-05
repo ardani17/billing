@@ -9,6 +9,7 @@
 package worker
 
 import (
+	"context"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -50,8 +51,11 @@ type PPPoEEventWorker struct {
 	manager        usecase.PPPoEManager
 	hotspotManager usecase.HotspotManager
 	routerRepo     domain.RouterRepository
-	eventPub       domain.PPPoEEventPublisher
-	logger         zerolog.Logger
+	moduleChecker  interface {
+		IsEnabled(ctx context.Context, tenantID, moduleCode string) (bool, error)
+	}
+	eventPub domain.PPPoEEventPublisher
+	logger   zerolog.Logger
 }
 
 // NewPPPoEEventWorker membuat instance baru PPPoEEventWorker.
@@ -71,6 +75,12 @@ func NewPPPoEEventWorker(
 func (w *PPPoEEventWorker) SetHotspotDependencies(manager usecase.HotspotManager, routerRepo domain.RouterRepository) {
 	w.hotspotManager = manager
 	w.routerRepo = routerRepo
+}
+
+func (w *PPPoEEventWorker) SetModuleChecker(checker interface {
+	IsEnabled(ctx context.Context, tenantID, moduleCode string) (bool, error)
+}) {
+	w.moduleChecker = checker
 }
 
 // RegisterHandlers mendaftarkan semua handler task ke asynq ServeMux.

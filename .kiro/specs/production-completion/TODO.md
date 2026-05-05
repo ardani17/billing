@@ -15,7 +15,7 @@
 
 ## Next
 
-- [ ] Subscription Module Gating implementation.
+- [x] Subscription Module Gating implementation foundation.
 - [ ] Tenant Settings Persistence.
 - [ ] Notification Production.
 - [ ] Tenant Admin End-to-End smoke.

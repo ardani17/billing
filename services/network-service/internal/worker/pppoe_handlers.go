@@ -24,6 +24,9 @@ func (w *PPPoEEventWorker) handleCustomerActivated(ctx context.Context, task *as
 	}
 	payload.TenantID = envelope.TenantID
 	ctx = tenant.SetForTest(ctx, envelope.TenantID)
+	if ok, err := w.canProcessMikroTik(ctx, envelope.TenantID, task.Type()); err != nil || !ok {
+		return err
+	}
 
 	// Skip jika bukan PPPoE
 	if payload.ConnectionMethod != "pppoe" {
@@ -64,6 +67,9 @@ func (w *PPPoEEventWorker) handleVoucherActivated(ctx context.Context, task *asy
 	}
 	payload.TenantID = envelope.TenantID
 	ctx = tenant.SetForTest(ctx, envelope.TenantID)
+	if ok, err := w.canProcessMikroTik(ctx, envelope.TenantID, task.Type()); err != nil || !ok {
+		return err
+	}
 
 	if payload.Code == "" {
 		return fmt.Errorf("worker: payload voucher.activated tidak lengkap")
@@ -146,6 +152,9 @@ func (w *PPPoEEventWorker) handleIsolir(ctx context.Context, task *asynq.Task) e
 	}
 	payload.TenantID = envelope.TenantID
 	ctx = tenant.SetForTest(ctx, envelope.TenantID)
+	if ok, err := w.canProcessMikroTik(ctx, envelope.TenantID, task.Type()); err != nil || !ok {
+		return err
+	}
 
 	if payload.ConnectionMethod != "pppoe" {
 		w.logger.Debug().
@@ -183,6 +192,9 @@ func (w *PPPoEEventWorker) handleUnIsolir(ctx context.Context, task *asynq.Task)
 	}
 	payload.TenantID = envelope.TenantID
 	ctx = tenant.SetForTest(ctx, envelope.TenantID)
+	if ok, err := w.canProcessMikroTik(ctx, envelope.TenantID, task.Type()); err != nil || !ok {
+		return err
+	}
 
 	if payload.ConnectionMethod != "pppoe" {
 		w.logger.Debug().
@@ -221,6 +233,9 @@ func (w *PPPoEEventWorker) handleSuspend(ctx context.Context, task *asynq.Task) 
 	}
 	payload.TenantID = envelope.TenantID
 	ctx = tenant.SetForTest(ctx, envelope.TenantID)
+	if ok, err := w.canProcessMikroTik(ctx, envelope.TenantID, task.Type()); err != nil || !ok {
+		return err
+	}
 
 	if payload.ConnectionMethod != "pppoe" {
 		w.logger.Debug().
@@ -265,6 +280,9 @@ func (w *PPPoEEventWorker) handlePackageChanged(ctx context.Context, task *asynq
 	}
 	payload.TenantID = envelope.TenantID
 	ctx = tenant.SetForTest(ctx, envelope.TenantID)
+	if ok, err := w.canProcessMikroTik(ctx, envelope.TenantID, task.Type()); err != nil || !ok {
+		return err
+	}
 
 	if payload.ConnectionMethod != "pppoe" {
 		w.logger.Debug().

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Bell,
@@ -33,7 +33,29 @@ import {
   X,
 } from "@phosphor-icons/react";
 
-const navGroups = [
+type AddonModule = "mikrotik" | "fiber_network";
+
+type ModuleCapabilities = {
+  billing_core: boolean;
+  mikrotik: boolean;
+  fiber_network: boolean;
+};
+
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof SquaresFour;
+  badge?: string;
+  module?: AddonModule;
+};
+
+const defaultModuleCapabilities: ModuleCapabilities = {
+  billing_core: true,
+  mikrotik: false,
+  fiber_network: false,
+};
+
+const navGroups: Array<{ label: string; items: NavItem[] }> = [
   {
     label: "Utama",
     items: [
@@ -54,9 +76,9 @@ const navGroups = [
   {
     label: "Network",
     items: [
-      { href: "/mikrotik", label: "MikroTik", icon: WifiHigh, badge: "1" },
-      { href: "/olt", label: "OLT", icon: Broadcast },
-      { href: "/network-map", label: "Peta Jaringan", icon: MapTrifold },
+      { href: "/mikrotik", label: "MikroTik", icon: WifiHigh, badge: "1", module: "mikrotik" },
+      { href: "/olt", label: "OLT", icon: Broadcast, module: "fiber_network" },
+      { href: "/network-map", label: "Peta Jaringan", icon: MapTrifold, module: "fiber_network" },
     ],
   },
   {
@@ -76,11 +98,12 @@ const navGroups = [
   },
 ];
 
-const bottomNav = [
+const bottomNav: NavItem[] = [
   { href: "/dashboard", label: "Home", icon: House },
   { href: "/customers", label: "Pelanggan", icon: Users },
   { href: "/invoices", label: "Billing", icon: Receipt },
-  { href: "/mikrotik", label: "MikroTik", icon: WifiHigh },
+  { href: "/mikrotik", label: "MikroTik", icon: WifiHigh, module: "mikrotik" },
+  { href: "/reports", label: "Laporan", icon: ChartLineUp },
   { href: "/settings", label: "More", icon: List },
 ];
 
@@ -91,19 +114,71 @@ function getMikrotikDetailId(pathname: string) {
   return id;
 }
 
+function canShowItem(item: NavItem, modules: ModuleCapabilities) {
+  if (!item.module) return true;
+  return modules[item.module];
+}
+
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [modules, setModules] = useState<ModuleCapabilities>(defaultModuleCapabilities);
   const mikrotikDetailId = getMikrotikDetailId(pathname);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadModules() {
+      try {
+        const response = await fetch("/api/billing/tenant/modules", { cache: "no-store" });
+        const payload = await response.json();
+        const nextModules = payload?.data?.modules;
+        if (mounted && nextModules) {
+          setModules({
+            billing_core: nextModules.billing_core !== false,
+            mikrotik: nextModules.mikrotik === true,
+            fiber_network: nextModules.fiber_network === true,
+          });
+        }
+      } catch {
+        if (mounted) {
+          setModules(defaultModuleCapabilities);
+        }
+      }
+    }
+
+    loadModules();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const visibleNavGroups = useMemo(
+    () =>
+      navGroups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) => canShowItem(item, modules)),
+        }))
+        .filter((group) => group.items.length > 0),
+    [modules],
+  );
+
+  const visibleBottomNav = useMemo(() => {
+    const filtered = bottomNav.filter((item) => canShowItem(item, modules));
+    return modules.mikrotik
+      ? filtered.filter((item) => item.href !== "/reports")
+      : filtered.filter((item) => item.href !== "/mikrotik");
+  }, [modules]);
+
   const currentLabel = useMemo(() => {
-    for (const group of navGroups) {
+    for (const group of visibleNavGroups) {
       const item = group.items.find((nav) => nav.href !== "#reports-in-progress" && pathname.startsWith(nav.href));
       if (item) return item.label;
     }
     return "Dashboard";
-  }, [pathname]);
+  }, [pathname, visibleNavGroups]);
 
   return (
     <div className="min-h-[100dvh] bg-slate-50 text-slate-950">
@@ -134,7 +209,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {navGroups.map((group) => (
+          {visibleNavGroups.map((group) => (
             <div key={group.label} className="mb-5">
               {!collapsed && (
                 <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -267,8 +342,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="mx-auto max-w-[1400px]">{children}</div>
         </main>
 
-        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-slate-200 bg-white lg:hidden">
-          {bottomNav.map((item) => {
+        <nav
+          className="fixed inset-x-0 bottom-0 z-30 grid border-t border-slate-200 bg-white lg:hidden"
+          style={{ gridTemplateColumns: `repeat(${visibleBottomNav.length}, minmax(0, 1fr))` }}
+        >
+          {visibleBottomNav.map((item) => {
             const Icon = item.icon;
             const active = pathname.startsWith(item.href);
             return (

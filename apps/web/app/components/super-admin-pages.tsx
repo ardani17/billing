@@ -470,9 +470,9 @@ export function SuperAdminAuditPage() {
 export function SuperAdminSettingsPage() {
   const plans = useMemo(
     () => [
-      ["Starter", "Rp299.000", "Billing"],
-      ["Growth", "Rp799.000", "Billing, MikroTik, OLT"],
-      ["Scale", "Rp1.499.000", "Semua modul operasional"],
+      ["Billing Core", "Rp299.000", "Billing, pelanggan, invoice, payment, reseller, voucher, notifikasi, laporan"],
+      ["Billing Core + MikroTik", "Rp799.000", "Billing Core dan add-on MikroTik"],
+      ["Billing Core + MikroTik + Fiber", "Rp1.499.000", "Billing Core, MikroTik, OLT + Peta Jaringan"],
     ],
     [],
   );

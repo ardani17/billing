@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 	"github.com/ispboss/ispboss/services/network-service/internal/middleware"
 	"github.com/rs/zerolog"
 )
@@ -98,6 +99,9 @@ type RouterConfig struct {
 	// TrashHandler adalah handler untuk manajemen trash (soft-delete)
 	TrashHandler *TrashHandler
 
+	// ModuleChecker memeriksa entitlement modul add-on per tenant
+	ModuleChecker middleware.ModuleChecker
+
 	// JWTSecret adalah secret key untuk validasi JWT token
 	JWTSecret string
 
@@ -121,8 +125,12 @@ func RegisterRoutes(cfg RouterConfig) {
 	api.Use(middleware.Auth(cfg.JWTSecret))
 	api.Use(middleware.TenantContext(cfg.JWTSecret))
 
+	mikrotikGuard := middleware.RequireModule(domain.ModuleMikroTik, cfg.ModuleChecker, cfg.Logger)
+	fiberNetworkGuard := middleware.RequireModule(domain.ModuleFiberNetwork, cfg.ModuleChecker, cfg.Logger)
+
 	// Route CRUD router MikroTik
-	routers := api.Group("/mikrotik/routers")
+	mikrotik := api.Group("/mikrotik", mikrotikGuard)
+	routers := mikrotik.Group("/routers")
 	routers.Post("/", cfg.RouterHandler.Create)
 	routers.Get("/", cfg.RouterHandler.List)
 	routers.Get("/:id", cfg.RouterHandler.GetByID)
@@ -202,17 +210,17 @@ func RegisterRoutes(cfg RouterConfig) {
 	routers.Get("/:id/firmware", cfg.BackupHandler.Firmware)
 
 	// Route bulk action MikroTik. Semua action berjalan manual/on-demand.
-	bulkJobs := api.Group("/mikrotik/bulk-jobs")
+	bulkJobs := mikrotik.Group("/bulk-jobs")
 	bulkJobs.Get("/", cfg.BulkHandler.List)
 	bulkJobs.Post("/", cfg.BulkHandler.Create)
 	bulkJobs.Get("/:id", cfg.BulkHandler.Get)
 
 	// Route status summary router MikroTik
-	status := api.Group("/mikrotik/status")
+	status := mikrotik.Group("/status")
 	status.Get("/summary", cfg.StatusHandler.GetSummary)
 
 	// Route manajemen VPN tunnel
-	vpn := api.Group("/mikrotik/vpn")
+	vpn := mikrotik.Group("/vpn")
 	vpn.Get("/tunnels", cfg.VPNHandler.ListTunnels)
 	vpn.Post("/tunnels", cfg.VPNHandler.CreateTunnel)
 	vpn.Get("/tunnels/:id", cfg.VPNHandler.GetTunnel)
@@ -226,11 +234,14 @@ func RegisterRoutes(cfg RouterConfig) {
 	vpn.Get("/maintenance", cfg.VPNHandler.GetUpcomingMaintenance)
 
 	// Route admin VPN (maintenance scheduling)
-	admin := api.Group("/admin/vpn")
+	admin := api.Group("/admin/vpn", mikrotikGuard)
 	admin.Post("/maintenance", cfg.VPNHandler.ScheduleMaintenance)
 
+	fiberNetwork := api.Group("", fiberNetworkGuard)
+
 	// Route CRUD dan monitoring OLT device
-	oltDevices := api.Group("/olt/devices")
+	olt := fiberNetwork.Group("/olt")
+	oltDevices := olt.Group("/devices")
 	oltDevices.Post("/", cfg.OLTHandler.CreateOLT)
 	oltDevices.Get("/", cfg.OLTHandler.ListOLTs)
 	oltDevices.Get("/:id", cfg.OLTHandler.GetOLT)
@@ -246,7 +257,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	oltDevices.Get("/:id/capacity", cfg.OLTHandler.GetCapacity)
 
 	// Route CRUD ODP/splitter
-	odp := api.Group("/olt/odp")
+	odp := olt.Group("/odp")
 	odp.Post("/", cfg.ODPHandler.CreateODP)
 	odp.Get("/", cfg.ODPHandler.ListODPs)
 	odp.Get("/:id", cfg.ODPHandler.GetODP)
@@ -254,7 +265,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	odp.Delete("/:id", cfg.ODPHandler.DeleteODP)
 
 	// Route provisioning ONT (single, bulk, decommission, reboot, audit, settings)
-	prov := api.Group("/olt/provisioning")
+	prov := olt.Group("/provisioning")
 	prov.Post("/ont", cfg.ProvisioningHandler.ProvisionONT)
 	prov.Get("/onts", cfg.ProvisioningHandler.ListONTs)
 	prov.Get("/onts/:id", cfg.ProvisioningHandler.GetONT)
@@ -280,17 +291,17 @@ func RegisterRoutes(cfg RouterConfig) {
 	oltDevices.Get("/:id/unregistered-onts", cfg.ProvisioningHandler.GetUnregisteredONTs)
 
 	// Route update/delete VLAN by ID
-	vlans := api.Group("/olt/vlans")
+	vlans := olt.Group("/vlans")
 	vlans.Put("/:id", cfg.VLANHandler.UpdateVLAN)
 	vlans.Delete("/:id", cfg.VLANHandler.DeleteVLAN)
 
 	// Route update/delete service profile by ID
-	serviceProfiles := api.Group("/olt/service-profiles")
+	serviceProfiles := olt.Group("/service-profiles")
 	serviceProfiles.Put("/:id", cfg.ServiceProfileHandler.UpdateServiceProfile)
 	serviceProfiles.Delete("/:id", cfg.ServiceProfileHandler.DeleteServiceProfile)
 
 	// Route ringkasan status OLT
-	api.Get("/olt/summary", cfg.OLTHandler.GetSummary)
+	olt.Get("/summary", cfg.OLTHandler.GetSummary)
 
 	// --- Route FTTH Visual Mapping ---
 
@@ -298,7 +309,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	cfg.App.Get("/api/v1/network-map/share/:token", cfg.ShareHandler.GetSharedMap)
 
 	// Grup route network-map yang dilindungi auth + tenant middleware
-	networkMap := api.Group("/network-map")
+	networkMap := fiberNetwork.Group("/network-map")
 
 	// Route CRUD map node (OLT, ODP, ONT)
 	networkMap.Get("/nodes", cfg.MapNodeHandler.ListNodes)

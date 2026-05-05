@@ -33,8 +33,11 @@ var ProvisioningRetryDelays = []time.Duration{
 // ProvisioningEventWorker memproses event provisioning dari service lain via asynq.
 // Saat ini menangani "customer.terminated" untuk auto-decommission ONT.
 type ProvisioningEventWorker struct {
-	manager domain.ProvisioningManager
-	logger  zerolog.Logger
+	manager       domain.ProvisioningManager
+	moduleChecker interface {
+		IsEnabled(ctx context.Context, tenantID, moduleCode string) (bool, error)
+	}
+	logger zerolog.Logger
 }
 
 // NewProvisioningEventWorker membuat instance baru ProvisioningEventWorker.
@@ -46,6 +49,12 @@ func NewProvisioningEventWorker(
 		manager: manager,
 		logger:  logger,
 	}
+}
+
+func (w *ProvisioningEventWorker) SetModuleChecker(checker interface {
+	IsEnabled(ctx context.Context, tenantID, moduleCode string) (bool, error)
+}) {
+	w.moduleChecker = checker
 }
 
 // RegisterHandlers mendaftarkan semua handler task ke asynq ServeMux.
@@ -103,6 +112,18 @@ func (w *ProvisioningEventWorker) handleCustomerTerminated(
 	if tenantID == "" {
 		w.logger.Error().Msg("payload customer.terminated: tenant_id kosong")
 		return fmt.Errorf("worker: payload customer.terminated: tenant_id kosong")
+	}
+
+	if w.moduleChecker != nil {
+		enabled, err := w.moduleChecker.IsEnabled(ctx, tenantID, domain.ModuleFiberNetwork)
+		if err != nil {
+			w.logger.Error().Err(err).Str("tenant_id", tenantID).Msg("gagal memeriksa modul fiber_network")
+			return err
+		}
+		if !enabled {
+			w.logger.Info().Str("tenant_id", tenantID).Msg("skip decommission ONT: modul fiber_network nonaktif")
+			return nil
+		}
 	}
 
 	w.logger.Info().

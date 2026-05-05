@@ -112,6 +112,9 @@ type RouterConfig struct {
 	// DashboardHandler adalah handler untuk dashboard widget
 	DashboardHandler *DashboardHandler
 
+	// TenantModuleHandler adalah handler untuk entitlement modul tenant
+	TenantModuleHandler *TenantModuleHandler
+
 	// RateLimiter adalah rate limiter untuk login endpoint (admin)
 	RateLimiter *middleware.LoginRateLimiter
 
@@ -276,6 +279,9 @@ func RegisterRoutes(cfg RouterConfig) {
 	api := cfg.App.Group("/api/v1")
 	api.Use(middleware.Auth(cfg.JWTSecret))
 	api.Use(middleware.TenantContext(cfg.JWTSecret))
+
+	// --- Tenant module entitlement routes ---
+	api.Get("/tenant/modules", cfg.TenantModuleHandler.Current)
 
 	// --- Customer routes (auth + tenant + RBAC) ---
 	customerHandler := cfg.CustomerHandler

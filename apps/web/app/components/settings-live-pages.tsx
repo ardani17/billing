@@ -15,6 +15,10 @@ import {
 } from "./ui";
 
 type AnyRecord = Record<string, any>;
+type AddonModule = "mikrotik" | "fiber_network";
+type ModuleCapabilities = { billing_core: boolean; mikrotik: boolean; fiber_network: boolean };
+
+const defaultModules: ModuleCapabilities = { billing_core: true, mikrotik: false, fiber_network: false };
 
 const selectClass =
   "h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
@@ -22,7 +26,7 @@ const selectClass =
 const textAreaClass =
   "w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
-const settingsSections = [
+const settingsSections: Array<{ href: string; title: string; body: string; module?: AddonModule }> = [
   { href: "/settings/profile", title: "Profil ISP", body: "Identitas tenant, alamat, kontak, dan legal invoice." },
   { href: "/settings/branding", title: "White Label", body: "Logo, warna, domain, invoice, dan walled garden." },
   { href: "/settings/users", title: "User & Role", body: "Manajemen operator, teknisi, kasir, dan akses tenant." },
@@ -31,9 +35,9 @@ const settingsSections = [
   { href: "/settings/security", title: "Keamanan", body: "Ganti password dan pengaturan akses akun." },
   { href: "/settings/billing", title: "Billing", body: "Aturan jatuh tempo, pajak, denda, isolir, dan billing cycle." },
   { href: "/settings/invoice", title: "Invoice", body: "Format nomor, footer, dan aturan dokumen tagihan." },
-  { href: "/settings/mikrotik", title: "MikroTik", body: "Default koneksi dan profil sinkronisasi router." },
-  { href: "/settings/olt", title: "OLT", body: "Default SNMP/CLI dan provisioning OLT." },
-  { href: "/settings/map", title: "Peta", body: "Label dan preferensi FTTH visual mapping." },
+  { href: "/settings/mikrotik", title: "MikroTik", body: "Default koneksi dan profil sinkronisasi router.", module: "mikrotik" },
+  { href: "/settings/olt", title: "OLT", body: "Default SNMP/CLI dan provisioning OLT.", module: "fiber_network" },
+  { href: "/settings/map", title: "Peta", body: "Label dan preferensi FTTH visual mapping.", module: "fiber_network" },
   { href: "/settings/voucher", title: "Voucher", body: "Format kode dan aturan penjualan voucher." },
   { href: "/settings/localization", title: "Lokalisasi", body: "Timezone, mata uang, dan format tanggal." },
   { href: "/settings/subscription", title: "Subscription", body: "Status paket SaaS tenant." },
@@ -74,6 +78,34 @@ async function apiSend(url: string, method: string, payload: AnyRecord) {
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(apiError(body, `Request gagal (${res.status})`));
   return unwrap(body);
+}
+
+function useModuleCapabilities() {
+  const [modules, setModules] = useState<ModuleCapabilities>(defaultModules);
+
+  useEffect(() => {
+    let alive = true;
+    apiGet("/api/billing/tenant/modules")
+      .then((payload) => {
+        if (!alive) return;
+        const nextModules = payload?.modules;
+        if (nextModules) {
+          setModules({
+            billing_core: nextModules.billing_core !== false,
+            mikrotik: nextModules.mikrotik === true,
+            fiber_network: nextModules.fiber_network === true,
+          });
+        }
+      })
+      .catch(() => {
+        if (alive) setModules(defaultModules);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  return modules;
 }
 
 function useApi(url: string, fallback: any) {
@@ -147,6 +179,9 @@ function SettingsShell({ children }: { children: React.ReactNode }) {
 }
 
 export function SettingsIndexLivePage() {
+  const modules = useModuleCapabilities();
+  const visibleSections = settingsSections.filter((section) => !section.module || modules[section.module]);
+
   return (
     <SettingsShell>
       <PageHeader
@@ -155,7 +190,7 @@ export function SettingsIndexLivePage() {
         description="Pusat konfigurasi aplikasi tenant. Bagian yang sudah punya backend disambungkan langsung ke API lokal."
       />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {settingsSections.map((section) => (
+        {visibleSections.map((section) => (
           <a key={section.href} href={section.href} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/30">
             <h2 className="font-semibold tracking-tight text-slate-950">{section.title}</h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">{section.body}</p>
@@ -480,10 +515,31 @@ export function SettingsSecurityLivePage() {
 export function SettingsGenericLivePage({
   title,
   description,
+  moduleCode,
+  moduleName,
 }: {
   title: string;
   description: string;
+  moduleCode?: AddonModule;
+  moduleName?: string;
 }) {
+  const modules = useModuleCapabilities();
+
+  if (moduleCode && !modules[moduleCode]) {
+    return (
+      <SettingsShell>
+        <PageHeader eyebrow="Pengaturan" title={title} description={description} />
+        <Section title="Modul nonaktif">
+          <EmptyState
+            title={`${moduleName || title} belum aktif`}
+            description="Billing Core tetap berjalan normal. Aktifkan add-on ini dari pengaturan subscription sebelum memakai konfigurasi modulnya."
+            action={<Button href="/settings/subscription">Buka subscription</Button>}
+          />
+        </Section>
+      </SettingsShell>
+    );
+  }
+
   return (
     <SettingsShell>
       <PageHeader eyebrow="Pengaturan" title={title} description={description} />

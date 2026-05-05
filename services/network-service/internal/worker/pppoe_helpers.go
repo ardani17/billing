@@ -35,6 +35,23 @@ func (w *PPPoEEventWorker) decodePayload(task *asynq.Task, dest interface{}) (*q
 	return envelope, nil
 }
 
+func (w *PPPoEEventWorker) canProcessMikroTik(ctx context.Context, tenantID, eventType string) (bool, error) {
+	if w.moduleChecker == nil {
+		return true, nil
+	}
+
+	enabled, err := w.moduleChecker.IsEnabled(ctx, tenantID, domain.ModuleMikroTik)
+	if err != nil {
+		w.logger.Error().Err(err).Str("tenant_id", tenantID).Str("event_type", eventType).Msg("gagal memeriksa modul mikrotik")
+		return false, err
+	}
+	if !enabled {
+		w.logger.Info().Str("tenant_id", tenantID).Str("event_type", eventType).Msg("skip event jaringan: modul mikrotik nonaktif")
+		return false, nil
+	}
+	return true, nil
+}
+
 // handleRetryOrFail memeriksa apakah ini retry terakhir.
 // Jika sudah mencapai maxRetries, publish mikrotik.sync_failed event.
 // Jika belum, return error agar asynq melakukan retry.

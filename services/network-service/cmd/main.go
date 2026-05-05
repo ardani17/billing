@@ -104,6 +104,7 @@ func main() {
 	staticIPRepo := repository.NewStaticIPAssignmentRepo(queries)
 	vpnTunnelRepo := repository.NewVPNTunnelRepo(queries)
 	vpnSubnetRepo := repository.NewVPNSubnetRepo(queries)
+	moduleEntitlementRepo := repository.NewModuleEntitlementRepo(dbPool)
 
 	// 5. Metrics store — Redis sorted sets untuk time-series metrik
 	metricsStore := metrics.NewRedisMetricsStore(redisClient)
@@ -143,6 +144,7 @@ func main() {
 
 	// 11. PPPoE event worker — memproses event dari Billing API
 	pppoeWorker := worker.NewPPPoEEventWorker(pppoeManager, pppoeEventPub, appLogger)
+	pppoeWorker.SetModuleChecker(moduleEntitlementRepo)
 
 	// 12. Sync scheduler — periodic sync PPPoE user ke semua router
 	syncScheduler := usecase.NewSyncScheduler(pppoeManager, routerRepo, cfg.SyncIntervalMinutes, appLogger)
@@ -296,6 +298,7 @@ func main() {
 
 	// 38. Provisioning Event Worker — memproses event customer.terminated untuk auto-decommission ONT
 	provisioningWorker := worker.NewProvisioningEventWorker(provisioningManager, appLogger)
+	provisioningWorker.SetModuleChecker(moduleEntitlementRepo)
 
 	// --- FTTH Visual Mapping Dependency Injection ---
 
@@ -375,6 +378,7 @@ func main() {
 		LossCalcHandler:       lossCalcHandler,
 		LabelSettingsHandler:  labelSettingsHandler,
 		TrashHandler:          trashHandler,
+		ModuleChecker:         moduleEntitlementRepo,
 		JWTSecret:             cfg.JWTSecret,
 		Logger:                appLogger,
 	})
