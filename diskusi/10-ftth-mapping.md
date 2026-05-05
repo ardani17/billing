@@ -945,14 +945,21 @@ Kalkulasi loss budget untuk perencanaan jalur fiber baru:
 
 ## Graceful Degradation
 
-Jika modul OLT belum aktif:
+Peta Jaringan adalah bagian dari **Add-on OLT + Peta Jaringan** (`fiber_network`).
+Jika add-on ini belum dibeli/diaktifkan:
+- Menu Peta Jaringan hidden
+- API `/network-map`, `/olt`, `/odp`, dan resource fiber terkait mengembalikan `MODULE_NOT_ENABLED`
+- Billing Core tetap berjalan normal tanpa peta
+- Data koordinat pelanggan tetap boleh disimpan di modul Pelanggan, tetapi tombol/menu "Lihat di Peta" hidden
+
+Jika add-on Fiber Network sudah aktif tetapi OLT belum dikonfigurasi:
 - Peta tetap bisa dipakai untuk **plotting lokasi pelanggan** (dari koordinat GPS di dokumen 04)
 - Marker ONT ditampilkan tanpa data signal (hanya lokasi)
-- OLT dan ODP tidak ditampilkan
+- OLT dan ODP ditampilkan setelah data dibuat atau disinkronkan
 - Drawing tools tetap tersedia untuk perencanaan jalur kabel
 
 Jika modul MikroTik belum aktif:
-- Peta tetap bisa dipakai
+- Peta tetap bisa dipakai selama add-on Fiber Network aktif
 - Router MikroTik tidak ditampilkan di peta
 
 ---
@@ -994,7 +1001,7 @@ Jika modul MikroTik belum aktif:
 | Import | ✅ KML, KMZ, GeoJSON. Preview sebelum import, auto-match pelanggan, mapping tipe otomatis |
 | Reverse geocoding | ✅ Klik peta → alamat lengkap otomatis. Nominatim (default, gratis), Google Geocoding (opsional) |
 | Geocoding cache | ✅ Cache 30 hari, fallback ke koordinat jika gagal |
-| Graceful degradation | ✅ Peta tetap bisa dipakai tanpa modul OLT/MikroTik |
+| Graceful degradation | ✅ Billing Core tetap aman tanpa Fiber Network; peta bisa dipakai setelah add-on Fiber Network aktif walau OLT belum dikonfigurasi |
 | Offline mode | ✅ Download area peta + data node, edit offline, auto-sync saat online. Service Worker + IndexedDB |
 | Navigasi | ✅ Lokasi saya (GPS), jarak ke node, navigasi ke Google Maps/Waze |
 | Filter status | ✅ Filter by ONT status (online/offline/weak), billing status (aktif/isolir/pending), paket, area, ODP |

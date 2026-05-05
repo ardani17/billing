@@ -623,6 +623,14 @@ Konfigurasi provider notifikasi dari dokumen 07 (sudah detail di dokumen 07, di 
 
 ## 📦 Subscription (`/settings/subscription`)
 
+Subscription mengikuti keputusan packaging di dokumen 00:
+
+- **Billing Core** selalu aktif dan sudah mencakup pelanggan, paket, invoice, pembayaran, payment gateway, notifikasi, laporan, reseller/voucher, dan settings dasar.
+- **Add-on MikroTik** adalah modul terpisah untuk router, PPPoE/Hotspot, isolir teknis, VPN, backup, firmware, session, dan sync.
+- **Add-on OLT + Peta Jaringan** adalah satu modul gabungan untuk OLT, ONT, ODP, provisioning, alarm, FTTH mapping, dan topologi/peta jaringan.
+- Notifikasi **bukan add-on terpisah**. Notifikasi adalah bagian dari Billing Core.
+- OLT dan Peta Jaringan **tidak dijual terpisah**. Keduanya aktif/nonaktif bersama melalui module flag `fiber_network`.
+
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║  Subscription ISPBoss                                        ║
@@ -660,32 +668,32 @@ Konfigurasi provider notifikasi dari dokumen 07 (sudah detail di dokumen 07, di 
 ║  ┌─── Modul Aktif ──────────────────────────────────────┐    ║
 ║  │  ☑ Pelanggan (always on)                             │    ║
 ║  │  ☑ Billing (always on)                               │    ║
-║  │  ☑ MikroTik                    [Nonaktifkan]         │    ║
-║  │  ☐ OLT                         [Aktifkan]            │    ║
-║  │  ☐ FTTH Mapping                 [Aktifkan]            │    ║
-║  │  ☑ Notifikasi                  [Nonaktifkan]         │    ║
+║  │  ☐ Add-on MikroTik              [Aktifkan]            │    ║
+║  │  ☐ Add-on OLT + Peta Jaringan   [Aktifkan]            │    ║
+║  │  ☑ Notifikasi (Billing Core)                         │    ║
 ║  │  ☑ Laporan (always on)                               │    ║
 ║  └───────────────────────────────────────────────────────┘   ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
 ### Module Registry
-Sesuai dokumen 00, modul bisa diaktifkan/nonaktifkan per tenant:
+Sesuai dokumen 00, hanya add-on besar yang bisa diaktifkan/nonaktifkan per tenant:
 
 | Modul | Default | Bisa Dinonaktifkan? |
 |---|---|---|
 | Core (auth, tenant) | Always on | ❌ |
 | Pelanggan | Always on | ❌ |
 | Paket | Always on | ❌ |
-| Billing | Always on | ❌ |
-| MikroTik | Enabled | ✅ |
-| OLT | Disabled | ✅ |
-| FTTH Mapping | Disabled | ✅ |
-| Notifikasi | Enabled | ✅ |
+| Billing Core | Always on | ❌ |
+| Notifikasi | Bagian Billing Core | ❌ |
 | Laporan | Always on | ❌ |
+| Add-on MikroTik (`mikrotik`) | Disabled by commercial package | ✅ |
+| Add-on OLT + Peta Jaringan (`fiber_network`) | Disabled by commercial package | ✅ |
 
 - Modul yang dinonaktifkan → menu hidden, widget hidden, event diabaikan
-- Modul yang diaktifkan setelah ada data → trigger initial sync wizard (MikroTik/OLT)
+- Modul yang diaktifkan setelah ada data → trigger initial sync wizard (MikroTik atau Fiber Network)
+- Tenant Admin dapat melihat status paket dan meminta upgrade, tetapi aktivasi add-on komersial dilakukan oleh Super Admin/Owner aplikasi.
+- API untuk add-on nonaktif wajib mengembalikan `MODULE_NOT_ENABLED` agar Billing Core tidak error.
 
 ---
 
@@ -771,7 +779,7 @@ Dokumen 12 adalah **pusat konfigurasi** yang direferensikan oleh semua modul:
 | Laporan settings | ✅ Target KPI, jadwal laporan, kategori pengeluaran |
 | Keamanan | ✅ Ubah password, 2FA (Google Authenticator), session management, API key |
 | Subscription | ✅ Lihat paket saat ini, upgrade, riwayat pembayaran, module registry |
-| Module registry | ✅ Aktifkan/nonaktifkan modul per tenant (MikroTik, OLT, FTTH, Notifikasi) |
+| Module registry | ✅ Aktifkan/nonaktifkan add-on komersial per tenant (MikroTik, OLT + Peta Jaringan) |
 | Audit log | ✅ Append-only, 12 bulan retention, filter, export CSV |
 | Custom domain | ✅ Fase lanjut — CNAME + auto SSL (Let's Encrypt) |
 | Voucher settings | ✅ Format kode, masa berlaku, max generate, collision retry |

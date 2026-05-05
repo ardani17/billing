@@ -36,13 +36,10 @@ SITE_DESCRIPTION=Platform billing dan manajemen jaringan all-in-one untuk ISP da
 |---|---|---|
 | 1 | Manajemen Pelanggan | Data pelanggan, assignment paket, status |
 | 2 | Manajemen Paket | CRUD paket internet, profile bandwidth |
-| 3 | Billing & Invoice | Invoice otomatis, pembayaran manual + gateway |
-| 4 | Laporan Keuangan | Pendapatan, piutang, dashboard analytics |
-| 5 | Integrasi MikroTik | PPPoE/Hotspot, isolir otomatis, monitoring (v6 & v7) |
-| 6 | Integrasi OLT | Multi-brand (ZTE, Huawei, FiberHome, VSOL, HSGQ) |
-| 7 | FTTH Visual Mapping | Peta interaktif, topologi OLT→ODP→ONT |
-| 8 | Notifikasi | WhatsApp, SMS, Email |
-| 9 | White Label | Logo, warna, domain kustom per tenant |
+| 3 | Billing Core | Invoice otomatis, pembayaran manual + gateway, notifikasi, laporan, reseller/voucher |
+| 4 | Add-on MikroTik | PPPoE/Hotspot, isolir otomatis, monitoring, VPN, backup (v6 & v7) |
+| 5 | Add-on OLT + Peta Jaringan | Multi-brand OLT, provisioning ONT, ODP, peta interaktif, topologi OLT-ODP-ONT |
+| 6 | White Label | Logo, warna, domain kustom per tenant |
 
 ---
 
@@ -664,26 +661,39 @@ Tenant daftar → Setup branding → Pelanggan akses via custom domain
 
 ## Strategi Pengembangan Bertahap
 
-### Module Registry (per tenant)
+### Product Packaging & Module Registry (per tenant)
+
+ISPBoss dijual sebagai paket SaaS modular. Paket dasar adalah **Billing Core**.
+Yang dijual terpisah hanya **Add-on MikroTik** dan **Add-on OLT + Peta Jaringan**.
+Notifikasi, laporan, payment gateway, reseller/voucher, dan settings dasar adalah bagian dari Billing Core.
+
+| Paket Komersial | Module Flag | Isi |
+|---|---|---|
+| Billing Core | `billing_core` | Auth, tenant, pelanggan, paket, invoice, pembayaran, payment gateway, notifikasi, laporan, reseller/voucher, settings |
+| Add-on MikroTik | `mikrotik` | Router, PPPoE/Hotspot, isolir teknis, session, traffic, VPN, backup/firmware, sync |
+| Add-on OLT + Peta Jaringan | `fiber_network` | OLT, ONT, ODP, provisioning, alarm, peta jaringan, FTTH mapping, topologi fiber |
+
 ```
-core → always | customer → always | billing → enabled
-mikrotik → enabled | olt → disabled | ftth-mapping → disabled
-notification → enabled | reporting → enabled
+billing_core -> always
+mikrotik -> optional add-on
+fiber_network -> optional add-on (OLT + Peta Jaringan)
 ```
 
 ### Prinsip: Loose Coupling + Event-Driven + Graceful Degradation
 - NoOp/Stub implementation untuk modul belum aktif
 - Event diabaikan jika penerima belum ada
 - Menu/widget hidden untuk modul non-aktif
+- API untuk add-on nonaktif mengembalikan error aman `MODULE_NOT_ENABLED`, bukan crash
+- Billing Core tetap berjalan penuh meskipun MikroTik atau Fiber Network tidak dibeli
+- Event billing ke MikroTik hanya diproses jika add-on MikroTik aktif
+- Event OLT/Peta hanya diproses jika add-on Fiber Network aktif
 
 ### Urutan Pengembangan
 ```
-core (wajib pertama)
-  └── customer (wajib kedua)
-        ├── billing
-        ├── mikrotik
-        ├── olt → ftth-mapping
-        └── notification → reporting
+billing_core (wajib)
+  |-- customer/package/invoice/payment/notification/reporting/settings
+  |-- mikrotik (optional add-on)
+  `-- fiber_network (optional add-on: OLT + Peta Jaringan)
 ```
 
 ---
@@ -694,9 +704,7 @@ core (wajib pertama)
 |---|---|---|
 | 1 | Project Foundation | Monorepo, DB, auth, RBAC, tenant, white label |
 | 2 | Customer & Package | CRUD pelanggan, paket internet |
-| 3 | Billing & Invoice | Invoice otomatis, pembayaran, payment gateway |
-| 4 | Notification Service | WhatsApp, SMS, Email |
-| 5 | MikroTik Integration | RouterOS v6/v7, PPPoE, isolir, monitoring |
-| 6 | OLT Integration | Multi-brand, provisioning ONT |
-| 7 | FTTH Visual Mapping | Peta interaktif, topologi |
-| 8 | Reporting & Analytics | Laporan keuangan, dashboard |
+| 3 | Billing Core | Invoice otomatis, pembayaran, payment gateway, notifikasi, laporan |
+| 4 | MikroTik Add-on | RouterOS v6/v7, PPPoE, isolir, monitoring |
+| 5 | Fiber Network Add-on | OLT + Peta Jaringan, provisioning ONT, topologi |
+| 6 | Reporting & Analytics | Laporan keuangan, dashboard |

@@ -11,9 +11,11 @@
 
 - [x] MikroTik Backup/Firmware.
 - [x] MikroTik Bulk Actions.
+- [x] Subscription Module Gating planning.
 
 ## Next
 
+- [ ] Subscription Module Gating implementation.
 - [ ] Tenant Settings Persistence.
 - [ ] Notification Production.
 - [ ] Tenant Admin End-to-End smoke.

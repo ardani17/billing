@@ -62,14 +62,16 @@ Setup Akun           Router & Perangkat   Pelanggan & Billing
 
 ### E. Pricing Section
 ```
-┌──────────┬──────────┬──────────────┬──────────┐
-│ Starter  │ Growth   │ Pro ⭐       │Enterprise│
-│ 0-100    │ 101-500  │ 501-2000     │ 2000+    │
-│ Rp150rb  │ Rp350rb  │ Rp750rb      │ Custom   │
-│ [Coba]   │ [Coba]   │ [Coba]       │[Hubungi] │
-└──────────┴──────────┴──────────────┴──────────┘
+┌────────────────┬────────────────┬──────────────────────┐
+│ Billing Core   │ + MikroTik     │ + OLT + Peta Jaringan│
+│ Billing lengkap│ RouterOS add-on│ Fiber network add-on │
+│ Mulai paket A  │ Upgrade add-on │ Upgrade add-on       │
+│ [Coba Billing] │ [Tambah]       │ [Tambah]             │
+└────────────────┴────────────────┴──────────────────────┘
 ```
-- Tier "Pro" di-highlight. Checklist fitur per tier. Mobile: scroll/stack
+- Harga tetap bisa memiliki tier jumlah pelanggan (Starter/Growth/Pro/Enterprise), tetapi bundling fitur dipisah menjadi Billing Core, Add-on MikroTik, dan Add-on OLT + Peta Jaringan.
+- Notifikasi, laporan, payment gateway, dan reseller/voucher masuk Billing Core, bukan add-on terpisah.
+- Mobile: stack vertikal dengan checklist add-on.
 
 ### F. Testimonial / Social Proof
 - Carousel kutipan ISP, auto-scroll pelan
@@ -144,7 +146,7 @@ CTA section          : gradient #1E3A8A → #172554
 | Elemen | Implementasi |
 |---|---|
 | Title | "ISPBoss - Platform Billing & Manajemen Jaringan untuk ISP" |
-| Meta description | "Kelola billing, MikroTik, OLT, dan jaringan FTTH dari satu dashboard. Coba gratis 3 hari." |
+| Meta description | "Mulai dari sistem billing ISP lengkap, lalu tambah modul MikroTik dan OLT + Peta Jaringan sesuai kebutuhan. Coba gratis 3 hari." |
 | H1 | "Kelola ISP Kamu Dari Satu Dashboard" |
 | URL | Clean: `/fitur`, `/harga`, `/faq` |
 | Open Graph | Title, description, image preview |
