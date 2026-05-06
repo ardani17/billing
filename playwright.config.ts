@@ -14,7 +14,7 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "npm run dev --workspace @ispboss/web",
+    command: `npm run dev --workspace @ispboss/web -- --port ${port}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
   },

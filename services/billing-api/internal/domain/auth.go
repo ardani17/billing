@@ -144,6 +144,9 @@ type ImpersonateRequest struct {
 
 	// UserID adalah UUID user target impersonasi
 	UserID string `json:"user_id" validate:"required,uuid"`
+
+	// Reason adalah alasan support yang wajib dicatat sebelum impersonasi
+	Reason string `json:"reason" validate:"required,min=5"`
 }
 
 // --- API Response Types ---

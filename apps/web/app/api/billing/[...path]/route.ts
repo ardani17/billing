@@ -15,33 +15,32 @@ async function proxy(request: NextRequest, context: RouteContext) {
     const method = request.method;
     const hasBody = !["GET", "HEAD"].includes(method);
     const sessionToken = request.cookies.get("ispboss_access_token")?.value;
+    const contentType = request.headers.get("content-type") || "";
+    const headers = new Headers({
+      Authorization: sessionToken ? `Bearer ${sessionToken}` : `Bearer ${createDevJwt()}`,
+    });
+    if (contentType) headers.set("Content-Type", contentType);
+
     const response = await fetch(`${billingApiBaseUrl}${targetPath}`, {
       method,
-      headers: {
-        "Content-Type": request.headers.get("content-type") || "application/json",
-        Authorization: sessionToken ? `Bearer ${sessionToken}` : `Bearer ${createDevJwt()}`,
-      },
-      body: hasBody ? await request.text() : undefined,
+      headers,
+      body: hasBody ? await request.arrayBuffer() : undefined,
       cache: "no-store",
     });
 
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      const text = await response.text();
-      const body = text ? JSON.parse(text) : null;
-      return NextResponse.json(body, { status: response.status });
+    const responseType = response.headers.get("content-type") || "";
+    const disposition = response.headers.get("content-disposition");
+    const body = await response.arrayBuffer();
+
+    if (responseType.includes("application/json")) {
+      const text = new TextDecoder().decode(body);
+      return NextResponse.json(JSON.parse(text || "{}"), { status: response.status });
     }
 
-    const body = await response.arrayBuffer();
-    return new NextResponse(body, {
-      status: response.status,
-      headers: {
-        "Content-Type": contentType || "application/octet-stream",
-        ...(response.headers.get("content-disposition")
-          ? { "Content-Disposition": response.headers.get("content-disposition") as string }
-          : {}),
-      },
-    });
+    const outHeaders = new Headers();
+    if (responseType) outHeaders.set("Content-Type", responseType);
+    if (disposition) outHeaders.set("Content-Disposition", disposition);
+    return new NextResponse(body, { status: response.status, headers: outHeaders });
   } catch (error) {
     return NextResponse.json(
       {

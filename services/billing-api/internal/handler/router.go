@@ -79,6 +79,9 @@ type RouterConfig struct {
 	// GatewayHandler adalah handler untuk konfigurasi payment gateway dan payment link
 	GatewayHandler *GatewayHandler
 
+	// BillingSettingsHandler adalah handler untuk konfigurasi billing tenant
+	BillingSettingsHandler *BillingSettingsHandler
+
 	// WebhookHandler adalah handler untuk endpoint webhook publik (Xendit, Midtrans)
 	WebhookHandler *WebhookHandler
 
@@ -265,21 +268,53 @@ func RegisterRoutes(cfg RouterConfig) {
 	paymentGateways.Delete("/:id", cfg.GatewayHandler.DeactivateConfig)
 	paymentGateways.Post("/:id/test", cfg.GatewayHandler.TestConfig)
 
+	// --- Billing settings routes (auth + RBAC, tenant_admin only) ---
+	billingSettings := settings.Group("/billing")
+	billingSettings.Use(middleware.RBAC(domain.RBACConfig{
+		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
+	}))
+	billingSettings.Get("", cfg.BillingSettingsHandler.Get)
+	billingSettings.Put("", cfg.BillingSettingsHandler.Update)
+
 	// --- Admin routes (auth + RBAC middleware, super_admin only) ---
 	admin := cfg.App.Group("/api/v1/admin")
 	admin.Use(middleware.Auth(cfg.JWTSecret))
-	admin.Use(middleware.RBAC(domain.RBACConfig{
+	admin.Post("/stop-impersonate", cfg.AdminHandler.Stop)
+
+	adminSuper := admin.Group("")
+	adminSuper.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleSuperAdmin},
 	}))
-	admin.Post("/impersonate", cfg.AdminHandler.Start)
-	admin.Post("/stop-impersonate", cfg.AdminHandler.Stop)
-	admin.Get("/platform/overview", cfg.AdminHandler.PlatformOverview)
-	admin.Get("/platform/tenants", cfg.AdminHandler.PlatformTenants)
-	admin.Get("/platform/tenants/:id", cfg.AdminHandler.PlatformTenantDetail)
-	admin.Get("/platform/subscriptions", cfg.AdminHandler.PlatformSubscriptions)
-	admin.Get("/platform/support", cfg.AdminHandler.PlatformSupport)
-	admin.Get("/platform/health", cfg.AdminHandler.PlatformHealth)
-	admin.Get("/platform/audit", cfg.AdminHandler.PlatformAudit)
+	adminSuper.Post("/impersonate", cfg.AdminHandler.Start)
+	adminSuper.Get("/platform/overview", cfg.AdminHandler.PlatformOverview)
+	adminSuper.Get("/platform/tenants", cfg.AdminHandler.PlatformTenants)
+	adminSuper.Post("/platform/tenants", cfg.AdminHandler.PlatformTenantCreate)
+	adminSuper.Get("/platform/tenants/:id", cfg.AdminHandler.PlatformTenantDetail)
+	adminSuper.Put("/platform/tenants/:id", cfg.AdminHandler.PlatformTenantUpdate)
+	adminSuper.Post("/platform/tenants/:id/activate", cfg.AdminHandler.PlatformTenantActivate)
+	adminSuper.Post("/platform/tenants/:id/suspend", cfg.AdminHandler.PlatformTenantSuspend)
+	adminSuper.Post("/platform/tenants/:id/resume", cfg.AdminHandler.PlatformTenantResume)
+	adminSuper.Post("/platform/tenants/:id/cancel", cfg.AdminHandler.PlatformTenantCancel)
+	adminSuper.Post("/platform/tenants/:id/reset-owner", cfg.AdminHandler.PlatformTenantResetOwner)
+	adminSuper.Get("/platform/tenants/:id/modules", cfg.AdminHandler.PlatformTenantModules)
+	adminSuper.Put("/platform/tenants/:id/modules", cfg.AdminHandler.PlatformTenantModulesUpdate)
+	adminSuper.Get("/platform/subscriptions", cfg.AdminHandler.PlatformSubscriptions)
+	adminSuper.Put("/platform/subscriptions/:tenant_id", cfg.AdminHandler.PlatformSubscriptionUpdate)
+	adminSuper.Get("/platform/upgrade-requests", cfg.AdminHandler.PlatformUpgradeRequests)
+	adminSuper.Post("/platform/upgrade-requests/:id/approve", cfg.AdminHandler.PlatformUpgradeApprove)
+	adminSuper.Post("/platform/upgrade-requests/:id/reject", cfg.AdminHandler.PlatformUpgradeReject)
+	adminSuper.Post("/platform/upgrade-requests/:id/cancel", cfg.AdminHandler.PlatformUpgradeCancel)
+	adminSuper.Get("/platform/support", cfg.AdminHandler.PlatformSupport)
+	adminSuper.Post("/platform/support", cfg.AdminHandler.PlatformSupportCreate)
+	adminSuper.Get("/platform/support/:id", cfg.AdminHandler.PlatformSupportDetail)
+	adminSuper.Post("/platform/support/:id/comments", cfg.AdminHandler.PlatformSupportComment)
+	adminSuper.Put("/platform/support/:id/status", cfg.AdminHandler.PlatformSupportStatus)
+	adminSuper.Get("/platform/health", cfg.AdminHandler.PlatformHealth)
+	adminSuper.Get("/platform/audit", cfg.AdminHandler.PlatformAudit)
+	adminSuper.Get("/platform/audit/export", cfg.AdminHandler.PlatformAuditExport)
+	adminSuper.Get("/platform/audit/:id", cfg.AdminHandler.PlatformAuditDetail)
+	adminSuper.Get("/platform/settings", cfg.AdminHandler.PlatformSettings)
+	adminSuper.Put("/platform/settings", cfg.AdminHandler.PlatformSettingsUpdate)
 
 	// --- Protected business routes (auth + tenant middleware) ---
 	// Grup route yang dilindungi oleh auth dan tenant middleware untuk endpoint bisnis
@@ -289,6 +324,12 @@ func RegisterRoutes(cfg RouterConfig) {
 
 	// --- Tenant module entitlement routes ---
 	api.Get("/tenant/modules", cfg.TenantModuleHandler.Current)
+	tenantSelf := api.Group("/tenant")
+	tenantSelf.Use(middleware.RBAC(domain.RBACConfig{
+		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
+	}))
+	tenantSelf.Get("/upgrade-requests", cfg.AdminHandler.TenantUpgradeRequests)
+	tenantSelf.Post("/upgrade-requests", cfg.AdminHandler.TenantUpgradeRequestCreate)
 
 	// --- Customer routes (auth + tenant + RBAC) ---
 	customerHandler := cfg.CustomerHandler

@@ -277,7 +277,12 @@ export function CustomersLivePage() {
         eyebrow="Pelanggan"
         title="Daftar pelanggan"
         description="Data langsung dari Billing API: paket, status billing, dan data layanan pelanggan."
-        actions={<Button href="/customers/new">Tambah Pelanggan</Button>}
+        actions={
+          <>
+            <Button variant="secondary" href="/customers/areas">Area Pelanggan</Button>
+            <Button href="/customers/new">Tambah Pelanggan</Button>
+          </>
+        }
       />
       <StatGrid
         stats={[
@@ -287,6 +292,15 @@ export function CustomersLivePage() {
           { label: "Suspend", value: String(stats.data.suspend ?? 0), tone: "red" },
         ]}
       />
+      <Section
+        title="Area pelanggan"
+        description="Buat dan kelola master area sebelum memilih area pada form tambah pelanggan."
+        action={<Button href="/customers/areas">Buka Area Pelanggan</Button>}
+      >
+        <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-800">
+          Area yang dibuat di sini akan muncul sebagai pilihan pada field Area di halaman tambah pelanggan.
+        </div>
+      </Section>
       <Section title="Pelanggan" description="Daftar ini memakai database tenant, bukan mock.">
         <Notice loading={customers.loading} error={customers.error} />
         {deleteError && <p className="mb-3 text-sm text-red-600">{deleteError}</p>}
@@ -295,7 +309,12 @@ export function CustomersLivePage() {
           <EmptyState
             title="Belum ada pelanggan"
             description="Tambahkan paket dulu, lalu buat pelanggan pertama dari form pelanggan."
-            action={<Button href="/customers/new">Tambah Pelanggan</Button>}
+            action={
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button variant="secondary" href="/customers/areas">Area Pelanggan</Button>
+                <Button href="/customers/new">Tambah Pelanggan</Button>
+              </div>
+            }
           />
         ) : (
           <DataTable
@@ -1197,15 +1216,20 @@ export function InvoicesLivePage() {
           <EmptyState title="Belum ada invoice" description="Aktifkan pelanggan lalu tekan Generate jatuh tempo, atau buat invoice manual." />
         ) : (
           <DataTable
-            columns={["Nomor", "Pelanggan", "Periode", "Jatuh tempo", "Total", "Dibayar", "Status"]}
+            columns={["Nomor", "Pelanggan", "Periode", "Jatuh tempo", "Total", "Dibayar", "Status", "Aksi"]}
             rows={rows.map((invoice) => [
-              invoice.invoice_number,
+              <a key={invoice.id} href={`/invoices/${invoice.id}`} className="font-mono font-semibold text-blue-700 hover:text-blue-900">
+                {invoice.invoice_number}
+              </a>,
               invoice.customer_name ?? invoice.customer_id_seq ?? "-",
               `${invoice.period_month}/${invoice.period_year}`,
               dateID(invoice.due_date),
               money(invoice.total_amount),
               money(invoice.paid_amount),
               <StatusBadge key={invoice.id} status={invoice.status ?? "belum_bayar"} />,
+              <Button key={`detail-${invoice.id}`} variant="ghost" href={`/invoices/${invoice.id}`}>
+                Detail
+              </Button>,
             ])}
           />
         )}
@@ -1244,6 +1268,7 @@ export function InvoiceDetailLivePage({ id }: { id: string }) {
   const items = listOf(invoiceState.data?.items ?? invoice.items ?? []);
   const payments = listOf(invoiceState.data?.payments ?? invoice.payments ?? []);
   const auditLogs = listOf(invoiceState.data?.audit_logs ?? invoice.audit_logs ?? []);
+  const remainingAmount = Math.max(Number(invoice.total_amount ?? 0) - Number(invoice.paid_amount ?? 0), 0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -1298,6 +1323,7 @@ export function InvoiceDetailLivePage({ id }: { id: string }) {
                 { label: "Subtotal", value: money(invoice.subtotal) },
                 { label: "Total", value: money(invoice.total_amount) },
                 { label: "Dibayar", value: money(invoice.paid_amount) },
+                { label: "Sisa", value: money(remainingAmount) },
                 { label: "Status", value: <StatusBadge status={invoice.status ?? "belum_bayar"} /> },
                 { label: "Denda", value: money(invoice.penalty_amount) },
                 { label: "Kredit dipakai", value: money(invoice.credit_applied) },
@@ -1317,9 +1343,9 @@ export function InvoiceDetailLivePage({ id }: { id: string }) {
             />
           </Section>
 
-          <Section title="Catat pembayaran">
+          <Section title="Catat pembayaran" description="Nominal boleh sebagian. Jika nominal melebihi sisa tagihan atau invoice sudah lunas, kelebihannya masuk saldo kredit pelanggan.">
             <form onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-4">
-              <FormField label="Nominal"><TextInput name="amount" type="number" min="1" defaultValue={String(Math.max(Number(invoice.total_amount ?? 0) - Number(invoice.paid_amount ?? 0), 0))} /></FormField>
+              <FormField label="Nominal"><TextInput name="amount" type="number" min="1" defaultValue={remainingAmount > 0 ? String(remainingAmount) : ""} placeholder={remainingAmount > 0 ? "" : "Nominal pembayaran dobel"} /></FormField>
               <FormField label="Metode">
                 <select name="payment_method" className={selectClass} defaultValue="tunai">
                   <option value="tunai">Tunai</option>
@@ -1383,52 +1409,185 @@ export function PaymentsLivePage() {
   const invoices = useApi<any>("/api/billing/invoices?page_size=50", { data: [] });
   const rows = listOf(payments.data);
   const invoiceRows = listOf(invoices.data).filter((invoice) => !["lunas", "batal"].includes(String(invoice.status)));
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const customerOptions = useMemo(() => {
+    const seen = new Set<string>();
+    return invoiceRows
+      .filter((invoice) => {
+        const customerID = String(invoice.customer_id || "");
+        if (!customerID || seen.has(customerID)) return false;
+        seen.add(customerID);
+        return true;
+      })
+      .map((invoice) => ({
+        id: String(invoice.customer_id),
+        label: `${invoice.customer_name ?? invoice.customer_id_seq ?? "Pelanggan"}${invoice.customer_id_seq ? ` (${invoice.customer_id_seq})` : ""}`,
+      }));
+  }, [invoiceRows]);
+  const [multiSaving, setMultiSaving] = useState(false);
+  const [multiError, setMultiError] = useState<string | null>(null);
+  const [multiSuccess, setMultiSuccess] = useState<string | null>(null);
+  const [multiCustomerId, setMultiCustomerId] = useState("");
+  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
 
-  const onSubmit = useCallback(
+  const invoicesForCustomer = invoiceRows.filter((invoice) => String(invoice.customer_id || "") === multiCustomerId);
+  const selectedInvoices = invoicesForCustomer.filter((invoice) => selectedInvoiceIds.includes(String(invoice.id)));
+  const selectedTotal = selectedInvoices.reduce(
+    (sum, invoice) => sum + Math.max(Number(invoice.total_amount ?? 0) - Number(invoice.paid_amount ?? 0), 0),
+    0,
+  );
+  const customerTotal = invoicesForCustomer.reduce(
+    (sum, invoice) => sum + Math.max(Number(invoice.total_amount ?? 0) - Number(invoice.paid_amount ?? 0), 0),
+    0,
+  );
+  const allocationLabel =
+    selectedInvoiceIds.length === 0
+      ? "Semua invoice terbuka"
+      : selectedInvoiceIds.length === 1
+        ? "Satu invoice"
+        : `${selectedInvoiceIds.length} invoice`;
+
+  const onMultiSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       const formEl = event.currentTarget;
-    const form = new FormData(formEl);
-      const invoiceID = String(form.get("invoice_id") || "");
-      setSaving(true);
-      setError(null);
-      setSuccess(null);
+      const form = new FormData(formEl);
+      const customerID = String(form.get("customer_id") || "");
+      const amount = Number(form.get("amount") || 0);
+      setMultiSaving(true);
+      setMultiError(null);
+      setMultiSuccess(null);
       try {
-        await apiSend(`/api/billing/invoices/${invoiceID}/payment`, "POST", {
-          amount: Number(form.get("amount") || 0),
+        const response = await apiSend("/api/billing/payments/multi", "POST", {
+          customer_id: customerID,
+          amount,
           payment_method: String(form.get("payment_method") || "tunai"),
           payment_date: String(form.get("payment_date") || todayDate()),
           reference_number: String(form.get("reference_number") || ""),
           notes: String(form.get("notes") || ""),
+          invoice_ids: selectedInvoiceIds,
         });
         formEl.reset();
+        setMultiCustomerId("");
+        setSelectedInvoiceIds([]);
         payments.reload();
         summary.reload();
         invoices.reload();
-        setSuccess("Pembayaran berhasil dicatat.");
+        const result = (response || {}) as AnyRecord;
+        const excess = Number(result.excess_to_credit || 0);
+        setMultiSuccess(
+          excess > 0
+            ? `Pembayaran dialokasikan. Kelebihan ${money(excess)} masuk saldo kredit pelanggan.`
+            : "Pembayaran multi-invoice berhasil dialokasikan.",
+        );
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Gagal mencatat pembayaran");
+        setMultiError(err instanceof Error ? err.message : "Gagal mencatat pembayaran multi-invoice");
       } finally {
-        setSaving(false);
+        setMultiSaving(false);
       }
     },
-    [invoices, payments, summary],
+    [invoices, payments, selectedInvoiceIds, summary],
   );
+
+  const toggleInvoice = useCallback((invoiceID: string, checked: boolean) => {
+    setSelectedInvoiceIds((current) => {
+      if (checked) return Array.from(new Set([...current, invoiceID]));
+      return current.filter((id) => id !== invoiceID);
+    });
+  }, []);
 
   return (
     <RealShell>
-      <PageHeader eyebrow="Pembayaran" title="Pembayaran" description="Catatan pembayaran real dari Billing API." />
+      <PageHeader
+        eyebrow="Pembayaran"
+        title="Pembayaran"
+        description="Catat pembayaran sebagian, pembayaran beberapa invoice sekaligus, dan kelebihan bayar sebagai kredit pelanggan."
+      />
       <StatGrid
         stats={[
-          { label: "Transaksi", value: String(summary.data.total_payments ?? rows.length) },
-          { label: "Total diterima", value: money(summary.data.total_amount ?? 0) },
-          { label: "Hari ini", value: money(summary.data.today_amount ?? 0) },
-          { label: "Void", value: String(summary.data.void_count ?? 0), tone: "red" },
+          { label: "Transaksi terakhir", value: String(rows.length) },
+          { label: "Bulan ini", value: money(summary.data.this_month?.total_amount ?? 0) },
+          { label: "Hari ini", value: money(summary.data.today?.total_amount ?? 0) },
+          { label: "Void", value: String(rows.filter((payment) => payment.voided).length), tone: "red" },
         ]}
       />
+
+      <Section title="Catat pembayaran" description="Satu form untuk bayar sebagian, satu invoice, beberapa bulan, atau kelebihan bayar sebagai saldo kredit pelanggan.">
+        <form onSubmit={onMultiSubmit} className="grid gap-4 lg:grid-cols-4">
+          <FormField label="Pelanggan">
+            <select
+              name="customer_id"
+              required
+              className={selectClass}
+              value={multiCustomerId}
+              onChange={(event) => {
+                setMultiCustomerId(event.target.value);
+                setSelectedInvoiceIds([]);
+              }}
+            >
+              <option value="">Pilih pelanggan</option>
+              {customerOptions.map((customer) => (
+                <option key={customer.id} value={customer.id}>{customer.label}</option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="Nominal dibayar">
+            <TextInput key={`${multiCustomerId}-${selectedTotal || customerTotal}`} name="amount" type="number" min="1" defaultValue={String(selectedTotal || customerTotal || 0)} />
+          </FormField>
+          <FormField label="Metode">
+            <select name="payment_method" className={selectClass} defaultValue="tunai">
+              <option value="tunai">Tunai</option>
+              <option value="transfer">Transfer</option>
+              <option value="xendit">Xendit</option>
+              <option value="midtrans">Midtrans</option>
+              <option value="lainnya">Lainnya</option>
+            </select>
+          </FormField>
+          <FormField label="Tanggal"><TextInput name="payment_date" type="date" defaultValue={todayDate()} /></FormField>
+          <FormField label="Referensi"><TextInput name="reference_number" placeholder="opsional" /></FormField>
+          <div className="lg:col-span-3">
+            <FormField label="Catatan"><TextInput name="notes" placeholder="contoh: bayar Jan-Feb sebagian" /></FormField>
+          </div>
+          {multiCustomerId ? (
+            <div className="lg:col-span-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">Invoice terbuka: {invoicesForCustomer.length}</p>
+                  <p className="text-xs text-slate-500">{allocationLabel}</p>
+                </div>
+                <p className="font-mono text-sm text-slate-700">Total dialokasikan {money(selectedTotal || customerTotal)}</p>
+              </div>
+              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                {invoicesForCustomer.map((invoice) => {
+                  const remaining = Math.max(Number(invoice.total_amount ?? 0) - Number(invoice.paid_amount ?? 0), 0);
+                  const checked = selectedInvoiceIds.includes(String(invoice.id));
+                  return (
+                    <label key={invoice.id} className="flex min-h-[76px] gap-3 rounded-md border border-slate-200 bg-white p-3 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) => toggleInvoice(String(invoice.id), event.target.checked)}
+                        className="mt-1"
+                      />
+                      <span className="min-w-0">
+                        <span className="block truncate font-semibold text-slate-900">{invoice.invoice_number}</span>
+                        <span className="block text-xs text-slate-500">{invoice.period_month}/{invoice.period_year} · {invoice.status}</span>
+                        <span className="block font-mono text-xs text-slate-700">{money(remaining)}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {selectedInvoiceIds.length === 0 ? (
+                <p className="mt-3 text-xs text-slate-500">Jika tidak memilih invoice, sistem akan mengalokasikan ke semua invoice terbuka pelanggan ini mulai dari yang paling lama.</p>
+              ) : null}
+            </div>
+          ) : null}
+          <div className="lg:col-span-4">
+            <SubmitBar saving={multiSaving} error={multiError} success={multiSuccess} label="Catat pembayaran" />
+          </div>
+        </form>
+      </Section>
+
       <Section title="Riwayat pembayaran">
         <Notice loading={payments.loading} error={payments.error} />
         {rows.length === 0 && !payments.loading ? (
@@ -1446,38 +1605,6 @@ export function PaymentsLivePage() {
             ])}
           />
         )}
-      </Section>
-      <Section title="Catat pembayaran invoice">
-        <form onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-4">
-          <FormField label="Invoice">
-            <select name="invoice_id" required className={selectClass} defaultValue="">
-              <option value="">Pilih invoice</option>
-              {invoiceRows.map((invoice) => (
-                <option key={invoice.id} value={invoice.id}>
-                  {invoice.invoice_number} - {invoice.customer_name ?? invoice.customer_id_seq ?? "-"} - {money(Number(invoice.total_amount ?? 0) - Number(invoice.paid_amount ?? 0))}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <FormField label="Nominal"><TextInput name="amount" type="number" min="1" defaultValue="150000" /></FormField>
-          <FormField label="Metode">
-            <select name="payment_method" className={selectClass} defaultValue="tunai">
-              <option value="tunai">Tunai</option>
-              <option value="transfer">Transfer</option>
-              <option value="xendit">Xendit</option>
-              <option value="midtrans">Midtrans</option>
-              <option value="lainnya">Lainnya</option>
-            </select>
-          </FormField>
-          <FormField label="Tanggal"><TextInput name="payment_date" type="date" defaultValue={todayDate()} /></FormField>
-          <FormField label="Referensi"><TextInput name="reference_number" placeholder="opsional" /></FormField>
-          <div className="lg:col-span-3">
-            <FormField label="Catatan"><TextInput name="notes" placeholder="opsional" /></FormField>
-          </div>
-          <div className="lg:col-span-4">
-            <SubmitBar saving={saving} error={error} success={success} label="Catat pembayaran" />
-          </div>
-        </form>
       </Section>
     </RealShell>
   );

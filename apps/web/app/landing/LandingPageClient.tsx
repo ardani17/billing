@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   ArrowDown,
   ArrowRight,
@@ -21,6 +21,7 @@ import {
   WifiHigh,
   X,
 } from "@phosphor-icons/react";
+import { landingFaqs, publicPricingPlans } from "./content";
 
 type Theme = "light" | "dark";
 
@@ -63,81 +64,19 @@ const features = [
   },
 ];
 
-const plans = [
-  {
-    name: "Starter",
-    range: "0-100 pelanggan",
-    price: "Rp150rb",
-    detail: "Untuk RT/RW Net yang mulai rapi.",
-  },
-  {
-    name: "Growth",
-    range: "101-500 pelanggan",
-    price: "Rp350rb",
-    detail: "Untuk ISP lokal dengan tim operasional.",
-  },
-  {
-    name: "Pro",
-    range: "501-2000 pelanggan",
-    price: "Rp750rb",
-    detail: "Untuk jaringan multi-router dan multi-area.",
-    featured: true,
-  },
-  {
-    name: "Enterprise",
-    range: "2000+ pelanggan",
-    price: "Custom",
-    detail: "Untuk kebutuhan khusus, SLA, dan migrasi besar.",
-  },
-];
-
-const faqs = [
-  {
-    q: "Apakah bisa pakai domain sendiri?",
-    a: "Bisa. Tenant dapat memakai custom domain dengan CNAME ke app ISPBoss dan SSL otomatis.",
-  },
-  {
-    q: "Support merek OLT apa saja?",
-    a: "Arsitekturnya multi-brand. Integrasi dapat memakai SNMP dan CLI adapter sesuai perangkat.",
-  },
-  {
-    q: "Bagaimana migrasi dari billing lama?",
-    a: "Data pelanggan, paket, invoice, dan pembayaran bisa disiapkan lewat import terstruktur.",
-  },
-  {
-    q: "Apakah trial perlu kartu kredit?",
-    a: "Tidak. Trial dibuat untuk validasi operasional terlebih dahulu.",
-  },
-];
-
 export default function LandingPageClient() {
   const [theme, setTheme] = useState<Theme>("light");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
 
   const dark = theme === "dark";
-  const jsonLd = useMemo(
-    () => ({
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name: "ISPBoss",
-      applicationCategory: "BusinessApplication",
-      operatingSystem: "Web",
-      offers: { "@type": "Offer", price: "150000", priceCurrency: "IDR" },
-    }),
-    [],
-  );
 
   return (
     <main
       className={`min-h-[100dvh] overflow-hidden transition-colors duration-300 ${
-        dark ? "bg-slate-950 text-slate-50" : "bg-white text-slate-950"
+        dark ? "dark bg-slate-950 text-slate-50" : "bg-white text-slate-950"
       }`}
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
       <header className="fixed inset-x-0 top-0 z-30 border-b border-white/10 bg-white/80 backdrop-blur-xl dark:bg-slate-950/80">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <a href="#top" className="flex items-center gap-3">
@@ -153,6 +92,9 @@ export default function LandingPageClient() {
             </a>
             <a className="hover:text-slate-950 dark:hover:text-white" href="#harga">
               Harga
+            </a>
+            <a className="hover:text-slate-950 dark:hover:text-white" href="#white-label">
+              White label
             </a>
             <a className="hover:text-slate-950 dark:hover:text-white" href="#faq">
               FAQ
@@ -187,6 +129,7 @@ export default function LandingPageClient() {
             onClick={() => setMobileOpen((value) => !value)}
             className="grid h-10 w-10 place-items-center rounded-md border border-slate-200 md:hidden dark:border-slate-800"
             aria-label="Buka menu"
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={20} /> : <List size={20} />}
           </button>
@@ -199,6 +142,9 @@ export default function LandingPageClient() {
               </a>
               <a href="#harga" onClick={() => setMobileOpen(false)}>
                 Harga
+              </a>
+              <a href="#white-label" onClick={() => setMobileOpen(false)}>
+                White label
               </a>
               <a href="#faq" onClick={() => setMobileOpen(false)}>
                 FAQ
@@ -327,7 +273,7 @@ export default function LandingPageClient() {
             </p>
           </div>
           <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 md:grid-cols-4">
-            {plans.map((plan) => (
+            {publicPricingPlans.map((plan) => (
               <article
                 key={plan.name}
                 className={`bg-slate-950 p-6 ${plan.featured ? "relative ring-1 ring-inset ring-blue-400" : ""}`}
@@ -357,6 +303,35 @@ export default function LandingPageClient() {
         </div>
       </section>
 
+      <section id="white-label" className="border-b border-slate-200 py-24 dark:border-slate-800">
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700 dark:text-blue-300">
+              White label
+            </p>
+            <h2 className="mt-3 text-4xl font-semibold tracking-tight">
+              Brand ISP tetap menjadi wajah pelanggan.
+            </h2>
+            <p className="mt-5 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Logo, warna, domain, invoice, email, dan walled garden bisa mengikuti identitas ISP tanpa memisahkan alur billing dan jaringan.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[
+              ["Domain sendiri", "Custom domain untuk portal pelanggan dan halaman publik tenant."],
+              ["Invoice branded", "Logo, alamat, footer, rekening, dan pesan pembayaran tampil konsisten."],
+              ["Portal pelanggan", "Pengalaman pelanggan tetap membawa nama ISP lokal."],
+              ["Template komunikasi", "WhatsApp, SMS, dan email memakai gaya pesan tenant."],
+            ].map(([title, body]) => (
+              <article key={title} className="border-t border-slate-200 pt-5 dark:border-slate-800">
+                <h3 className="text-lg font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="faq" className="py-24">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[0.7fr_1.3fr] lg:px-8">
           <div>
@@ -368,27 +343,36 @@ export default function LandingPageClient() {
             </h2>
           </div>
           <div className="divide-y divide-slate-200 border-y border-slate-200 dark:divide-slate-800 dark:border-slate-800">
-            {faqs.map((faq, index) => (
+            {landingFaqs.map((faq, index) => {
+              const isOpen = openFaq === index;
+              const panelId = `faq-panel-${index}`;
+              return (
               <button
                 key={faq.q}
                 type="button"
                 onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
                 className="w-full py-6 text-left"
+                aria-expanded={isOpen}
+                aria-controls={panelId}
               >
                 <span className="flex items-center justify-between gap-4">
                   <span className="text-lg font-semibold">{faq.q}</span>
                   <CaretDown
                     size={18}
-                    className={`shrink-0 transition ${openFaq === index ? "rotate-180" : ""}`}
+                    className={`shrink-0 transition ${isOpen ? "rotate-180" : ""}`}
                   />
                 </span>
-                {openFaq === index && (
-                  <span className="mt-3 block max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-                    {faq.a}
-                  </span>
-                )}
+                <span
+                  id={panelId}
+                  className={`block max-w-2xl overflow-hidden text-sm leading-6 text-slate-600 transition-all duration-200 dark:text-slate-300 ${
+                    isOpen ? "mt-3 max-h-40 opacity-100" : "mt-0 max-h-0 opacity-0"
+                  }`}
+                >
+                  {faq.a}
+                </span>
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -427,7 +411,7 @@ export default function LandingPageClient() {
             <div className="mt-3 grid gap-2">
               <a href="#fitur">Fitur</a>
               <a href="#harga">Harga</a>
-              <a href="/settings/branding">White label</a>
+              <a href="#white-label">White label</a>
             </div>
           </div>
           <div>

@@ -23,6 +23,7 @@ Dokumen diskusi dipecah per topik agar mudah di-review dan di-maintain.
 | 12 | [12-settings.md](./12-settings.md) | Pengaturan tenant, white label, profil | 🔲 Belum |
 | 13 | [13-billing-core-standalone.md](./13-billing-core-standalone.md) | Billing core tanpa add-on MikroTik/OLT | Belum |
 | 14 | [14-keuangan-operasional.md](./14-keuangan-operasional.md) | Pengeluaran, inventaris, dan cashflow operasional | Baru |
+| 15 | [15-super-admin.md](./15-super-admin.md) | Super Admin owner console, tenant, subscription, support, audit global | Baru |
 
 ## Alur Kerja
 

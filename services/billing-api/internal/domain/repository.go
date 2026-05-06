@@ -1141,7 +1141,7 @@ type OpenInvoicesResponse struct {
 type MultiPaymentRequest struct {
 	CustomerID      string   `json:"customer_id" validate:"required,uuid"`
 	Amount          int64    `json:"amount" validate:"required,gt=0"`
-	PaymentMethod   string   `json:"payment_method" validate:"required,oneof=tunai transfer lainnya"`
+	PaymentMethod   string   `json:"payment_method" validate:"required,oneof=tunai transfer xendit midtrans lainnya"`
 	PaymentDate     string   `json:"payment_date" validate:"required,datetime=2006-01-02"`
 	ReferenceNumber string   `json:"reference_number" validate:"omitempty"`
 	Notes           string   `json:"notes" validate:"omitempty,max=500"`
@@ -1160,7 +1160,7 @@ type MultiPaymentResponse struct {
 // PayAllRequest adalah payload untuk POST /v1/payments/pay-all.
 type PayAllRequest struct {
 	CustomerID      string `json:"customer_id" validate:"required,uuid"`
-	PaymentMethod   string `json:"payment_method" validate:"required,oneof=tunai transfer lainnya"`
+	PaymentMethod   string `json:"payment_method" validate:"required,oneof=tunai transfer xendit midtrans lainnya"`
 	PaymentDate     string `json:"payment_date" validate:"required,datetime=2006-01-02"`
 	ReferenceNumber string `json:"reference_number" validate:"omitempty"`
 	Notes           string `json:"notes" validate:"omitempty,max=500"`

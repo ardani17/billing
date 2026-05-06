@@ -40,6 +40,7 @@ const settingsSections: Array<{ href: string; title: string; body: string; modul
   { href: "/settings/map", title: "Peta", body: "Label dan preferensi FTTH visual mapping.", module: "fiber_network" },
   { href: "/settings/voucher", title: "Voucher", body: "Format kode dan aturan penjualan voucher." },
   { href: "/settings/localization", title: "Lokalisasi", body: "Timezone, mata uang, dan format tanggal." },
+  { href: "/settings/reports", title: "Laporan", body: "Target KPI, jadwal laporan, dan template custom report." },
   { href: "/settings/subscription", title: "Subscription", body: "Status paket SaaS tenant." },
   { href: "/settings/audit-log", title: "Audit Log", body: "Jejak perubahan penting pada tenant." },
 ];
@@ -513,51 +514,318 @@ export function SettingsSecurityLivePage() {
 }
 
 export function SettingsBillingLivePage() {
-  const modules = useModuleCapabilities();
-  const isolirMode = modules.mikrotik ? "Teknis + administratif" : "Administratif Billing Core";
+  const settings = useApi("/api/billing/settings/billing", {});
+  const data = settings.data ?? {};
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const onSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      setSaving(true);
+      setError("");
+      setSuccess("");
+      try {
+        await apiSend("/api/billing/settings/billing", "PUT", {
+          generate_days: Number(form.get("generate_days") || 1),
+          grace_period_days: Number(form.get("grace_period_days") || 0),
+          suspend_days: Number(form.get("suspend_days") || 0),
+          tax_enabled: form.get("tax_enabled") === "on",
+          tax_rate: Number(form.get("tax_rate") || 0),
+          penalty_enabled: form.get("penalty_enabled") === "on",
+          penalty_type: String(form.get("penalty_type") || "fixed"),
+          penalty_amount: Number(form.get("penalty_amount") || 0),
+          penalty_percentage: Number(form.get("penalty_percentage") || 0),
+          penalty_daily_amount: Number(form.get("penalty_daily_amount") || 0),
+          penalty_max_amount: Number(form.get("penalty_max_amount") || 0),
+          invoice_prefix: String(form.get("invoice_prefix") || "INV"),
+          new_customer_billing: String(form.get("new_customer_billing") || "prorate"),
+          timezone: String(form.get("timezone") || "Asia/Jakarta"),
+          auto_isolir: form.get("auto_isolir") === "on",
+          auto_open_isolir: form.get("auto_open_isolir") === "on",
+        });
+        settings.reload();
+        setSuccess("Billing settings berhasil disimpan.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal menyimpan billing settings");
+      } finally {
+        setSaving(false);
+      }
+    },
+    [settings],
+  );
 
   return (
     <SettingsShell>
-      <PageHeader
-        eyebrow="Pengaturan"
-        title="Billing"
-        description="Aturan jatuh tempo, pajak, denda, isolir, dan billing cycle."
-      />
-      <StatGrid
-        stats={[
-          { label: "Mode isolir", value: isolirMode, tone: modules.mikrotik ? "blue" : "amber" },
-          { label: "MikroTik", value: modules.mikrotik ? "Aktif" : "Nonaktif", tone: modules.mikrotik ? "green" : "amber" },
-          { label: "Fiber Network", value: modules.fiber_network ? "Aktif" : "Nonaktif", tone: modules.fiber_network ? "green" : "amber" },
-        ]}
-      />
-      <Section title="Isolir tagihan">
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 p-4">
-            <p className="text-sm font-semibold text-slate-900">Billing-only</p>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Status pelanggan berubah menjadi isolir di Billing Core, invoice dan notifikasi tetap berjalan, tanpa membuat pending sync router.
-            </p>
+      <PageHeader eyebrow="Pengaturan" title="Billing" description="Konfigurasi billing tenant yang tersambung langsung ke Billing API." />
+      <Notice loading={settings.loading} error={settings.error} />
+      <form key={data.updated_at ?? data.id ?? "billing-defaults"} onSubmit={onSubmit} className="space-y-6">
+        <Section title="Invoice dan siklus tagihan" description="Atur nomor invoice, tanggal generate, dan perlakuan pelanggan baru.">
+          <div className="grid gap-4 lg:grid-cols-4">
+            <FormField label="Prefix invoice"><TextInput name="invoice_prefix" required minLength={2} maxLength={12} defaultValue={data.invoice_prefix ?? "INV"} /></FormField>
+            <FormField label="Generate H-"><TextInput name="generate_days" type="number" min="0" max="31" defaultValue={String(data.generate_days ?? 1)} /></FormField>
+            <FormField label="Grace period"><TextInput name="grace_period_days" type="number" min="0" max="90" defaultValue={String(data.grace_period_days ?? 3)} /></FormField>
+            <FormField label="Suspend setelah"><TextInput name="suspend_days" type="number" min="0" max="180" defaultValue={String(data.suspend_days ?? 30)} /></FormField>
+            <FormField label="Billing pelanggan baru">
+              <select name="new_customer_billing" className={selectClass} defaultValue={data.new_customer_billing ?? "prorate"}>
+                <option value="prorate">Prorate</option>
+                <option value="full_next_cycle">Full next cycle</option>
+                <option value="immediate">Immediate</option>
+              </select>
+            </FormField>
+            <FormField label="Timezone">
+              <select name="timezone" className={selectClass} defaultValue={data.timezone ?? "Asia/Jakarta"}>
+                <option value="Asia/Jakarta">Asia/Jakarta</option>
+                <option value="Asia/Makassar">Asia/Makassar</option>
+                <option value="Asia/Jayapura">Asia/Jayapura</option>
+              </select>
+            </FormField>
           </div>
-          <div className="rounded-lg border border-slate-200 p-4">
-            <p className="text-sm font-semibold text-slate-900">Dengan MikroTik</p>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Status billing tetap menjadi sumber utama, lalu aksi teknis ke RouterOS hanya berjalan saat modul MikroTik aktif.
-            </p>
+        </Section>
+
+        <Section title="Pajak dan denda" description="Nilai ini dipakai saat invoice baru dibuat atau saat denda keterlambatan dihitung.">
+          <div className="grid gap-4 lg:grid-cols-4">
+            <label className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-800">
+              <input name="tax_enabled" type="checkbox" defaultChecked={data.tax_enabled === true} className="h-4 w-4 rounded border-slate-300" />
+              Aktifkan pajak
+            </label>
+            <FormField label="Tax rate (%)"><TextInput name="tax_rate" type="number" min="0" max="100" step="0.01" defaultValue={String(data.tax_rate ?? 0)} /></FormField>
+            <label className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-800">
+              <input name="penalty_enabled" type="checkbox" defaultChecked={data.penalty_enabled === true} className="h-4 w-4 rounded border-slate-300" />
+              Aktifkan denda
+            </label>
+            <FormField label="Tipe denda">
+              <select name="penalty_type" className={selectClass} defaultValue={data.penalty_type ?? "fixed"}>
+                <option value="fixed">Fixed</option>
+                <option value="percentage">Percentage</option>
+                <option value="daily">Daily</option>
+              </select>
+            </FormField>
+            <FormField label="Denda fixed"><TextInput name="penalty_amount" type="number" min="0" defaultValue={String(data.penalty_amount ?? 0)} /></FormField>
+            <FormField label="Denda persen"><TextInput name="penalty_percentage" type="number" min="0" max="100" step="0.01" defaultValue={String(data.penalty_percentage ?? 0)} /></FormField>
+            <FormField label="Denda harian"><TextInput name="penalty_daily_amount" type="number" min="0" defaultValue={String(data.penalty_daily_amount ?? 0)} /></FormField>
+            <FormField label="Maksimum denda"><TextInput name="penalty_max_amount" type="number" min="0" defaultValue={String(data.penalty_max_amount ?? 0)} /></FormField>
           </div>
-          <div className="rounded-lg border border-slate-200 p-4">
-            <p className="text-sm font-semibold text-slate-900">Buka isolir</p>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Tenant Billing-only membuka isolir dengan aktivasi ulang status pelanggan; tenant MikroTik dapat menambahkan sync teknis.
-            </p>
+        </Section>
+
+        <Section title="Isolir otomatis" description="Kontrol otomatisasi isolir dan buka isolir setelah pembayaran.">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <label className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-800">
+              <input name="auto_isolir" type="checkbox" defaultChecked={data.auto_isolir === true} className="h-4 w-4 rounded border-slate-300" />
+              Auto isolir pelanggan overdue
+            </label>
+            <label className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-800">
+              <input name="auto_open_isolir" type="checkbox" defaultChecked={data.auto_open_isolir !== false} className="h-4 w-4 rounded border-slate-300" />
+              Auto buka isolir setelah lunas
+            </label>
           </div>
-        </div>
+        </Section>
+
+        <SubmitBar saving={saving} error={error} success={success} label="Simpan billing settings" />
+      </form>
+    </SettingsShell>
+  );
+}
+
+export function SettingsReportsLivePage() {
+  const kpi = useApi("/api/billing/reports/kpi-targets", {});
+  const schedules = useApi("/api/billing/reports/schedules", []);
+  const templates = useApi("/api/billing/reports/custom/templates", []);
+  const [savingKpi, setSavingKpi] = useState(false);
+  const [savingSchedule, setSavingSchedule] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const onKpiSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      setSavingKpi(true);
+      setError("");
+      setSuccess("");
+      try {
+        await apiSend("/api/billing/reports/kpi-targets", "PUT", {
+          monthly_revenue_target: Number(form.get("monthly_revenue_target") || 0) || undefined,
+          collection_rate_target: Number(form.get("collection_rate_target") || 0) || undefined,
+          max_receivables: Number(form.get("max_receivables") || 0) || undefined,
+          new_customers_monthly_target: Number(form.get("new_customers_monthly_target") || 0) || undefined,
+          max_churn_rate: Number(form.get("max_churn_rate") || 0) || undefined,
+        });
+        kpi.reload();
+        setSuccess("Target KPI berhasil disimpan.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal menyimpan KPI");
+      } finally {
+        setSavingKpi(false);
+      }
+    },
+    [kpi],
+  );
+
+  const onScheduleSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      setSavingSchedule(true);
+      setError("");
+      setSuccess("");
+      try {
+        await apiSend("/api/billing/reports/schedules", "POST", {
+          report_type: String(form.get("report_type") || "profit_loss"),
+          schedule_type: String(form.get("schedule_type") || "monthly"),
+          format: String(form.get("format") || "xlsx"),
+          recipients: [{ type: String(form.get("recipient_type") || "email"), address: String(form.get("recipient_address") || "") }],
+        });
+        event.currentTarget.reset();
+        schedules.reload();
+        setSuccess("Jadwal laporan berhasil dibuat.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal membuat jadwal");
+      } finally {
+        setSavingSchedule(false);
+      }
+    },
+    [schedules],
+  );
+
+  const onTemplateSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      setSavingTemplate(true);
+      setError("");
+      setSuccess("");
+      try {
+        await apiSend("/api/billing/reports/custom/templates", "POST", {
+          name: String(form.get("name") || ""),
+          metrics: String(form.get("metrics") || "revenue")
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+            .slice(0, 3),
+          group_by: String(form.get("group_by") || "month"),
+          sub_group_by: String(form.get("sub_group_by") || ""),
+          display_type: String(form.get("display_type") || "table"),
+          default_period_range: String(form.get("default_period_range") || "this_month"),
+        });
+        event.currentTarget.reset();
+        templates.reload();
+        setSuccess("Template custom report berhasil dibuat.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal membuat template");
+      } finally {
+        setSavingTemplate(false);
+      }
+    },
+    [templates],
+  );
+
+  const kpiData = kpi.data ?? {};
+  const scheduleRows = listOf(schedules.data);
+  const templateRows = listOf(templates.data);
+
+  return (
+    <SettingsShell>
+      <PageHeader eyebrow="Pengaturan" title="Laporan" description="Target KPI, jadwal laporan otomatis, dan template custom report." />
+      {(error || success) && <SubmitBar saving={false} error={error} success={success} label="Status" />}
+      <Section title="Target KPI">
+        <Notice loading={kpi.loading} error={kpi.error} />
+        <form key={kpiData.updated_at ?? kpiData.id ?? "kpi-defaults"} onSubmit={onKpiSubmit} className="grid gap-4 lg:grid-cols-5">
+          <FormField label="Revenue bulanan"><TextInput name="monthly_revenue_target" type="number" min="1" defaultValue={String(kpiData.monthly_revenue_target ?? "")} /></FormField>
+          <FormField label="Collection rate"><TextInput name="collection_rate_target" type="number" min="0" max="100" step="0.01" defaultValue={String(kpiData.collection_rate_target ?? "")} /></FormField>
+          <FormField label="Maks piutang"><TextInput name="max_receivables" type="number" min="1" defaultValue={String(kpiData.max_receivables ?? "")} /></FormField>
+          <FormField label="Pelanggan baru"><TextInput name="new_customers_monthly_target" type="number" min="1" defaultValue={String(kpiData.new_customers_monthly_target ?? "")} /></FormField>
+          <FormField label="Maks churn"><TextInput name="max_churn_rate" type="number" min="0" max="100" step="0.01" defaultValue={String(kpiData.max_churn_rate ?? "")} /></FormField>
+          <div className="lg:col-span-5">
+            <SubmitBar saving={savingKpi} error="" success="" label="Simpan KPI" />
+          </div>
+        </form>
       </Section>
-      <Section title="Status implementasi">
-        <EmptyState
-          title="Endpoint persistensi setting belum tersedia"
-          description="Nilai operasional masih mengikuti konfigurasi backend. Halaman ini sudah menampilkan mode isolir sesuai add-on tenant agar operator tidak keliru membaca proses."
-          action={<Button href="/settings">Kembali ke pengaturan</Button>}
-        />
+
+      <Section title="Jadwal laporan">
+        <Notice loading={schedules.loading} error={schedules.error} />
+        {scheduleRows.length > 0 && (
+          <DataTable
+            columns={["Report", "Frekuensi", "Format", "Penerima", "Status"]}
+            rows={scheduleRows.map((schedule) => [
+              schedule.report_type,
+              schedule.schedule_type,
+              schedule.format,
+              Array.isArray(schedule.recipients) ? schedule.recipients.map((item: AnyRecord) => item.address).join(", ") : "-",
+              <StatusBadge key={schedule.id} status={schedule.is_active === false ? "nonaktif" : "aktif"} />,
+            ])}
+          />
+        )}
+        <form onSubmit={onScheduleSubmit} className="mt-5 grid gap-4 lg:grid-cols-5">
+          <FormField label="Report type"><TextInput name="report_type" defaultValue="profit_loss" /></FormField>
+          <FormField label="Frekuensi">
+            <select name="schedule_type" className={selectClass} defaultValue="monthly">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </FormField>
+          <FormField label="Format">
+            <select name="format" className={selectClass} defaultValue="xlsx">
+              <option value="xlsx">XLSX</option>
+              <option value="pdf">PDF</option>
+            </select>
+          </FormField>
+          <FormField label="Tipe penerima">
+            <select name="recipient_type" className={selectClass} defaultValue="email">
+              <option value="email">Email</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+          </FormField>
+          <FormField label="Alamat penerima"><TextInput name="recipient_address" required /></FormField>
+          <div className="lg:col-span-5">
+            <SubmitBar saving={savingSchedule} error="" success="" label="Tambah jadwal" />
+          </div>
+        </form>
+      </Section>
+
+      <Section title="Template custom report">
+        <Notice loading={templates.loading} error={templates.error} />
+        {templateRows.length > 0 && (
+          <DataTable
+            columns={["Nama", "Metric", "Group", "Tampilan"]}
+            rows={templateRows.map((template) => [
+              template.name,
+              Array.isArray(template.metrics) ? template.metrics.join(", ") : "-",
+              [template.group_by, template.sub_group_by].filter(Boolean).join(" / "),
+              template.display_type,
+            ])}
+          />
+        )}
+        <form onSubmit={onTemplateSubmit} className="mt-5 grid gap-4 lg:grid-cols-5">
+          <FormField label="Nama"><TextInput name="name" required placeholder="Laporan revenue area" /></FormField>
+          <FormField label="Metrics"><TextInput name="metrics" defaultValue="revenue,expenses,net_profit" /></FormField>
+          <FormField label="Group by">
+            <select name="group_by" className={selectClass} defaultValue="month">
+              <option value="area">Area</option>
+              <option value="package">Package</option>
+              <option value="month">Month</option>
+              <option value="status">Status</option>
+              <option value="connection_method">Connection method</option>
+              <option value="router">Router</option>
+            </select>
+          </FormField>
+          <FormField label="Display">
+            <select name="display_type" className={selectClass} defaultValue="table">
+              <option value="table">Table</option>
+              <option value="bar_chart">Bar chart</option>
+              <option value="line_chart">Line chart</option>
+              <option value="pie_chart">Pie chart</option>
+            </select>
+          </FormField>
+          <FormField label="Periode default"><TextInput name="default_period_range" defaultValue="this_month" /></FormField>
+          <div className="lg:col-span-5">
+            <SubmitBar saving={savingTemplate} error="" success="" label="Tambah template" />
+          </div>
+        </form>
       </Section>
     </SettingsShell>
   );

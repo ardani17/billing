@@ -41,6 +41,12 @@ type ModuleCapabilities = {
   fiber_network: boolean;
 };
 
+type ImpersonationState = {
+  tenant_id?: string;
+  tenant_name?: string;
+  reason?: string;
+};
+
 type NavItem = {
   href: string;
   label: string;
@@ -61,6 +67,7 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: SquaresFour },
       { href: "/customers", label: "Pelanggan", icon: Users },
+      { href: "/customers/areas", label: "Area Pelanggan", icon: MapTrifold },
       { href: "/packages", label: "Paket Internet", icon: Package },
       { href: "/resellers", label: "Reseller", icon: Storefront },
     ],
@@ -132,6 +139,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [modules, setModules] = useState<ModuleCapabilities>(defaultModuleCapabilities);
+  const [impersonating, setImpersonating] = useState<ImpersonationState | null>(null);
+  const [stoppingImpersonation, setStoppingImpersonation] = useState(false);
   const mikrotikDetailId = getMikrotikDetailId(pathname);
 
   useEffect(() => {
@@ -161,6 +170,37 @@ export default function AppShell({ children }: { children: ReactNode }) {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("ispboss_impersonating");
+      if (raw) setImpersonating(JSON.parse(raw));
+    } catch {
+      setImpersonating(null);
+    }
+  }, []);
+
+  async function stopImpersonation() {
+    setStoppingImpersonation(true);
+    try {
+      const response = await fetch("/api/super-admin/stop-impersonate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || payload?.success === false) {
+        throw new Error(payload?.error?.message || "Gagal menghentikan impersonate");
+      }
+      window.localStorage.removeItem("ispboss_impersonating");
+      setImpersonating(null);
+      window.location.href = "/super-admin";
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Gagal menghentikan impersonate");
+    } finally {
+      setStoppingImpersonation(false);
+    }
+  }
 
   const visibleNavGroups = useMemo(
     () =>
@@ -347,7 +387,25 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-8">
-          <div className="mx-auto max-w-[1400px]">{children}</div>
+          <div className="mx-auto max-w-[1400px]">
+            {impersonating && (
+              <div className="mb-4 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm shadow-amber-100 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="font-semibold">Mode impersonate aktif: {impersonating.tenant_name || "Tenant"}</p>
+                  <p className="truncate text-amber-800">Alasan: {impersonating.reason || "-"}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void stopImpersonation()}
+                  disabled={stoppingImpersonation}
+                  className="h-9 shrink-0 rounded-md bg-amber-950 px-3 text-xs font-semibold text-white disabled:opacity-60"
+                >
+                  Berhenti impersonate
+                </button>
+              </div>
+            )}
+            {children}
+          </div>
         </main>
 
         <nav

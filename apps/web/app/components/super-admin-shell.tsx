@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Buildings,
@@ -9,15 +10,18 @@ import {
   GearSix,
   House,
   List,
+  StackPlus,
   Pulse,
   ShieldCheck,
   UserSwitch,
+  X,
 } from "@phosphor-icons/react";
 
 const navItems = [
   { href: "/super-admin", label: "Overview", icon: House },
   { href: "/super-admin/tenants", label: "Tenants", icon: Buildings },
   { href: "/super-admin/subscriptions", label: "Subscriptions", icon: CreditCard },
+  { href: "/super-admin/upgrade-requests", label: "Upgrade Requests", icon: StackPlus },
   { href: "/super-admin/support", label: "Support", icon: UserSwitch },
   { href: "/super-admin/health", label: "Service Health", icon: Pulse },
   { href: "/super-admin/audit", label: "Audit Global", icon: ClockCounterClockwise },
@@ -26,6 +30,9 @@ const navItems = [
 
 export default function SuperAdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const primaryMobileItems = navItems.slice(0, 3);
+  const moreMobileItems = navItems.slice(3);
 
   return (
     <div className="min-h-[100dvh] bg-zinc-50 text-zinc-950">
@@ -83,17 +90,51 @@ export default function SuperAdminShell({ children }: { children: ReactNode }) {
           <div className="mx-auto max-w-[1400px]">{children}</div>
         </main>
 
-        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-zinc-200 bg-white lg:hidden">
-          {navItems.slice(0, 5).map((item) => {
+        {moreOpen && (
+          <div className="fixed inset-x-0 bottom-[57px] z-30 border-t border-zinc-200 bg-white p-3 shadow-2xl lg:hidden">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Menu Super Admin</p>
+              <button type="button" onClick={() => setMoreOpen(false)} className="grid h-8 w-8 place-items-center rounded-md border border-zinc-200">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {moreMobileItems.map((item) => {
+                const Icon = item.icon;
+                const active = pathname === item.href || (item.href !== "/super-admin" && pathname.startsWith(item.href));
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMoreOpen(false)}
+                    className={`flex min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold ${
+                      active ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 text-zinc-600"
+                    }`}
+                  >
+                    <Icon size={17} />
+                    <span className="truncate">{item.label}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-zinc-200 bg-white lg:hidden">
+          {primaryMobileItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href || (item.href !== "/super-admin" && pathname.startsWith(item.href));
             return (
-              <a key={item.href} href={item.href} className={`flex flex-col items-center gap-1 px-1 py-2 text-[10px] font-medium ${active ? "text-zinc-950" : "text-zinc-500"}`}>
+              <a key={item.href} href={item.href} onClick={() => setMoreOpen(false)} className={`flex min-w-0 flex-col items-center gap-1 px-1 py-2 text-[10px] font-medium ${active ? "text-zinc-950" : "text-zinc-500"}`}>
                 <Icon size={20} weight={active ? "fill" : "regular"} />
                 <span className="max-w-full truncate">{item.label}</span>
               </a>
             );
           })}
+          <button type="button" onClick={() => setMoreOpen((value) => !value)} className={`flex min-w-0 flex-col items-center gap-1 px-1 py-2 text-[10px] font-medium ${moreOpen ? "text-zinc-950" : "text-zinc-500"}`}>
+            <List size={20} weight={moreOpen ? "fill" : "regular"} />
+            <span className="max-w-full truncate">More</span>
+          </button>
         </nav>
       </div>
     </div>

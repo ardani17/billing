@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartLineUp, ClockCounterClockwise, FileText, Pulse } from "@phosphor-icons/react";
+import { ArrowRight, ChartLineUp, ClockCounterClockwise, FileText, Pulse } from "@phosphor-icons/react";
 import AppShell from "../components/app-shell";
 import { FilterBar } from "./components/FilterBar";
 import { TabNavigation } from "./components/TabNavigation";
@@ -60,6 +60,13 @@ export default function ReportPage() {
               <ReportStatus icon={<ClockCounterClockwise className="h-4 w-4" />} label="Periode" value={periodLabel} />
               <ReportStatus icon={<Pulse className="h-4 w-4" />} label="Banding" value={filters.comparisonType?.toUpperCase() ?? "Tidak aktif"} />
               <ReportStatus icon={<FileText className="h-4 w-4" />} label="Tab" value={tabLabel(filters.tab)} />
+              <a
+                href="/reports/reconciliation"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 sm:col-span-3"
+              >
+                Buka rekonsiliasi
+                <ArrowRight className="h-4 w-4" />
+              </a>
             </div>
           </div>
 

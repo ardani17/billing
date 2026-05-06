@@ -279,6 +279,7 @@ func main() {
 		reportAggregationRepo, networkClient, kpiTargetRepo, tenantModuleRepo, redisClient, appLogger,
 	)
 	kpiTargetUsecase := usecase.NewKPITargetUsecase(kpiTargetRepo, appLogger)
+	billingSettingsUsecase := usecase.NewBillingSettingsUsecase(billingSettingsRepo, appLogger)
 	tenantModuleUsecase := usecase.NewTenantModuleUsecase(tenantModuleRepo)
 	inventoryUsecase := usecase.NewInventoryUsecase(inventoryRepo, expenseRepo, auditLogRepo, appLogger)
 	cashflowUsecase := usecase.NewCashflowUsecase(cashflowRepo, appLogger)
@@ -324,6 +325,7 @@ func main() {
 
 	// --- Instantiate gateway handlers ---
 	gatewayHandler := handler.NewGatewayHandler(gatewayUsecase, webhookLogRepo, paymentLinkRepo, appLogger)
+	billingSettingsHandler := handler.NewBillingSettingsHandler(billingSettingsUsecase, appLogger)
 	webhookHandler := handler.NewWebhookHandler(webhookLogRepo, queueClient, xenditIPs, midtransIPs, appLogger)
 
 	// --- Instantiate isolir handler ---
@@ -378,6 +380,7 @@ func main() {
 		DebitNoteHandler:         debitNoteHandler,
 		PaymentHandler:           paymentHandler,
 		GatewayHandler:           gatewayHandler,
+		BillingSettingsHandler:   billingSettingsHandler,
 		WebhookHandler:           webhookHandler,
 		IsolirHandler:            isolirHandler,
 		ReportHandler:            reportHandler,
