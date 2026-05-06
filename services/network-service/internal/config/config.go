@@ -220,6 +220,25 @@ func (c *AppConfig) Validate() error {
 		)
 	}
 
+	if isProductionEnv(c.AppEnv) {
+		var unsafe []string
+		if strings.TrimSpace(c.JWTSecret) == developmentJWTSecret || len(strings.TrimSpace(c.JWTSecret)) < 32 {
+			unsafe = append(unsafe, "JWT_SECRET harus secret production minimal 32 karakter")
+		}
+		if strings.TrimSpace(c.DBPassword) == developmentDBPassword {
+			unsafe = append(unsafe, "DB_PASSWORD tidak boleh memakai password development")
+		}
+		if strings.TrimSpace(c.EncryptionKey) == developmentEncryptionKey {
+			unsafe = append(unsafe, "ENCRYPTION_KEY tidak boleh memakai key development")
+		}
+		if strings.EqualFold(strings.TrimSpace(c.DBSSLMode), "disable") {
+			unsafe = append(unsafe, "DB_SSL_MODE production tidak boleh disable")
+		}
+		if len(unsafe) > 0 {
+			return fmt.Errorf("konfigurasi production tidak aman: %s", strings.Join(unsafe, "; "))
+		}
+	}
+
 	return nil
 }
 
@@ -251,6 +270,14 @@ func (c *AppConfig) EncryptionKeyBytes() ([]byte, error) {
 
 // hexPattern mencocokkan tepat 64 karakter hex (0-9, a-f, A-F).
 var hexPattern = regexp.MustCompile(`^[0-9a-fA-F]{64}$`)
+
+const developmentJWTSecret = "change-me-to-a-strong-secret"
+const developmentDBPassword = "ispboss_secret"
+const developmentEncryptionKey = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+func isProductionEnv(env string) bool {
+	return strings.EqualFold(strings.TrimSpace(env), "production")
+}
 
 // isValidHex64 memeriksa apakah string berupa 64 karakter hex.
 func isValidHex64(s string) bool {

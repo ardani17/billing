@@ -41,8 +41,13 @@ type AppConfig struct {
 	BcryptCost       int           `mapstructure:"BCRYPT_COST"`
 
 	// Rate limiting
-	LoginMaxAttempts  int           `mapstructure:"LOGIN_MAX_ATTEMPTS"`
-	LoginLockDuration time.Duration `mapstructure:"LOGIN_LOCK_DURATION"`
+	LoginMaxAttempts      int           `mapstructure:"LOGIN_MAX_ATTEMPTS"`
+	LoginLockDuration     time.Duration `mapstructure:"LOGIN_LOCK_DURATION"`
+	GlobalRateLimitMax    int           `mapstructure:"GLOBAL_RATE_LIMIT_MAX"`
+	GlobalRateLimitWindow time.Duration `mapstructure:"GLOBAL_RATE_LIMIT_WINDOW"`
+
+	// HTTP security
+	CORSAllowOrigins string `mapstructure:"CORS_ALLOW_ORIGINS"`
 
 	// Payment gateway
 	GatewayMasterKey        string `mapstructure:"GATEWAY_MASTER_KEY"`
@@ -88,6 +93,9 @@ func Load() (*AppConfig, error) {
 	v.SetDefault("BCRYPT_COST", 10)
 	v.SetDefault("LOGIN_MAX_ATTEMPTS", 5)
 	v.SetDefault("LOGIN_LOCK_DURATION", "15m")
+	v.SetDefault("GLOBAL_RATE_LIMIT_MAX", 300)
+	v.SetDefault("GLOBAL_RATE_LIMIT_WINDOW", "1m")
+	v.SetDefault("CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
 	v.SetDefault("WEBHOOK_LOG_RETENTION_DAYS", 90)
 	v.SetDefault("NETWORK_SERVICE_URL", "http://localhost:3002")
 	v.SetDefault("ISOLIR_AUTOMATION_ENABLED", false)
@@ -114,6 +122,9 @@ func Load() (*AppConfig, error) {
 		"BCRYPT_COST",
 		"LOGIN_MAX_ATTEMPTS",
 		"LOGIN_LOCK_DURATION",
+		"GLOBAL_RATE_LIMIT_MAX",
+		"GLOBAL_RATE_LIMIT_WINDOW",
+		"CORS_ALLOW_ORIGINS",
 		"GATEWAY_MASTER_KEY",
 		"XENDIT_WEBHOOK_IPS",
 		"MIDTRANS_WEBHOOK_IPS",
@@ -172,6 +183,25 @@ func (c *AppConfig) Validate() error {
 		)
 	}
 
+	if isProductionEnv(c.AppEnv) {
+		var unsafe []string
+		if strings.TrimSpace(c.JWTSecret) == developmentJWTSecret || len(strings.TrimSpace(c.JWTSecret)) < 32 {
+			unsafe = append(unsafe, "JWT_SECRET harus secret production minimal 32 karakter")
+		}
+		if strings.TrimSpace(c.DBPassword) == developmentDBPassword {
+			unsafe = append(unsafe, "DB_PASSWORD tidak boleh memakai password development")
+		}
+		if strings.EqualFold(strings.TrimSpace(c.DBSSLMode), "disable") {
+			unsafe = append(unsafe, "DB_SSL_MODE production tidak boleh disable")
+		}
+		if strings.TrimSpace(c.CORSAllowOrigins) == "" || strings.Contains(c.CORSAllowOrigins, "*") {
+			unsafe = append(unsafe, "CORS_ALLOW_ORIGINS production harus allowlist domain eksplisit")
+		}
+		if len(unsafe) > 0 {
+			return fmt.Errorf("konfigurasi production tidak aman: %s", strings.Join(unsafe, "; "))
+		}
+	}
+
 	// Validasi format GATEWAY_MASTER_KEY jika diisi (opsional untuk dev)
 	if c.GatewayMasterKey != "" {
 		if !isValidHex64(c.GatewayMasterKey) {
@@ -220,6 +250,13 @@ func (c *AppConfig) MasterKeyBytes() ([]byte, error) {
 
 // hexPattern mencocokkan tepat 64 karakter hex (0-9, a-f, A-F).
 var hexPattern = regexp.MustCompile(`^[0-9a-fA-F]{64}$`)
+
+const developmentJWTSecret = "change-me-to-a-strong-secret"
+const developmentDBPassword = "ispboss_secret"
+
+func isProductionEnv(env string) bool {
+	return strings.EqualFold(strings.TrimSpace(env), "production")
+}
 
 // isValidHex64 memeriksa apakah string berupa 64 karakter hex.
 func isValidHex64(s string) bool {

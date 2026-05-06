@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createDevJwt } from "../../../lib/dev-jwt";
+import { createOptionalDevJwt } from "../../../lib/dev-jwt";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
@@ -15,9 +15,24 @@ async function proxy(request: NextRequest, context: RouteContext) {
     const method = request.method;
     const hasBody = !["GET", "HEAD"].includes(method);
     const sessionToken = request.cookies.get("ispboss_access_token")?.value;
+    const devToken = sessionToken ? null : createOptionalDevJwt();
+    const authorizationToken = sessionToken || devToken;
+    if (!authorizationToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "AUTH_REQUIRED",
+            message: "Sesi login diperlukan",
+          },
+        },
+        { status: 401 },
+      );
+    }
+
     const contentType = request.headers.get("content-type") || "";
     const headers = new Headers({
-      Authorization: sessionToken ? `Bearer ${sessionToken}` : `Bearer ${createDevJwt()}`,
+      Authorization: `Bearer ${authorizationToken}`,
     });
     if (contentType) headers.set("Content-Type", contentType);
 

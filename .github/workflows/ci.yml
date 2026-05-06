@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "codex/**"
+  pull_request:
+
+jobs:
+  web:
+    name: Web build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web
+        run: npm --workspace @ispboss/web run build
+        env:
+          BILLING_API_URL: http://localhost:3001
+          JWT_SECRET: ci-development-jwt-secret-minimum-32-chars
+          ISPBOSS_ENABLE_DEV_AUTH: "true"
+
+  go:
+    name: Go tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - services/billing-api
+          - services/network-service
+          - services/notification
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          cache-dependency-path: ${{ matrix.service }}/go.sum
+
+      - name: Test ${{ matrix.service }}
+        working-directory: ${{ matrix.service }}
+        run: go test ./...

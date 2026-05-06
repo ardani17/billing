@@ -16,10 +16,14 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
+	fiberlimiter "github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -355,6 +359,24 @@ func main() {
 
 	// Pasang middleware recovery untuk menangkap panic
 	app.Use(recover.New())
+	app.Use(helmet.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     cfg.CORSAllowOrigins,
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+		AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
+		AllowCredentials: true,
+	}))
+	app.Use(fiberlimiter.New(fiberlimiter.Config{
+		Max:        cfg.GlobalRateLimitMax,
+		Expiration: cfg.GlobalRateLimitWindow,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+		Next: func(c *fiber.Ctx) bool {
+			path := c.Path()
+			return path == "/healthz" || strings.HasPrefix(path, "/swagger")
+		},
+	}))
 
 	// Daftarkan semua route
 	handler.RegisterRoutes(handler.RouterConfig{

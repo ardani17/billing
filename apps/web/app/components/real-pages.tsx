@@ -278,10 +278,7 @@ export function CustomersLivePage() {
         title="Daftar pelanggan"
         description="Data langsung dari Billing API: paket, status billing, dan data layanan pelanggan."
         actions={
-          <>
-            <Button variant="secondary" href="/customers/areas">Area Pelanggan</Button>
-            <Button href="/customers/new">Tambah Pelanggan</Button>
-          </>
+          <Button href="/customers/new">Tambah Pelanggan</Button>
         }
       />
       <StatGrid
@@ -292,15 +289,6 @@ export function CustomersLivePage() {
           { label: "Suspend", value: String(stats.data.suspend ?? 0), tone: "red" },
         ]}
       />
-      <Section
-        title="Area pelanggan"
-        description="Buat dan kelola master area sebelum memilih area pada form tambah pelanggan."
-        action={<Button href="/customers/areas">Buka Area Pelanggan</Button>}
-      >
-        <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-800">
-          Area yang dibuat di sini akan muncul sebagai pilihan pada field Area di halaman tambah pelanggan.
-        </div>
-      </Section>
       <Section title="Pelanggan" description="Daftar ini memakai database tenant, bukan mock.">
         <Notice loading={customers.loading} error={customers.error} />
         {deleteError && <p className="mb-3 text-sm text-red-600">{deleteError}</p>}
@@ -309,12 +297,7 @@ export function CustomersLivePage() {
           <EmptyState
             title="Belum ada pelanggan"
             description="Tambahkan paket dulu, lalu buat pelanggan pertama dari form pelanggan."
-            action={
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button variant="secondary" href="/customers/areas">Area Pelanggan</Button>
-                <Button href="/customers/new">Tambah Pelanggan</Button>
-              </div>
-            }
+            action={<Button href="/customers/new">Tambah Pelanggan</Button>}
           />
         ) : (
           <DataTable

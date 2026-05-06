@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createDevJwt } from "../../../lib/dev-jwt";
+import { createOptionalDevJwt, isProductionRuntime } from "../../../lib/dev-jwt";
 
 const billingApiBaseUrl = process.env.BILLING_API_URL || "http://localhost:3001";
 
@@ -19,9 +19,21 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const method = request.method;
   const hasBody = !["GET", "HEAD"].includes(method);
   const sessionToken = request.cookies.get("ispboss_access_token")?.value;
-  const authorizationToken = targetPath === "stop-impersonate" && sessionToken
-    ? sessionToken
-    : createDevJwt({ role: "super_admin" });
+  const devToken = sessionToken ? null : createOptionalDevJwt({ role: "super_admin" });
+  const authorizationToken = sessionToken || devToken;
+
+  if (!authorizationToken) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "AUTH_REQUIRED",
+          message: "Sesi super admin diperlukan",
+        },
+      },
+      { status: 401 },
+    );
+  }
 
   try {
     const response = await fetch(`${billingApiBaseUrl}/api/v1/admin/${targetPath}${query}`, {
@@ -51,6 +63,7 @@ async function proxy(request: NextRequest, context: RouteContext) {
         if (accessToken) {
           nextResponse.cookies.set("ispboss_access_token", accessToken, {
             httpOnly: true,
+            secure: isProductionRuntime(),
             sameSite: "lax",
             maxAge: cookieMaxAge(body.data.expires_in),
             path: "/",
@@ -59,6 +72,7 @@ async function proxy(request: NextRequest, context: RouteContext) {
         if (refreshToken) {
           nextResponse.cookies.set("ispboss_refresh_token", refreshToken, {
             httpOnly: true,
+            secure: isProductionRuntime(),
             sameSite: "lax",
             maxAge: 60 * 60 * 24 * 30,
             path: "/",

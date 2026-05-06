@@ -10,6 +10,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+const developmentJWTSecret = "change-me-to-a-strong-secret"
+const developmentDBPassword = "ispboss_secret"
+
+func isProductionEnv(env string) bool {
+	return strings.EqualFold(strings.TrimSpace(env), "production")
+}
+
 // AppConfig berisi semua konfigurasi yang dibutuhkan service notification.
 type AppConfig struct {
 	AppName  string `mapstructure:"APP_NAME"`
@@ -137,6 +144,22 @@ func (c *AppConfig) Validate() error {
 			"variabel wajib belum diisi: %s",
 			strings.Join(missing, ", "),
 		)
+	}
+
+	if isProductionEnv(c.AppEnv) {
+		var unsafe []string
+		if strings.TrimSpace(c.JWTSecret) == developmentJWTSecret || len(strings.TrimSpace(c.JWTSecret)) < 32 {
+			unsafe = append(unsafe, "JWT_SECRET harus secret production minimal 32 karakter")
+		}
+		if strings.TrimSpace(c.DBPassword) == developmentDBPassword {
+			unsafe = append(unsafe, "DB_PASSWORD tidak boleh memakai password development")
+		}
+		if strings.EqualFold(strings.TrimSpace(c.DBSSLMode), "disable") {
+			unsafe = append(unsafe, "DB_SSL_MODE production tidak boleh disable")
+		}
+		if len(unsafe) > 0 {
+			return fmt.Errorf("konfigurasi production tidak aman: %s", strings.Join(unsafe, "; "))
+		}
 	}
 
 	return nil

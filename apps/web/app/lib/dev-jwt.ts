@@ -4,7 +4,24 @@ function base64Url(input: string) {
   return Buffer.from(input).toString("base64url");
 }
 
+export function isProductionRuntime() {
+  return [process.env.NODE_ENV, process.env.APP_ENV, process.env.NEXT_PUBLIC_APP_ENV]
+    .filter(Boolean)
+    .some((env) => env?.toLowerCase() === "production");
+}
+
+export function isDevAuthEnabled() {
+  const flag = process.env.ISPBOSS_ENABLE_DEV_AUTH;
+  if (flag === "true") return true;
+  if (flag === "false") return false;
+  return !isProductionRuntime();
+}
+
 export function createDevJwt(options?: { role?: string; userId?: string; tenantId?: string }) {
+  if (!isDevAuthEnabled()) {
+    throw new Error("Development auth token is disabled in production runtime");
+  }
+
   const secret = process.env.JWT_SECRET || "change-me-to-a-strong-secret";
   const now = Math.floor(Date.now() / 1000);
   const payload = {
@@ -23,4 +40,8 @@ export function createDevJwt(options?: { role?: string; userId?: string; tenantI
     .digest("base64url");
 
   return `${encodedHeader}.${encodedPayload}.${signature}`;
+}
+
+export function createOptionalDevJwt(options?: { role?: string; userId?: string; tenantId?: string }) {
+  return isDevAuthEnabled() ? createDevJwt(options) : null;
 }

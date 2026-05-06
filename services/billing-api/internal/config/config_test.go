@@ -209,6 +209,32 @@ func TestValidateGatewayMasterKeyKosong(t *testing.T) {
 	}
 }
 
+func TestValidateProductionRejectsDevelopmentSecrets(t *testing.T) {
+	cfg := validConfig()
+	cfg.AppEnv = "production"
+	cfg.DBSSLMode = "require"
+	cfg.CORSAllowOrigins = "https://app.example.com"
+	cfg.JWTSecret = developmentJWTSecret
+	cfg.DBPassword = developmentDBPassword
+
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("Validate() harus error untuk secret development pada production")
+	}
+}
+
+func TestValidateProductionAcceptsStrongSecrets(t *testing.T) {
+	cfg := validConfig()
+	cfg.AppEnv = "production"
+	cfg.DBSSLMode = "require"
+	cfg.CORSAllowOrigins = "https://app.example.com"
+	cfg.JWTSecret = "production-jwt-secret-minimum-32-chars"
+	cfg.DBPassword = "production-db-password"
+
+	if err := cfg.Validate(); err != nil {
+		t.Errorf("Validate() error = %v, seharusnya nil", err)
+	}
+}
+
 // validConfig mengembalikan AppConfig dengan semua field wajib terisi.
 func validConfig() *AppConfig {
 	return &AppConfig{
