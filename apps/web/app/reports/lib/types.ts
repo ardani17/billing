@@ -459,6 +459,10 @@ export interface Expense {
   amount: number;
   description: string;
   expense_date: string;
+  payment_method?: string;
+  vendor_name?: string;
+  reference_number?: string;
+  attachment_url?: string;
   is_recurring: boolean;
   recurring_day?: number;
   created_by_id: string;
@@ -561,6 +565,10 @@ export interface CreateExpenseRequest {
   amount: number;
   description?: string;
   expense_date: string;
+  payment_method?: string;
+  vendor_name?: string;
+  reference_number?: string;
+  attachment_url?: string;
   is_recurring: boolean;
   recurring_day?: number;
 }
@@ -570,6 +578,10 @@ export interface UpdateExpenseRequest {
   amount?: number;
   description?: string;
   expense_date?: string;
+  payment_method?: string;
+  vendor_name?: string;
+  reference_number?: string;
+  attachment_url?: string;
   is_recurring?: boolean;
   recurring_day?: number;
 }

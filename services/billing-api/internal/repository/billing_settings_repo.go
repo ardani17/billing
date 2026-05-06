@@ -51,6 +51,28 @@ func mapBillingSettingRow(row BillingSetting) *domain.BillingSettings {
 	}
 }
 
+func defaultBillingSettings(tenantID string) *domain.BillingSettings {
+	return &domain.BillingSettings{
+		TenantID:           tenantID,
+		GenerateDays:       5,
+		GracePeriodDays:    7,
+		SuspendDays:        30,
+		TaxEnabled:         false,
+		TaxRate:            11,
+		PenaltyEnabled:     false,
+		PenaltyType:        domain.PenaltyFixed,
+		PenaltyAmount:      0,
+		PenaltyPercentage:  0,
+		PenaltyDailyAmount: 0,
+		PenaltyMaxAmount:   0,
+		InvoicePrefix:      "INV",
+		NewCustomerBilling: "prorate",
+		Timezone:           "Asia/Jakarta",
+		AutoIsolir:         true,
+		AutoOpenIsolir:     true,
+	}
+}
+
 // --- Implementasi domain.BillingSettingsRepository ---
 
 // GetByTenantID mengambil billing settings berdasarkan tenant ID.
@@ -59,7 +81,7 @@ func (r *BillingSettingsRepo) GetByTenantID(ctx context.Context, tenantID string
 	row, err := r.queries.GetBillingSettingsByTenantID(ctx, stringToUUID(tenantID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, domain.ErrBillingSettingsNotFound
+			return defaultBillingSettings(tenantID), nil
 		}
 		return nil, fmt.Errorf("repository: gagal mengambil billing settings: %w", err)
 	}
@@ -102,8 +124,23 @@ func (r *BillingSettingsRepo) ListAll(ctx context.Context) ([]*domain.BillingSet
 	}
 
 	result := make([]*domain.BillingSettings, 0, len(rows))
+	seen := make(map[string]bool, len(rows))
 	for _, row := range rows {
-		result = append(result, mapBillingSettingRow(row))
+		settings := mapBillingSettingRow(row)
+		result = append(result, settings)
+		seen[settings.TenantID] = true
+	}
+
+	tenants, err := r.queries.ListTenants(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("repository: gagal mengambil tenant untuk default billing settings: %w", err)
+	}
+	for _, tenant := range tenants {
+		tenantID := uuidToString(tenant.ID)
+		if seen[tenantID] {
+			continue
+		}
+		result = append(result, defaultBillingSettings(tenantID))
 	}
 	return result, nil
 }

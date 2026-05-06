@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { billingApi } from "../../../lib/billing-api";
+import { createDevJwt } from "../../../lib/dev-jwt";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
 };
+
+const billingApiBaseUrl = process.env.BILLING_API_URL || "http://localhost:3001";
 
 async function proxy(request: NextRequest, context: RouteContext) {
   try {
@@ -13,13 +15,33 @@ async function proxy(request: NextRequest, context: RouteContext) {
     const method = request.method;
     const hasBody = !["GET", "HEAD"].includes(method);
     const sessionToken = request.cookies.get("ispboss_access_token")?.value;
-    const data = await billingApi(targetPath, {
+    const response = await fetch(`${billingApiBaseUrl}${targetPath}`, {
       method,
-      headers: sessionToken ? { Authorization: `Bearer ${sessionToken}` } : undefined,
+      headers: {
+        "Content-Type": request.headers.get("content-type") || "application/json",
+        Authorization: sessionToken ? `Bearer ${sessionToken}` : `Bearer ${createDevJwt()}`,
+      },
       body: hasBody ? await request.text() : undefined,
+      cache: "no-store",
     });
 
-    return NextResponse.json(data);
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const text = await response.text();
+      const body = text ? JSON.parse(text) : null;
+      return NextResponse.json(body, { status: response.status });
+    }
+
+    const body = await response.arrayBuffer();
+    return new NextResponse(body, {
+      status: response.status,
+      headers: {
+        "Content-Type": contentType || "application/octet-stream",
+        ...(response.headers.get("content-disposition")
+          ? { "Content-Disposition": response.headers.get("content-disposition") as string }
+          : {}),
+      },
+    });
   } catch (error) {
     return NextResponse.json(
       {

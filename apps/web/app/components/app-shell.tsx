@@ -74,6 +74,14 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
     ],
   },
   {
+    label: "Keuangan",
+    items: [
+      { href: "/expenses", label: "Pengeluaran", icon: Receipt },
+      { href: "/inventory", label: "Inventaris", icon: HardDrives },
+      { href: "/cashflow", label: "Arus Kas", icon: ChartLineUp },
+    ],
+  },
+  {
     label: "Network",
     items: [
       { href: "/mikrotik", label: "MikroTik", icon: WifiHigh, badge: "1", module: "mikrotik" },

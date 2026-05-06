@@ -26,6 +26,7 @@ type DashboardCache struct {
 	aggregationRepo domain.ReportAggregationRepository
 	networkClient   domain.NetworkServiceClient
 	kpiTargetRepo   domain.KPITargetRepository
+	moduleRepo      TenantModuleRepository
 	redisClient     *redis.Client
 	logger          zerolog.Logger
 }
@@ -35,6 +36,7 @@ func NewDashboardCache(
 	aggregationRepo domain.ReportAggregationRepository,
 	networkClient domain.NetworkServiceClient,
 	kpiTargetRepo domain.KPITargetRepository,
+	moduleRepo TenantModuleRepository,
 	redisClient *redis.Client,
 	logger zerolog.Logger,
 ) *DashboardCache {
@@ -42,6 +44,7 @@ func NewDashboardCache(
 		aggregationRepo: aggregationRepo,
 		networkClient:   networkClient,
 		kpiTargetRepo:   kpiTargetRepo,
+		moduleRepo:      moduleRepo,
 		redisClient:     redisClient,
 		logger:          logger.With().Str("component", "dashboard_cache").Logger(),
 	}
@@ -93,6 +96,21 @@ func (dc *DashboardCache) GetDashboardData(ctx context.Context, tenantID string)
 
 // enrichWithNetworkData menambahkan data network ke dashboard.
 func (dc *DashboardCache) enrichWithNetworkData(ctx context.Context, tenantID string, data *domain.DashboardData) {
+	if dc.moduleRepo != nil {
+		caps, err := dc.moduleRepo.Capabilities(ctx, tenantID)
+		if err != nil {
+			dc.logger.Warn().Err(err).Str("tenant_id", tenantID).Msg("gagal cek entitlement network dashboard")
+		}
+		if err == nil && !caps.MikroTik && !caps.FiberNetwork {
+			if data.ModuleInactive == nil {
+				data.ModuleInactive = make(map[string]bool)
+			}
+			data.ModuleInactive[domain.ModuleMikroTik] = true
+			data.ModuleInactive[domain.ModuleFiberNetwork] = true
+			return
+		}
+	}
+
 	capacity, err := dc.networkClient.GetCapacityReport(ctx, tenantID)
 	if err != nil || capacity == nil {
 		if data.ModuleInactive == nil {

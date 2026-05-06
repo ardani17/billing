@@ -120,10 +120,10 @@ func (uc *VoucherPurchaseUsecase) Buy(ctx context.Context, resellerID string, re
 
 	// Pastikan paket memiliki reseller_price yang valid
 	if pkg.ResellerPrice == nil || *pkg.ResellerPrice <= 0 {
-		return nil, fmt.Errorf("usecase: paket tidak memiliki reseller_price yang valid")
+		return nil, fmt.Errorf("%w: paket tidak memiliki reseller_price yang valid", domain.ErrVoucherPackagePriceInvalid)
 	}
 	if pkg.SellPrice == nil || *pkg.SellPrice <= 0 {
-		return nil, fmt.Errorf("usecase: paket tidak memiliki sell_price yang valid")
+		return nil, fmt.Errorf("%w: paket tidak memiliki sell_price yang valid", domain.ErrVoucherPackagePriceInvalid)
 	}
 
 	// Hitung total biaya pembelian
@@ -142,7 +142,7 @@ func (uc *VoucherPurchaseUsecase) Buy(ctx context.Context, resellerID string, re
 		return nil, fmt.Errorf("usecase: gagal mengambil voucher tersedia: %w", err)
 	}
 	if len(availableVouchers) < req.Quantity {
-		return nil, fmt.Errorf("usecase: voucher tersedia tidak mencukupi (diminta: %d, tersedia: %d)", req.Quantity, len(availableVouchers))
+		return nil, fmt.Errorf("%w: diminta %d, tersedia %d", domain.ErrVoucherStockInsufficient, req.Quantity, len(availableVouchers))
 	}
 
 	// Hitung tanggal kedaluwarsa voucher (default 90 hari dari sekarang)

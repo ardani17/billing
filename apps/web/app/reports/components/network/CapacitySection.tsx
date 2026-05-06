@@ -16,7 +16,7 @@ export function CapacitySection() {
   if (!data) return <EmptyState />;
 
   const mikrotikInactive = data.module_inactive?.mikrotik;
-  const oltInactive = data.module_inactive?.olt;
+  const oltInactive = data.module_inactive?.fiber_network ?? data.module_inactive?.olt;
 
   return (
     <section className="space-y-4">

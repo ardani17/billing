@@ -29,6 +29,7 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
               <th className="px-5 py-3">Kategori</th>
               <th className="px-5 py-3 text-right">Jumlah</th>
               <th className="px-5 py-3">Tanggal</th>
+              <th className="px-5 py-3">Pembayaran</th>
               <th className="px-5 py-3">Keterangan</th>
               <th className="px-5 py-3 text-center">Recurring</th>
               <th className="px-5 py-3 text-right">Aksi</th>
@@ -40,6 +41,11 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
                 <td className="px-5 py-3 text-slate-700">{e.category_name ?? "—"}</td>
                 <td className="px-5 py-3 text-right font-mono text-slate-900">{formatCurrency(e.amount)}</td>
                 <td className="px-5 py-3 text-slate-600">{formatDate(e.expense_date)}</td>
+                <td className="max-w-[180px] truncate px-5 py-3 text-slate-600">
+                  {e.payment_method || "—"}
+                  {e.vendor_name ? ` / ${e.vendor_name}` : ""}
+                  {e.reference_number ? ` / ${e.reference_number}` : ""}
+                </td>
                 <td className="max-w-[200px] truncate px-5 py-3 text-slate-600">{e.description || "—"}</td>
                 <td className="px-5 py-3 text-center">
                   {e.is_recurring ? (
@@ -83,7 +89,7 @@ export function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) 
             <tr className="border-t border-slate-200 bg-slate-50">
               <td className="px-5 py-3 font-semibold text-slate-900">Total</td>
               <td className="px-5 py-3 text-right font-mono font-semibold text-slate-900">{formatCurrency(total)}</td>
-              <td colSpan={4} />
+              <td colSpan={5} />
             </tr>
           </tfoot>
         </table>

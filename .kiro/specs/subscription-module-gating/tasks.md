@@ -16,12 +16,14 @@
   - [x] 3.2 Skip fiber jobs/events when `fiber_network` is inactive
   - [x] 3.3 Log skipped add-on events without marking Billing Core flow failed
 
-- [ ] 4. Frontend capability gating
+- [x] 4. Frontend capability gating
   - [x] 4.1 Expose tenant module capabilities to web app
   - [x] 4.2 Hide MikroTik menu/widgets when inactive
   - [x] 4.3 Hide OLT and Peta Jaringan menu/widgets when inactive
-  - [ ] 4.4 Hide customer/package fields that depend on inactive add-ons
+  - [x] 4.4 Hide customer/package fields that depend on inactive add-ons
   - [x] 4.5 Keep Notification, Reports, Payment Gateway, and Reseller/Voucher under Billing Core
+  - [x] 4.6 Hide dashboard network status widgets when corresponding add-ons are inactive
+  - [x] 4.7 Preserve `MODULE_NOT_ENABLED` from add-on proxies without converting to generic 502
 
 - [ ] 5. Subscription UI
   - [ ] 5.1 Add Tenant Admin subscription view with current add-ons
@@ -33,5 +35,6 @@
   - [x] 6.1 Unit test module lookup and route guards via service test suites/build
   - [x] 6.2 Integration test disabled MikroTik API returns `MODULE_NOT_ENABLED`
   - [x] 6.3 Integration test disabled Fiber Network API returns `MODULE_NOT_ENABLED`
-  - [ ] 6.4 Smoke Billing Core flows with both add-ons disabled
+  - [x] 6.4 Smoke Billing Core read flows with both add-ons disabled
   - [ ] 6.5 Smoke MikroTik flows with `mikrotik` enabled
+  - [x] 6.6 Smoke Billing Core write flows with manual customer/package data

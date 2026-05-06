@@ -15,6 +15,10 @@ export function ExpenseForm({ categories, expense, onSubmit, onCancel }: Expense
   const [amount, setAmount] = useState(expense ? String(expense.amount) : "");
   const [description, setDescription] = useState(expense?.description ?? "");
   const [expenseDate, setExpenseDate] = useState(expense?.expense_date ?? new Date().toISOString().slice(0, 10));
+  const [paymentMethod, setPaymentMethod] = useState(expense?.payment_method ?? "");
+  const [vendorName, setVendorName] = useState(expense?.vendor_name ?? "");
+  const [referenceNumber, setReferenceNumber] = useState(expense?.reference_number ?? "");
+  const [attachmentUrl, setAttachmentUrl] = useState(expense?.attachment_url ?? "");
   const [isRecurring, setIsRecurring] = useState(expense?.is_recurring ?? false);
   const [recurringDay, setRecurringDay] = useState(expense?.recurring_day ?? 1);
   const [saving, setSaving] = useState(false);
@@ -26,6 +30,10 @@ export function ExpenseForm({ categories, expense, onSubmit, onCancel }: Expense
       setAmount(String(expense.amount));
       setDescription(expense.description);
       setExpenseDate(expense.expense_date);
+      setPaymentMethod(expense.payment_method ?? "");
+      setVendorName(expense.vendor_name ?? "");
+      setReferenceNumber(expense.reference_number ?? "");
+      setAttachmentUrl(expense.attachment_url ?? "");
       setIsRecurring(expense.is_recurring);
       setRecurringDay(expense.recurring_day ?? 1);
     }
@@ -42,6 +50,10 @@ export function ExpenseForm({ categories, expense, onSubmit, onCancel }: Expense
         amount: Number(amount),
         description,
         expense_date: expenseDate,
+        payment_method: paymentMethod,
+        vendor_name: vendorName,
+        reference_number: referenceNumber,
+        attachment_url: attachmentUrl,
         is_recurring: isRecurring,
         recurring_day: isRecurring ? recurringDay : undefined,
       });
@@ -111,6 +123,53 @@ export function ExpenseForm({ categories, expense, onSubmit, onCancel }: Expense
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             style={{ minHeight: 44 }}
           />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Metode bayar</label>
+            <input
+              type="text"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              placeholder="Tunai / Transfer / QRIS"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              style={{ minHeight: 44 }}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Vendor</label>
+            <input
+              type="text"
+              value={vendorName}
+              onChange={(e) => setVendorName(e.target.value)}
+              placeholder="Nama vendor/supplier"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              style={{ minHeight: 44 }}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Nomor referensi</label>
+            <input
+              type="text"
+              value={referenceNumber}
+              onChange={(e) => setReferenceNumber(e.target.value)}
+              placeholder="No. nota / transfer"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              style={{ minHeight: 44 }}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">URL lampiran</label>
+            <input
+              type="url"
+              value={attachmentUrl}
+              onChange={(e) => setAttachmentUrl(e.target.value)}
+              placeholder="https://..."
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              style={{ minHeight: 44 }}
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-3">

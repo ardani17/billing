@@ -32,6 +32,16 @@ func NewVoucherRepo(queries *Queries, pool *pgxpool.Pool) *VoucherRepo {
 	}
 }
 
+func (r *VoucherRepo) dbtx() (DBTX, error) {
+	if r.pool != nil {
+		return r.pool, nil
+	}
+	if r.queries != nil && r.queries.db != nil {
+		return r.queries.db, nil
+	}
+	return nil, errors.New("repository: koneksi voucher tidak tersedia")
+}
+
 // --- Helper function untuk mapping sqlc Voucher → domain.Voucher ---
 
 // mapVoucherRow memetakan Voucher (sqlc model) ke domain.Voucher.
@@ -207,7 +217,12 @@ func (r *VoucherRepo) Activate(ctx context.Context, id string, expiresAt time.Ti
 			created_at, updated_at`
 
 	var row Voucher
-	if err := r.pool.QueryRow(ctx, query, stringToUUID(id), expiresAt).Scan(
+	db, err := r.dbtx()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.QueryRow(ctx, query, stringToUUID(id), expiresAt).Scan(
 		&row.ID, &row.TenantID, &row.Code, &row.PackageID, &row.ResellerID, &row.Status,
 		&row.SellPriceSnapshot, &row.ResellerPriceSnapshot,
 		&row.PurchasedAt, &row.ActivatedAt, &row.ExpiresAt, &row.VoidedAt,
@@ -286,7 +301,12 @@ func (r *VoucherRepo) List(ctx context.Context, params domain.VoucherListParams)
 	// Count total
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM vouchers v %s", whereClause)
 	var total int64
-	err := r.pool.QueryRow(ctx, countQuery, args...).Scan(&total)
+	db, err := r.dbtx()
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.QueryRow(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
 		return nil, fmt.Errorf("repository: gagal menghitung total voucher: %w", err)
 	}
@@ -323,7 +343,7 @@ func (r *VoucherRepo) List(ctx context.Context, params domain.VoucherListParams)
 	)
 	args = append(args, params.PageSize, offset)
 
-	rows, err := r.pool.Query(ctx, dataQuery, args...)
+	rows, err := db.Query(ctx, dataQuery, args...)
 	if err != nil {
 		return nil, fmt.Errorf("repository: gagal mengambil daftar voucher: %w", err)
 	}
@@ -449,7 +469,12 @@ func (r *VoucherRepo) ListByReseller(ctx context.Context, params domain.Reseller
 	// Count total
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM vouchers v %s", whereClause)
 	var total int64
-	err := r.pool.QueryRow(ctx, countQuery, args...).Scan(&total)
+	db, err := r.dbtx()
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.QueryRow(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
 		return nil, fmt.Errorf("repository: gagal menghitung total voucher reseller: %w", err)
 	}
@@ -484,7 +509,7 @@ func (r *VoucherRepo) ListByReseller(ctx context.Context, params domain.Reseller
 	)
 	args = append(args, params.PageSize, offset)
 
-	rows, err := r.pool.Query(ctx, dataQuery, args...)
+	rows, err := db.Query(ctx, dataQuery, args...)
 	if err != nil {
 		return nil, fmt.Errorf("repository: gagal mengambil daftar voucher reseller: %w", err)
 	}
@@ -568,7 +593,12 @@ func (r *VoucherRepo) GetAvailableByPackage(ctx context.Context, packageID strin
 		ORDER BY created_at ASC
 		LIMIT $2`
 
-	rows, err := r.pool.Query(ctx, query, stringToUUID(packageID), limit)
+	db, err := r.dbtx()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := db.Query(ctx, query, stringToUUID(packageID), limit)
 	if err != nil {
 		return nil, fmt.Errorf("repository: gagal mengambil voucher tersedia by package: %w", err)
 	}

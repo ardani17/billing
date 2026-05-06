@@ -24,7 +24,23 @@ export function ProfitLossSection({ filter }: Props) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-slate-900">Laba Rugi</h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-lg font-semibold text-slate-900">Laba Rugi</h2>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/expenses"
+            className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Kelola pengeluaran
+          </a>
+          <a
+            href="/cashflow"
+            className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+          >
+            Buka arus kas
+          </a>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Total Pendapatan" value={formatCurrency(total_revenue)} />

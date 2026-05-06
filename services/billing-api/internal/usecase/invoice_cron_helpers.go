@@ -89,7 +89,7 @@ func (uc *InvoiceCronUsecase) buildInvoiceItems(
 
 	// Item instalasi: hanya pada invoice pertama pelanggan
 	if pkg.InstallationFee > 0 {
-		isFirst, err := uc.isFirstInvoice(ctx, customer.ID)
+		isFirst, err := uc.isFirstInvoice(ctx, settings.TenantID, customer.ID)
 		if err != nil {
 			uc.logger.Error().Err(err).
 				Str("customer_id", customer.ID).
@@ -138,11 +138,13 @@ func (uc *InvoiceCronUsecase) buildInvoiceItems(
 // isFirstInvoice memeriksa apakah ini invoice pertama untuk pelanggan.
 // Menggunakan ExistsForPeriod dengan bulan/tahun 0 sebagai penanda cek umum,
 // atau cek via list dengan page_size=1.
-func (uc *InvoiceCronUsecase) isFirstInvoice(ctx context.Context, customerID string) (bool, error) {
+func (uc *InvoiceCronUsecase) isFirstInvoice(ctx context.Context, tenantID, customerID string) (bool, error) {
 	// Cek apakah ada invoice sebelumnya untuk pelanggan ini
 	result, err := uc.invoiceRepo.List(ctx, domain.InvoiceListParams{
-		Page:     1,
-		PageSize: 1,
+		TenantID:   tenantID,
+		CustomerID: customerID,
+		Page:       1,
+		PageSize:   1,
 	})
 	if err != nil {
 		return false, err
@@ -211,7 +213,6 @@ func (uc *InvoiceCronUsecase) publishCronEvent(tenantID, eventType string, paylo
 		uc.logger.Error().Err(err).Str("event_type", eventType).Msg("gagal publish cron event")
 	}
 }
-
 
 // adjustCreditBalance mengubah credit_balance pelanggan secara atomik menggunakan SQL langsung.
 // delta positif = tambah kredit, delta negatif = kurangi kredit.

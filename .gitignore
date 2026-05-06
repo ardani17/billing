@@ -23,6 +23,7 @@ build/
 # Local Codex/dev artifacts
 .codex/
 test-results/
+playwright-report/
 
 # Environment files
 .env

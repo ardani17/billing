@@ -16,6 +16,7 @@ import (
 type ExpenseManager struct {
 	expenseRepo  domain.ExpenseRepository
 	categoryRepo domain.ExpenseCategoryRepository
+	auditRepo    domain.AuditLogRepository
 	logger       zerolog.Logger
 }
 
@@ -23,11 +24,13 @@ type ExpenseManager struct {
 func NewExpenseManager(
 	expenseRepo domain.ExpenseRepository,
 	categoryRepo domain.ExpenseCategoryRepository,
+	auditRepo domain.AuditLogRepository,
 	logger zerolog.Logger,
 ) *ExpenseManager {
 	return &ExpenseManager{
 		expenseRepo:  expenseRepo,
 		categoryRepo: categoryRepo,
+		auditRepo:    auditRepo,
 		logger:       logger.With().Str("component", "expense_manager").Logger(),
 	}
 }
@@ -40,15 +43,19 @@ func (em *ExpenseManager) Create(ctx context.Context, tenantID string, req domai
 	}
 
 	expense := &domain.Expense{
-		ID:           uuid.New().String(),
-		TenantID:     tenantID,
-		CategoryID:   req.CategoryID,
-		Amount:       req.Amount,
-		Description:  req.Description,
-		ExpenseDate:  expenseDate,
-		IsRecurring:  req.IsRecurring,
-		RecurringDay: req.RecurringDay,
-		CreatedByID:  actor.ActorID,
+		ID:            uuid.New().String(),
+		TenantID:      tenantID,
+		CategoryID:    req.CategoryID,
+		Amount:        req.Amount,
+		Description:   req.Description,
+		ExpenseDate:   expenseDate,
+		PaymentMethod: req.PaymentMethod,
+		VendorName:    req.VendorName,
+		ReferenceNo:   req.ReferenceNo,
+		AttachmentURL: req.AttachmentURL,
+		IsRecurring:   req.IsRecurring,
+		RecurringDay:  req.RecurringDay,
+		CreatedByID:   actor.ActorID,
 	}
 
 	created, err := em.expenseRepo.Create(ctx, expense)
@@ -56,6 +63,10 @@ func (em *ExpenseManager) Create(ctx context.Context, tenantID string, req domai
 		em.logger.Error().Err(err).Str("tenant_id", tenantID).Msg("gagal membuat pengeluaran")
 		return nil, err
 	}
+	em.writeAuditLog(ctx, tenantID, created.ID, "expense.created", actor, map[string]interface{}{
+		"amount":      created.Amount,
+		"category_id": created.CategoryID,
+	})
 	return created, nil
 }
 
@@ -98,6 +109,18 @@ func (em *ExpenseManager) Update(ctx context.Context, id string, req domain.Upda
 		}
 		existing.ExpenseDate = parsed
 	}
+	if req.PaymentMethod != nil {
+		existing.PaymentMethod = *req.PaymentMethod
+	}
+	if req.VendorName != nil {
+		existing.VendorName = *req.VendorName
+	}
+	if req.ReferenceNo != nil {
+		existing.ReferenceNo = *req.ReferenceNo
+	}
+	if req.AttachmentURL != nil {
+		existing.AttachmentURL = *req.AttachmentURL
+	}
 	if req.IsRecurring != nil {
 		existing.IsRecurring = *req.IsRecurring
 	}
@@ -110,12 +133,27 @@ func (em *ExpenseManager) Update(ctx context.Context, id string, req domain.Upda
 		em.logger.Error().Err(err).Str("id", id).Msg("gagal memperbarui pengeluaran")
 		return nil, err
 	}
+	em.writeAuditLog(ctx, updated.TenantID, updated.ID, "expense.updated", actor, map[string]interface{}{
+		"amount":      updated.Amount,
+		"category_id": updated.CategoryID,
+	})
 	return updated, nil
 }
 
 // Delete menghapus pengeluaran secara soft delete.
-func (em *ExpenseManager) Delete(ctx context.Context, id string) error {
-	return em.expenseRepo.SoftDelete(ctx, id)
+func (em *ExpenseManager) Delete(ctx context.Context, id string, actor domain.ActorInfo) error {
+	existing, err := em.expenseRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if err := em.expenseRepo.SoftDelete(ctx, id); err != nil {
+		return err
+	}
+	em.writeAuditLog(ctx, existing.TenantID, id, "expense.deleted", actor, map[string]interface{}{
+		"amount":      existing.Amount,
+		"category_id": existing.CategoryID,
+	})
+	return nil
 }
 
 // List mengambil daftar pengeluaran dengan filter periode dan kategori.
@@ -192,4 +230,22 @@ func (em *ExpenseManager) DeleteCategory(ctx context.Context, id string) error {
 		return domain.ErrCategoryHasExpenses
 	}
 	return em.categoryRepo.SoftDelete(ctx, id)
+}
+
+func (em *ExpenseManager) writeAuditLog(ctx context.Context, tenantID, entityID, action string, actor domain.ActorInfo, changes map[string]interface{}) {
+	if em.auditRepo == nil {
+		return
+	}
+	log := &domain.AuditLog{
+		TenantID:   tenantID,
+		EntityType: "expense",
+		EntityID:   entityID,
+		Action:     action,
+		ActorID:    actor.ActorID,
+		ActorName:  actor.ActorName,
+		Changes:    changes,
+	}
+	if err := em.auditRepo.Create(ctx, log); err != nil {
+		em.logger.Error().Err(err).Str("entity_id", entityID).Str("action", action).Msg("gagal menulis audit log expense")
+	}
 }

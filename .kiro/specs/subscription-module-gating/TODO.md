@@ -17,9 +17,11 @@
 - [x] Implement tenant module entitlement backend.
 - [x] Add backend route/event guards.
 - [x] Add frontend menu/widget gating.
+- [x] Run Billing Core read smoke with add-ons disabled.
 - [ ] Add Super Admin entitlement UI.
 - [ ] Add Tenant Admin subscription view.
-- [ ] Run Billing Core smoke with add-ons disabled.
+- [ ] Run Billing Core write smoke with manual customer/package data.
+- [ ] Implement Billing Core Standalone spec in `.kiro/specs/billing-core-standalone`.
 
 ## Deferred
 

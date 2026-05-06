@@ -91,6 +91,12 @@ type RouterConfig struct {
 	// ExpenseHandler adalah handler untuk manajemen pengeluaran
 	ExpenseHandler *ExpenseHandler
 
+	// InventoryHandler adalah handler untuk inventaris operasional
+	InventoryHandler *InventoryHandler
+
+	// CashflowHandler adalah handler untuk arus kas operasional
+	CashflowHandler *CashflowHandler
+
 	// ExportHandler adalah handler untuk export laporan (PDF, Excel, CSV)
 	ExportHandler *ExportHandler
 
@@ -220,6 +226,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	resellerAuth := middleware.ResellerAuth(cfg.JWTSecret)
 	resellerTenant := middleware.TenantContext(cfg.JWTSecret)
 	cfg.App.Get("/api/v1/reseller/dashboard", resellerAuth, resellerTenant, cfg.ResellerDashboardHandler.Summary)
+	cfg.App.Get("/api/v1/reseller/packages", resellerAuth, resellerTenant, cfg.ResellerDashboardHandler.VoucherPackages)
 	cfg.App.Post("/api/v1/reseller/vouchers/buy", resellerAuth, resellerTenant, cfg.ResellerDashboardHandler.Buy)
 	cfg.App.Get("/api/v1/reseller/vouchers", resellerAuth, resellerTenant, cfg.ResellerDashboardHandler.MyVouchers)
 	cfg.App.Post("/api/v1/reseller/vouchers/print", resellerAuth, resellerTenant, cfg.ResellerDashboardHandler.Print)
@@ -301,6 +308,20 @@ func RegisterRoutes(cfg RouterConfig) {
 	}))
 	customersRead.Get("/", customerHandler.List)
 	customersRead.Get("/stats", customerHandler.Stats)
+
+	// Routes accessible by tenant_admin only (import, export, bulk delete).
+	// Static paths must be registered before /:id so Fiber does not treat
+	// "export", "import", or "bulk" as customer IDs.
+	customersAdmin := customers.Group("")
+	customersAdmin.Use(middleware.RBAC(domain.RBACConfig{
+		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
+	}))
+	customersAdmin.Get("/export", customerHandler.Export)
+	customersAdmin.Get("/import/template", customerHandler.ImportTemplate)
+	customersAdmin.Post("/import", customerHandler.Import)
+	customersAdmin.Delete("/bulk", customerHandler.BulkDelete)
+	customersAdmin.Post("/:id/reactivate", cfg.IsolirHandler.Reactivate)
+
 	customersRead.Get("/:id", customerHandler.Get)
 
 	// Payment link read — admin + kasir (GET only)
@@ -314,30 +335,19 @@ func RegisterRoutes(cfg RouterConfig) {
 		},
 	}))
 	customersWrite.Post("/", customerHandler.Create)
-	customersWrite.Put("/:id", customerHandler.Update)
-	customersWrite.Delete("/:id", customerHandler.Delete)
-	customersWrite.Post("/:id/isolir", customerHandler.Isolir)
-	customersWrite.Post("/:id/activate", customerHandler.Activate)
-	customersWrite.Post("/:id/change-package", customerHandler.ChangePackage)
 	customersWrite.Post("/bulk/isolir", customerHandler.BulkIsolir)
 	customersWrite.Post("/bulk/activate", customerHandler.BulkActivate)
 	customersWrite.Post("/bulk/notification", customerHandler.BulkNotify)
 	customersWrite.Post("/bulk/change-package", customerHandler.BulkChangePackage)
 	customersWrite.Post("/bulk/edit", customerHandler.BulkEdit)
+	customersWrite.Put("/:id", customerHandler.Update)
+	customersWrite.Delete("/:id", customerHandler.Delete)
+	customersWrite.Post("/:id/isolir", customerHandler.Isolir)
+	customersWrite.Post("/:id/activate", customerHandler.Activate)
+	customersWrite.Post("/:id/change-package", customerHandler.ChangePackage)
 
 	// Regenerate payment link — admin + operator (write)
 	customersWrite.Post("/:id/payment-link/regenerate", cfg.GatewayHandler.RegeneratePaymentLink)
-
-	// Routes accessible by tenant_admin only (import, export, bulk delete)
-	customersAdmin := customers.Group("")
-	customersAdmin.Use(middleware.RBAC(domain.RBACConfig{
-		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
-	}))
-	customersAdmin.Get("/export", customerHandler.Export)
-	customersAdmin.Get("/import/template", customerHandler.ImportTemplate)
-	customersAdmin.Post("/import", customerHandler.Import)
-	customersAdmin.Delete("/bulk", customerHandler.BulkDelete)
-	customersAdmin.Post("/:id/reactivate", cfg.IsolirHandler.Reactivate)
 
 	// --- Area routes (auth + tenant + RBAC) ---
 	areas := api.Group("/areas")
@@ -484,6 +494,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	}))
 	invoicesAdmin.Post("/", invoiceHandler.Create)
 	invoicesAdmin.Post("/prepaid", invoiceHandler.CreatePrepaid)
+	invoicesAdmin.Post("/generate-due", invoiceHandler.GenerateDue)
 	invoicesAdmin.Put("/:id", invoiceHandler.Edit)
 	invoicesAdmin.Post("/:id/cancel", invoiceActionHandler.Cancel)
 	invoicesAdmin.Post("/:id/waive-penalty", cfg.IsolirHandler.WaivePenalty)
@@ -650,12 +661,22 @@ func RegisterRoutes(cfg RouterConfig) {
 	reportsAdmin.Post("/custom/templates", customReportHandler.CreateTemplate)
 	reportsAdmin.Delete("/custom/templates/:id", customReportHandler.DeleteTemplate)
 
-	// --- Expense routes (auth + tenant + RBAC, tenant_admin only) ---
+	// --- Expense routes (auth + tenant + RBAC) ---
 	expenseHandler := cfg.ExpenseHandler
 	expenses := api.Group("/expenses")
 	expenses.Use(middleware.RBAC(domain.RBACConfig{
+		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin, domain.RoleKasir},
+	}))
+
+	// Expense categories CRUD tetap admin-only karena memengaruhi struktur pembukuan.
+	expenseCategories := expenses.Group("/categories")
+	expenseCategories.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
 	}))
+	expenseCategories.Get("", expenseHandler.ListCategories)
+	expenseCategories.Post("", expenseHandler.CreateCategory)
+	expenseCategories.Put("/:id", expenseHandler.UpdateCategory)
+	expenseCategories.Delete("/:id", expenseHandler.DeleteCategory)
 
 	// Expenses CRUD
 	expenses.Get("/", expenseHandler.List)
@@ -663,9 +684,45 @@ func RegisterRoutes(cfg RouterConfig) {
 	expenses.Put("/:id", expenseHandler.Update)
 	expenses.Delete("/:id", expenseHandler.Delete)
 
-	// Expense categories CRUD
-	expenses.Get("/categories", expenseHandler.ListCategories)
-	expenses.Post("/categories", expenseHandler.CreateCategory)
-	expenses.Put("/categories/:id", expenseHandler.UpdateCategory)
-	expenses.Delete("/categories/:id", expenseHandler.DeleteCategory)
+	// --- Operational finance routes (auth + tenant + RBAC) ---
+	inventoryHandler := cfg.InventoryHandler
+	inventory := api.Group("/inventory")
+	inventory.Use(middleware.RBAC(domain.RBACConfig{
+		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin, domain.RoleOperator, domain.RoleTeknisi, domain.RoleKasir},
+		MethodRestrictions: map[domain.UserRole][]string{
+			domain.RoleKasir:    {"GET"},
+			domain.RoleOperator: {"GET"},
+			domain.RoleTeknisi:  {"GET"},
+		},
+	}))
+	inventory.Get("/items", inventoryHandler.ListItems)
+	inventory.Post("/items", inventoryHandler.CreateItem)
+	inventory.Put("/items/:id", inventoryHandler.UpdateItem)
+	inventory.Delete("/items/:id", inventoryHandler.DeleteItem)
+	inventory.Get("/assets", inventoryHandler.ListAssets)
+	inventory.Post("/assets", inventoryHandler.CreateAsset)
+	inventory.Put("/assets/:id", inventoryHandler.UpdateAsset)
+	inventory.Post("/assets/:id/assign", inventoryHandler.AssignAsset)
+	inventory.Post("/assets/:id/return", inventoryHandler.ReturnAsset)
+	inventory.Post("/assets/:id/mark-damaged", inventoryHandler.MarkDamaged)
+	inventory.Post("/assets/:id/mark-lost", inventoryHandler.MarkLost)
+	inventory.Post("/assets/:id/mark-rma", inventoryHandler.MarkRMA)
+	inventory.Post("/assets/:id/retire", inventoryHandler.RetireAsset)
+	inventory.Get("/movements", inventoryHandler.ListMovements)
+	inventory.Post("/movements", inventoryHandler.CreateMovement)
+	inventory.Get("/stock", inventoryHandler.Stock)
+
+	cashflowHandler := cfg.CashflowHandler
+	cashflow := api.Group("/cashflow")
+	cashflow.Use(middleware.RBAC(domain.RBACConfig{
+		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin, domain.RoleKasir},
+		MethodRestrictions: map[domain.UserRole][]string{
+			domain.RoleKasir: {"GET"},
+		},
+	}))
+	cashflow.Get("/summary", cashflowHandler.Summary)
+	cashflow.Get("/transactions", cashflowHandler.Transactions)
+	cashflow.Get("/trend", cashflowHandler.Trend)
+	cashflow.Get("/export", cashflowHandler.Export)
+	cashflow.Post("/manual", cashflowHandler.CreateManual)
 }

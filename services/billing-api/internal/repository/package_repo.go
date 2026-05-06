@@ -9,6 +9,7 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -69,6 +70,10 @@ func (r *PackageRepo) Update(ctx context.Context, pkg *domain.Package) (*domain.
 func (r *PackageRepo) Delete(ctx context.Context, id string) error {
 	err := r.queries.DeletePackage(ctx, stringToUUID(id))
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" && pgErr.ConstraintName == "vouchers_package_id_fkey" {
+			return domain.ErrPackageHasVouchers
+		}
 		return fmt.Errorf("repository: gagal menghapus paket: %w", err)
 	}
 	return nil
@@ -131,11 +136,11 @@ func (r *PackageRepo) ListNamesByPrefix(ctx context.Context, tenantID, prefix st
 // allowedPackageSortColumns adalah whitelist kolom yang diizinkan untuk sorting paket.
 // Mencegah SQL injection pada ORDER BY clause.
 var allowedPackageSortColumns = map[string]string{
-	"name":           "name",
-	"monthly_price":  "monthly_price",
-	"sell_price":     "sell_price",
-	"download_mbps":  "download_mbps",
-	"created_at":     "created_at",
+	"name":          "name",
+	"monthly_price": "monthly_price",
+	"sell_price":    "sell_price",
+	"download_mbps": "download_mbps",
+	"created_at":    "created_at",
 }
 
 // List mengambil daftar paket dengan dynamic filtering, search, sorting, dan paginasi.

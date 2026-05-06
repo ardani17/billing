@@ -129,7 +129,7 @@ type Voucher struct {
 	TenantID              string        `json:"tenant_id"`
 	Code                  string        `json:"code"`
 	PackageID             string        `json:"package_id"`
-	PackageName           string        `json:"package_name,omitempty"`   // joined field
+	PackageName           string        `json:"package_name,omitempty"` // joined field
 	ResellerID            string        `json:"reseller_id,omitempty"`
 	ResellerName          string        `json:"reseller_name,omitempty"` // joined field
 	Status                VoucherStatus `json:"status"`
@@ -190,6 +190,12 @@ var (
 
 	// ErrInvalidPackageType dikembalikan saat package_id bukan tipe voucher
 	ErrInvalidPackageType = errors.New("paket harus bertipe voucher")
+
+	// ErrVoucherPackagePriceInvalid dikembalikan saat paket voucher belum punya harga reseller/jual valid.
+	ErrVoucherPackagePriceInvalid = errors.New("harga paket voucher belum valid")
+
+	// ErrVoucherStockInsufficient dikembalikan saat stok voucher tersedia tidak cukup untuk pembelian.
+	ErrVoucherStockInsufficient = errors.New("stok voucher tersedia tidak mencukupi")
 )
 
 // =============================================================================

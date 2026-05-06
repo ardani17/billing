@@ -17,6 +17,7 @@ import (
 // ResellerDashboardHandler menangani HTTP request untuk dashboard reseller.
 type ResellerDashboardHandler struct {
 	resellerUsecase        *usecase.ResellerUsecase
+	packageUsecase         domain.PackageUsecase
 	voucherPurchaseUsecase *usecase.VoucherPurchaseUsecase
 	voucherUsecase         *usecase.VoucherUsecase
 	voucherPrintUsecase    *usecase.VoucherPrintUsecase
@@ -28,6 +29,7 @@ type ResellerDashboardHandler struct {
 // NewResellerDashboardHandler membuat instance baru ResellerDashboardHandler.
 func NewResellerDashboardHandler(
 	resellerUsecase *usecase.ResellerUsecase,
+	packageUsecase domain.PackageUsecase,
 	voucherPurchaseUsecase *usecase.VoucherPurchaseUsecase,
 	voucherUsecase *usecase.VoucherUsecase,
 	voucherPrintUsecase *usecase.VoucherPrintUsecase,
@@ -38,6 +40,7 @@ func NewResellerDashboardHandler(
 	RegisterCustomValidators(v)
 	return &ResellerDashboardHandler{
 		resellerUsecase:        resellerUsecase,
+		packageUsecase:         packageUsecase,
 		voucherPurchaseUsecase: voucherPurchaseUsecase,
 		voucherUsecase:         voucherUsecase,
 		voucherPrintUsecase:    voucherPrintUsecase,
@@ -45,6 +48,55 @@ func NewResellerDashboardHandler(
 		validate:               v,
 		logger:                 logger,
 	}
+}
+
+// VoucherPackages menangani GET /v1/reseller/packages.
+// Mengembalikan paket voucher aktif milik tenant reseller yang login.
+func (h *ResellerDashboardHandler) VoucherPackages(c *fiber.Ctx) error {
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant reseller tidak teridentifikasi")
+	}
+
+	active := true
+	params := domain.PackageListParams{
+		TenantID:  tenantID,
+		Type:      string(domain.PackageTypeVoucher),
+		IsActive:  &active,
+		Page:      1,
+		PageSize:  50,
+		SortBy:    "name",
+		SortOrder: "asc",
+	}
+
+	if page := c.Query("page"); page != "" {
+		params.Page, _ = strconv.Atoi(page)
+	}
+	if pageSize := c.Query("page_size"); pageSize != "" {
+		params.PageSize, _ = strconv.Atoi(pageSize)
+	}
+	if sortBy := c.Query("sort_by"); sortBy != "" {
+		params.SortBy = sortBy
+	}
+	if sortOrder := c.Query("sort_order"); sortOrder != "" {
+		params.SortOrder = sortOrder
+	}
+
+	if err := h.validate.Struct(params); err != nil {
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return domain.ErrorResponse(c, fiber.StatusBadRequest, "VALIDATION_ERROR", "validasi gagal", mapValidationErrors(ve)...)
+		}
+		return domain.ErrorResponse(c, fiber.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+	}
+
+	result, err := h.packageUsecase.List(c.Context(), params)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("gagal mengambil paket voucher reseller")
+		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal mengambil paket voucher")
+	}
+
+	return domain.SuccessResponse(c, fiber.StatusOK, result)
 }
 
 // Summary menangani GET /v1/reseller/dashboard.
@@ -281,6 +333,10 @@ func (h *ResellerDashboardHandler) mapDashboardError(c *fiber.Ctx, err error) er
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "INVALID_PACKAGE_TYPE", err.Error())
 	case errors.Is(err, domain.ErrPackageNotActive):
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "PACKAGE_NOT_ACTIVE", err.Error())
+	case errors.Is(err, domain.ErrVoucherPackagePriceInvalid):
+		return domain.ErrorResponse(c, fiber.StatusBadRequest, "VOUCHER_PACKAGE_PRICE_INVALID", err.Error())
+	case errors.Is(err, domain.ErrVoucherStockInsufficient):
+		return domain.ErrorResponse(c, fiber.StatusBadRequest, "VOUCHER_STOCK_INSUFFICIENT", err.Error())
 	case errors.Is(err, domain.ErrVoucherForbidden):
 		return domain.ErrorResponse(c, fiber.StatusForbidden, "VOUCHER_FORBIDDEN", err.Error())
 	case errors.Is(err, domain.ErrVoucherNotFound):

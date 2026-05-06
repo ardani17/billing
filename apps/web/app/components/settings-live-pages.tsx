@@ -512,6 +512,57 @@ export function SettingsSecurityLivePage() {
   );
 }
 
+export function SettingsBillingLivePage() {
+  const modules = useModuleCapabilities();
+  const isolirMode = modules.mikrotik ? "Teknis + administratif" : "Administratif Billing Core";
+
+  return (
+    <SettingsShell>
+      <PageHeader
+        eyebrow="Pengaturan"
+        title="Billing"
+        description="Aturan jatuh tempo, pajak, denda, isolir, dan billing cycle."
+      />
+      <StatGrid
+        stats={[
+          { label: "Mode isolir", value: isolirMode, tone: modules.mikrotik ? "blue" : "amber" },
+          { label: "MikroTik", value: modules.mikrotik ? "Aktif" : "Nonaktif", tone: modules.mikrotik ? "green" : "amber" },
+          { label: "Fiber Network", value: modules.fiber_network ? "Aktif" : "Nonaktif", tone: modules.fiber_network ? "green" : "amber" },
+        ]}
+      />
+      <Section title="Isolir tagihan">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="rounded-lg border border-slate-200 p-4">
+            <p className="text-sm font-semibold text-slate-900">Billing-only</p>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Status pelanggan berubah menjadi isolir di Billing Core, invoice dan notifikasi tetap berjalan, tanpa membuat pending sync router.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 p-4">
+            <p className="text-sm font-semibold text-slate-900">Dengan MikroTik</p>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Status billing tetap menjadi sumber utama, lalu aksi teknis ke RouterOS hanya berjalan saat modul MikroTik aktif.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 p-4">
+            <p className="text-sm font-semibold text-slate-900">Buka isolir</p>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Tenant Billing-only membuka isolir dengan aktivasi ulang status pelanggan; tenant MikroTik dapat menambahkan sync teknis.
+            </p>
+          </div>
+        </div>
+      </Section>
+      <Section title="Status implementasi">
+        <EmptyState
+          title="Endpoint persistensi setting belum tersedia"
+          description="Nilai operasional masih mengikuti konfigurasi backend. Halaman ini sudah menampilkan mode isolir sesuai add-on tenant agar operator tidak keliru membaca proses."
+          action={<Button href="/settings">Kembali ke pengaturan</Button>}
+        />
+      </Section>
+    </SettingsShell>
+  );
+}
+
 export function SettingsGenericLivePage({
   title,
   description,

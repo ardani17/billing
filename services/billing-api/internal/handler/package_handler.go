@@ -92,7 +92,7 @@ func (h *PackageHandler) Get(c *fiber.Ctx) error {
 }
 
 // Create menangani POST /v1/packages.
-// Membuat paket baru (PPPoE atau Voucher).
+// Membuat paket baru (bulanan, PPPoE, atau Voucher).
 func (h *PackageHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -205,6 +205,8 @@ func (h *PackageHandler) mapPackageError(c *fiber.Ctx, err error) error {
 		return domain.ErrorResponse(c, fiber.StatusConflict, "PACKAGE_NAME_DUPLICATE", err.Error())
 	case errors.Is(err, domain.ErrPackageHasCustomers):
 		return domain.ErrorResponse(c, fiber.StatusConflict, "PACKAGE_HAS_CUSTOMERS", err.Error())
+	case errors.Is(err, domain.ErrPackageHasVouchers):
+		return domain.ErrorResponse(c, fiber.StatusConflict, "PACKAGE_HAS_VOUCHERS", err.Error())
 	case errors.Is(err, domain.ErrPackageAlreadyActive):
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "PACKAGE_ALREADY_ACTIVE", err.Error())
 	case errors.Is(err, domain.ErrPackageAlreadyInactive):
@@ -224,20 +226,20 @@ func (h *PackageHandler) mapPackageError(c *fiber.Ctx, err error) error {
 }
 
 // validatePackageCreate melakukan validasi struct-level untuk CreatePackageRequest.
-// Memeriksa field wajib berdasarkan tipe paket (PPPoE vs Voucher).
+// Memeriksa field wajib berdasarkan tipe paket (bulanan/PPPoE vs Voucher).
 func validatePackageCreate(sl validator.StructLevel) {
 	req := sl.Current().Interface().(domain.CreatePackageRequest)
 
-	if req.Type == "pppoe" {
+	if req.Type == "monthly" || req.Type == "pppoe" {
 		if req.MonthlyPrice == nil {
-			sl.ReportError(req.MonthlyPrice, "monthly_price", "MonthlyPrice", "required_for_pppoe", "")
+			sl.ReportError(req.MonthlyPrice, "monthly_price", "MonthlyPrice", "required_for_monthly", "")
 		}
 		if req.BandwidthType == "" {
-			sl.ReportError(req.BandwidthType, "bandwidth_type", "BandwidthType", "required_for_pppoe", "")
+			sl.ReportError(req.BandwidthType, "bandwidth_type", "BandwidthType", "required_for_monthly", "")
 		}
-		// Validasi quota_type hanya boleh unlimited/monthly_quota/fup untuk PPPoE
+		// Validasi quota_type hanya boleh unlimited/monthly_quota/fup untuk paket bulanan
 		if req.QuotaType != "" && req.QuotaType != "unlimited" && req.QuotaType != "monthly_quota" && req.QuotaType != "fup" {
-			sl.ReportError(req.QuotaType, "quota_type", "QuotaType", "invalid_quota_type_for_pppoe", "")
+			sl.ReportError(req.QuotaType, "quota_type", "QuotaType", "invalid_quota_type_for_monthly", "")
 		}
 	} else if req.Type == "voucher" {
 		if req.SellPrice == nil {

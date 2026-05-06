@@ -122,6 +122,8 @@ func main() {
 	customReportTemplateRepo := repository.NewCustomReportTemplateRepo(queries, dbPool)
 	reportAggregationRepo := repository.NewReportAggregationRepo(queries, dbPool)
 	tenantModuleRepo := repository.NewTenantModuleRepo(dbPool)
+	inventoryRepo := repository.NewInventoryRepo(dbPool)
+	cashflowRepo := repository.NewCashflowRepo(dbPool)
 
 	// --- Instantiate gateway-related repositories ---
 	gatewayConfigRepo := repository.NewGatewayConfigRepo(queries, dbPool)
@@ -174,6 +176,7 @@ func main() {
 
 	customerUsecase := usecase.NewCustomerUsecase(customerRepo, auditLogRepo, queueClient, appLogger)
 	customerUsecase.SetPackageRepository(packageRepo)
+	customerUsecase.SetTenantModuleRepository(tenantModuleRepo)
 	areaUsecase := usecase.NewAreaUsecase(areaRepo, auditLogRepo, appLogger)
 	packageUsecase := usecase.NewPackageUsecase(packageRepo, auditLogRepo, queueClient, appLogger)
 
@@ -261,21 +264,24 @@ func main() {
 		billingSettingsRepo, invoiceAuditLogRepo,
 		dbPool, queueClient, appLogger,
 	)
+	isolirUsecase.SetTenantModuleRepository(tenantModuleRepo)
 
 	// --- Instantiate network client untuk cross-service calls ---
 	networkClient := usecase.NewNetworkClient(cfg.NetworkServiceURL, redisClient, appLogger)
 
 	// --- Instantiate reporting usecases ---
-	expenseManager := usecase.NewExpenseManager(expenseRepo, expenseCategoryRepo, appLogger)
+	expenseManager := usecase.NewExpenseManager(expenseRepo, expenseCategoryRepo, auditLogRepo, appLogger)
 	scheduleManager := usecase.NewScheduleManager(reportScheduleRepo, reportJobRepo, appLogger)
 	forecastEngine := usecase.NewForecastEngine(reportAggregationRepo, kpiTargetRepo, appLogger)
 	comparisonEngine := usecase.NewComparisonEngine(reportAggregationRepo, kpiTargetRepo, appLogger)
 	customReportBuilder := usecase.NewCustomReportBuilder(reportAggregationRepo, customReportTemplateRepo, appLogger)
 	dashboardCache := usecase.NewDashboardCache(
-		reportAggregationRepo, networkClient, kpiTargetRepo, redisClient, appLogger,
+		reportAggregationRepo, networkClient, kpiTargetRepo, tenantModuleRepo, redisClient, appLogger,
 	)
 	kpiTargetUsecase := usecase.NewKPITargetUsecase(kpiTargetRepo, appLogger)
 	tenantModuleUsecase := usecase.NewTenantModuleUsecase(tenantModuleRepo)
+	inventoryUsecase := usecase.NewInventoryUsecase(inventoryRepo, expenseRepo, auditLogRepo, appLogger)
+	cashflowUsecase := usecase.NewCashflowUsecase(cashflowRepo, appLogger)
 
 	reportManager := usecase.NewReportManager(
 		reportAggregationRepo, expenseRepo, kpiTargetRepo,
@@ -301,12 +307,13 @@ func main() {
 	voucherPrintHandler := handler.NewVoucherPrintHandler(voucherPrintUsecase, appLogger)
 	resellerAuthHandler := handler.NewResellerAuthHandler(resellerAuthUsecase, appLogger)
 	resellerDashboardHandler := handler.NewResellerDashboardHandler(
-		resellerUsecase, voucherPurchaseUsecase, voucherUsecase,
+		resellerUsecase, packageUsecase, voucherPurchaseUsecase, voucherUsecase,
 		voucherPrintUsecase, resellerTxRepo, appLogger,
 	)
 
 	// --- Instantiate invoice-related handlers ---
 	invoiceHandler := handler.NewInvoiceHandler(invoiceUsecase, appLogger)
+	invoiceHandler.SetCronUsecase(invoiceCronUsecase)
 	invoiceActionHandler := handler.NewInvoiceActionHandler(invoiceActionUsecase, appLogger)
 	recurringItemHandler := handler.NewRecurringItemHandler(recurringItemUsecase, appLogger)
 	creditNoteHandler := handler.NewCreditNoteHandler(creditNoteUsecase, appLogger)
@@ -333,6 +340,8 @@ func main() {
 	customReportHandler := handler.NewCustomReportHandler(customReportBuilder, appLogger)
 	dashboardHandler := handler.NewDashboardHandler(reportManager, appLogger)
 	tenantModuleHandler := handler.NewTenantModuleHandler(tenantModuleUsecase, appLogger)
+	inventoryHandler := handler.NewInventoryHandler(inventoryUsecase, appLogger)
+	cashflowHandler := handler.NewCashflowHandler(cashflowUsecase, appLogger)
 
 	// Buat Fiber app dengan konfigurasi dasar
 	app := fiber.New(fiber.Config{
@@ -381,6 +390,8 @@ func main() {
 		CustomReportHandler:      customReportHandler,
 		DashboardHandler:         dashboardHandler,
 		TenantModuleHandler:      tenantModuleHandler,
+		InventoryHandler:         inventoryHandler,
+		CashflowHandler:          cashflowHandler,
 		RateLimiter:              rateLimiter,
 		ResellerRateLimiter:      resellerRateLimiter,
 		JWTSecret:                cfg.JWTSecret,

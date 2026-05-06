@@ -146,6 +146,8 @@ api.ispboss.id          → API Gateway
   /v1/tenants/*         → Profil tenant, subscription, modul
   /v1/reports/*         → Generate laporan, export, jadwal
   /v1/expenses/*        → Input pengeluaran (untuk laba rugi)
+  /v1/inventory/*       → Inventaris, aset serial, mutasi stok
+  /v1/cashflow/*        → Arus kas operasional
   /v1/audit-log/*       → Audit log (read-only)
   /v1/settings/*        → Konfigurasi billing, branding, user
 

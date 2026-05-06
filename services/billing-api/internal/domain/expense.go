@@ -15,6 +15,10 @@ type Expense struct {
 	Amount        int64      `json:"amount"`
 	Description   string     `json:"description"`
 	ExpenseDate   time.Time  `json:"expense_date"`
+	PaymentMethod string     `json:"payment_method,omitempty"`
+	VendorName    string     `json:"vendor_name,omitempty"`
+	ReferenceNo   string     `json:"reference_number,omitempty"`
+	AttachmentURL string     `json:"attachment_url,omitempty"`
 	IsRecurring   bool       `json:"is_recurring"`
 	RecurringDay  *int       `json:"recurring_day,omitempty"`
 	CreatedByID   string     `json:"created_by_id"`

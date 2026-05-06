@@ -27,6 +27,7 @@ type ActorInfo struct {
 type CustomerUsecase struct {
 	customerRepo domain.CustomerRepository
 	packageRepo  domain.PackageRepository
+	moduleRepo   TenantModuleRepository
 	auditLogRepo domain.AuditLogRepository
 	queueClient  *asynq.Client
 	logger       zerolog.Logger
@@ -51,6 +52,12 @@ func NewCustomerUsecase(
 // Constructor lama dipertahankan agar test dan modul lain tetap kompatibel.
 func (uc *CustomerUsecase) SetPackageRepository(packageRepo domain.PackageRepository) {
 	uc.packageRepo = packageRepo
+}
+
+// SetTenantModuleRepository memasang repository entitlement agar event teknis
+// jaringan hanya dikirim saat add-on terkait aktif.
+func (uc *CustomerUsecase) SetTenantModuleRepository(moduleRepo TenantModuleRepository) {
+	uc.moduleRepo = moduleRepo
 }
 
 // Create membuat pelanggan baru.
@@ -127,14 +134,15 @@ func (uc *CustomerUsecase) Create(ctx context.Context, tenantID string, req doma
 	// Write audit log
 	uc.writeAuditLog(ctx, tenantID, created.ID, "customer.created", actor, nil)
 
-	// Publish customer.created event
-	uc.publishEvent(tenantID, "customer.created", domain.CustomerCreatedPayload{
-		CustomerID:       created.ID,
-		Name:             created.Name,
-		PackageID:        created.PackageID,
-		ConnectionMethod: string(created.ConnectionMethod),
-		RouterID:         created.RouterID,
-	})
+	if uc.mikrotikEnabled(ctx, tenantID) {
+		uc.publishEvent(tenantID, "customer.created", domain.CustomerCreatedPayload{
+			CustomerID:       created.ID,
+			Name:             created.Name,
+			PackageID:        created.PackageID,
+			ConnectionMethod: string(created.ConnectionMethod),
+			RouterID:         created.RouterID,
+		})
+	}
 
 	return created, nil
 }
@@ -242,15 +250,16 @@ func (uc *CustomerUsecase) SoftDelete(ctx context.Context, id string, confirmati
 	// Write audit log
 	uc.writeAuditLog(ctx, customer.TenantID, id, "customer.deleted", actor, nil)
 
-	// Publish customer.terminated event
-	uc.publishEvent(customer.TenantID, "customer.terminated", domain.CustomerTerminatedPayload{
-		CustomerID:       customer.ID,
-		TenantID:         customer.TenantID,
-		Name:             customer.Name,
-		RouterID:         customer.RouterID,
-		PPPoEUsername:    customer.PPPoEUsername,
-		ConnectionMethod: string(customer.ConnectionMethod),
-	})
+	if uc.mikrotikEnabled(ctx, customer.TenantID) {
+		uc.publishEvent(customer.TenantID, "customer.terminated", domain.CustomerTerminatedPayload{
+			CustomerID:       customer.ID,
+			TenantID:         customer.TenantID,
+			Name:             customer.Name,
+			RouterID:         customer.RouterID,
+			PPPoEUsername:    customer.PPPoEUsername,
+			ConnectionMethod: string(customer.ConnectionMethod),
+		})
+	}
 
 	return nil
 }
@@ -265,6 +274,18 @@ func (uc *CustomerUsecase) packageNetworkFields(ctx context.Context, packageID s
 		return "", 0, 0, ""
 	}
 	return pkg.MikrotikProfileName, pkg.DownloadMbps, pkg.UploadMbps, pkg.AddressPool
+}
+
+func (uc *CustomerUsecase) mikrotikEnabled(ctx context.Context, tenantID string) bool {
+	if uc.moduleRepo == nil {
+		return true
+	}
+	caps, err := uc.moduleRepo.Capabilities(ctx, tenantID)
+	if err != nil {
+		uc.logger.Warn().Err(err).Str("tenant_id", tenantID).Msg("gagal cek entitlement MikroTik")
+		return false
+	}
+	return caps.MikroTik
 }
 
 // List mengambil daftar pelanggan dengan paginasi, filter, dan sorting.

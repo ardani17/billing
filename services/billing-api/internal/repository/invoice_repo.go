@@ -231,6 +231,13 @@ func (r *InvoiceRepo) List(ctx context.Context, params domain.InvoiceListParams)
 		argIdx++
 	}
 
+	// Customer filter
+	if params.CustomerID != "" {
+		conditions = append(conditions, fmt.Sprintf("i.customer_id = $%d", argIdx))
+		args = append(args, stringToUUID(params.CustomerID))
+		argIdx++
+	}
+
 	// Period month filter
 	if params.PeriodMonth != nil {
 		conditions = append(conditions, fmt.Sprintf("i.period_month = $%d", argIdx))

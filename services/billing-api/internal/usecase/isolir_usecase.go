@@ -21,10 +21,16 @@ type IsolirUsecase struct {
 	invoiceItemRepo domain.InvoiceItemRepository
 	pendingSyncRepo domain.PendingSyncRepository
 	settingsRepo    domain.BillingSettingsRepository
+	moduleRepo      TenantModuleRepository
 	auditRepo       domain.InvoiceAuditLogRepository
 	pool            *pgxpool.Pool
 	queueClient     *asynq.Client
 	logger          zerolog.Logger
+}
+
+// SetTenantModuleRepository memasang repository entitlement modul tenant.
+func (uc *IsolirUsecase) SetTenantModuleRepository(moduleRepo TenantModuleRepository) {
+	uc.moduleRepo = moduleRepo
 }
 
 // NewIsolirUsecase membuat instance baru IsolirUsecase.
@@ -87,14 +93,16 @@ func (uc *IsolirUsecase) isolirCustomer(ctx context.Context, inv *domain.Invoice
 		return fmt.Errorf("gagal update status ke isolir: %w", err)
 	}
 	overdue := domain.DaysOverdue(inv.DueDate, now.Time)
-	uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpIsolir)
 	p := domain.CustomerIsolirPayload{
 		CustomerID: cust.ID, TenantID: cust.TenantID, CustomerName: cust.Name,
 		RouterID: cust.RouterID, PPPoEUsername: cust.PPPoEUsername,
 		ConnectionMethod: string(cust.ConnectionMethod),
-		Reason: "auto_isolir: invoice terlambat melewati grace period", OverdueDays: overdue,
+		Reason:           "auto_isolir: invoice terlambat melewati grace period", OverdueDays: overdue,
 	}
-	uc.publishEvent(cust.TenantID, domain.TaskCustomerIsolir, p)
+	if uc.mikrotikEnabled(ctx, cust.TenantID) {
+		uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpIsolir)
+		uc.publishEvent(cust.TenantID, domain.TaskCustomerIsolir, p)
+	}
 	uc.publishEvent(cust.TenantID, domain.TaskNotifIsolir, p)
 	uc.writeAuditLog(ctx, cust.TenantID, inv.ID, "customer.isolir",
 		map[string]interface{}{"overdue_days": overdue, "customer_id": cust.ID})
@@ -150,13 +158,15 @@ func (uc *IsolirUsecase) suspendCustomer(ctx context.Context, inv *domain.Invoic
 		return fmt.Errorf("gagal update status ke suspend: %w", err)
 	}
 	overdue := domain.DaysOverdue(inv.DueDate, now.Time)
-	uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpSuspend)
 	p := domain.CustomerSuspendPayload{
 		CustomerID: cust.ID, TenantID: cust.TenantID, CustomerName: cust.Name,
 		RouterID: cust.RouterID, PPPoEUsername: cust.PPPoEUsername,
 		ConnectionMethod: string(cust.ConnectionMethod), OverdueDays: overdue,
 	}
-	uc.publishEvent(cust.TenantID, domain.TaskCustomerSuspend, p)
+	if uc.mikrotikEnabled(ctx, cust.TenantID) {
+		uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpSuspend)
+		uc.publishEvent(cust.TenantID, domain.TaskCustomerSuspend, p)
+	}
 	uc.publishEvent(cust.TenantID, domain.TaskNotifSuspend, p)
 	uc.writeAuditLog(ctx, cust.TenantID, inv.ID, "customer.suspend",
 		map[string]interface{}{"overdue_days": overdue, "customer_id": cust.ID})
@@ -165,11 +175,26 @@ func (uc *IsolirUsecase) suspendCustomer(ctx context.Context, inv *domain.Invoic
 
 // createPendingSync membuat record pending_sync baru.
 func (uc *IsolirUsecase) createPendingSync(ctx context.Context, tenantID, customerID string, op domain.SyncOperationType) {
+	if !uc.mikrotikEnabled(ctx, tenantID) {
+		return
+	}
 	ps := &domain.PendingSync{TenantID: tenantID, CustomerID: customerID,
 		OperationType: op, Status: domain.SyncStatusPending, MaxRetries: 5}
 	if _, err := uc.pendingSyncRepo.Create(ctx, ps); err != nil {
 		uc.logger.Error().Err(err).Str("customer_id", customerID).Msg("gagal membuat pending_sync")
 	}
+}
+
+func (uc *IsolirUsecase) mikrotikEnabled(ctx context.Context, tenantID string) bool {
+	if uc.moduleRepo == nil {
+		return true
+	}
+	caps, err := uc.moduleRepo.Capabilities(ctx, tenantID)
+	if err != nil {
+		uc.logger.Warn().Err(err).Str("tenant_id", tenantID).Msg("gagal cek entitlement MikroTik")
+		return false
+	}
+	return caps.MikroTik
 }
 
 // publishEvent mempublikasikan event ke Redis queue.

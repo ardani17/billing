@@ -88,7 +88,7 @@ func (nc *NetworkClient) GetCapacityReport(ctx context.Context, tenantID string)
 
 	if !stale && lastUpdated == nil && len(report.RouterCapacity) == 0 && len(report.ODPCapacity) == 0 {
 		return &domain.CapacityReport{
-			ModuleInactive: map[string]bool{"mikrotik": true, "olt": true},
+			ModuleInactive: map[string]bool{"mikrotik": true, "fiber_network": true, "olt": true},
 		}, nil
 	}
 
@@ -110,7 +110,7 @@ func (nc *NetworkClient) GetSyncReport(ctx context.Context, tenantID string, per
 
 	if !stale && lastUpdated == nil && len(report.MikrotikSync) == 0 && len(report.OLTSync) == 0 {
 		return &domain.SyncReport{
-			ModuleInactive: map[string]bool{"mikrotik": true, "olt": true},
+			ModuleInactive: map[string]bool{"mikrotik": true, "fiber_network": true, "olt": true},
 		}, nil
 	}
 

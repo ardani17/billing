@@ -38,6 +38,15 @@ type OltSummary = {
   active_alarm_count?: number;
 };
 
+type CashflowSummary = {
+  total_cash_in: number;
+  total_cash_out: number;
+  net_cashflow: number;
+  opening_balance: number;
+  closing_balance_estimate: number;
+  breakdown: { direction: string; source: string; category: string; amount: number }[];
+};
+
 type ApiResponse<T> = {
   success: boolean;
   data?: T;
@@ -45,6 +54,20 @@ type ApiResponse<T> = {
     code: string;
     message: string;
   };
+};
+
+type ModuleCapabilities = {
+  billing_core: boolean;
+  mikrotik: boolean;
+  fiber_network: boolean;
+};
+
+type StatItem = { label: string; value: string; delta?: string; tone?: "slate" | "blue" | "green" | "amber" | "red" | "violet" };
+
+const defaultModules: ModuleCapabilities = {
+  billing_core: true,
+  mikrotik: false,
+  fiber_network: false,
 };
 
 const emptyMetrics: DashboardMetrics = {
@@ -58,6 +81,15 @@ const emptyMetrics: DashboardMetrics = {
   collection_rate: 0,
   churn_rate: 0,
   arpu: 0,
+};
+
+const emptyCashflow: CashflowSummary = {
+  total_cash_in: 0,
+  total_cash_out: 0,
+  net_cashflow: 0,
+  opening_balance: 0,
+  closing_balance_estimate: 0,
+  breakdown: [],
 };
 
 function formatCurrency(value: number) {
@@ -74,6 +106,16 @@ function formatPercent(value: number) {
 
 function extractMessage(error: unknown) {
   return error instanceof Error ? error.message : "Terjadi kesalahan";
+}
+
+function currentMonthPeriod() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return {
+    start: start.toISOString().slice(0, 10),
+    end: end.toISOString().slice(0, 10),
+  };
 }
 
 function RevenueSnapshot({ metrics }: { metrics: DashboardMetrics }) {
@@ -120,10 +162,64 @@ function RevenueSnapshot({ metrics }: { metrics: DashboardMetrics }) {
   );
 }
 
+function CashflowSnapshot({ summary }: { summary: CashflowSummary }) {
+  const total = Math.max(summary.total_cash_in + summary.total_cash_out, 1);
+  const incomeWidth = (Math.max(summary.total_cash_in, 0) / total) * 100;
+  const expenseWidth = (Math.max(summary.total_cash_out, 0) / total) * 100;
+  const incomeBreakdown = summary.breakdown.filter((item) => item.direction === "in");
+  const expenseBreakdown = summary.breakdown.filter((item) => item.direction === "out");
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-emerald-700">Kas masuk</p>
+          <p className="mt-2 font-mono text-lg font-semibold text-emerald-900">{formatCurrency(summary.total_cash_in)}</p>
+        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-red-700">Kas keluar</p>
+          <p className="mt-2 font-mono text-lg font-semibold text-red-900">{formatCurrency(summary.total_cash_out)}</p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">Saldo akhir</p>
+          <p className="mt-2 font-mono text-lg font-semibold text-slate-950">{formatCurrency(summary.closing_balance_estimate)}</p>
+        </div>
+      </div>
+      <div className="flex h-7 overflow-hidden rounded-md bg-slate-100">
+        <div className="bg-emerald-500" style={{ width: `${incomeWidth}%` }} />
+        <div className="bg-red-400" style={{ width: `${expenseWidth}%` }} />
+      </div>
+      <div className="grid gap-3 text-sm sm:grid-cols-2">
+        <BreakdownList title="Sumber masuk" items={incomeBreakdown} empty="Belum ada kas masuk periode ini." />
+        <BreakdownList title="Sumber keluar" items={expenseBreakdown} empty="Belum ada pengeluaran periode ini." />
+      </div>
+    </div>
+  );
+}
+
+function BreakdownList({ title, items, empty }: { title: string; items: CashflowSummary["breakdown"]; empty: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 p-4">
+      <p className="font-semibold text-slate-900">{title}</p>
+      <div className="mt-3 space-y-2">
+        {items.length === 0 && <p className="text-sm text-slate-500">{empty}</p>}
+        {items.slice(0, 4).map((item) => (
+          <div key={`${item.direction}-${item.source}-${item.category}`} className="flex min-w-0 items-center justify-between gap-3 text-sm">
+            <span className="min-w-0 truncate text-slate-600">{item.category}</span>
+            <span className="shrink-0 font-mono font-semibold text-slate-950">{formatCurrency(item.amount)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardLiveClient() {
   const [metrics, setMetrics] = useState<DashboardMetrics>(emptyMetrics);
+  const [cashflowSummary, setCashflowSummary] = useState<CashflowSummary>(emptyCashflow);
   const [routerSummary, setRouterSummary] = useState<RouterSummary | null>(null);
   const [oltSummary, setOltSummary] = useState<OltSummary | null>(null);
+  const [modules, setModules] = useState<ModuleCapabilities>(defaultModules);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -131,21 +227,39 @@ export default function DashboardLiveClient() {
     setLoading(true);
     setError("");
     try {
-      const [dashboardResponse, routerResponse, oltResponse] = await Promise.all([
+      const moduleResponse = await fetch("/api/billing/tenant/modules", { cache: "no-store" });
+      const moduleJson = await moduleResponse.json().catch(() => ({}));
+      const nextModuleData = moduleJson?.data?.modules ?? moduleJson?.modules ?? defaultModules;
+      const nextModules = {
+        billing_core: nextModuleData.billing_core !== false,
+        mikrotik: nextModuleData.mikrotik === true,
+        fiber_network: nextModuleData.fiber_network === true,
+      };
+      setModules(nextModules);
+      const period = currentMonthPeriod();
+
+      const [dashboardResponse, cashflowResponse, routerResponse, oltResponse] = await Promise.all([
         fetch("/api/billing/reports/dashboard", { cache: "no-store" }),
-        fetch("/api/network/mikrotik/status/summary", { cache: "no-store" }),
-        fetch("/api/network-service/olt/summary", { cache: "no-store" }),
+        fetch(`/api/billing/cashflow/summary?period_start=${period.start}&period_end=${period.end}`, { cache: "no-store" }),
+        nextModules.mikrotik
+          ? fetch("/api/network/mikrotik/status/summary", { cache: "no-store" })
+          : Promise.resolve(null),
+        nextModules.fiber_network
+          ? fetch("/api/network-service/olt/summary", { cache: "no-store" })
+          : Promise.resolve(null),
       ]);
       const dashboardJson = (await dashboardResponse.json()) as ApiResponse<DashboardMetrics>;
-      const routerJson = (await routerResponse.json()) as ApiResponse<RouterSummary>;
-      const oltJson = (await oltResponse.json()) as ApiResponse<OltSummary>;
+      const cashflowJson = (await cashflowResponse.json()) as ApiResponse<CashflowSummary>;
+      const routerJson = routerResponse ? ((await routerResponse.json()) as ApiResponse<RouterSummary>) : null;
+      const oltJson = oltResponse ? ((await oltResponse.json()) as ApiResponse<OltSummary>) : null;
 
       if (!dashboardResponse.ok || !dashboardJson.success) {
         throw new Error(dashboardJson.error?.message || "Gagal mengambil dashboard");
       }
       setMetrics(dashboardJson.data || emptyMetrics);
-      if (routerResponse.ok && routerJson.success) setRouterSummary(routerJson.data || null);
-      if (oltResponse.ok && oltJson.success) setOltSummary(oltJson.data || null);
+      setCashflowSummary(cashflowResponse.ok && cashflowJson.success ? cashflowJson.data || emptyCashflow : emptyCashflow);
+      setRouterSummary(routerResponse?.ok && routerJson?.success ? routerJson.data || null : null);
+      setOltSummary(oltResponse?.ok && oltJson?.success ? oltJson.data || null : null);
     } catch (loadError) {
       setError(extractMessage(loadError));
     } finally {
@@ -158,16 +272,20 @@ export default function DashboardLiveClient() {
   }, []);
 
   const stats = useMemo(() => {
-    const online = routerSummary?.online_count ?? metrics.routers_online;
-    const offline = routerSummary?.offline_count ?? metrics.routers_offline;
-    const totalRouters = routerSummary?.total_routers ?? online + offline;
-    return [
+    const items: StatItem[] = [
       { label: "Pelanggan aktif", value: String(metrics.total_active_customers), delta: `${metrics.customers_trend >= 0 ? "+" : ""}${metrics.customers_trend} bulan ini` },
       { label: "Pendapatan bulan ini", value: formatCurrency(metrics.monthly_revenue), delta: `ARPU ${formatCurrency(metrics.arpu)}` },
       { label: "Piutang", value: formatCurrency(metrics.total_receivables), delta: `${metrics.receivables_count} invoice`, tone: metrics.receivables_count > 0 ? ("amber" as const) : undefined },
-      { label: "Router online", value: `${online}/${totalRouters}`, delta: `${offline} offline`, tone: offline > 0 ? ("red" as const) : undefined },
+      { label: "Arus kas bersih", value: formatCurrency(cashflowSummary.net_cashflow), delta: "Bulan ini", tone: cashflowSummary.net_cashflow >= 0 ? ("green" as const) : ("red" as const) },
     ];
-  }, [metrics, routerSummary]);
+    if (modules.mikrotik) {
+      const online = routerSummary?.online_count ?? metrics.routers_online;
+      const offline = routerSummary?.offline_count ?? metrics.routers_offline;
+      const totalRouters = routerSummary?.total_routers ?? online + offline;
+      items.push({ label: "Router online", value: `${online}/${totalRouters}`, delta: `${offline} offline`, tone: offline > 0 ? ("red" as const) : undefined });
+    }
+    return items;
+  }, [cashflowSummary.net_cashflow, metrics, modules.mikrotik, routerSummary]);
 
   const oltTotal = oltSummary?.total ?? oltSummary?.total_olts ?? 0;
   const oltOnline = oltSummary?.online ?? oltSummary?.online_count ?? 0;
@@ -210,21 +328,37 @@ export default function DashboardLiveClient() {
           <Section title="Pendapatan real" description="Data dari laporan dashboard billing-api.">
             {loading ? <EmptyState title="Memuat dashboard" description="Mengambil data dari billing-api..." /> : <RevenueSnapshot metrics={metrics} />}
           </Section>
-          <Section title="Status jaringan" description="Ringkasan router dari network-service tanpa dial RouterOS.">
-            <DataTable
-              columns={["Metric", "Nilai", "Status"]}
-              rows={[
-                ["Router terdaftar", String(routerSummary?.total_routers ?? 0), <StatusBadge key="router-total" status="info" />],
-                ["Router online", String(routerSummary?.online_count ?? metrics.routers_online), <StatusBadge key="router-online" status="online" />],
-                ["Router offline", String(routerSummary?.offline_count ?? metrics.routers_offline), <StatusBadge key="router-offline" status={(routerSummary?.offline_count ?? metrics.routers_offline) > 0 ? "offline" : "online"} />],
-                ["OLT terdaftar", String(oltTotal), <StatusBadge key="olt-total" status="info" />],
-                ["OLT online", String(oltOnline), <StatusBadge key="olt-online" status="online" />],
-                ["OLT offline", String(oltOffline), <StatusBadge key="olt-offline" status={oltOffline > 0 ? "offline" : "online"} />],
-                ["Alarm OLT", String(oltAlarms), <StatusBadge key="olt-alarm" status={oltAlarms > 0 ? "warning" : "normal"} />],
-              ]}
-            />
+          <Section title="Cashflow operasional" description="Kas masuk, kas keluar, dan saldo akhir bulan berjalan." action={<Button href="/cashflow" variant="secondary">Buka arus kas</Button>}>
+            {loading ? <EmptyState title="Memuat arus kas" description="Mengambil ringkasan cashflow..." /> : <CashflowSnapshot summary={cashflowSummary} />}
           </Section>
         </div>
+
+        {(modules.mikrotik || modules.fiber_network) && (
+          <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <Section title="Status jaringan" description="Ringkasan add-on jaringan aktif.">
+              <DataTable
+                columns={["Metric", "Nilai", "Status"]}
+                rows={[
+                  ...(modules.mikrotik
+                    ? [
+                        ["Router terdaftar", String(routerSummary?.total_routers ?? 0), <StatusBadge key="router-total" status="info" />],
+                        ["Router online", String(routerSummary?.online_count ?? metrics.routers_online), <StatusBadge key="router-online" status="online" />],
+                        ["Router offline", String(routerSummary?.offline_count ?? metrics.routers_offline), <StatusBadge key="router-offline" status={(routerSummary?.offline_count ?? metrics.routers_offline) > 0 ? "offline" : "online"} />],
+                      ]
+                    : []),
+                  ...(modules.fiber_network
+                    ? [
+                        ["OLT terdaftar", String(oltTotal), <StatusBadge key="olt-total" status="info" />],
+                        ["OLT online", String(oltOnline), <StatusBadge key="olt-online" status="online" />],
+                        ["OLT offline", String(oltOffline), <StatusBadge key="olt-offline" status={oltOffline > 0 ? "offline" : "online"} />],
+                        ["Alarm OLT", String(oltAlarms), <StatusBadge key="olt-alarm" status={oltAlarms > 0 ? "warning" : "normal"} />],
+                      ]
+                    : []),
+                ]}
+              />
+            </Section>
+          </div>
+        )}
       </div>
     </AppShell>
   );

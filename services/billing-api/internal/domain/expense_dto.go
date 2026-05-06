@@ -19,6 +19,11 @@ type CreateExpenseRequest struct {
 	// ExpenseDate adalah tanggal pengeluaran (format: YYYY-MM-DD).
 	ExpenseDate string `json:"expense_date" validate:"required"`
 
+	PaymentMethod string `json:"payment_method,omitempty" validate:"omitempty,max=50"`
+	VendorName    string `json:"vendor_name,omitempty" validate:"omitempty,max=255"`
+	ReferenceNo   string `json:"reference_number,omitempty" validate:"omitempty,max=255"`
+	AttachmentURL string `json:"attachment_url,omitempty" validate:"omitempty,url"`
+
 	// IsRecurring menandakan apakah pengeluaran berulang setiap bulan.
 	IsRecurring bool `json:"is_recurring"`
 
@@ -40,6 +45,11 @@ type UpdateExpenseRequest struct {
 
 	// ExpenseDate adalah tanggal pengeluaran (format: YYYY-MM-DD).
 	ExpenseDate *string `json:"expense_date,omitempty"`
+
+	PaymentMethod *string `json:"payment_method,omitempty" validate:"omitempty,max=50"`
+	VendorName    *string `json:"vendor_name,omitempty" validate:"omitempty,max=255"`
+	ReferenceNo   *string `json:"reference_number,omitempty" validate:"omitempty,max=255"`
+	AttachmentURL *string `json:"attachment_url,omitempty" validate:"omitempty,url"`
 
 	// IsRecurring menandakan apakah pengeluaran berulang setiap bulan.
 	IsRecurring *bool `json:"is_recurring,omitempty"`

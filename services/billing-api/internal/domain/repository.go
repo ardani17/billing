@@ -202,12 +202,12 @@ type CreateCustomerRequest struct {
 	Email            string  `json:"email" validate:"omitempty,email"`
 	Address          string  `json:"address" validate:"required,max=1000"`
 	AreaID           string  `json:"area_id" validate:"omitempty,uuid"`
-	Latitude         float64 `json:"latitude" validate:"required,min=-90,max=90"`
-	Longitude        float64 `json:"longitude" validate:"required,min=-180,max=180"`
+	Latitude         float64 `json:"latitude" validate:"omitempty,min=-90,max=90"`
+	Longitude        float64 `json:"longitude" validate:"omitempty,min=-180,max=180"`
 	PackageID        string  `json:"package_id" validate:"required,uuid"`
 	ActivationDate   string  `json:"activation_date" validate:"required,datetime=2006-01-02"`
 	DueDate          int     `json:"due_date" validate:"required,min=1,max=28"`
-	ConnectionMethod string  `json:"connection_method" validate:"required,oneof=pppoe hotspot dhcp_binding static"`
+	ConnectionMethod string  `json:"connection_method" validate:"required,oneof=manual pppoe hotspot dhcp_binding static"`
 	PPPoEUsername    string  `json:"pppoe_username" validate:"omitempty"`
 	PPPoEPassword    string  `json:"pppoe_password" validate:"omitempty"`
 	MACAddress       string  `json:"mac_address" validate:"required_if=ConnectionMethod dhcp_binding,omitempty,mac_addr"`
@@ -228,7 +228,7 @@ type UpdateCustomerRequest struct {
 	PackageID        string   `json:"package_id" validate:"omitempty,uuid"`
 	ActivationDate   string   `json:"activation_date" validate:"omitempty,datetime=2006-01-02"`
 	DueDate          *int     `json:"due_date" validate:"omitempty,min=1,max=28"`
-	ConnectionMethod string   `json:"connection_method" validate:"omitempty,oneof=pppoe hotspot dhcp_binding static"`
+	ConnectionMethod string   `json:"connection_method" validate:"omitempty,oneof=manual pppoe hotspot dhcp_binding static"`
 	PPPoEUsername    string   `json:"pppoe_username" validate:"omitempty"`
 	PPPoEPassword    string   `json:"pppoe_password" validate:"omitempty"`
 	MACAddress       string   `json:"mac_address" validate:"omitempty,mac_addr"`
@@ -307,7 +307,7 @@ type ActorInfo struct {
 // CreatePackageRequest adalah payload untuk POST /v1/packages.
 // Validasi bersifat type-conditional: field yang wajib bergantung pada nilai type.
 type CreatePackageRequest struct {
-	Type                string `json:"type" validate:"required,oneof=pppoe voucher"`
+	Type                string `json:"type" validate:"required,oneof=monthly pppoe voucher"`
 	Name                string `json:"name" validate:"required,min=2,max=255"`
 	Description         string `json:"description" validate:"omitempty"`
 	DownloadMbps        int    `json:"download_mbps" validate:"required,gt=0"`
@@ -374,7 +374,7 @@ type PackageListParams struct {
 	Page      int    `query:"page" validate:"omitempty,min=1"`
 	PageSize  int    `query:"page_size" validate:"omitempty,oneof=10 25 50"`
 	Search    string `query:"search"`
-	Type      string `query:"type" validate:"omitempty,oneof=pppoe voucher"`
+	Type      string `query:"type" validate:"omitempty,oneof=monthly pppoe voucher"`
 	IsActive  *bool  `query:"is_active"`
 	SortBy    string `query:"sort_by" validate:"omitempty,oneof=name monthly_price sell_price download_mbps created_at"`
 	SortOrder string `query:"sort_order" validate:"omitempty,oneof=asc desc"`
@@ -961,6 +961,7 @@ type BulkCancelRequest struct {
 // InvoiceListParams berisi parameter untuk list/filter invoice.
 type InvoiceListParams struct {
 	TenantID    string `query:"tenant_id"`
+	CustomerID  string `query:"customer_id" validate:"omitempty,uuid"`
 	Page        int    `query:"page" validate:"omitempty,min=1"`
 	PageSize    int    `query:"page_size" validate:"omitempty,oneof=10 25 50"`
 	Search      string `query:"search"`
@@ -1525,7 +1526,7 @@ type ExpenseUsecase interface {
 	// Update memperbarui data pengeluaran.
 	Update(ctx context.Context, id string, req UpdateExpenseRequest, actor ActorInfo) (*Expense, error)
 	// Delete menghapus pengeluaran secara soft delete.
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string, actor ActorInfo) error
 	// List mengambil daftar pengeluaran dengan filter periode dan kategori.
 	List(ctx context.Context, tenantID string, periodStart, periodEnd time.Time, categoryID string) ([]*Expense, error)
 	// ListCategories mengambil semua kategori pengeluaran aktif untuk tenant.

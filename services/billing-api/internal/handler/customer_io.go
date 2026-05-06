@@ -97,7 +97,12 @@ func (h *CustomerHandler) Export(c *fiber.Ctx) error {
 // ImportTemplate menangani GET /v1/customers/import/template.
 // Mengembalikan file CSV template untuk import.
 func (h *CustomerHandler) ImportTemplate(c *fiber.Ctx) error {
-	templateBytes, err := h.customerUsecase.GetImportTemplate(c.Context())
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant tidak teridentifikasi")
+	}
+
+	templateBytes, err := h.customerUsecase.GetImportTemplate(c.Context(), tenantID)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("gagal membuat template import")
 		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal membuat template import")

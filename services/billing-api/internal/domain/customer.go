@@ -80,6 +80,7 @@ func AllowedTargets(current CustomerStatus) []CustomerStatus {
 type ConnectionMethod string
 
 const (
+	ConnectionManual      ConnectionMethod = "manual"
 	ConnectionPPPoE       ConnectionMethod = "pppoe"
 	ConnectionHotspot     ConnectionMethod = "hotspot"
 	ConnectionDHCPBinding ConnectionMethod = "dhcp_binding"

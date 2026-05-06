@@ -134,7 +134,7 @@ func (h *ExpenseHandler) Delete(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "expense ID wajib diisi")
 	}
 
-	if err := h.expenseUsecase.Delete(c.Context(), id); err != nil {
+	if err := h.expenseUsecase.Delete(c.Context(), id, h.extractActor(c)); err != nil {
 		return h.mapExpenseError(c, err)
 	}
 

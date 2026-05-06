@@ -45,16 +45,17 @@ func (uc *CustomerUsecase) Isolir(ctx context.Context, id string, actor ActorInf
 	}
 	uc.writeAuditLog(ctx, customer.TenantID, id, "customer.status_changed", actor, changes)
 
-	// Publish customer.isolir event for network-service.
-	uc.publishEvent(customer.TenantID, domain.TaskCustomerIsolir, domain.CustomerIsolirPayload{
-		CustomerID:       customer.ID,
-		TenantID:         customer.TenantID,
-		CustomerName:     customer.Name,
-		RouterID:         customer.RouterID,
-		PPPoEUsername:    customer.PPPoEUsername,
-		ConnectionMethod: string(customer.ConnectionMethod),
-		Reason:           "admin_manual",
-	})
+	if uc.mikrotikEnabled(ctx, customer.TenantID) {
+		uc.publishEvent(customer.TenantID, domain.TaskCustomerIsolir, domain.CustomerIsolirPayload{
+			CustomerID:       customer.ID,
+			TenantID:         customer.TenantID,
+			CustomerName:     customer.Name,
+			RouterID:         customer.RouterID,
+			PPPoEUsername:    customer.PPPoEUsername,
+			ConnectionMethod: string(customer.ConnectionMethod),
+			Reason:           "admin_manual",
+		})
+	}
 
 	return updated, nil
 }
@@ -97,7 +98,7 @@ func (uc *CustomerUsecase) Activate(ctx context.Context, id string, actor ActorI
 	uc.writeAuditLog(ctx, customer.TenantID, id, "customer.status_changed", actor, changes)
 
 	// Publish event: unblocked if from isolir, activated otherwise
-	if previousStatus == domain.CustomerStatusIsolir {
+	if previousStatus == domain.CustomerStatusIsolir && uc.mikrotikEnabled(ctx, customer.TenantID) {
 		uc.publishEvent(customer.TenantID, domain.TaskCustomerUnIsolir, domain.CustomerUnIsolirPayload{
 			CustomerID:       customer.ID,
 			TenantID:         customer.TenantID,
@@ -107,7 +108,7 @@ func (uc *CustomerUsecase) Activate(ctx context.Context, id string, actor ActorI
 			ConnectionMethod: string(customer.ConnectionMethod),
 			Trigger:          "admin_manual",
 		})
-	} else {
+	} else if uc.mikrotikEnabled(ctx, customer.TenantID) {
 		profileName, downloadMbps, uploadMbps, addressPool := uc.packageNetworkFields(ctx, customer.PackageID)
 		uc.publishEvent(customer.TenantID, "customer.activated", domain.CustomerActivatedPayload{
 			CustomerID:          customer.ID,
@@ -166,19 +167,20 @@ func (uc *CustomerUsecase) ChangePackage(ctx context.Context, id string, package
 
 	profileName, downloadMbps, uploadMbps, addressPool := uc.packageNetworkFields(ctx, packageID)
 
-	// Publish package.changed event
-	uc.publishEvent(customer.TenantID, "package.changed", domain.PackageChangedPayload{
-		CustomerID:          customer.ID,
-		TenantID:            customer.TenantID,
-		OldPackageID:        oldPackageID,
-		NewPackageID:        packageID,
-		ConnectionMethod:    string(customer.ConnectionMethod),
-		RouterID:            customer.RouterID,
-		MikrotikProfileName: profileName,
-		DownloadMbps:        downloadMbps,
-		UploadMbps:          uploadMbps,
-		AddressPool:         addressPool,
-	})
+	if uc.mikrotikEnabled(ctx, customer.TenantID) {
+		uc.publishEvent(customer.TenantID, "package.changed", domain.PackageChangedPayload{
+			CustomerID:          customer.ID,
+			TenantID:            customer.TenantID,
+			OldPackageID:        oldPackageID,
+			NewPackageID:        packageID,
+			ConnectionMethod:    string(customer.ConnectionMethod),
+			RouterID:            customer.RouterID,
+			MikrotikProfileName: profileName,
+			DownloadMbps:        downloadMbps,
+			UploadMbps:          uploadMbps,
+			AddressPool:         addressPool,
+		})
+	}
 
 	return updated, nil
 }

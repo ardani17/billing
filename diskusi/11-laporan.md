@@ -869,6 +869,8 @@ Admin bisa buat laporan custom yang tidak ada di template bawaan:
 
 ISPBoss bukan software akuntansi, tapi menyediakan input pengeluaran sederhana untuk laporan laba rugi:
 
+Detail lanjutan untuk pengeluaran sebagai menu operasional, inventaris perangkat, dan cashflow dibahas di dokumen **14 - Keuangan Operasional**.
+
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║  Pengeluaran — April 2026                  [+ Tambah]        ║

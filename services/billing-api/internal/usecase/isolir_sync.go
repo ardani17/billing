@@ -34,7 +34,7 @@ func (uc *IsolirUsecase) processSingleSync(ctx context.Context, ps *domain.Pendi
 	}
 
 	// Re-publish event sesuai operation_type
-	uc.publishSyncEvent(ps, cust)
+	uc.publishSyncEvent(ctx, ps, cust)
 
 	// Increment retry_count
 	newRetryCount := ps.RetryCount + 1
@@ -58,21 +58,24 @@ func (uc *IsolirUsecase) processSingleSync(ctx context.Context, ps *domain.Pendi
 }
 
 // publishSyncEvent mempublikasikan event berdasarkan operation_type pending_sync.
-func (uc *IsolirUsecase) publishSyncEvent(ps *domain.PendingSync, cust *domain.Customer) {
+func (uc *IsolirUsecase) publishSyncEvent(ctx context.Context, ps *domain.PendingSync, cust *domain.Customer) {
+	if !uc.mikrotikEnabled(ctx, ps.TenantID) {
+		return
+	}
 	switch ps.OperationType {
 	case domain.SyncOpIsolir:
 		uc.publishEvent(ps.TenantID, domain.TaskCustomerIsolir, domain.CustomerIsolirPayload{
 			CustomerID: cust.ID, TenantID: cust.TenantID, CustomerName: cust.Name,
 			RouterID: cust.RouterID, PPPoEUsername: cust.PPPoEUsername,
 			ConnectionMethod: string(cust.ConnectionMethod),
-			Reason: "periodic_sync: retry sinkronisasi router",
+			Reason:           "periodic_sync: retry sinkronisasi router",
 		})
 	case domain.SyncOpUnIsolir:
 		uc.publishEvent(ps.TenantID, domain.TaskCustomerUnIsolir, domain.CustomerUnIsolirPayload{
 			CustomerID: cust.ID, TenantID: cust.TenantID, CustomerName: cust.Name,
 			RouterID: cust.RouterID, PPPoEUsername: cust.PPPoEUsername,
 			ConnectionMethod: string(cust.ConnectionMethod),
-			Trigger: "periodic_sync",
+			Trigger:          "periodic_sync",
 		})
 	case domain.SyncOpSuspend:
 		uc.publishEvent(ps.TenantID, domain.TaskCustomerSuspend, domain.CustomerSuspendPayload{
@@ -108,7 +111,7 @@ func (uc *IsolirUsecase) ManualSync(ctx context.Context, customerID, actorID str
 
 	// Re-publish event untuk setiap pending_sync
 	for _, ps := range syncs {
-		uc.publishSyncEvent(ps, cust)
+		uc.publishSyncEvent(ctx, ps, cust)
 	}
 
 	// Tulis audit log

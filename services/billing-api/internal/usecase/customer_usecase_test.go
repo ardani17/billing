@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
 	"io"
 	"math"
@@ -25,8 +26,8 @@ func newTestLogger() zerolog.Logger {
 
 // mockCustomerRepo is an in-memory implementation of domain.CustomerRepository.
 type mockCustomerRepo struct {
-	mu        sync.Mutex
-	customers map[string]*domain.Customer
+	mu          sync.Mutex
+	customers   map[string]*domain.Customer
 	seqByTenant map[string]int
 }
 
@@ -314,6 +315,18 @@ func (m *mockAuditLogRepo) logsForEntity(entityType, entityID string) []*domain.
 	return result
 }
 
+type mockTenantModuleRepo struct {
+	caps domain.TenantModuleCapabilities
+	err  error
+}
+
+func (m mockTenantModuleRepo) Capabilities(_ context.Context, _ string) (domain.TenantModuleCapabilities, error) {
+	if m.err != nil {
+		return domain.DefaultTenantModuleCapabilities(), m.err
+	}
+	return m.caps, nil
+}
+
 // --- Helper generators ---
 
 func genTenantID() *rapid.Generator[string] {
@@ -343,7 +356,7 @@ func genName() *rapid.Generator[string] {
 }
 
 func genConnectionMethod() *rapid.Generator[string] {
-	return rapid.SampledFrom([]string{"pppoe", "hotspot", "dhcp_binding", "static"})
+	return rapid.SampledFrom([]string{"manual", "pppoe", "hotspot", "dhcp_binding", "static"})
 }
 
 // genValidCreateRequest generates a valid CreateCustomerRequest.
@@ -1357,6 +1370,92 @@ func TestCustomerUsecase_PPPoEAutoGeneration(t *testing.T) {
 
 	if created2.PPPoEUsername != "" {
 		t.Fatalf("expected empty pppoe_username for hotspot, got %q", created2.PPPoEUsername)
+	}
+}
+
+func TestCustomerUsecase_Create_ManualConnectionNoNetworkFields(t *testing.T) {
+	customerRepo := newMockCustomerRepo()
+	auditLogRepo := newMockAuditLogRepo()
+	logger := newTestLogger()
+
+	uc := NewCustomerUsecase(customerRepo, auditLogRepo, nil, logger)
+	uc.SetTenantModuleRepository(mockTenantModuleRepo{caps: domain.DefaultTenantModuleCapabilities()})
+
+	created, err := uc.Create(context.Background(), "test-tenant-001", domain.CreateCustomerRequest{
+		Name:             "Manual Billing",
+		Phone:            "+6281234567800",
+		Address:          "Jl. Billing Only No. 1",
+		PackageID:        "00000000-0000-0000-0000-000000000001",
+		ActivationDate:   "2024-01-15",
+		DueDate:          10,
+		ConnectionMethod: "manual",
+	}, ActorInfo{ID: "actor-1", Name: "Test Actor"})
+	if err != nil {
+		t.Fatalf("create manual customer failed: %v", err)
+	}
+	if created.ConnectionMethod != domain.ConnectionManual {
+		t.Fatalf("expected manual connection, got %q", created.ConnectionMethod)
+	}
+	if created.PPPoEUsername != "" || created.PPPoEPassword != "" || created.RouterID != "" || created.ODPPort != "" {
+		t.Fatalf("manual customer should not receive network fields: %#v", created)
+	}
+	if created.Latitude != 0 || created.Longitude != 0 {
+		t.Fatalf("manual customer without coordinates should keep zero values, got %f,%f", created.Latitude, created.Longitude)
+	}
+}
+
+func TestCustomerUsecase_ImportTemplate_UsesModuleCapabilities(t *testing.T) {
+	customerRepo := newMockCustomerRepo()
+	auditLogRepo := newMockAuditLogRepo()
+	logger := newTestLogger()
+
+	uc := NewCustomerUsecase(customerRepo, auditLogRepo, nil, logger)
+	uc.SetTenantModuleRepository(mockTenantModuleRepo{caps: domain.TenantModuleCapabilities{BillingCore: true}})
+
+	billingOnlyCSV, err := uc.GetImportTemplate(context.Background(), "tenant-1")
+	if err != nil {
+		t.Fatalf("billing-only template failed: %v", err)
+	}
+	rows, err := csv.NewReader(strings.NewReader(string(billingOnlyCSV))).ReadAll()
+	if err != nil {
+		t.Fatalf("read billing-only template failed: %v", err)
+	}
+	header := strings.Join(rows[0], ",")
+	for _, forbidden := range []string{"pppoe_username", "router_id", "latitude", "odp_port"} {
+		if strings.Contains(header, forbidden) {
+			t.Fatalf("billing-only template should not include %s: %s", forbidden, header)
+		}
+	}
+
+	uc.SetTenantModuleRepository(mockTenantModuleRepo{caps: domain.TenantModuleCapabilities{BillingCore: true, MikroTik: true, FiberNetwork: true}})
+	fullCSV, err := uc.GetImportTemplate(context.Background(), "tenant-1")
+	if err != nil {
+		t.Fatalf("full template failed: %v", err)
+	}
+	rows, err = csv.NewReader(strings.NewReader(string(fullCSV))).ReadAll()
+	if err != nil {
+		t.Fatalf("read full template failed: %v", err)
+	}
+	fullHeader := strings.Join(rows[0], ",")
+	for _, expected := range []string{"pppoe_username", "router_id", "latitude", "longitude", "odp_port"} {
+		if !strings.Contains(fullHeader, expected) {
+			t.Fatalf("full template should include %s: %s", expected, fullHeader)
+		}
+	}
+}
+
+func TestCustomerUsecase_ExportColumns_FilterInactiveModuleFields(t *testing.T) {
+	customerRepo := newMockCustomerRepo()
+	auditLogRepo := newMockAuditLogRepo()
+	logger := newTestLogger()
+
+	uc := NewCustomerUsecase(customerRepo, auditLogRepo, nil, logger)
+	uc.SetTenantModuleRepository(mockTenantModuleRepo{caps: domain.TenantModuleCapabilities{BillingCore: true}})
+
+	columns := uc.customerExportColumns(context.Background(), "tenant-1", []string{"name", "pppoe_username", "latitude", "phone", "name"})
+	got := strings.Join(columns, ",")
+	if got != "name,phone" {
+		t.Fatalf("expected only allowed unique billing columns, got %q", got)
 	}
 }
 

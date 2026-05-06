@@ -90,7 +90,7 @@ func (m *mockExpenseUsecase) Update(_ context.Context, id string, req domain.Upd
 	return &copy, nil
 }
 
-func (m *mockExpenseUsecase) Delete(_ context.Context, id string) error {
+func (m *mockExpenseUsecase) Delete(_ context.Context, id string, _ domain.ActorInfo) error {
 	e, ok := m.expenses[id]
 	if !ok {
 		return domain.ErrExpenseNotFound

@@ -13,9 +13,14 @@ import (
 type PackageType string
 
 const (
+	PackageTypeMonthly PackageType = "monthly"
 	PackageTypePPPoE   PackageType = "pppoe"
 	PackageTypeVoucher PackageType = "voucher"
 )
+
+func (t PackageType) IsMonthlyBilling() bool {
+	return t == PackageTypeMonthly || t == PackageTypePPPoE
+}
 
 // BandwidthType mendefinisikan tipe bandwidth paket.
 type BandwidthType string
@@ -101,6 +106,9 @@ var (
 
 	// ErrPackageHasCustomers dikembalikan saat paket masih digunakan pelanggan (hard delete)
 	ErrPackageHasCustomers = errors.New("paket masih digunakan pelanggan")
+
+	// ErrPackageHasVouchers dikembalikan saat paket masih memiliki voucher terkait.
+	ErrPackageHasVouchers = errors.New("paket masih memiliki voucher")
 
 	// ErrPackageAlreadyActive dikembalikan saat mengaktifkan paket yang sudah aktif
 	ErrPackageAlreadyActive = errors.New("paket sudah aktif")

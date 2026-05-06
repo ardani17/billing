@@ -16,17 +16,17 @@ import (
 
 // InvoiceCronUsecase mengimplementasikan business logic untuk cron job invoice.
 type InvoiceCronUsecase struct {
-	invoiceRepo      domain.InvoiceRepository
-	itemRepo         domain.InvoiceItemRepository
-	auditRepo        domain.InvoiceAuditLogRepository
-	sequenceRepo     domain.InvoiceSequenceRepository
-	settingsRepo     domain.BillingSettingsRepository
-	customerRepo     domain.CustomerRepository
-	packageRepo      domain.PackageRepository
+	invoiceRepo       domain.InvoiceRepository
+	itemRepo          domain.InvoiceItemRepository
+	auditRepo         domain.InvoiceAuditLogRepository
+	sequenceRepo      domain.InvoiceSequenceRepository
+	settingsRepo      domain.BillingSettingsRepository
+	customerRepo      domain.CustomerRepository
+	packageRepo       domain.PackageRepository
 	recurringItemRepo domain.CustomerRecurringItemRepository
-	pool             *pgxpool.Pool
-	queueClient      *asynq.Client
-	logger           zerolog.Logger
+	pool              *pgxpool.Pool
+	queueClient       *asynq.Client
+	logger            zerolog.Logger
 }
 
 // NewInvoiceCronUsecase membuat instance baru InvoiceCronUsecase.
@@ -83,6 +83,15 @@ func (uc *InvoiceCronUsecase) ProcessAutoGenerate(ctx context.Context) error {
 	return nil
 }
 
+// GenerateDueForTenant menjalankan auto-generate invoice untuk satu tenant secara on-demand.
+func (uc *InvoiceCronUsecase) GenerateDueForTenant(ctx context.Context, tenantID string) error {
+	settings, err := uc.settingsRepo.GetByTenantID(ctx, tenantID)
+	if err != nil {
+		return fmt.Errorf("gagal mengambil billing settings tenant: %w", err)
+	}
+	return uc.processAutoGenerateForTenant(ctx, settings, time.Now())
+}
+
 // processAutoGenerateForTenant memproses auto-generate invoice untuk satu tenant.
 func (uc *InvoiceCronUsecase) processAutoGenerateForTenant(ctx context.Context, settings *domain.BillingSettings, now time.Time) error {
 	// Cari pelanggan aktif yang due_date-nya cocok dengan generate_days
@@ -135,17 +144,16 @@ func (uc *InvoiceCronUsecase) processAutoGenerateForTenant(ctx context.Context, 
 }
 
 // isEligibleForInvoice memeriksa apakah pelanggan eligible untuk auto-generate invoice.
-// Pelanggan eligible jika hari ini == tanggal jatuh tempo - generate_days.
+// Pelanggan eligible sejak tanggal generate sampai tanggal jatuh tempo periode berjalan.
 func (uc *InvoiceCronUsecase) isEligibleForInvoice(customer *domain.Customer, settings *domain.BillingSettings, now time.Time) bool {
-	// Hitung tanggal generate: due_date - generate_days
-	dueDay := customer.DueDate
-	currentDay := now.Day()
+	periodMonth, periodYear := uc.calculatePeriod(customer.DueDate, now)
+	dueDate := time.Date(periodYear, time.Month(periodMonth), customer.DueDate, 0, 0, 0, 0, now.Location())
+	generateDate := dueDate.AddDate(0, 0, -settings.GenerateDays)
+	currentDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
-	// Hitung hari target generate (due_date - generate_days)
-	targetDay := dueDay - settings.GenerateDays
-	if targetDay <= 0 {
-		targetDay += 30 // wrap ke bulan sebelumnya (pendekatan sederhana)
+	if currentDate.Before(generateDate) {
+		return false
 	}
 
-	return currentDay == targetDay
+	return !currentDate.After(dueDate)
 }

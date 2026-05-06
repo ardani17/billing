@@ -22,7 +22,7 @@ export function SyncSection({ filter }: Props) {
   if (!data) return <EmptyState />;
 
   const mikrotikInactive = data.module_inactive?.mikrotik;
-  const oltInactive = data.module_inactive?.olt;
+  const oltInactive = data.module_inactive?.fiber_network ?? data.module_inactive?.olt;
 
   if (mikrotikInactive && oltInactive) {
     return <ModuleInactive moduleName="MikroTik & OLT" />;

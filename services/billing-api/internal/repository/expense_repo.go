@@ -8,6 +8,7 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -34,37 +35,45 @@ func NewExpenseRepo(queries *Queries, pool *pgxpool.Pool) *ExpenseRepo {
 // mapExpenseRow memetakan sqlc Expense model ke domain.Expense.
 func mapExpenseRow(row Expense) *domain.Expense {
 	return &domain.Expense{
-		ID:           uuidToString(row.ID),
-		TenantID:     uuidToString(row.TenantID),
-		CategoryID:   uuidToString(row.CategoryID),
-		Amount:       row.Amount,
-		Description:  row.Description,
-		ExpenseDate:  dateToTime(row.ExpenseDate),
-		IsRecurring:  row.IsRecurring,
-		RecurringDay: int4ToIntPtr(row.RecurringDay),
-		CreatedByID:  uuidToString(row.CreatedByID),
-		DeletedAt:    timestamptzToTimePtr(row.DeletedAt),
-		CreatedAt:    timestamptzToTime(row.CreatedAt),
-		UpdatedAt:    timestamptzToTime(row.UpdatedAt),
+		ID:            uuidToString(row.ID),
+		TenantID:      uuidToString(row.TenantID),
+		CategoryID:    uuidToString(row.CategoryID),
+		Amount:        row.Amount,
+		Description:   row.Description,
+		ExpenseDate:   dateToTime(row.ExpenseDate),
+		PaymentMethod: "",
+		VendorName:    "",
+		ReferenceNo:   "",
+		AttachmentURL: "",
+		IsRecurring:   row.IsRecurring,
+		RecurringDay:  int4ToIntPtr(row.RecurringDay),
+		CreatedByID:   uuidToString(row.CreatedByID),
+		DeletedAt:     timestamptzToTimePtr(row.DeletedAt),
+		CreatedAt:     timestamptzToTime(row.CreatedAt),
+		UpdatedAt:     timestamptzToTime(row.UpdatedAt),
 	}
 }
 
 // mapGetExpenseByIDRow memetakan GetExpenseByIDRow (JOIN dengan category) ke domain.Expense.
 func mapGetExpenseByIDRow(row GetExpenseByIDRow) *domain.Expense {
 	return &domain.Expense{
-		ID:           uuidToString(row.ID),
-		TenantID:     uuidToString(row.TenantID),
-		CategoryID:   uuidToString(row.CategoryID),
-		CategoryName: row.CategoryName,
-		Amount:       row.Amount,
-		Description:  row.Description,
-		ExpenseDate:  dateToTime(row.ExpenseDate),
-		IsRecurring:  row.IsRecurring,
-		RecurringDay: int4ToIntPtr(row.RecurringDay),
-		CreatedByID:  uuidToString(row.CreatedByID),
-		DeletedAt:    timestamptzToTimePtr(row.DeletedAt),
-		CreatedAt:    timestamptzToTime(row.CreatedAt),
-		UpdatedAt:    timestamptzToTime(row.UpdatedAt),
+		ID:            uuidToString(row.ID),
+		TenantID:      uuidToString(row.TenantID),
+		CategoryID:    uuidToString(row.CategoryID),
+		CategoryName:  row.CategoryName,
+		Amount:        row.Amount,
+		Description:   row.Description,
+		ExpenseDate:   dateToTime(row.ExpenseDate),
+		PaymentMethod: "",
+		VendorName:    "",
+		ReferenceNo:   "",
+		AttachmentURL: "",
+		IsRecurring:   row.IsRecurring,
+		RecurringDay:  int4ToIntPtr(row.RecurringDay),
+		CreatedByID:   uuidToString(row.CreatedByID),
+		DeletedAt:     timestamptzToTimePtr(row.DeletedAt),
+		CreatedAt:     timestamptzToTime(row.CreatedAt),
+		UpdatedAt:     timestamptzToTime(row.UpdatedAt),
 	}
 }
 
@@ -91,79 +100,158 @@ func mapListExpensesRow(row ListExpensesRow) *domain.Expense {
 
 // Create membuat pengeluaran baru dan mengembalikan pengeluaran yang dibuat.
 func (r *ExpenseRepo) Create(ctx context.Context, expense *domain.Expense) (*domain.Expense, error) {
-	row, err := r.queries.CreateExpense(ctx, CreateExpenseParams{
-		TenantID:     stringToUUID(expense.TenantID),
-		CategoryID:   stringToUUID(expense.CategoryID),
-		Amount:       expense.Amount,
-		Description:  expense.Description,
-		ExpenseDate:  timeToDate(expense.ExpenseDate),
-		IsRecurring:  expense.IsRecurring,
-		RecurringDay: intPtrToInt4(expense.RecurringDay),
-		CreatedByID:  stringToUUID(expense.CreatedByID),
-	})
+	row := r.pool.QueryRow(ctx, `
+		INSERT INTO expenses (
+			tenant_id, category_id, amount, description, expense_date,
+			payment_method, vendor_name, reference_number, attachment_url,
+			is_recurring, recurring_day, created_by_id
+		) VALUES ($1, $2, $3, $4, $5, NULLIF($6,''), NULLIF($7,''), NULLIF($8,''), NULLIF($9,''), $10, $11, $12)
+		RETURNING id::text, tenant_id::text, category_id::text, amount, description,
+			expense_date::timestamptz, COALESCE(payment_method,''), COALESCE(vendor_name,''),
+			COALESCE(reference_number,''), COALESCE(attachment_url,''), is_recurring, recurring_day,
+			created_by_id::text, deleted_at, created_at, updated_at, ''::text`,
+		expense.TenantID, expense.CategoryID, expense.Amount, expense.Description, expense.ExpenseDate,
+		expense.PaymentMethod, expense.VendorName, expense.ReferenceNo, expense.AttachmentURL,
+		expense.IsRecurring, intPtrToInt4(expense.RecurringDay), expense.CreatedByID,
+	)
+	created, err := scanExpense(row)
 	if err != nil {
 		return nil, fmt.Errorf("repository: gagal membuat expense: %w", err)
 	}
-	return mapExpenseRow(row), nil
+	return created, nil
 }
 
 // GetByID mengambil pengeluaran berdasarkan ID (tenant-scoped via RLS).
 func (r *ExpenseRepo) GetByID(ctx context.Context, id string) (*domain.Expense, error) {
-	row, err := r.queries.GetExpenseByID(ctx, stringToUUID(id))
+	row := r.pool.QueryRow(ctx, `
+		SELECT e.id::text, e.tenant_id::text, e.category_id::text, e.amount, e.description,
+			e.expense_date::timestamptz, COALESCE(e.payment_method,''), COALESCE(e.vendor_name,''),
+			COALESCE(e.reference_number,''), COALESCE(e.attachment_url,''), e.is_recurring, e.recurring_day,
+			e.created_by_id::text, e.deleted_at, e.created_at, e.updated_at, ec.name
+		FROM expenses e
+		JOIN expense_categories ec ON ec.id = e.category_id
+		WHERE e.id = $1::uuid AND e.deleted_at IS NULL`, id)
+	expense, err := scanExpense(row)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrExpenseNotFound
 		}
 		return nil, fmt.Errorf("repository: gagal mengambil expense by ID: %w", err)
 	}
-	return mapGetExpenseByIDRow(row), nil
+	return expense, nil
 }
 
 // Update memperbarui data pengeluaran dan mengembalikan pengeluaran yang diperbarui.
 func (r *ExpenseRepo) Update(ctx context.Context, expense *domain.Expense) (*domain.Expense, error) {
-	row, err := r.queries.UpdateExpense(ctx, UpdateExpenseParams{
-		ID:           stringToUUID(expense.ID),
-		CategoryID:   stringToUUID(expense.CategoryID),
-		Amount:       expense.Amount,
-		Description:  expense.Description,
-		ExpenseDate:  timeToDate(expense.ExpenseDate),
-		IsRecurring:  expense.IsRecurring,
-		RecurringDay: intPtrToInt4(expense.RecurringDay),
-	})
+	row := r.pool.QueryRow(ctx, `
+		UPDATE expenses SET
+			category_id = $2::uuid,
+			amount = $3,
+			description = $4,
+			expense_date = $5,
+			payment_method = NULLIF($6,''),
+			vendor_name = NULLIF($7,''),
+			reference_number = NULLIF($8,''),
+			attachment_url = NULLIF($9,''),
+			is_recurring = $10,
+			recurring_day = $11,
+			updated_at = NOW()
+		WHERE id = $1::uuid AND deleted_at IS NULL
+		RETURNING id::text, tenant_id::text, category_id::text, amount, description,
+			expense_date::timestamptz, COALESCE(payment_method,''), COALESCE(vendor_name,''),
+			COALESCE(reference_number,''), COALESCE(attachment_url,''), is_recurring, recurring_day,
+			created_by_id::text, deleted_at, created_at, updated_at, ''::text`,
+		expense.ID, expense.CategoryID, expense.Amount, expense.Description, expense.ExpenseDate,
+		expense.PaymentMethod, expense.VendorName, expense.ReferenceNo, expense.AttachmentURL,
+		expense.IsRecurring, intPtrToInt4(expense.RecurringDay),
+	)
+	updated, err := scanExpense(row)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrExpenseNotFound
 		}
 		return nil, fmt.Errorf("repository: gagal memperbarui expense: %w", err)
 	}
-	return mapExpenseRow(row), nil
+	return updated, nil
 }
 
 // SoftDelete menghapus pengeluaran secara soft delete (set deleted_at).
 func (r *ExpenseRepo) SoftDelete(ctx context.Context, id string) error {
-	err := r.queries.SoftDeleteExpense(ctx, stringToUUID(id))
+	tag, err := r.pool.Exec(ctx, `UPDATE expenses SET deleted_at = NOW(), updated_at = NOW() WHERE id = $1::uuid AND deleted_at IS NULL`, id)
 	if err != nil {
 		return fmt.Errorf("repository: gagal soft-delete expense: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return domain.ErrExpenseNotFound
 	}
 	return nil
 }
 
 // List mengambil daftar pengeluaran dengan filter periode dan kategori.
 func (r *ExpenseRepo) List(ctx context.Context, tenantID string, periodStart, periodEnd time.Time, categoryID string) ([]*domain.Expense, error) {
-	rows, err := r.queries.ListExpenses(ctx, ListExpensesParams{
-		TenantID:      stringToUUID(tenantID),
-		ExpenseDate:   timeToDate(periodStart),
-		ExpenseDate_2: timeToDate(periodEnd),
-		CategoryID:    stringToUUID(categoryID),
-	})
+	rows, err := r.pool.Query(ctx, `
+		SELECT e.id::text, e.tenant_id::text, e.category_id::text, e.amount, e.description,
+			e.expense_date::timestamptz, COALESCE(e.payment_method,''), COALESCE(e.vendor_name,''),
+			COALESCE(e.reference_number,''), COALESCE(e.attachment_url,''), e.is_recurring, e.recurring_day,
+			e.created_by_id::text, e.deleted_at, e.created_at, e.updated_at, ec.name
+		FROM expenses e
+		JOIN expense_categories ec ON ec.id = e.category_id
+		WHERE e.tenant_id = $1::uuid
+			AND e.expense_date >= $2
+			AND e.expense_date <= $3
+			AND (NULLIF($4,'') IS NULL OR e.category_id = $4::uuid)
+			AND e.deleted_at IS NULL
+		ORDER BY e.expense_date DESC, e.created_at DESC`, tenantID, periodStart, periodEnd, categoryID)
 	if err != nil {
 		return nil, fmt.Errorf("repository: gagal mengambil daftar expense: %w", err)
 	}
-	expenses := make([]*domain.Expense, 0, len(rows))
-	for _, row := range rows {
-		expenses = append(expenses, mapListExpensesRow(row))
+	defer rows.Close()
+	expenses := make([]*domain.Expense, 0)
+	for rows.Next() {
+		expense, err := scanExpense(rows)
+		if err != nil {
+			return nil, err
+		}
+		expenses = append(expenses, expense)
 	}
-	return expenses, nil
+	return expenses, rows.Err()
+}
+
+type expenseScanner interface {
+	Scan(dest ...interface{}) error
+}
+
+func scanExpense(row expenseScanner) (*domain.Expense, error) {
+	var expense domain.Expense
+	var recurringDay pgtype.Int4
+	var deletedAt pgtype.Timestamptz
+	var categoryName pgtype.Text
+	err := row.Scan(
+		&expense.ID,
+		&expense.TenantID,
+		&expense.CategoryID,
+		&expense.Amount,
+		&expense.Description,
+		&expense.ExpenseDate,
+		&expense.PaymentMethod,
+		&expense.VendorName,
+		&expense.ReferenceNo,
+		&expense.AttachmentURL,
+		&expense.IsRecurring,
+		&recurringDay,
+		&expense.CreatedByID,
+		&deletedAt,
+		&expense.CreatedAt,
+		&expense.UpdatedAt,
+		&categoryName,
+	)
+	if err != nil {
+		return nil, err
+	}
+	expense.RecurringDay = int4ToIntPtr(recurringDay)
+	expense.DeletedAt = timestamptzToTimePtr(deletedAt)
+	expense.CategoryName = textToString(categoryName)
+	return &expense, nil
 }
 
 // ListRecurring mengambil semua pengeluaran berulang yang aktif (untuk auto-create bulanan).

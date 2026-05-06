@@ -21,6 +21,8 @@ Dokumen diskusi dipecah per topik agar mudah di-review dan di-maintain.
 | 10 | [10-ftth-mapping.md](./10-ftth-mapping.md) | Peta interaktif, topologi jaringan | 🔲 Belum |
 | 11 | [11-laporan.md](./11-laporan.md) | Reporting & analytics | 🔲 Belum |
 | 12 | [12-settings.md](./12-settings.md) | Pengaturan tenant, white label, profil | 🔲 Belum |
+| 13 | [13-billing-core-standalone.md](./13-billing-core-standalone.md) | Billing core tanpa add-on MikroTik/OLT | Belum |
+| 14 | [14-keuangan-operasional.md](./14-keuangan-operasional.md) | Pengeluaran, inventaris, dan cashflow operasional | Baru |
 
 ## Alur Kerja
 

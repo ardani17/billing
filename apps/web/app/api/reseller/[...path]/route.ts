@@ -17,6 +17,16 @@ function copyForwardedHeaders(request: NextRequest) {
   return headers;
 }
 
+function jsonError(status: number, code: string, message: string) {
+  return NextResponse.json(
+    {
+      success: false,
+      error: { code, message },
+    },
+    { status },
+  );
+}
+
 async function proxy(request: NextRequest, context: RouteContext) {
   const { path } = await context.params;
   const query = request.nextUrl.search || "";
@@ -35,8 +45,17 @@ async function proxy(request: NextRequest, context: RouteContext) {
     const contentType = response.headers.get("content-type") || "";
 
     if (contentType.includes("application/json")) {
-      const body = await response.json();
-      return NextResponse.json(body, { status: response.status });
+      const text = await response.text();
+      try {
+        const body = text ? JSON.parse(text) : null;
+        return NextResponse.json(body, { status: response.status });
+      } catch {
+        return jsonError(
+          response.ok ? 502 : response.status,
+          "INVALID_RESELLER_API_RESPONSE",
+          text || "Reseller API mengembalikan JSON tidak valid",
+        );
+      }
     }
 
     const body = await response.arrayBuffer();
@@ -50,16 +69,7 @@ async function proxy(request: NextRequest, context: RouteContext) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: "RESELLER_API_ERROR",
-          message: error instanceof Error ? error.message : "Reseller API request failed",
-        },
-      },
-      { status: 502 },
-    );
+    return jsonError(502, "RESELLER_API_ERROR", error instanceof Error ? error.message : "Reseller API request failed");
   }
 }
 

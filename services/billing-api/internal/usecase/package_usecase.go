@@ -5,6 +5,7 @@ package usecase
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/hibiken/asynq"
@@ -43,9 +44,9 @@ func (uc *packageUsecase) Create(ctx context.Context, tenantID string, req domai
 	pkgType := domain.PackageType(req.Type)
 
 	// Validasi type-conditional: field wajib per tipe
-	if pkgType == domain.PackageTypePPPoE {
+	if pkgType.IsMonthlyBilling() {
 		if req.MonthlyPrice == nil || req.BandwidthType == "" {
-			return nil, fmt.Errorf("monthly_price dan bandwidth_type wajib untuk paket PPPoE")
+			return nil, fmt.Errorf("monthly_price dan bandwidth_type wajib untuk paket bulanan")
 		}
 	} else {
 		if req.SellPrice == nil || req.ResellerPrice == nil || req.DurationValue == nil || req.DurationUnit == "" {
@@ -135,7 +136,7 @@ func (uc *packageUsecase) Create(ctx context.Context, tenantID string, req domai
 	}
 
 	// Set field sesuai tipe, null-kan field yang tidak relevan
-	if pkgType == domain.PackageTypePPPoE {
+	if pkgType.IsMonthlyBilling() {
 		pkg.MonthlyPrice = req.MonthlyPrice
 		pkg.BandwidthType = req.BandwidthType
 		pkg.SellPrice = nil
@@ -254,6 +255,9 @@ func (uc *packageUsecase) Delete(ctx context.Context, id string, confirmName str
 
 	// Hard delete
 	if err := uc.packageRepo.Delete(ctx, id); err != nil {
+		if errors.Is(err, domain.ErrPackageHasVouchers) {
+			return err
+		}
 		return fmt.Errorf("usecase: gagal menghapus paket: %w", err)
 	}
 
@@ -315,7 +319,7 @@ func (uc *packageUsecase) publishPriceChangeEvent(old, updated *domain.Package) 
 	var oldPrice, newPrice int64
 	changed := false
 
-	if old.Type == domain.PackageTypePPPoE && old.MonthlyPrice != nil && updated.MonthlyPrice != nil {
+	if old.Type.IsMonthlyBilling() && updated.Type.IsMonthlyBilling() && old.MonthlyPrice != nil && updated.MonthlyPrice != nil {
 		if *old.MonthlyPrice != *updated.MonthlyPrice {
 			oldPrice, newPrice = *old.MonthlyPrice, *updated.MonthlyPrice
 			changed = true
@@ -344,9 +348,9 @@ func (uc *packageUsecase) publishPriceChangeEvent(old, updated *domain.Package) 
 // validateMergedPackage memvalidasi paket hasil merge sebelum update.
 func (uc *packageUsecase) validateMergedPackage(pkg *domain.Package) error {
 	// Validasi field wajib per tipe
-	if pkg.Type == domain.PackageTypePPPoE {
+	if pkg.Type.IsMonthlyBilling() {
 		if pkg.MonthlyPrice == nil || pkg.BandwidthType == "" {
-			return fmt.Errorf("monthly_price dan bandwidth_type wajib untuk paket PPPoE")
+			return fmt.Errorf("monthly_price dan bandwidth_type wajib untuk paket bulanan")
 		}
 	} else {
 		if pkg.SellPrice == nil || pkg.ResellerPrice == nil || pkg.DurationValue == nil || pkg.DurationUnit == "" {
@@ -359,9 +363,9 @@ func (uc *packageUsecase) validateMergedPackage(pkg *domain.Package) error {
 
 	// Validasi quota_type sesuai tipe paket
 	qt := pkg.QuotaType
-	if pkg.Type == domain.PackageTypePPPoE {
+	if pkg.Type.IsMonthlyBilling() {
 		if qt != domain.QuotaUnlimited && qt != domain.QuotaMonthlyQuota && qt != domain.QuotaFUP {
-			return fmt.Errorf("quota_type untuk paket PPPoE harus unlimited, monthly_quota, atau fup")
+			return fmt.Errorf("quota_type untuk paket bulanan harus unlimited, monthly_quota, atau fup")
 		}
 	} else {
 		if qt != domain.QuotaUnlimited && qt != domain.QuotaQuota {

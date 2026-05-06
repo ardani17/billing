@@ -6,10 +6,35 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/ispboss/ispboss/pkg/queue"
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
+
+func (uc *CustomerUsecase) customerExportColumns(ctx context.Context, tenantID string, requested []string) []string {
+	allowed, _ := uc.customerImportColumns(ctx, tenantID)
+	allowedSet := make(map[string]bool, len(allowed))
+	for _, column := range allowed {
+		allowedSet[column] = true
+	}
+
+	if len(requested) == 0 {
+		return allowed
+	}
+
+	seen := make(map[string]bool, len(requested))
+	filtered := make([]string, 0, len(requested))
+	for _, column := range requested {
+		key := strings.TrimSpace(column)
+		if key == "" || !allowedSet[key] || seen[key] {
+			continue
+		}
+		seen[key] = true
+		filtered = append(filtered, key)
+	}
+	return filtered
+}
 
 // ExportCSV mengirim job export ke queue.
 // Flow: enqueue asynq job (customer.export) with filter params, format,
@@ -19,10 +44,12 @@ func (uc *CustomerUsecase) ExportCSV(ctx context.Context, tenantID string, param
 	if format == "" {
 		format = "csv"
 	}
+	columns = uc.customerExportColumns(ctx, tenantID, columns)
 
 	// Build export job payload
 	payload := map[string]interface{}{
 		"format":     format,
+		"columns":    columns,
 		"actor_id":   actor.ID,
 		"actor_name": actor.Name,
 	}
@@ -42,11 +69,6 @@ func (uc *CustomerUsecase) ExportCSV(ctx context.Context, tenantID string, param
 	}
 	if params.DueDate != nil {
 		payload["due_date"] = *params.DueDate
-	}
-
-	// Add columns if specified
-	if len(columns) > 0 {
-		payload["columns"] = columns
 	}
 
 	payloadJSON, err := json.Marshal(payload)

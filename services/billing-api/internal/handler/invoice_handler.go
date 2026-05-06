@@ -19,6 +19,7 @@ import (
 // InvoiceHandler menangani HTTP request untuk manajemen invoice.
 type InvoiceHandler struct {
 	invoiceUsecase *usecase.InvoiceUsecase
+	cronUsecase    *usecase.InvoiceCronUsecase
 	validate       *validator.Validate
 	logger         zerolog.Logger
 }
@@ -30,6 +31,11 @@ func NewInvoiceHandler(invoiceUsecase *usecase.InvoiceUsecase, logger zerolog.Lo
 		validate:       validator.New(),
 		logger:         logger,
 	}
+}
+
+// SetCronUsecase memasang usecase cron agar admin dapat memicu generate invoice on-demand.
+func (h *InvoiceHandler) SetCronUsecase(cronUsecase *usecase.InvoiceCronUsecase) {
+	h.cronUsecase = cronUsecase
 }
 
 // List menangani GET /v1/invoices.
@@ -44,6 +50,7 @@ func (h *InvoiceHandler) List(c *fiber.Ctx) error {
 	params.TenantID = tenantID
 	params.Page, _ = strconv.Atoi(c.Query("page", "1"))
 	params.PageSize, _ = strconv.Atoi(c.Query("page_size", "25"))
+	params.CustomerID = c.Query("customer_id")
 	params.Search = c.Query("search")
 	params.Status = c.Query("status")
 	params.PackageID = c.Query("package_id")
@@ -129,6 +136,28 @@ func (h *InvoiceHandler) Create(c *fiber.Ctx) error {
 	}
 
 	return domain.SuccessResponse(c, fiber.StatusCreated, invoice)
+}
+
+// GenerateDue menangani POST /v1/invoices/generate-due.
+// Menjalankan generator invoice untuk tenant aktif secara on-demand.
+func (h *InvoiceHandler) GenerateDue(c *fiber.Ctx) error {
+	if h.cronUsecase == nil {
+		return domain.ErrorResponse(c, fiber.StatusServiceUnavailable, "GENERATOR_UNAVAILABLE", "generator invoice belum tersedia")
+	}
+
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant tidak teridentifikasi")
+	}
+
+	if err := h.cronUsecase.GenerateDueForTenant(c.Context(), tenantID); err != nil {
+		h.logger.Error().Err(err).Str("tenant_id", tenantID).Msg("gagal generate invoice on-demand")
+		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal generate invoice jatuh tempo")
+	}
+
+	return domain.SuccessResponse(c, fiber.StatusOK, fiber.Map{
+		"message": "generate invoice jatuh tempo selesai",
+	})
 }
 
 // CreatePrepaid menangani POST /v1/invoices/prepaid.

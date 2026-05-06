@@ -27,6 +27,13 @@ import {
 
 type AnyRecord = Record<string, any>;
 type ApiState<T> = { data: T; loading: boolean; error: string | null };
+type ModuleCapabilities = { billing_core: boolean; mikrotik: boolean; fiber_network: boolean };
+
+const defaultModules: ModuleCapabilities = {
+  billing_core: true,
+  mikrotik: false,
+  fiber_network: false,
+};
 
 const textAreaClass =
   "w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
@@ -41,7 +48,12 @@ function unwrap<T>(body: any): T {
 }
 
 function apiError(body: any, fallback: string) {
-  if (body?.error?.message) return body.error.message;
+  const details = Array.isArray(body?.error?.details)
+    ? body.error.details
+        .map((detail: AnyRecord) => `${detail.field}: ${detail.message}`)
+        .join(", ")
+    : "";
+  if (body?.error?.message) return details ? `${body.error.message} (${details})` : body.error.message;
   if (typeof body?.error === "string") return body.error;
   return fallback;
 }
@@ -123,6 +135,36 @@ function useApi<T>(url: string, fallback: T): ApiState<T> & { reload: () => void
   return { ...state, reload: () => setVersion((value) => value + 1) };
 }
 
+function useTenantModules() {
+  const state = useApi<any>("/api/billing/tenant/modules", { modules: defaultModules });
+  const modules = state.data?.modules ?? state.data ?? defaultModules;
+  return {
+    ...state,
+    data: {
+      billing_core: modules.billing_core !== false,
+      mikrotik: modules.mikrotik === true,
+      fiber_network: modules.fiber_network === true,
+    } satisfies ModuleCapabilities,
+  };
+}
+
+function packageTypeLabel(type?: string) {
+  if (type === "voucher") return "Voucher";
+  if (type === "pppoe") return "Bulanan / PPPoE";
+  return "Bulanan";
+}
+
+function connectionLabel(method?: string) {
+  const labels: Record<string, string> = {
+    manual: "Manual",
+    pppoe: "PPPoE",
+    hotspot: "Hotspot",
+    dhcp_binding: "DHCP Binding",
+    static: "Static IP",
+  };
+  return labels[method || ""] || method || "-";
+}
+
 function Notice({ loading, error }: { loading: boolean; error: string | null }) {
   if (loading) return <p className="text-sm text-slate-500">Memuat data...</p>;
   if (error) return <p className="text-sm text-red-600">{error}</p>;
@@ -131,6 +173,20 @@ function Notice({ loading, error }: { loading: boolean; error: string | null }) 
 
 function todayDate() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function normalizeIndonesianPhone(value: FormDataEntryValue | null) {
+  const raw = String(value || "").trim().replace(/[\s().-]/g, "");
+  if (raw.startsWith("+62")) return raw;
+  if (raw.startsWith("62")) return `+${raw}`;
+  if (raw.startsWith("0")) return `+62${raw.slice(1)}`;
+  return raw;
+}
+
+function dateInputValue(value?: string) {
+  if (!value) return todayDate();
+  const datePart = String(value).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : todayDate();
 }
 
 function DetailGrid({ items }: { items: { label: string; value: React.ReactNode }[] }) {
@@ -184,13 +240,43 @@ export function CustomersLivePage() {
   const customers = useApi<any>("/api/billing/customers", { data: [] });
   const stats = useApi<any>("/api/billing/customers/stats", {});
   const rows = listOf(customers.data);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
+
+  const deleteCustomer = useCallback(
+    async (customer: AnyRecord) => {
+      const confirmName = window.prompt(`Ketik nama pelanggan "${customer.name}" untuk menghapus pelanggan ini.`);
+      if (confirmName == null) return;
+      if (confirmName !== customer.name) {
+        setDeleteError("Nama konfirmasi tidak sama, pelanggan tidak dihapus.");
+        setDeleteSuccess(null);
+        return;
+      }
+
+      setDeletingId(customer.id);
+      setDeleteError(null);
+      setDeleteSuccess(null);
+      try {
+        await apiSend(`/api/billing/customers/${customer.id}`, "DELETE", { confirmation_name: confirmName });
+        customers.reload();
+        stats.reload();
+        setDeleteSuccess(`Pelanggan ${customer.name} berhasil dihapus.`);
+      } catch (err) {
+        setDeleteError(err instanceof Error ? err.message : "Gagal menghapus pelanggan");
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [customers, stats],
+  );
 
   return (
     <RealShell>
       <PageHeader
         eyebrow="Pelanggan"
         title="Daftar pelanggan"
-        description="Data langsung dari Billing API: paket, status billing, koneksi, dan koordinat pelanggan."
+        description="Data langsung dari Billing API: paket, status billing, dan data layanan pelanggan."
         actions={<Button href="/customers/new">Tambah Pelanggan</Button>}
       />
       <StatGrid
@@ -203,6 +289,8 @@ export function CustomersLivePage() {
       />
       <Section title="Pelanggan" description="Daftar ini memakai database tenant, bukan mock.">
         <Notice loading={customers.loading} error={customers.error} />
+        {deleteError && <p className="mb-3 text-sm text-red-600">{deleteError}</p>}
+        {deleteSuccess && <p className="mb-3 text-sm text-emerald-700">{deleteSuccess}</p>}
         {!customers.loading && rows.length === 0 ? (
           <EmptyState
             title="Belum ada pelanggan"
@@ -211,7 +299,7 @@ export function CustomersLivePage() {
           />
         ) : (
           <DataTable
-            columns={["ID", "Nama", "Telepon", "Paket", "Jatuh Tempo", "Koneksi", "Status"]}
+            columns={["ID", "Nama", "Telepon", "Paket", "Jatuh Tempo", "Koneksi", "Status", "Aksi"]}
             rows={rows.map((customer) => [
               customer.customer_id_seq ?? customer.id?.slice(0, 8),
               <a key={customer.id} href={`/customers/${customer.id}`} className="font-semibold text-blue-700">
@@ -220,8 +308,21 @@ export function CustomersLivePage() {
               customer.phone ?? "-",
               customer.package_name ?? "-",
               customer.due_date ? `Tanggal ${customer.due_date}` : "-",
-              customer.connection_method ?? "-",
+              connectionLabel(customer.connection_method),
               <StatusBadge key={`${customer.id}-status`} status={customer.status ?? "pending"} />,
+              <div key={`${customer.id}-actions`} className="flex flex-wrap justify-end gap-2 lg:justify-start">
+                <a href={`/customers/${customer.id}/edit`} className="rounded-md px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50">
+                  Edit
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void deleteCustomer(customer)}
+                  disabled={deletingId === customer.id}
+                  className="rounded-md px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {deletingId === customer.id ? "Menghapus..." : "Hapus"}
+                </button>
+              </div>,
             ])}
           />
         )}
@@ -233,56 +334,75 @@ export function CustomersLivePage() {
 export function CustomerFormLivePage() {
   const packages = useApi<any>("/api/billing/packages?page_size=50", { data: [] });
   const areas = useApi<any>("/api/billing/areas?page_size=50", { data: [] });
+  const modules = useTenantModules();
   const packageRows = listOf(packages.data);
   const areaRows = listOf(areas.data);
+  const canUseMikrotik = modules.data.mikrotik === true;
+  const canUseFiber = modules.data.fiber_network === true;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const onSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formEl = event.currentTarget;
+    const form = new FormData(formEl);
     setSaving(true);
     setError(null);
     setSuccess(null);
-    try {
-      await apiSend("/api/billing/customers", "POST", {
+      try {
+      const payload: AnyRecord = {
         name: String(form.get("name") || ""),
-        phone: String(form.get("phone") || ""),
+        phone: normalizeIndonesianPhone(form.get("phone")),
         email: String(form.get("email") || ""),
         address: String(form.get("address") || ""),
         area_id: String(form.get("area_id") || "") || undefined,
-        latitude: Number(form.get("latitude") || -6.2),
-        longitude: Number(form.get("longitude") || 106.816),
         package_id: String(form.get("package_id") || ""),
         activation_date: String(form.get("activation_date") || todayDate()),
         due_date: Number(form.get("due_date") || 10),
-        connection_method: String(form.get("connection_method") || "pppoe"),
-        pppoe_username: String(form.get("pppoe_username") || ""),
-        pppoe_password: String(form.get("pppoe_password") || ""),
-        odp_port: String(form.get("odp_port") || ""),
+        connection_method: String(form.get("connection_method") || "manual"),
         notes: String(form.get("notes") || ""),
-      });
-      event.currentTarget.reset();
-      setSuccess("Pelanggan berhasil dibuat.");
+      };
+      if (canUseMikrotik) {
+        payload.pppoe_username = String(form.get("pppoe_username") || "");
+        payload.pppoe_password = String(form.get("pppoe_password") || "");
+        payload.mac_address = String(form.get("mac_address") || "");
+      }
+      if (canUseFiber) {
+        const latitude = String(form.get("latitude") || "");
+        const longitude = String(form.get("longitude") || "");
+        if (latitude) payload.latitude = Number(latitude);
+        if (longitude) payload.longitude = Number(longitude);
+        payload.odp_port = String(form.get("odp_port") || "");
+      }
+      const created = await apiSend<AnyRecord>("/api/billing/customers", "POST", payload);
+      const createdCustomer = firstOf(created, ["customer"]);
+      const createdId = String(createdCustomer.id ?? created.id ?? "");
+      const activateNow = form.get("activate_now") === "on";
+      if (activateNow && createdId) {
+        await apiSend(`/api/billing/customers/${createdId}/activate`, "POST", {});
+        await apiSend("/api/billing/invoices/generate-due", "POST", {});
+      }
+      formEl.reset();
+      setSuccess(activateNow ? "Pelanggan berhasil dibuat, diaktifkan, dan tagihan jatuh tempo diproses." : "Pelanggan berhasil dibuat.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal membuat pelanggan");
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [canUseFiber, canUseMikrotik]);
 
   return (
     <RealShell>
       <PageHeader
         eyebrow="Pelanggan"
         title="Tambah pelanggan"
-        description="Form ini langsung menyimpan ke Billing API tenant aktif."
+        description="Form ini menyimpan data pelanggan Billing Core. Field jaringan hanya tampil jika add-on aktif."
       />
       <Section title="Data pelanggan">
         <form onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
           <FormField label="Nama"><TextInput name="name" required placeholder="Nama pelanggan" /></FormField>
-          <FormField label="Telepon"><TextInput name="phone" required placeholder="+6281234567890" /></FormField>
+          <FormField label="Telepon"><TextInput name="phone" required placeholder="081234567890 atau +6281234567890" /></FormField>
           <FormField label="Email"><TextInput name="email" type="email" placeholder="opsional" /></FormField>
           <FormField label="Paket">
             <select name="package_id" required className={selectClass} defaultValue="">
@@ -301,23 +421,44 @@ export function CustomerFormLivePage() {
             </select>
           </FormField>
           <FormField label="Metode koneksi">
-            <select name="connection_method" className={selectClass} defaultValue="pppoe">
-              <option value="pppoe">PPPoE</option>
-              <option value="static">Static</option>
-              <option value="dhcp_binding">DHCP Binding</option>
-              <option value="hotspot">Hotspot</option>
+            <select name="connection_method" className={selectClass} defaultValue="manual">
+              <option value="manual">Manual / Billing saja</option>
+              {canUseMikrotik && (
+                <>
+                  <option value="pppoe">PPPoE</option>
+                  <option value="static">Static IP</option>
+                  <option value="dhcp_binding">DHCP Binding</option>
+                  <option value="hotspot">Hotspot</option>
+                </>
+              )}
             </select>
           </FormField>
           <FormField label="Tanggal aktif"><TextInput name="activation_date" type="date" defaultValue={todayDate()} /></FormField>
           <FormField label="Tanggal jatuh tempo"><TextInput name="due_date" type="number" min="1" max="28" defaultValue="10" /></FormField>
-          <FormField label="Latitude"><TextInput name="latitude" type="number" step="0.000001" defaultValue="-6.2" /></FormField>
-          <FormField label="Longitude"><TextInput name="longitude" type="number" step="0.000001" defaultValue="106.816" /></FormField>
-          <FormField label="Username PPPoE"><TextInput name="pppoe_username" placeholder="opsional, auto jika kosong" /></FormField>
-          <FormField label="Password PPPoE"><TextInput name="pppoe_password" placeholder="opsional, auto jika kosong" /></FormField>
+          <label className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+            <input name="activate_now" type="checkbox" defaultChecked className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+            <span>
+              <span className="block font-semibold text-slate-900">Aktifkan setelah simpan</span>
+              <span className="block text-xs text-slate-500">Jika jatuh tempo masuk periode billing, invoice langsung diproses.</span>
+            </span>
+          </label>
+          {canUseFiber && (
+            <>
+              <FormField label="Latitude"><TextInput name="latitude" type="number" step="0.000001" placeholder="-6.2" /></FormField>
+              <FormField label="Longitude"><TextInput name="longitude" type="number" step="0.000001" placeholder="106.816" /></FormField>
+            </>
+          )}
+          {canUseMikrotik && (
+            <>
+              <FormField label="Username PPPoE"><TextInput name="pppoe_username" placeholder="opsional, auto jika kosong" /></FormField>
+              <FormField label="Password PPPoE"><TextInput name="pppoe_password" placeholder="opsional, auto jika kosong" /></FormField>
+              <FormField label="MAC address"><TextInput name="mac_address" placeholder="AA:BB:CC:DD:EE:FF" /></FormField>
+            </>
+          )}
           <div className="lg:col-span-2">
             <FormField label="Alamat"><textarea name="address" required className={textAreaClass} rows={3} /></FormField>
           </div>
-          <FormField label="ODP / Port"><TextInput name="odp_port" placeholder="ODP-01 / Port 3" /></FormField>
+          {canUseFiber && <FormField label="ODP / Port"><TextInput name="odp_port" placeholder="ODP-01 / Port 3" /></FormField>}
           <FormField label="Catatan"><TextInput name="notes" placeholder="opsional" /></FormField>
           <div className="lg:col-span-2">
             <SubmitBar saving={saving} error={error} success={success} />
@@ -328,11 +469,159 @@ export function CustomerFormLivePage() {
   );
 }
 
+export function CustomerEditLivePage({ id }: { id: string }) {
+  const customerState = useApi<any>(`/api/billing/customers/${id}`, {});
+  const packages = useApi<any>("/api/billing/packages?page_size=50", { data: [] });
+  const areas = useApi<any>("/api/billing/areas?page_size=50", { data: [] });
+  const modules = useTenantModules();
+  const customer = firstOf(customerState.data, ["customer"]);
+  const packageRows = listOf(packages.data);
+  const areaRows = listOf(areas.data);
+  const canUseMikrotik = modules.data.mikrotik === true;
+  const canUseFiber = modules.data.fiber_network === true;
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const onSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const dueDate = Number(form.get("due_date") || customer.due_date || 10);
+      const payload: AnyRecord = {
+        name: String(form.get("name") || ""),
+        phone: normalizeIndonesianPhone(form.get("phone")),
+        email: String(form.get("email") || ""),
+        address: String(form.get("address") || ""),
+        area_id: String(form.get("area_id") || "") || undefined,
+        package_id: String(form.get("package_id") || ""),
+        activation_date: String(form.get("activation_date") || todayDate()),
+        due_date: dueDate,
+        connection_method: String(form.get("connection_method") || "manual"),
+        notes: String(form.get("notes") || ""),
+      };
+
+      if (canUseMikrotik) {
+        const pppoePassword = String(form.get("pppoe_password") || "");
+        payload.pppoe_username = String(form.get("pppoe_username") || "");
+        payload.mac_address = String(form.get("mac_address") || "");
+        if (pppoePassword) payload.pppoe_password = pppoePassword;
+      }
+      if (canUseFiber) {
+        const latitude = String(form.get("latitude") || "");
+        const longitude = String(form.get("longitude") || "");
+        if (latitude) payload.latitude = Number(latitude);
+        if (longitude) payload.longitude = Number(longitude);
+        payload.odp_port = String(form.get("odp_port") || "");
+      }
+
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+      try {
+        await apiSend(`/api/billing/customers/${id}`, "PUT", payload);
+        customerState.reload();
+        setSuccess("Pelanggan berhasil diperbarui.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal memperbarui pelanggan");
+      } finally {
+        setSaving(false);
+      }
+    },
+    [canUseFiber, canUseMikrotik, customer.due_date, customerState, id],
+  );
+
+  return (
+    <RealShell>
+      <PageHeader
+        eyebrow="Pelanggan"
+        title="Edit pelanggan"
+        description="Perbarui data billing pelanggan. Field jaringan hanya aktif jika modul add-on tersedia."
+        actions={
+          <>
+            <Button href={`/customers/${id}`} variant="secondary">Detail</Button>
+            <Button href="/customers" variant="secondary">Daftar Pelanggan</Button>
+          </>
+        }
+      />
+      <Notice loading={customerState.loading || packages.loading || areas.loading} error={customerState.error || packages.error || areas.error} />
+      {!customerState.loading && !customer.id ? (
+        <EmptyState title="Pelanggan tidak ditemukan" description="Data pelanggan tidak tersedia di tenant aktif." />
+      ) : (
+        <Section title="Data pelanggan">
+          <form key={customer.id || "customer-edit"} onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
+            <FormField label="Nama"><TextInput name="name" required defaultValue={customer.name ?? ""} /></FormField>
+            <FormField label="Telepon"><TextInput name="phone" required defaultValue={customer.phone ?? ""} placeholder="081234567890 atau +6281234567890" /></FormField>
+            <FormField label="Email"><TextInput name="email" type="email" defaultValue={customer.email ?? ""} placeholder="opsional" /></FormField>
+            <FormField label="Paket">
+              <select name="package_id" required className={selectClass} defaultValue={customer.package_id ?? ""}>
+                <option value="">Pilih paket</option>
+                {packageRows.map((pkg) => (
+                  <option key={pkg.id} value={pkg.id}>{pkg.name}</option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label="Area">
+              <select name="area_id" className={selectClass} defaultValue={customer.area_id ?? ""}>
+                <option value="">Tanpa area</option>
+                {areaRows.map((area) => (
+                  <option key={area.id} value={area.id}>{area.name}</option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label="Metode koneksi">
+              <select name="connection_method" className={selectClass} defaultValue={customer.connection_method ?? "manual"}>
+                <option value="manual">Manual / Billing saja</option>
+                {canUseMikrotik && (
+                  <>
+                    <option value="pppoe">PPPoE</option>
+                    <option value="static">Static IP</option>
+                    <option value="dhcp_binding">DHCP Binding</option>
+                    <option value="hotspot">Hotspot</option>
+                  </>
+                )}
+              </select>
+            </FormField>
+            <FormField label="Tanggal aktif"><TextInput name="activation_date" type="date" defaultValue={dateInputValue(customer.activation_date)} /></FormField>
+            <FormField label="Tanggal jatuh tempo"><TextInput name="due_date" type="number" min="1" max="28" defaultValue={customer.due_date ?? 10} /></FormField>
+            {canUseFiber && (
+              <>
+                <FormField label="Latitude"><TextInput name="latitude" type="number" step="0.000001" defaultValue={customer.latitude ?? ""} placeholder="-6.2" /></FormField>
+                <FormField label="Longitude"><TextInput name="longitude" type="number" step="0.000001" defaultValue={customer.longitude ?? ""} placeholder="106.816" /></FormField>
+              </>
+            )}
+            {canUseMikrotik && (
+              <>
+                <FormField label="Username PPPoE"><TextInput name="pppoe_username" defaultValue={customer.pppoe_username ?? ""} placeholder="opsional" /></FormField>
+                <FormField label="Password PPPoE"><TextInput name="pppoe_password" placeholder="Kosongkan jika tidak diubah" /></FormField>
+                <FormField label="MAC address"><TextInput name="mac_address" defaultValue={customer.mac_address ?? ""} placeholder="AA:BB:CC:DD:EE:FF" /></FormField>
+              </>
+            )}
+            <div className="lg:col-span-2">
+              <FormField label="Alamat"><textarea name="address" required className={textAreaClass} rows={3} defaultValue={customer.address ?? ""} /></FormField>
+            </div>
+            {canUseFiber && <FormField label="ODP / Port"><TextInput name="odp_port" defaultValue={customer.odp_port ?? ""} placeholder="ODP-01 / Port 3" /></FormField>}
+            <FormField label="Catatan"><TextInput name="notes" defaultValue={customer.notes ?? ""} placeholder="opsional" /></FormField>
+            <div className="lg:col-span-2">
+              <SubmitBar saving={saving} error={error} success={success} label="Update Pelanggan" />
+            </div>
+          </form>
+        </Section>
+      )}
+    </RealShell>
+  );
+}
+
 export function CustomerDetailLivePage({ id }: { id: string }) {
   const customerState = useApi<any>(`/api/billing/customers/${id}`, {});
   const invoices = useApi<any>(`/api/billing/invoices?customer_id=${id}&page_size=50`, { data: [] });
+  const modules = useTenantModules();
   const customer = firstOf(customerState.data, ["customer"]);
   const invoiceRows = listOf(invoices.data);
+  const customerStatus = String(customer.status ?? "pending");
+  const hasCustomer = Boolean(customer.id);
+  const canActivateCustomer = hasCustomer && !["aktif", "berhenti"].includes(customerStatus);
+  const canIsolirCustomer = hasCustomer && customerStatus === "aktif";
   const [actionState, setActionState] = useState<{ loading: boolean; message: string; error: string }>({
     loading: false,
     message: "",
@@ -344,10 +633,14 @@ export function CustomerDetailLivePage({ id }: { id: string }) {
       setActionState({ loading: true, message: "", error: "" });
       try {
         await apiSend(`/api/billing/customers/${id}/${action}`, "POST", {});
+        if (action === "activate") {
+          await apiSend("/api/billing/invoices/generate-due", "POST", {});
+          invoices.reload();
+        }
         customerState.reload();
         setActionState({
           loading: false,
-          message: action === "activate" ? "Pelanggan berhasil diaktifkan." : "Pelanggan berhasil diisolir.",
+          message: action === "activate" ? "Pelanggan berhasil diaktifkan dan tagihan jatuh tempo diproses." : "Pelanggan berhasil diisolir.",
           error: "",
         });
       } catch (err) {
@@ -358,7 +651,30 @@ export function CustomerDetailLivePage({ id }: { id: string }) {
         });
       }
     },
-    [customerState, id],
+    [customerState, id, invoices],
+  );
+
+  const renderCustomerActions = () => (
+    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+      <Button href="/customers" variant="secondary">Kembali</Button>
+      {hasCustomer && <Button href={`/customers/${id}/edit`} variant="secondary">Edit</Button>}
+      <button
+        type="button"
+        disabled={!canActivateCustomer || actionState.loading}
+        onClick={() => void runCustomerAction("activate")}
+        className="inline-flex h-10 items-center justify-center rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {actionState.loading && canActivateCustomer ? "Memproses..." : customerStatus === "aktif" ? "Sudah aktif" : "Aktifkan"}
+      </button>
+      <button
+        type="button"
+        disabled={!canIsolirCustomer || actionState.loading}
+        onClick={() => void runCustomerAction("isolir")}
+        className="inline-flex h-10 items-center justify-center rounded-md border border-amber-300 bg-amber-50 px-4 text-sm font-semibold text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {actionState.loading && canIsolirCustomer ? "Memproses..." : customerStatus === "isolir" ? "Sudah isolir" : "Isolir"}
+      </button>
+    </div>
   );
 
   return (
@@ -367,7 +683,7 @@ export function CustomerDetailLivePage({ id }: { id: string }) {
         eyebrow="Pelanggan"
         title={customer.name ?? "Detail pelanggan"}
         description="Detail ini dibaca langsung dari Billing API, termasuk status layanan dan invoice pelanggan."
-        actions={<Button href="/customers">Kembali</Button>}
+        actions={renderCustomerActions()}
       />
       <Notice loading={customerState.loading} error={customerState.error} />
       {!customerState.loading && !customer.id ? (
@@ -376,26 +692,7 @@ export function CustomerDetailLivePage({ id }: { id: string }) {
         <>
           <Section
             title="Profil pelanggan"
-            action={
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  disabled={actionState.loading}
-                  onClick={() => void runCustomerAction("activate")}
-                  className="rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
-                >
-                  Aktifkan
-                </button>
-                <button
-                  type="button"
-                  disabled={actionState.loading}
-                  onClick={() => void runCustomerAction("isolir")}
-                  className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 disabled:opacity-60"
-                >
-                  Isolir
-                </button>
-              </div>
-            }
+            action={renderCustomerActions()}
           >
             {actionState.error && <p className="mb-4 text-sm text-red-600">{actionState.error}</p>}
             {actionState.message && <p className="mb-4 text-sm text-emerald-700">{actionState.message}</p>}
@@ -407,9 +704,11 @@ export function CustomerDetailLivePage({ id }: { id: string }) {
                 { label: "Email", value: customer.email ?? "-" },
                 { label: "Paket", value: customer.package_name ?? customer.package_id ?? "-" },
                 { label: "Jatuh tempo", value: customer.due_date ? `Tanggal ${customer.due_date}` : "-" },
-                { label: "Koneksi", value: customer.connection_method ?? "-" },
-                { label: "Username PPPoE", value: customer.pppoe_username ?? "-" },
-                { label: "Koordinat", value: customer.latitude != null ? `${customer.latitude}, ${customer.longitude}` : "-" },
+                { label: "Koneksi", value: connectionLabel(customer.connection_method) },
+                ...(modules.data.mikrotik ? [{ label: "Username PPPoE", value: customer.pppoe_username ?? "-" }] : []),
+                ...(modules.data.fiber_network
+                  ? [{ label: "Koordinat", value: customer.latitude != null ? `${customer.latitude}, ${customer.longitude}` : "-" }]
+                  : []),
               ]}
             />
             <div className="mt-4 rounded-lg border border-slate-200 p-4">
@@ -454,7 +753,8 @@ export function CustomerAreasLivePage() {
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const form = new FormData(event.currentTarget);
+      const formEl = event.currentTarget;
+    const form = new FormData(formEl);
       setSaving(true);
       setError(null);
       setSuccess(null);
@@ -463,7 +763,7 @@ export function CustomerAreasLivePage() {
           name: String(form.get("name") || ""),
           description: String(form.get("description") || ""),
         });
-        event.currentTarget.reset();
+        formEl.reset();
         areas.reload();
         setSuccess("Area berhasil dibuat.");
       } catch (err) {
@@ -509,29 +809,73 @@ export function CustomerAreasLivePage() {
 export function PackagesLivePage() {
   const packages = useApi<any>("/api/billing/packages?page_size=50", { data: [] });
   const rows = listOf(packages.data);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
+
+  const deletePackage = useCallback(
+    async (pkg: AnyRecord) => {
+      const confirmName = window.prompt(`Ketik nama paket "${pkg.name}" untuk menghapus paket ini.`);
+      if (confirmName == null) return;
+      if (confirmName !== pkg.name) {
+        setDeleteError("Nama konfirmasi tidak sama, paket tidak dihapus.");
+        setDeleteSuccess(null);
+        return;
+      }
+
+      setDeletingId(pkg.id);
+      setDeleteError(null);
+      setDeleteSuccess(null);
+      try {
+        await apiSend(`/api/billing/packages/${pkg.id}`, "DELETE", { confirmation_name: confirmName });
+        packages.reload();
+        setDeleteSuccess(`Paket ${pkg.name} berhasil dihapus.`);
+      } catch (err) {
+        setDeleteError(err instanceof Error ? err.message : "Gagal menghapus paket");
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [packages],
+  );
 
   return (
     <RealShell>
       <PageHeader
         eyebrow="Paket"
         title="Paket internet"
-        description="Paket PPPoE dan voucher dari database Billing API."
+        description="Paket bulanan dan voucher dari database Billing API."
         actions={<Button href="/packages/new">Tambah Paket</Button>}
       />
       <Section title="Daftar paket">
         <Notice loading={packages.loading} error={packages.error} />
+        {deleteError && <p className="mb-3 text-sm text-red-600">{deleteError}</p>}
+        {deleteSuccess && <p className="mb-3 text-sm text-emerald-700">{deleteSuccess}</p>}
         {!packages.loading && rows.length === 0 ? (
-          <EmptyState title="Belum ada paket" description="Buat paket PPPoE pertama agar pelanggan bisa ditambahkan." action={<Button href="/packages/new">Tambah Paket</Button>} />
+          <EmptyState title="Belum ada paket" description="Buat paket bulanan pertama agar pelanggan bisa ditambahkan." action={<Button href="/packages/new">Tambah Paket</Button>} />
         ) : (
           <DataTable
-            columns={["Nama", "Tipe", "Bandwidth", "Harga", "Pelanggan", "Status"]}
+            columns={["Nama", "Tipe", "Bandwidth", "Harga", "Pelanggan", "Status", "Aksi"]}
             rows={rows.map((pkg) => [
               pkg.name,
-              pkg.type,
+              packageTypeLabel(pkg.type),
               `${pkg.download_mbps}/${pkg.upload_mbps} Mbps`,
               pkg.type === "voucher" ? money(pkg.sell_price) : money(pkg.monthly_price),
               String(pkg.customer_count ?? 0),
               <StatusBadge key={pkg.id} status={pkg.is_active ? "aktif" : "nonaktif"} />,
+              <div key={`${pkg.id}-actions`} className="flex flex-wrap justify-end gap-2 lg:justify-start">
+                <a href={`/packages/${pkg.id}`} className="rounded-md px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50">
+                  Edit
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void deletePackage(pkg)}
+                  disabled={deletingId === pkg.id}
+                  className="rounded-md px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {deletingId === pkg.id ? "Menghapus..." : "Hapus"}
+                </button>
+              </div>,
             ])}
           />
         )}
@@ -541,15 +885,21 @@ export function PackagesLivePage() {
 }
 
 export function PackageFormLivePage() {
+  const modules = useTenantModules();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [type, setType] = useState("pppoe");
+  const [type, setType] = useState("monthly");
+  const canUseMikrotik = modules.data.mikrotik === true;
+  const isVoucher = type === "voucher";
+  const isMonthlyPackage = !isVoucher;
 
   const onSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const packageType = String(form.get("type") || "pppoe");
+    const formEl = event.currentTarget;
+    const form = new FormData(formEl);
+    const packageType = String(form.get("type") || "monthly");
+    const submittingVoucher = packageType === "voucher";
     const monthlyPrice = Number(form.get("monthly_price") || 0);
     const sellPrice = Number(form.get("sell_price") || 0);
     setSaving(true);
@@ -564,54 +914,66 @@ export function PackageFormLivePage() {
         upload_mbps: Number(form.get("upload_mbps") || 1),
         bandwidth_type: "shared",
         quota_type: packageType === "voucher" ? "quota" : "unlimited",
-        monthly_price: packageType === "pppoe" ? monthlyPrice : undefined,
-        installation_fee: Number(form.get("installation_fee") || 0),
+        quota_mb: packageType === "voucher" ? Number(form.get("quota_mb") || 1024) : undefined,
+        monthly_price: !submittingVoucher ? monthlyPrice : undefined,
+        installation_fee: !submittingVoucher ? Number(form.get("installation_fee") || 0) : undefined,
         sell_price: packageType === "voucher" ? sellPrice : undefined,
         reseller_price: packageType === "voucher" ? Number(form.get("reseller_price") || 0) : undefined,
         duration_value: packageType === "voucher" ? Number(form.get("duration_value") || 1) : undefined,
         duration_unit: packageType === "voucher" ? String(form.get("duration_unit") || "days") : undefined,
-        shared_users: Number(form.get("shared_users") || 1),
-        mikrotik_profile_name: String(form.get("mikrotik_profile_name") || ""),
+        shared_users: packageType === "voucher" ? Number(form.get("shared_users") || 1) : undefined,
+        mikrotik_profile_name: canUseMikrotik && !submittingVoucher ? String(form.get("mikrotik_profile_name") || "") : undefined,
+        hotspot_profile_name: canUseMikrotik && submittingVoucher ? String(form.get("hotspot_profile_name") || "") : undefined,
       });
-      event.currentTarget.reset();
-      setType("pppoe");
+      formEl.reset();
+      setType("monthly");
       setSuccess("Paket berhasil dibuat.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal membuat paket");
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [canUseMikrotik]);
 
   return (
     <RealShell>
-      <PageHeader eyebrow="Paket" title="Tambah paket internet" description="Menyimpan langsung ke Billing API." />
+      <PageHeader eyebrow="Paket" title="Tambah paket internet" description="Menyimpan paket Billing Core. Field MikroTik hanya tampil jika add-on aktif." />
       <Section title="Konfigurasi paket">
         <form onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
           <FormField label="Tipe paket">
             <select name="type" value={type} onChange={(event) => setType(event.target.value)} className={selectClass}>
-              <option value="pppoe">PPPoE bulanan</option>
+              <option value="monthly">Paket bulanan</option>
+              {canUseMikrotik && <option value="pppoe">PPPoE bulanan</option>}
               <option value="voucher">Voucher hotspot</option>
             </select>
           </FormField>
           <FormField label="Nama paket"><TextInput name="name" required placeholder="Home 30 Mbps" /></FormField>
           <FormField label="Download Mbps"><TextInput name="download_mbps" type="number" min="1" defaultValue="30" /></FormField>
           <FormField label="Upload Mbps"><TextInput name="upload_mbps" type="number" min="1" defaultValue="10" /></FormField>
-          <FormField label="Harga bulanan"><TextInput name="monthly_price" type="number" min="0" defaultValue="150000" disabled={type === "voucher"} /></FormField>
-          <FormField label="Biaya instalasi"><TextInput name="installation_fee" type="number" min="0" defaultValue="0" /></FormField>
-          <FormField label="Harga jual voucher"><TextInput name="sell_price" type="number" min="0" defaultValue="5000" disabled={type !== "voucher"} /></FormField>
-          <FormField label="Harga reseller"><TextInput name="reseller_price" type="number" min="0" defaultValue="4000" disabled={type !== "voucher"} /></FormField>
-          <FormField label="Durasi voucher"><TextInput name="duration_value" type="number" min="1" defaultValue="1" disabled={type !== "voucher"} /></FormField>
-          <FormField label="Satuan durasi">
-            <select name="duration_unit" className={selectClass} disabled={type !== "voucher"} defaultValue="days">
-              <option value="hours">Jam</option>
-              <option value="days">Hari</option>
-              <option value="weeks">Minggu</option>
-              <option value="months">Bulan</option>
-            </select>
-          </FormField>
-          <FormField label="Shared users"><TextInput name="shared_users" type="number" min="1" defaultValue="1" /></FormField>
-          <FormField label="MikroTik profile"><TextInput name="mikrotik_profile_name" placeholder="home-30m" /></FormField>
+          {isMonthlyPackage ? (
+            <>
+              <FormField label="Harga bulanan"><TextInput name="monthly_price" type="number" min="0" defaultValue="150000" /></FormField>
+              <FormField label="Biaya instalasi"><TextInput name="installation_fee" type="number" min="0" defaultValue="0" /></FormField>
+              {canUseMikrotik && <FormField label="MikroTik profile"><TextInput name="mikrotik_profile_name" placeholder="home-30m" /></FormField>}
+            </>
+          ) : (
+            <>
+              <FormField label="Harga jual voucher"><TextInput name="sell_price" type="number" min="0" defaultValue="5000" /></FormField>
+              <FormField label="Harga reseller"><TextInput name="reseller_price" type="number" min="0" defaultValue="4000" /></FormField>
+              <FormField label="Kuota voucher (MB)"><TextInput name="quota_mb" type="number" min="1" defaultValue="1024" /></FormField>
+              <FormField label="Durasi voucher"><TextInput name="duration_value" type="number" min="1" defaultValue="1" /></FormField>
+              <FormField label="Satuan durasi">
+                <select name="duration_unit" className={selectClass} defaultValue="days">
+                  <option value="hours">Jam</option>
+                  <option value="days">Hari</option>
+                  <option value="weeks">Minggu</option>
+                  <option value="months">Bulan</option>
+                </select>
+              </FormField>
+              <FormField label="Shared users"><TextInput name="shared_users" type="number" min="1" defaultValue="1" /></FormField>
+              {canUseMikrotik && <FormField label="Hotspot profile"><TextInput name="hotspot_profile_name" placeholder="voucher-1hari" /></FormField>}
+            </>
+          )}
           <div className="lg:col-span-2">
             <FormField label="Deskripsi"><textarea name="description" className={textAreaClass} rows={3} /></FormField>
           </div>
@@ -624,6 +986,121 @@ export function PackageFormLivePage() {
   );
 }
 
+export function PackageEditLivePage({ id }: { id: string }) {
+  const modules = useTenantModules();
+  const packageState = useApi<any>(`/api/billing/packages/${id}`, {});
+  const pkg = firstOf(packageState.data, ["package"]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [type, setType] = useState("monthly");
+  const canUseMikrotik = modules.data.mikrotik === true;
+  const isVoucher = type === "voucher";
+  const isMonthlyPackage = !isVoucher;
+
+  useEffect(() => {
+    if (pkg.type) setType(String(pkg.type));
+  }, [pkg.type]);
+
+  const onSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const formEl = event.currentTarget;
+    const form = new FormData(formEl);
+      const packageType = type || String(pkg.type || "monthly");
+      const submittingVoucher = packageType === "voucher";
+      const monthlyPrice = Number(form.get("monthly_price") || 0);
+      const sellPrice = Number(form.get("sell_price") || 0);
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+      try {
+        await apiSend(`/api/billing/packages/${id}`, "PUT", {
+          name: String(form.get("name") || ""),
+          description: String(form.get("description") || ""),
+          download_mbps: Number(form.get("download_mbps") || 1),
+          upload_mbps: Number(form.get("upload_mbps") || 1),
+          bandwidth_type: !submittingVoucher ? "shared" : undefined,
+          quota_type: submittingVoucher ? "quota" : "unlimited",
+          quota_mb: submittingVoucher ? Number(form.get("quota_mb") || 1024) : undefined,
+          monthly_price: !submittingVoucher ? monthlyPrice : undefined,
+          installation_fee: !submittingVoucher ? Number(form.get("installation_fee") || 0) : undefined,
+          sell_price: submittingVoucher ? sellPrice : undefined,
+          reseller_price: submittingVoucher ? Number(form.get("reseller_price") || 0) : undefined,
+          duration_value: submittingVoucher ? Number(form.get("duration_value") || 1) : undefined,
+          duration_unit: submittingVoucher ? String(form.get("duration_unit") || "days") : undefined,
+          shared_users: submittingVoucher ? Number(form.get("shared_users") || 1) : undefined,
+          mikrotik_profile_name: canUseMikrotik && !submittingVoucher ? String(form.get("mikrotik_profile_name") || "") : undefined,
+          hotspot_profile_name: canUseMikrotik && submittingVoucher ? String(form.get("hotspot_profile_name") || "") : undefined,
+        });
+        packageState.reload();
+        setSuccess("Paket berhasil diperbarui.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal memperbarui paket");
+      } finally {
+        setSaving(false);
+      }
+    },
+    [canUseMikrotik, id, packageState, pkg.type, type],
+  );
+
+  return (
+    <RealShell>
+      <PageHeader
+        eyebrow="Paket"
+        title="Edit paket internet"
+        description="Tipe paket tidak diubah setelah dibuat; field edit mengikuti tipe paket saat ini."
+        actions={<Button href="/packages">Kembali</Button>}
+      />
+      <Notice loading={packageState.loading} error={packageState.error} />
+      {!packageState.loading && !pkg.id ? (
+        <EmptyState title="Paket tidak ditemukan" description="Data paket tidak tersedia di tenant aktif." />
+      ) : (
+        <Section title="Konfigurasi paket">
+          <form key={pkg.id || "package-edit"} onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
+            <FormField label="Tipe paket">
+              <TextInput value={packageTypeLabel(type)} disabled readOnly />
+            </FormField>
+            <FormField label="Nama paket"><TextInput name="name" required defaultValue={pkg.name ?? ""} /></FormField>
+            <FormField label="Download Mbps"><TextInput name="download_mbps" type="number" min="1" defaultValue={pkg.download_mbps ?? 30} /></FormField>
+            <FormField label="Upload Mbps"><TextInput name="upload_mbps" type="number" min="1" defaultValue={pkg.upload_mbps ?? 10} /></FormField>
+            {isMonthlyPackage ? (
+              <>
+                <FormField label="Harga bulanan"><TextInput name="monthly_price" type="number" min="0" defaultValue={pkg.monthly_price ?? 150000} /></FormField>
+                <FormField label="Biaya instalasi"><TextInput name="installation_fee" type="number" min="0" defaultValue={pkg.installation_fee ?? 0} /></FormField>
+                {canUseMikrotik && <FormField label="MikroTik profile"><TextInput name="mikrotik_profile_name" defaultValue={pkg.mikrotik_profile_name ?? ""} placeholder="home-30m" /></FormField>}
+              </>
+            ) : (
+              <>
+                <FormField label="Harga jual voucher"><TextInput name="sell_price" type="number" min="0" defaultValue={pkg.sell_price ?? 5000} /></FormField>
+                <FormField label="Harga reseller"><TextInput name="reseller_price" type="number" min="0" defaultValue={pkg.reseller_price ?? 4000} /></FormField>
+                <FormField label="Kuota voucher (MB)"><TextInput name="quota_mb" type="number" min="1" defaultValue={pkg.quota_mb ?? 1024} /></FormField>
+                <FormField label="Durasi voucher"><TextInput name="duration_value" type="number" min="1" defaultValue={pkg.duration_value ?? 1} /></FormField>
+                <FormField label="Satuan durasi">
+                  <select name="duration_unit" className={selectClass} defaultValue={pkg.duration_unit ?? "days"}>
+                    <option value="hours">Jam</option>
+                    <option value="days">Hari</option>
+                    <option value="weeks">Minggu</option>
+                    <option value="months">Bulan</option>
+                  </select>
+                </FormField>
+                <FormField label="Shared users"><TextInput name="shared_users" type="number" min="1" defaultValue={pkg.shared_users ?? 1} /></FormField>
+                {canUseMikrotik && <FormField label="Hotspot profile"><TextInput name="hotspot_profile_name" defaultValue={pkg.hotspot_profile_name ?? ""} placeholder="voucher-1hari" /></FormField>}
+              </>
+            )}
+            <div className="lg:col-span-2">
+              <FormField label="Deskripsi"><textarea name="description" className={textAreaClass} rows={3} defaultValue={pkg.description ?? ""} /></FormField>
+            </div>
+            <div className="lg:col-span-2">
+              <SubmitBar saving={saving} error={error} success={success} label="Update Paket" />
+            </div>
+          </form>
+        </Section>
+      )}
+    </RealShell>
+  );
+}
+
 export function InvoicesLivePage() {
   const invoices = useApi<any>("/api/billing/invoices?page_size=50", { data: [] });
   const summary = useApi<any>("/api/billing/invoices/summary", {});
@@ -631,13 +1108,15 @@ export function InvoicesLivePage() {
   const rows = listOf(invoices.data);
   const customerRows = listOf(customers.data);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const form = new FormData(event.currentTarget);
+      const formEl = event.currentTarget;
+    const form = new FormData(formEl);
       setSaving(true);
       setError(null);
       setSuccess(null);
@@ -656,7 +1135,7 @@ export function InvoicesLivePage() {
           apply_tax: false,
           apply_credit: true,
         });
-        event.currentTarget.reset();
+        formEl.reset();
         invoices.reload();
         summary.reload();
         setSuccess("Invoice berhasil dibuat.");
@@ -669,9 +1148,39 @@ export function InvoicesLivePage() {
     [invoices, summary],
   );
 
+  const generateDueInvoices = useCallback(async () => {
+    setGenerating(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await apiSend("/api/billing/invoices/generate-due", "POST", {});
+      invoices.reload();
+      summary.reload();
+      setSuccess("Tagihan jatuh tempo berhasil diproses.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal memproses tagihan jatuh tempo");
+    } finally {
+      setGenerating(false);
+    }
+  }, [invoices, summary]);
+
   return (
     <RealShell>
-      <PageHeader eyebrow="Invoice" title="Invoice pelanggan" description="Invoice real dari Billing API." />
+      <PageHeader
+        eyebrow="Invoice"
+        title="Invoice pelanggan"
+        description="Invoice real dari Billing API."
+        actions={
+          <button
+            type="button"
+            onClick={() => void generateDueInvoices()}
+            disabled={generating}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {generating ? "Memproses..." : "Generate jatuh tempo"}
+          </button>
+        }
+      />
       <StatGrid
         stats={[
           { label: "Total invoice", value: String(summary.data.total_invoices ?? rows.length) },
@@ -681,9 +1190,11 @@ export function InvoicesLivePage() {
         ]}
       />
       <Section title="Daftar invoice">
+        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+        {success && <p className="mb-4 text-sm text-emerald-700">{success}</p>}
         <Notice loading={invoices.loading} error={invoices.error} />
         {rows.length === 0 && !invoices.loading ? (
-          <EmptyState title="Belum ada invoice" description="Invoice akan muncul setelah dibuat manual atau generated oleh billing cycle." />
+          <EmptyState title="Belum ada invoice" description="Aktifkan pelanggan lalu tekan Generate jatuh tempo, atau buat invoice manual." />
         ) : (
           <DataTable
             columns={["Nomor", "Pelanggan", "Periode", "Jatuh tempo", "Total", "Dibayar", "Status"]}
@@ -740,7 +1251,8 @@ export function InvoiceDetailLivePage({ id }: { id: string }) {
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const form = new FormData(event.currentTarget);
+      const formEl = event.currentTarget;
+    const form = new FormData(formEl);
       setSaving(true);
       setError(null);
       setSuccess(null);
@@ -752,7 +1264,7 @@ export function InvoiceDetailLivePage({ id }: { id: string }) {
           reference_number: String(form.get("reference_number") || ""),
           notes: String(form.get("notes") || ""),
         });
-        event.currentTarget.reset();
+        formEl.reset();
         invoiceState.reload();
         setSuccess("Pembayaran invoice berhasil dicatat.");
       } catch (err) {
@@ -878,7 +1390,8 @@ export function PaymentsLivePage() {
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const form = new FormData(event.currentTarget);
+      const formEl = event.currentTarget;
+    const form = new FormData(formEl);
       const invoiceID = String(form.get("invoice_id") || "");
       setSaving(true);
       setError(null);
@@ -891,7 +1404,7 @@ export function PaymentsLivePage() {
           reference_number: String(form.get("reference_number") || ""),
           notes: String(form.get("notes") || ""),
         });
-        event.currentTarget.reset();
+        formEl.reset();
         payments.reload();
         summary.reload();
         invoices.reload();
@@ -982,7 +1495,8 @@ export function VouchersLivePage() {
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const form = new FormData(event.currentTarget);
+      const formEl = event.currentTarget;
+    const form = new FormData(formEl);
       setSaving(true);
       setError(null);
       setSuccess(null);
@@ -994,7 +1508,7 @@ export function VouchersLivePage() {
           code_length: Number(form.get("code_length") || 8),
           prefix: String(form.get("prefix") || ""),
         });
-        event.currentTarget.reset();
+        formEl.reset();
         vouchers.reload();
         setSuccess("Voucher berhasil digenerate.");
       } catch (err) {
@@ -1059,28 +1573,39 @@ export function VouchersLivePage() {
 export function ResellersLivePage() {
   const resellers = useApi<any>("/api/billing/resellers?page_size=50", { data: [] });
   const rows = listOf(resellers.data);
+  const activeRows = rows.filter((reseller) => reseller.status !== "nonaktif");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [balanceSaving, setBalanceSaving] = useState(false);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
+  const [balanceSuccess, setBalanceSuccess] = useState<string | null>(null);
+  const [selectedResellerId, setSelectedResellerId] = useState("");
+  const [balanceAction, setBalanceAction] = useState<"deposit" | "withdraw">("deposit");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
+  const selectedReseller = rows.find((reseller) => reseller.id === selectedResellerId);
 
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const form = new FormData(event.currentTarget);
+      const formEl = event.currentTarget;
+    const form = new FormData(formEl);
       setSaving(true);
       setError(null);
       setSuccess(null);
       try {
         await apiSend("/api/billing/resellers", "POST", {
           name: String(form.get("name") || ""),
-          phone: String(form.get("phone") || ""),
+          phone: normalizeIndonesianPhone(form.get("phone")),
           email: String(form.get("email") || ""),
           address: String(form.get("address") || ""),
           password: String(form.get("password") || ""),
           balance: Number(form.get("balance") || 0),
           daily_purchase_limit: Number(form.get("daily_purchase_limit") || 0),
         });
-        event.currentTarget.reset();
+        formEl.reset();
         resellers.reload();
         setSuccess("Reseller berhasil dibuat.");
       } catch (err) {
@@ -1092,16 +1617,160 @@ export function ResellersLivePage() {
     [resellers],
   );
 
+  const onBalanceSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const formEl = event.currentTarget;
+      const form = new FormData(formEl);
+      const resellerId = String(form.get("reseller_id") || "");
+      const action = String(form.get("action") || "deposit") as "deposit" | "withdraw";
+      const amount = Number(form.get("amount") || 0);
+      const notes = String(form.get("notes") || "");
+
+      if (!resellerId) {
+        setBalanceError("Pilih reseller terlebih dahulu.");
+        setBalanceSuccess(null);
+        return;
+      }
+      if (amount <= 0) {
+        setBalanceError("Nominal harus lebih dari 0.");
+        setBalanceSuccess(null);
+        return;
+      }
+
+      const target = rows.find((reseller) => reseller.id === resellerId);
+      if (action === "withdraw" && target && amount > Number(target.balance || 0)) {
+        setBalanceError("Saldo reseller tidak cukup untuk withdraw.");
+        setBalanceSuccess(null);
+        return;
+      }
+
+      setBalanceSaving(true);
+      setBalanceError(null);
+      setBalanceSuccess(null);
+      try {
+        await apiSend(`/api/billing/resellers/${resellerId}/${action}`, "POST", { amount, notes });
+        resellers.reload();
+        setSelectedResellerId(resellerId);
+        formEl.reset();
+        setBalanceAction(action);
+        setBalanceSuccess(
+          `${action === "deposit" ? "Deposit" : "Withdraw"} ${money(amount)} untuk ${target?.name ?? "reseller"} berhasil diproses.`,
+        );
+      } catch (err) {
+        setBalanceError(err instanceof Error ? err.message : "Gagal mengelola saldo reseller");
+      } finally {
+        setBalanceSaving(false);
+      }
+    },
+    [resellers, rows],
+  );
+
+  const deactivateReseller = useCallback(
+    async (reseller: AnyRecord) => {
+      const confirmName = window.prompt(`Ketik nama reseller "${reseller.name}" untuk menonaktifkan reseller ini.`);
+      if (confirmName == null) return;
+      if (confirmName !== reseller.name) {
+        setDeleteError("Nama konfirmasi tidak sama, reseller tidak dihapus.");
+        setDeleteSuccess(null);
+        return;
+      }
+
+      setDeletingId(reseller.id);
+      setDeleteError(null);
+      setDeleteSuccess(null);
+      try {
+        await apiSend(`/api/billing/resellers/${reseller.id}/deactivate`, "POST", { confirmation_name: confirmName });
+        resellers.reload();
+        setDeleteSuccess(`Reseller ${reseller.name} berhasil dinonaktifkan.`);
+      } catch (err) {
+        setDeleteError(err instanceof Error ? err.message : "Gagal menghapus reseller");
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [resellers],
+  );
+
   return (
     <RealShell>
       <PageHeader eyebrow="Reseller" title="Reseller voucher" description="Akun reseller real dari Billing API." />
+      <Section
+        title="Kelola saldo reseller"
+        description="Tambah saldo deposit atau kurangi saldo withdraw. Semua perubahan tercatat sebagai transaksi reseller."
+      >
+        <form onSubmit={onBalanceSubmit} className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_160px_180px_minmax(0,1fr)_auto]">
+          <FormField label="Reseller">
+            <select
+              name="reseller_id"
+              required
+              className={selectClass}
+              value={selectedResellerId}
+              onChange={(event) => setSelectedResellerId(event.target.value)}
+            >
+              <option value="">Pilih reseller</option>
+              {activeRows.map((reseller) => (
+                <option key={reseller.id} value={reseller.id}>
+                  {reseller.name} - {money(reseller.balance)}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="Aksi">
+            <select
+              name="action"
+              className={selectClass}
+              value={balanceAction}
+              onChange={(event) => setBalanceAction(event.target.value as "deposit" | "withdraw")}
+            >
+              <option value="deposit">Deposit</option>
+              <option value="withdraw">Withdraw</option>
+            </select>
+          </FormField>
+          <FormField label="Nominal">
+            <TextInput name="amount" type="number" min="1" step="1" required placeholder="50000" />
+          </FormField>
+          <FormField label="Catatan">
+            <TextInput name="notes" placeholder={balanceAction === "deposit" ? "Top up saldo reseller" : "Koreksi saldo reseller"} />
+          </FormField>
+          <div className="grid content-end">
+            <button
+              type="submit"
+              disabled={balanceSaving || activeRows.length === 0}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {balanceSaving ? "Memproses..." : balanceAction === "deposit" ? "Tambah saldo" : "Kurangi saldo"}
+            </button>
+          </div>
+        </form>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Saldo reseller dipilih</p>
+            <p className="mt-2 text-lg font-semibold text-slate-950">{selectedReseller ? money(selectedReseller.balance) : "-"}</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Limit harian</p>
+            <p className="mt-2 text-lg font-semibold text-slate-950">
+              {selectedReseller ? String(selectedReseller.daily_purchase_limit ?? 0) : "-"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Status</p>
+            <div className="mt-2">{selectedReseller ? <StatusBadge status={selectedReseller.status ?? "aktif"} /> : "-"}</div>
+          </div>
+        </div>
+        {balanceError && <p className="mt-3 text-sm text-red-600">{balanceError}</p>}
+        {balanceSuccess && <p className="mt-3 text-sm text-emerald-700">{balanceSuccess}</p>}
+      </Section>
       <Section title="Daftar reseller">
         <Notice loading={resellers.loading} error={resellers.error} />
+        {deleteError && <p className="mb-3 text-sm text-red-600">{deleteError}</p>}
+        {deleteSuccess && <p className="mb-3 text-sm text-emerald-700">{deleteSuccess}</p>}
         {rows.length === 0 && !resellers.loading ? (
           <EmptyState title="Belum ada reseller" description="Reseller akan muncul setelah akun reseller dibuat." />
         ) : (
           <DataTable
-            columns={["Nama", "Telepon", "Email", "Saldo", "Limit harian", "Voucher terjual", "Status"]}
+            columns={["Nama", "Telepon", "Email", "Saldo", "Limit harian", "Voucher terjual", "Status", "Aksi"]}
             rows={rows.map((reseller) => [
               reseller.name,
               reseller.phone,
@@ -1110,6 +1779,31 @@ export function ResellersLivePage() {
               String(reseller.daily_purchase_limit ?? 0),
               String(reseller.total_vouchers_sold ?? 0),
               <StatusBadge key={reseller.id} status={reseller.status ?? "aktif"} />,
+              <div key={`${reseller.id}-actions`} className="flex flex-wrap justify-end gap-2 lg:justify-start">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedResellerId(reseller.id);
+                    setBalanceError(null);
+                    setBalanceSuccess(null);
+                  }}
+                  disabled={reseller.status === "nonaktif"}
+                  className="rounded-md px-3 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Saldo
+                </button>
+                <a href={`/resellers/${reseller.id}/edit`} className="rounded-md px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50">
+                  Edit
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void deactivateReseller(reseller)}
+                  disabled={deletingId === reseller.id || reseller.status === "nonaktif"}
+                  className="rounded-md px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {deletingId === reseller.id ? "Menghapus..." : reseller.status === "nonaktif" ? "Nonaktif" : "Hapus"}
+                </button>
+              </div>,
             ])}
           />
         )}
@@ -1117,7 +1811,7 @@ export function ResellersLivePage() {
       <Section title="Tambah reseller">
         <form onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-4">
           <FormField label="Nama"><TextInput name="name" required placeholder="Reseller Depok" /></FormField>
-          <FormField label="Telepon"><TextInput name="phone" required placeholder="+6281299990000" /></FormField>
+          <FormField label="Telepon"><TextInput name="phone" required placeholder="081299990000 atau +6281299990000" /></FormField>
           <FormField label="Email"><TextInput name="email" type="email" placeholder="opsional" /></FormField>
           <FormField label="Password"><TextInput name="password" type="password" required minLength={8} placeholder="minimal 8 karakter" /></FormField>
           <FormField label="Saldo awal"><TextInput name="balance" type="number" min="0" defaultValue="0" /></FormField>
@@ -1130,6 +1824,70 @@ export function ResellersLivePage() {
           </div>
         </form>
       </Section>
+    </RealShell>
+  );
+}
+
+export function ResellerEditLivePage({ id }: { id: string }) {
+  const resellerState = useApi<any>(`/api/billing/resellers/${id}`, {});
+  const reseller = firstOf(resellerState.data, ["reseller"]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const onSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+      try {
+        await apiSend(`/api/billing/resellers/${id}`, "PUT", {
+          name: String(form.get("name") || ""),
+          phone: normalizeIndonesianPhone(form.get("phone")),
+          email: String(form.get("email") || ""),
+          address: String(form.get("address") || ""),
+          daily_purchase_limit: Number(form.get("daily_purchase_limit") || 0),
+        });
+        resellerState.reload();
+        setSuccess("Reseller berhasil diperbarui.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal memperbarui reseller");
+      } finally {
+        setSaving(false);
+      }
+    },
+    [id, resellerState],
+  );
+
+  return (
+    <RealShell>
+      <PageHeader
+        eyebrow="Reseller"
+        title="Edit reseller voucher"
+        description="Perbarui profil reseller. Saldo tetap dikelola lewat transaksi deposit/withdraw."
+        actions={<Button href="/resellers" variant="secondary">Daftar Reseller</Button>}
+      />
+      <Notice loading={resellerState.loading} error={resellerState.error} />
+      {!resellerState.loading && !reseller.id ? (
+        <EmptyState title="Reseller tidak ditemukan" description="Data reseller tidak tersedia di tenant aktif." />
+      ) : (
+        <Section title="Data reseller">
+          <form key={reseller.id || "reseller-edit"} onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-4">
+            <FormField label="Nama"><TextInput name="name" required defaultValue={reseller.name ?? ""} /></FormField>
+            <FormField label="Telepon"><TextInput name="phone" required defaultValue={reseller.phone ?? ""} placeholder="081299990000 atau +6281299990000" /></FormField>
+            <FormField label="Email"><TextInput name="email" type="email" defaultValue={reseller.email ?? ""} placeholder="opsional" /></FormField>
+            <FormField label="Limit harian"><TextInput name="daily_purchase_limit" type="number" min="0" defaultValue={reseller.daily_purchase_limit ?? 0} /></FormField>
+            <div className="lg:col-span-4">
+              <FormField label="Alamat"><TextInput name="address" defaultValue={reseller.address ?? ""} placeholder="opsional" /></FormField>
+            </div>
+            <div className="lg:col-span-4">
+              <SubmitBar saving={saving} error={error} success={success} label="Update reseller" />
+            </div>
+          </form>
+        </Section>
+      )}
     </RealShell>
   );
 }
@@ -1191,7 +1949,8 @@ export function OltNewLivePage() {
 
   const onSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formEl = event.currentTarget;
+    const form = new FormData(formEl);
     setSaving(true);
     setError(null);
     setSuccess(null);
@@ -1210,7 +1969,7 @@ export function OltNewLivePage() {
         health_check_interval_sec: Number(form.get("health_check_interval_sec") || 300),
         notes: String(form.get("notes") || ""),
       });
-      event.currentTarget.reset();
+      formEl.reset();
       setSuccess("OLT berhasil didaftarkan. Test SNMP/CLI tetap dijalankan manual dari detail OLT.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menambahkan OLT");
@@ -1426,7 +2185,8 @@ export function MikrotikVpnLivePage() {
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const form = new FormData(event.currentTarget);
+      const formEl = event.currentTarget;
+    const form = new FormData(formEl);
       setSaving(true);
       setError(null);
       setSuccess(null);
@@ -1437,7 +2197,7 @@ export function MikrotikVpnLivePage() {
           router_id: String(form.get("router_id") || "") || undefined,
           notes: String(form.get("notes") || ""),
         });
-        event.currentTarget.reset();
+        formEl.reset();
         tunnels.reload();
         summary.reload();
         setSuccess("Tunnel VPN berhasil dibuat.");

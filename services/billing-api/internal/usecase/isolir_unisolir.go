@@ -49,9 +49,6 @@ func (uc *IsolirUsecase) ProcessUnIsolir(ctx context.Context, tenantID, customer
 		return fmt.Errorf("gagal update status ke aktif: %w", err)
 	}
 
-	// Buat pending_sync untuk sinkronisasi router
-	uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpUnIsolir)
-
 	// Publish event customer.un_isolir dan notification.un_isolir
 	p := domain.CustomerUnIsolirPayload{
 		CustomerID:       cust.ID,
@@ -62,7 +59,10 @@ func (uc *IsolirUsecase) ProcessUnIsolir(ctx context.Context, tenantID, customer
 		ConnectionMethod: string(cust.ConnectionMethod),
 		Trigger:          trigger,
 	}
-	uc.publishEvent(cust.TenantID, domain.TaskCustomerUnIsolir, p)
+	if uc.mikrotikEnabled(ctx, cust.TenantID) {
+		uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpUnIsolir)
+		uc.publishEvent(cust.TenantID, domain.TaskCustomerUnIsolir, p)
+	}
 	uc.publishEvent(cust.TenantID, domain.TaskNotifUnIsolir, p)
 
 	// Tulis audit log
@@ -103,9 +103,6 @@ func (uc *IsolirUsecase) ProcessReactivate(ctx context.Context, customerID, acto
 		return fmt.Errorf("gagal update status ke aktif: %w", err)
 	}
 
-	// Buat pending_sync untuk sinkronisasi router
-	uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpUnIsolir)
-
 	// Publish event customer.un_isolir dan notification.reactivated
 	p := domain.CustomerUnIsolirPayload{
 		CustomerID:       cust.ID,
@@ -116,7 +113,10 @@ func (uc *IsolirUsecase) ProcessReactivate(ctx context.Context, customerID, acto
 		ConnectionMethod: string(cust.ConnectionMethod),
 		Trigger:          "admin_manual",
 	}
-	uc.publishEvent(cust.TenantID, domain.TaskCustomerUnIsolir, p)
+	if uc.mikrotikEnabled(ctx, cust.TenantID) {
+		uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpUnIsolir)
+		uc.publishEvent(cust.TenantID, domain.TaskCustomerUnIsolir, p)
+	}
 	uc.publishEvent(cust.TenantID, domain.TaskNotifReactivated, p)
 
 	// Tulis audit log dengan aktor admin
@@ -173,9 +173,6 @@ func (uc *IsolirUsecase) ProcessReIsolir(ctx context.Context, tenantID, customer
 		return fmt.Errorf("gagal update status ke isolir: %w", err)
 	}
 
-	// Buat pending_sync untuk sinkronisasi router
-	uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpIsolir)
-
 	// Publish event customer.isolir dan notification.isolir
 	overdue := domain.DaysOverdue(targetInv.DueDate, now.Time)
 	p := domain.CustomerIsolirPayload{
@@ -188,7 +185,10 @@ func (uc *IsolirUsecase) ProcessReIsolir(ctx context.Context, tenantID, customer
 		Reason:           "re_isolir: pembayaran di-void, invoice kembali overdue",
 		OverdueDays:      overdue,
 	}
-	uc.publishEvent(cust.TenantID, domain.TaskCustomerIsolir, p)
+	if uc.mikrotikEnabled(ctx, cust.TenantID) {
+		uc.createPendingSync(ctx, cust.TenantID, cust.ID, domain.SyncOpIsolir)
+		uc.publishEvent(cust.TenantID, domain.TaskCustomerIsolir, p)
+	}
 	uc.publishEvent(cust.TenantID, domain.TaskNotifIsolir, p)
 
 	// Tulis audit log

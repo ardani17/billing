@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
-import { networkApi } from "../../../../../lib/network-api";
+import { NetworkApiError, networkApi } from "../../../../../lib/network-api";
 
 export async function GET() {
   try {
     const data = await networkApi("/api/v1/mikrotik/status/summary");
     return NextResponse.json(data);
   } catch (error) {
+    if (error instanceof NetworkApiError) {
+      return NextResponse.json(error.body, { status: error.status });
+    }
     return NextResponse.json(
       {
         success: false,

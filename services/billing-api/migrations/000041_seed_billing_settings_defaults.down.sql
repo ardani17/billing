@@ -1,0 +1,1 @@
+-- No-op: default billing settings are safe tenant configuration data.
