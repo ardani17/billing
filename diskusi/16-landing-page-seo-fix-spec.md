@@ -1,4 +1,4 @@
-# 15 - Landing Page SEO Fix Spec
+# 16 - Landing Page SEO Fix Spec
 
 ## Tujuan
 
