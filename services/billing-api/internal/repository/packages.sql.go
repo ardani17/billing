@@ -146,46 +146,52 @@ func (q *Queries) DeletePackage(ctx context.Context, id pgtype.UUID) error {
 const getPackageByID = `-- name: GetPackageByID :one
 SELECT p.id, p.tenant_id, p.type, p.name, p.description, p.is_active, p.download_mbps, p.upload_mbps, p.bandwidth_type, p.burst_download_mbps, p.burst_upload_mbps, p.burst_threshold_mbps, p.burst_time_seconds, p.quota_type, p.quota_mb, p.quota_action, p.throttle_mbps, p.monthly_price, p.installation_fee, p.sell_price, p.reseller_price, p.duration_value, p.duration_unit, p.shared_users, p.mikrotik_profile_name, p.address_pool, p.parent_queue, p.hotspot_profile_name, p.created_at, p.updated_at,
     (SELECT COUNT(*) FROM customers c
-     WHERE c.package_id = p.id AND c.deleted_at IS NULL) AS customer_count
+     WHERE c.package_id = p.id) AS customer_count,
+    (SELECT COUNT(*) FROM customers c
+     WHERE c.package_id = p.id AND c.deleted_at IS NULL) AS customer_active_count,
+    (SELECT COUNT(*) FROM customers c
+     WHERE c.package_id = p.id AND c.deleted_at IS NOT NULL) AS customer_deleted_count
 FROM packages p
 WHERE p.id = $1
 `
 
 type GetPackageByIDRow struct {
-	ID                  pgtype.UUID        `json:"id"`
-	TenantID            pgtype.UUID        `json:"tenant_id"`
-	Type                string             `json:"type"`
-	Name                string             `json:"name"`
-	Description         pgtype.Text        `json:"description"`
-	IsActive            bool               `json:"is_active"`
-	DownloadMbps        int32              `json:"download_mbps"`
-	UploadMbps          int32              `json:"upload_mbps"`
-	BandwidthType       pgtype.Text        `json:"bandwidth_type"`
-	BurstDownloadMbps   pgtype.Int4        `json:"burst_download_mbps"`
-	BurstUploadMbps     pgtype.Int4        `json:"burst_upload_mbps"`
-	BurstThresholdMbps  pgtype.Int4        `json:"burst_threshold_mbps"`
-	BurstTimeSeconds    pgtype.Int4        `json:"burst_time_seconds"`
-	QuotaType           string             `json:"quota_type"`
-	QuotaMb             pgtype.Int4        `json:"quota_mb"`
-	QuotaAction         pgtype.Text        `json:"quota_action"`
-	ThrottleMbps        pgtype.Int4        `json:"throttle_mbps"`
-	MonthlyPrice        pgtype.Int8        `json:"monthly_price"`
-	InstallationFee     int64              `json:"installation_fee"`
-	SellPrice           pgtype.Int8        `json:"sell_price"`
-	ResellerPrice       pgtype.Int8        `json:"reseller_price"`
-	DurationValue       pgtype.Int4        `json:"duration_value"`
-	DurationUnit        pgtype.Text        `json:"duration_unit"`
-	SharedUsers         int32              `json:"shared_users"`
-	MikrotikProfileName pgtype.Text        `json:"mikrotik_profile_name"`
-	AddressPool         pgtype.Text        `json:"address_pool"`
-	ParentQueue         pgtype.Text        `json:"parent_queue"`
-	HotspotProfileName  pgtype.Text        `json:"hotspot_profile_name"`
-	CreatedAt           pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
-	CustomerCount       int64              `json:"customer_count"`
+	ID                   pgtype.UUID        `json:"id"`
+	TenantID             pgtype.UUID        `json:"tenant_id"`
+	Type                 string             `json:"type"`
+	Name                 string             `json:"name"`
+	Description          pgtype.Text        `json:"description"`
+	IsActive             bool               `json:"is_active"`
+	DownloadMbps         int32              `json:"download_mbps"`
+	UploadMbps           int32              `json:"upload_mbps"`
+	BandwidthType        pgtype.Text        `json:"bandwidth_type"`
+	BurstDownloadMbps    pgtype.Int4        `json:"burst_download_mbps"`
+	BurstUploadMbps      pgtype.Int4        `json:"burst_upload_mbps"`
+	BurstThresholdMbps   pgtype.Int4        `json:"burst_threshold_mbps"`
+	BurstTimeSeconds     pgtype.Int4        `json:"burst_time_seconds"`
+	QuotaType            string             `json:"quota_type"`
+	QuotaMb              pgtype.Int4        `json:"quota_mb"`
+	QuotaAction          pgtype.Text        `json:"quota_action"`
+	ThrottleMbps         pgtype.Int4        `json:"throttle_mbps"`
+	MonthlyPrice         pgtype.Int8        `json:"monthly_price"`
+	InstallationFee      int64              `json:"installation_fee"`
+	SellPrice            pgtype.Int8        `json:"sell_price"`
+	ResellerPrice        pgtype.Int8        `json:"reseller_price"`
+	DurationValue        pgtype.Int4        `json:"duration_value"`
+	DurationUnit         pgtype.Text        `json:"duration_unit"`
+	SharedUsers          int32              `json:"shared_users"`
+	MikrotikProfileName  pgtype.Text        `json:"mikrotik_profile_name"`
+	AddressPool          pgtype.Text        `json:"address_pool"`
+	ParentQueue          pgtype.Text        `json:"parent_queue"`
+	HotspotProfileName   pgtype.Text        `json:"hotspot_profile_name"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
+	CustomerCount        int64              `json:"customer_count"`
+	CustomerActiveCount  int64              `json:"customer_active_count"`
+	CustomerDeletedCount int64              `json:"customer_deleted_count"`
 }
 
-// Mengambil paket berdasarkan ID beserta jumlah pelanggan aktif.
+// Mengambil paket berdasarkan ID beserta jumlah pelanggan yang masih mereferensikan paket.
 func (q *Queries) GetPackageByID(ctx context.Context, id pgtype.UUID) (GetPackageByIDRow, error) {
 	row := q.db.QueryRow(ctx, getPackageByID, id)
 	var i GetPackageByIDRow
@@ -221,6 +227,8 @@ func (q *Queries) GetPackageByID(ctx context.Context, id pgtype.UUID) (GetPackag
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.CustomerCount,
+		&i.CustomerActiveCount,
+		&i.CustomerDeletedCount,
 	)
 	return i, err
 }

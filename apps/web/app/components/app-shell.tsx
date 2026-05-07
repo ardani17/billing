@@ -134,6 +134,23 @@ function canShowItem(item: NavItem, modules: ModuleCapabilities) {
   return modules[item.module];
 }
 
+function pathMatches(href: string, pathname: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isActiveNavItem(item: NavItem, pathname: string, siblings: NavItem[]) {
+  if (!pathMatches(item.href, pathname)) return false;
+  return !siblings.some((other) => other.href !== item.href && other.href.startsWith(`${item.href}/`) && pathMatches(other.href, pathname));
+}
+
+function currentNavLabel(pathname: string, groups: Array<{ items: NavItem[] }>) {
+  const items = groups.flatMap((group) => group.items).filter((item) => item.href !== "#reports-in-progress");
+  const match = items
+    .filter((item) => pathMatches(item.href, pathname))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+  return match?.label || "Dashboard";
+}
+
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -221,11 +238,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }, [modules]);
 
   const currentLabel = useMemo(() => {
-    for (const group of visibleNavGroups) {
-      const item = group.items.find((nav) => nav.href !== "#reports-in-progress" && pathname.startsWith(nav.href));
-      if (item) return item.label;
-    }
-    return "Dashboard";
+    return currentNavLabel(pathname, visibleNavGroups);
   }, [pathname, visibleNavGroups]);
 
   return (
@@ -267,7 +280,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <div className="grid gap-1">
                 {group.items.map((item) => {
                   const Icon = item.icon;
-                  const active = pathname.startsWith(item.href);
+                  const active = isActiveNavItem(item, pathname, group.items);
                   const showMikrotikChildren = item.href === "/mikrotik" && !collapsed && mikrotikDetailId;
                   const mikrotikChildren = showMikrotikChildren
                     ? [
@@ -414,7 +427,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         >
           {visibleBottomNav.map((item) => {
             const Icon = item.icon;
-            const active = pathname.startsWith(item.href);
+            const active = isActiveNavItem(item, pathname, visibleBottomNav);
             return (
               <a
                 key={item.href}

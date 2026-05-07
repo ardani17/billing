@@ -154,6 +154,38 @@ function packageTypeLabel(type?: string) {
   return "Bulanan";
 }
 
+function PackageCustomerUsage({ pkg }: { pkg: AnyRecord }) {
+  const total = Number(pkg.customer_count ?? 0);
+  const active = Number(pkg.customer_active_count ?? (pkg.customer_deleted_count ? Math.max(total - Number(pkg.customer_deleted_count), 0) : total));
+  const deleted = Number(pkg.customer_deleted_count ?? Math.max(total - active, 0));
+  const tone =
+    total === 0
+      ? "bg-slate-100 text-slate-600 ring-slate-200"
+      : deleted > 0 && active > 0
+        ? "bg-amber-50 text-amber-800 ring-amber-200"
+        : deleted > 0
+          ? "bg-red-50 text-red-700 ring-red-200"
+          : "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  const detail =
+    total === 0
+      ? "belum dipakai"
+      : deleted > 0 && active > 0
+        ? `${active} aktif / ${deleted} history`
+        : deleted > 0
+          ? `${deleted} history`
+          : `${active} aktif`;
+
+  return (
+    <span
+      title={detail}
+      className={`inline-flex min-w-[5.5rem] items-center justify-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${tone}`}
+    >
+      <span className="text-sm">{total}</span>
+      <span>{detail}</span>
+    </span>
+  );
+}
+
 function connectionLabel(method?: string) {
   const labels: Record<string, string> = {
     manual: "Manual",
@@ -163,6 +195,15 @@ function connectionLabel(method?: string) {
     static: "Static IP",
   };
   return labels[method || ""] || method || "-";
+}
+
+function oltCapabilityLabel(brand?: string, model?: string) {
+  const normalized = `${brand || ""} ${model || ""}`.toLowerCase();
+  if (normalized.includes("zte") && normalized.includes("c320")) {
+    return "SNMP probe, PON/ONT, signal, SFP, traffic, alarm, provisioning";
+  }
+  if (brand) return "Adapter belum lengkap";
+  return "Belum terdeteksi";
 }
 
 function Notice({ loading, error }: { loading: boolean; error: string | null }) {
@@ -484,6 +525,7 @@ export function CustomerEditLivePage({ id }: { id: string }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const referenceLoading = customerState.loading || packages.loading || areas.loading;
 
   const onSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -546,12 +588,18 @@ export function CustomerEditLivePage({ id }: { id: string }) {
           </>
         }
       />
-      <Notice loading={customerState.loading || packages.loading || areas.loading} error={customerState.error || packages.error || areas.error} />
+      <Notice loading={referenceLoading} error={customerState.error || packages.error || areas.error} />
       {!customerState.loading && !customer.id ? (
         <EmptyState title="Pelanggan tidak ditemukan" description="Data pelanggan tidak tersedia di tenant aktif." />
+      ) : referenceLoading ? (
+        <EmptyState title="Memuat data pelanggan" description="Form edit akan tampil setelah data pelanggan, paket, dan area siap." />
       ) : (
         <Section title="Data pelanggan">
-          <form key={customer.id || "customer-edit"} onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
+          <form
+            key={`${customer.id || "customer-edit"}-${customer.package_id || "no-package"}-${customer.area_id || "no-area"}`}
+            onSubmit={onSubmit}
+            className="grid gap-4 lg:grid-cols-2"
+          >
             <FormField label="Nama"><TextInput name="name" required defaultValue={customer.name ?? ""} /></FormField>
             <FormField label="Telepon"><TextInput name="phone" required defaultValue={customer.phone ?? ""} placeholder="081234567890 atau +6281234567890" /></FormField>
             <FormField label="Email"><TextInput name="email" type="email" defaultValue={customer.email ?? ""} placeholder="opsional" /></FormField>
@@ -883,7 +931,7 @@ export function PackagesLivePage() {
               packageTypeLabel(pkg.type),
               `${pkg.download_mbps}/${pkg.upload_mbps} Mbps`,
               pkg.type === "voucher" ? money(pkg.sell_price) : money(pkg.monthly_price),
-              String(pkg.customer_count ?? 0),
+              <PackageCustomerUsage key={`${pkg.id}-usage`} pkg={pkg} />,
               <StatusBadge key={pkg.id} status={pkg.is_active ? "aktif" : "nonaktif"} />,
               <div key={`${pkg.id}-actions`} className="flex flex-wrap justify-end gap-2 lg:justify-start">
                 <a href={`/packages/${pkg.id}`} className="rounded-md px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50">
@@ -2196,9 +2244,44 @@ export function OltLivePage() {
 
 export function OltDetailLivePage({ id }: { id: string }) {
   const oltState = useApi<any>(`/api/network-service/olt/devices/${id}`, {});
+  const ponPorts = useApi<any>(`/api/network-service/olt/devices/${id}/pon-ports`, { data: [] });
+  const traffic = useApi<any>(`/api/network-service/olt/devices/${id}/pon-ports/0/traffic`, { data: [] });
+  const sfpStatus = useApi<any>(`/api/network-service/olt/devices/${id}/sfp`, { data: [] });
+  const capacity = useApi<any>(`/api/network-service/olt/devices/${id}/capacity`, {});
+  const unregistered = useApi<any>(`/api/network-service/olt/devices/${id}/unregistered-onts`, { data: [] });
   const alarms = useApi<any>(`/api/network-service/olt/devices/${id}/alarms`, { data: [] });
+  const [connectionTest, setConnectionTest] = useState<{
+    kind: "snmp" | "cli" | null;
+    loading: boolean;
+    error: string | null;
+    result: AnyRecord | null;
+  }>({ kind: null, loading: false, error: null, result: null });
   const olt = firstOf(oltState.data, ["olt", "device"]);
+  const ponRows = listOf(ponPorts.data);
+  const trafficRows = listOf(traffic.data);
+  const sfpRows = listOf(sfpStatus.data);
+  const unregisteredRows = listOf(unregistered.data);
   const alarmRows = listOf(alarms.data);
+  const capacityData = firstOf(capacity.data, ["capacity"]);
+
+  const runConnectionTest = useCallback(
+    async (kind: "snmp" | "cli") => {
+      setConnectionTest({ kind, loading: true, error: null, result: null });
+      try {
+        const endpoint = kind === "snmp" ? "test-snmp" : "test-cli";
+        const result = await apiSend<AnyRecord>(`/api/network-service/olt/devices/${id}/${endpoint}`, "POST", {});
+        setConnectionTest({ kind, loading: false, error: null, result });
+      } catch (err) {
+        setConnectionTest({
+          kind,
+          loading: false,
+          error: err instanceof Error ? err.message : "Test koneksi gagal",
+          result: null,
+        });
+      }
+    },
+    [id],
+  );
 
   return (
     <RealShell>
@@ -2206,19 +2289,61 @@ export function OltDetailLivePage({ id }: { id: string }) {
         eyebrow="OLT"
         title={olt.name ?? "Detail OLT"}
         description="Detail perangkat OLT dari network-service. Endpoint monitoring tetap tampil sebagai aksi manual."
-        actions={<Button href="/olt">Kembali</Button>}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button href="/olt" variant="secondary">Kembali</Button>
+            <button
+              type="button"
+              onClick={() => void runConnectionTest("snmp")}
+              disabled={connectionTest.loading}
+              className="inline-flex min-w-0 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-center text-sm font-semibold leading-5 text-slate-700 transition hover:bg-slate-50 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+            >
+              Test SNMP
+            </button>
+            <button
+              type="button"
+              onClick={() => void runConnectionTest("cli")}
+              disabled={connectionTest.loading}
+              className="inline-flex min-w-0 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-center text-sm font-semibold leading-5 text-white transition hover:bg-blue-700 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+            >
+              Test CLI
+            </button>
+          </div>
+        }
       />
       <Notice loading={oltState.loading} error={oltState.error} />
       {!oltState.loading && !olt.id ? (
         <EmptyState title="OLT tidak ditemukan" description="Data tidak tersedia di tenant aktif." />
       ) : (
         <>
+          <Section title="Koneksi live">
+            {connectionTest.loading ? (
+              <p className="text-sm text-slate-500">Menjalankan test {connectionTest.kind?.toUpperCase()}...</p>
+            ) : connectionTest.error ? (
+              <p className="text-sm text-red-600">{connectionTest.error}</p>
+            ) : connectionTest.result ? (
+              <DetailGrid
+                items={[
+                  { label: "Jenis", value: connectionTest.kind?.toUpperCase() ?? "-" },
+                  { label: "Brand", value: connectionTest.result.brand ?? "-" },
+                  { label: "Model", value: connectionTest.result.model ?? "-" },
+                  { label: "Firmware", value: connectionTest.result.firmware_version ?? "-" },
+                  { label: "SysName", value: connectionTest.result.sys_name ?? "-" },
+                  { label: "Banner", value: connectionTest.result.banner ?? connectionTest.result.sys_descr ?? "-" },
+                ]}
+              />
+            ) : (
+              <EmptyState title="Belum ada hasil test" description="Jalankan test SNMP atau CLI untuk memvalidasi koneksi OLT secara manual." />
+            )}
+          </Section>
           <Section title="Profil perangkat">
             <DetailGrid
               items={[
                 { label: "Status", value: <StatusBadge status={olt.status ?? "unknown"} /> },
                 { label: "Host", value: olt.host ?? olt.ip_address ?? "-" },
                 { label: "Brand", value: `${olt.brand ?? "-"} ${olt.model ?? ""}`.trim() },
+                { label: "Capability", value: oltCapabilityLabel(olt.brand, olt.model) },
+                { label: "Warning", value: olt.warning ?? olt.last_error ?? "-" },
                 { label: "SNMP", value: `${olt.snmp_version ?? "-"} :${olt.snmp_port ?? 161}` },
                 { label: "CLI", value: `${olt.cli_protocol ?? "-"} :${olt.cli_port ?? "-"}` },
                 { label: "Interval health", value: `${olt.health_check_interval_sec ?? "-"} detik` },
@@ -2228,16 +2353,104 @@ export function OltDetailLivePage({ id }: { id: string }) {
               ]}
             />
           </Section>
+          <Section title="PON ports">
+            <Notice loading={ponPorts.loading} error={ponPorts.error} />
+            {ponRows.length === 0 && !ponPorts.loading ? (
+              <EmptyState title="Belum ada data PON" description="Data PON akan tampil setelah endpoint monitoring berhasil membaca OLT." />
+            ) : (
+              <DataTable
+                columns={["Port", "Admin", "Oper", "ONT", "Online", "Deskripsi"]}
+                rows={ponRows.map((port) => [
+                  port.port_index ?? "-",
+                  port.admin_status ?? "-",
+                  <StatusBadge key={`${port.port_index}-oper`} status={port.oper_status ?? "unknown"} />,
+                  String(port.ont_count ?? 0),
+                  String(port.ont_online_count ?? 0),
+                  port.description ?? "-",
+                ])}
+              />
+            )}
+          </Section>
+          <Section title="SFP module">
+            <Notice loading={sfpStatus.loading} error={sfpStatus.error} />
+            {sfpRows.length === 0 && !sfpStatus.loading ? (
+              <EmptyState title="Belum ada data SFP" description="Power dan suhu SFP akan tampil saat adapter brand mendukung OID terkait." />
+            ) : (
+              <DataTable
+                columns={["Port", "Type", "Tx", "Rx", "Suhu", "Status"]}
+                rows={sfpRows.map((sfp) => [
+                  sfp.port_index ?? "-",
+                  sfp.sfp_type ?? "-",
+                  sfp.tx_power_dbm != null ? `${sfp.tx_power_dbm} dBm` : "-",
+                  sfp.rx_power_dbm != null ? `${sfp.rx_power_dbm} dBm` : "-",
+                  sfp.temperature_celsius != null ? `${sfp.temperature_celsius} C` : "-",
+                  <StatusBadge key={`${sfp.port_index}-sfp`} status={sfp.status ?? "unknown"} />,
+                ])}
+              />
+            )}
+          </Section>
+          <Section title="Traffic PON 0">
+            <Notice loading={traffic.loading} error={traffic.error} />
+            {trafficRows.length === 0 && !traffic.loading ? (
+              <EmptyState title="Belum ada traffic" description="Traffic time-series akan terisi setelah sync/collector OLT berjalan." />
+            ) : (
+              <DataTable
+                columns={["Waktu", "Rx bytes", "Tx bytes", "Rx packets", "Tx packets"]}
+                rows={trafficRows.map((point) => [
+                  dateID(point.timestamp),
+                  String(point.rx_bytes ?? 0),
+                  String(point.tx_bytes ?? 0),
+                  String(point.rx_packets ?? 0),
+                  String(point.tx_packets ?? 0),
+                ])}
+              />
+            )}
+          </Section>
+          <Section title="Kapasitas">
+            <Notice loading={capacity.loading} error={capacity.error} />
+            {!capacity.loading && !capacityData.total_pon_ports ? (
+              <EmptyState title="Belum ada data kapasitas" description="Capacity planning akan tersedia setelah PON dan ONT tersinkron." />
+            ) : (
+              <DetailGrid
+                items={[
+                  { label: "Total PON", value: String(capacityData.total_pon_ports ?? 0) },
+                  { label: "PON aktif", value: String(capacityData.active_pon_ports ?? 0) },
+                  { label: "Slot ONT", value: `${capacityData.used_ont_slots ?? 0}/${capacityData.total_ont_slots ?? 0}` },
+                  { label: "Slot tersedia", value: String(capacityData.available_ont_slots ?? 0) },
+                  { label: "Utilisasi", value: `${capacityData.utilization_percent ?? 0}%` },
+                  { label: "Estimasi sisa", value: `${capacityData.estimated_months_remaining ?? 0} bulan` },
+                ]}
+              />
+            )}
+          </Section>
+          <Section title="Unregistered ONT">
+            <Notice loading={unregistered.loading} error={unregistered.error} />
+            {unregisteredRows.length === 0 && !unregistered.loading ? (
+              <EmptyState title="Tidak ada ONT baru" description="ONT yang belum diprovision akan tampil di sini ketika adapter mendukung discovery." />
+            ) : (
+              <DataTable
+                columns={["Serial", "PON", "Vendor", "Model", "Ditemukan"]}
+                rows={unregisteredRows.map((ont) => [
+                  ont.serial_number ?? ont.sn ?? "-",
+                  ont.pon_port_index ?? ont.pon_port ?? "-",
+                  ont.vendor_id ?? ont.vendor ?? "-",
+                  ont.model ?? "-",
+                  dateID(ont.discovered_at ?? ont.created_at),
+                ])}
+              />
+            )}
+          </Section>
           <Section title="Alarm OLT">
             <Notice loading={alarms.loading} error={alarms.error} />
             {alarmRows.length === 0 && !alarms.loading ? (
               <EmptyState title="Belum ada alarm" description="Alarm akan muncul setelah monitoring OLT berjalan." />
             ) : (
               <DataTable
-                columns={["Waktu", "Severity", "Port", "Pesan", "Status"]}
+                columns={["Waktu", "Severity", "Source", "Port", "Pesan", "Status"]}
                 rows={alarmRows.map((alarm) => [
                   dateID(alarm.created_at ?? alarm.occurred_at),
                   alarm.severity ?? "-",
+                  alarm.source ?? "-",
                   alarm.port ?? alarm.pon_port ?? "-",
                   alarm.message ?? alarm.description ?? "-",
                   <StatusBadge key={alarm.id} status={alarm.status ?? "aktif"} />,

@@ -17,12 +17,12 @@ import (
 )
 
 // CustomerRepo mengimplementasikan domain.CustomerRepository dengan membungkus
-// sqlc-generated Queries dan pgxpool.Pool untuk dynamic list query.
+// Query hasil buat sqlc dan pgxpool.Pool untuk kueri daftar dinamis.
 type CustomerRepo struct {
-	// queries adalah sqlc-generated Queries untuk operasi customer.
+	// queries adalah Query hasil buat sqlc untuk operasi customer.
 	queries *Queries
 
-	// pool digunakan untuk dynamic list query (raw SQL dengan pgx).
+	// pool digunakan untuk kueri daftar dinamis (SQL mentah dengan pgx).
 	pool *pgxpool.Pool
 }
 
@@ -34,7 +34,7 @@ func NewCustomerRepo(queries *Queries, pool *pgxpool.Pool) *CustomerRepo {
 	}
 }
 
-// --- Helper functions untuk konversi pgtype.Numeric ↔ float64 ---
+// --- Fungsi bantu untuk konversi pgtype.Numeric ↔ float64 ---
 
 // numericToFloat64 mengkonversi pgtype.Numeric ke float64.
 // Mengembalikan 0 jika Numeric tidak valid.
@@ -90,7 +90,7 @@ func timeToDate(t time.Time) pgtype.Date {
 	return pgtype.Date{Time: t, Valid: !t.IsZero()}
 }
 
-// --- Helper function untuk mapping sqlc Customer → domain.Customer ---
+// --- Fungsi bantu untuk pemetaan sqlc Customer -> domain.Customer ---
 
 // mapCustomerRow memetakan Customer (sqlc model) ke domain.Customer.
 func mapCustomerRow(row Customer) *domain.Customer {
@@ -125,7 +125,7 @@ func mapCustomerRow(row Customer) *domain.Customer {
 
 // --- Implementasi domain.CustomerRepository ---
 
-// Create membuat customer baru dan mengembalikan customer yang dibuat.
+// Buat membuat customer baru dan mengembalikan customer yang dibuat.
 func (r *CustomerRepo) Create(ctx context.Context, customer *domain.Customer) (*domain.Customer, error) {
 	row, err := r.queries.CreateCustomer(ctx, CreateCustomerParams{
 		TenantID:         stringToUUID(customer.TenantID),
@@ -165,10 +165,35 @@ func (r *CustomerRepo) GetByID(ctx context.Context, id string) (*domain.Customer
 		}
 		return nil, fmt.Errorf("repository: gagal mengambil customer by ID: %w", err)
 	}
-	return mapCustomerRow(row), nil
+	customer := mapCustomerRow(row)
+	if err := r.loadCustomerPackageName(ctx, customer); err != nil {
+		return nil, err
+	}
+	return customer, nil
 }
 
-// Update memperbarui data customer dan mengembalikan customer yang diperbarui.
+func (r *CustomerRepo) loadCustomerPackageName(ctx context.Context, customer *domain.Customer) error {
+	if customer == nil || customer.PackageID == "" {
+		return nil
+	}
+
+	var packageName string
+	err := r.pool.QueryRow(ctx,
+		`SELECT name FROM packages WHERE id = $1 AND tenant_id = $2`,
+		stringToUUID(customer.PackageID),
+		stringToUUID(customer.TenantID),
+	).Scan(&packageName)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+		return fmt.Errorf("repository: gagal mengambil nama paket customer: %w", err)
+	}
+	customer.PackageName = packageName
+	return nil
+}
+
+// Perbarui memperbarui data customer dan mengembalikan customer yang diperbarui.
 func (r *CustomerRepo) Update(ctx context.Context, customer *domain.Customer) (*domain.Customer, error) {
 	row, err := r.queries.UpdateCustomer(ctx, UpdateCustomerParams{
 		ID:               stringToUUID(customer.ID),
@@ -200,7 +225,7 @@ func (r *CustomerRepo) Update(ctx context.Context, customer *domain.Customer) (*
 	return mapCustomerRow(row), nil
 }
 
-// SoftDelete menandai customer sebagai dihapus (soft delete).
+// SoftDelete menandai customer sebagai dihapus (hapus lunak).
 func (r *CustomerRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeleteCustomer(ctx, stringToUUID(id))
 	if err != nil {
@@ -209,20 +234,20 @@ func (r *CustomerRepo) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-// allowedSortColumns adalah whitelist kolom yang diizinkan untuk sorting.
-// Mencegah SQL injection pada ORDER BY clause.
+// allowedSortColumns adalah whitelist kolom yang diizinkan untuk pengurutan.
+// Mencegah SQL injection pada klausa ORDER BY.
 var allowedSortColumns = map[string]string{
-	"name":            "name",
-	"customer_id_seq": "customer_id_seq",
-	"status":          "status",
-	"created_at":      "created_at",
-	"due_date":        "due_date",
+	"name":            "c.name",
+	"customer_id_seq": "c.customer_id_seq",
+	"status":          "c.status",
+	"created_at":      "c.created_at",
+	"due_date":        "c.due_date",
 }
 
-// List mengambil daftar customer dengan dynamic filtering, search, sorting, dan pagination.
-// Menggunakan raw SQL karena sqlc tidak mendukung dynamic WHERE clause.
+// Daftar mengambil daftar customer dengan dinamis Filtering, Pencarian, pengurutan, dan paginasi.
+// Menggunakan SQL mentah karena sqlc tidak mendukung klausa WHERE dinamis.
 func (r *CustomerRepo) List(ctx context.Context, params domain.CustomerListParams) (*domain.CustomerListResult, error) {
-	// Default values
+	// Nilai bawaan
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -230,69 +255,69 @@ func (r *CustomerRepo) List(ctx context.Context, params domain.CustomerListParam
 		params.PageSize = 25
 	}
 
-	// Build WHERE clauses
+	// Bangun klausa WHERE
 	var conditions []string
 	var args []interface{}
 	argIdx := 1
 
-	// Tenant filter (wajib)
-	conditions = append(conditions, fmt.Sprintf("tenant_id = $%d", argIdx))
+	// Filter tenant (wajib)
+	conditions = append(conditions, fmt.Sprintf("c.tenant_id = $%d", argIdx))
 	args = append(args, stringToUUID(params.TenantID))
 	argIdx++
 
-	// Exclude soft-deleted
-	conditions = append(conditions, "deleted_at IS NULL")
+	// Kecualikan hapus lunak
+	conditions = append(conditions, "c.deleted_at IS NULL")
 
-	// Search filter (case-insensitive ILIKE pada name, customer_id_seq, address, phone)
+	// Filter pencarian tanpa membedakan huruf besar/kecil pada name, customer_id_seq, address, dan phone
 	if params.Search != "" {
 		searchPattern := "%" + params.Search + "%"
 		conditions = append(conditions, fmt.Sprintf(
-			"(name ILIKE $%d OR customer_id_seq ILIKE $%d OR address ILIKE $%d OR phone ILIKE $%d)",
+			"(c.name ILIKE $%d OR c.customer_id_seq ILIKE $%d OR c.address ILIKE $%d OR c.phone ILIKE $%d)",
 			argIdx, argIdx, argIdx, argIdx,
 		))
 		args = append(args, searchPattern)
 		argIdx++
 	}
 
-	// Status filter
+	// Filter status
 	if params.Status != "" {
-		conditions = append(conditions, fmt.Sprintf("status = $%d", argIdx))
+		conditions = append(conditions, fmt.Sprintf("c.status = $%d", argIdx))
 		args = append(args, params.Status)
 		argIdx++
 	}
 
-	// Package ID filter
+	// Filter ID paket
 	if params.PackageID != "" {
-		conditions = append(conditions, fmt.Sprintf("package_id = $%d", argIdx))
+		conditions = append(conditions, fmt.Sprintf("c.package_id = $%d", argIdx))
 		args = append(args, stringToUUID(params.PackageID))
 		argIdx++
 	}
 
-	// Area ID filter
+	// Filter ID area
 	if params.AreaID != "" {
-		conditions = append(conditions, fmt.Sprintf("area_id = $%d", argIdx))
+		conditions = append(conditions, fmt.Sprintf("c.area_id = $%d", argIdx))
 		args = append(args, stringToUUID(params.AreaID))
 		argIdx++
 	}
 
-	// Due date filter
+	// Filter tanggal jatuh tempo
 	if params.DueDate != nil {
-		conditions = append(conditions, fmt.Sprintf("due_date = $%d", argIdx))
+		conditions = append(conditions, fmt.Sprintf("c.due_date = $%d", argIdx))
 		args = append(args, *params.DueDate)
 		argIdx++
 	}
 
 	whereClause := "WHERE " + strings.Join(conditions, " AND ")
 
-	// Count total
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM customers %s", whereClause)
+	// Hitung total
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM customers c %s", whereClause)
 	var total int64
 	err := r.pool.QueryRow(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
 		return nil, fmt.Errorf("repository: gagal menghitung total customer: %w", err)
 	}
 
-	// Build ORDER BY
+	// Bangun ORDER BY
 	orderBy := "created_at"
 	if params.SortBy != "" {
 		if col, ok := allowedSortColumns[params.SortBy]; ok {
@@ -304,16 +329,18 @@ func (r *CustomerRepo) List(ctx context.Context, params domain.CustomerListParam
 		sortOrder = "DESC"
 	}
 
-	// Build pagination
+	// Bangun paginasi
 	offset := (params.Page - 1) * params.PageSize
 
-	// Build data query
-	dataQuery := fmt.Sprintf(`SELECT id, tenant_id, customer_id_seq, name, phone, email, address,
-		area_id, latitude, longitude, package_id, activation_date,
-		due_date, connection_method, pppoe_username, pppoe_password,
-		mac_address, router_id, odp_port, credit_balance, notes, status,
-		deleted_at, created_at, updated_at
-		FROM customers %s
+	// Bangun data kueri
+	dataQuery := fmt.Sprintf(`SELECT c.id, c.tenant_id, c.customer_id_seq, c.name, c.phone, c.email, c.address,
+		c.area_id, c.latitude, c.longitude, c.package_id, c.activation_date,
+		c.due_date, c.connection_method, c.pppoe_username, c.pppoe_password,
+		c.mac_address, c.router_id, c.odp_port, c.credit_balance, c.notes, c.status,
+		c.deleted_at, c.created_at, c.updated_at, COALESCE(p.name, '') AS package_name
+		FROM customers c
+		LEFT JOIN packages p ON p.id = c.package_id AND p.tenant_id = c.tenant_id
+		%s
 		ORDER BY %s %s
 		LIMIT $%d OFFSET $%d`,
 		whereClause, orderBy, sortOrder, argIdx, argIdx+1,
@@ -329,16 +356,19 @@ func (r *CustomerRepo) List(ctx context.Context, params domain.CustomerListParam
 	customers := make([]*domain.Customer, 0)
 	for rows.Next() {
 		var c Customer
+		var packageName string
 		if err := rows.Scan(
 			&c.ID, &c.TenantID, &c.CustomerIDSeq, &c.Name, &c.Phone, &c.Email, &c.Address,
 			&c.AreaID, &c.Latitude, &c.Longitude, &c.PackageID, &c.ActivationDate,
 			&c.DueDate, &c.ConnectionMethod, &c.PppoeUsername, &c.PppoePassword,
 			&c.MacAddress, &c.RouterID, &c.OdpPort, &c.CreditBalance, &c.Notes, &c.Status,
-			&c.DeletedAt, &c.CreatedAt, &c.UpdatedAt,
+			&c.DeletedAt, &c.CreatedAt, &c.UpdatedAt, &packageName,
 		); err != nil {
 			return nil, fmt.Errorf("repository: gagal scan customer row: %w", err)
 		}
-		customers = append(customers, mapCustomerRow(c))
+		customer := mapCustomerRow(c)
+		customer.PackageName = packageName
+		customers = append(customers, customer)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("repository: gagal iterasi customer rows: %w", err)
@@ -437,7 +467,7 @@ func (r *CustomerRepo) GetMaxSeq(ctx context.Context, tenantID string) (int, err
 }
 
 // PhoneExists mengecek apakah nomor telepon sudah terdaftar di tenant yang sama.
-// excludeID digunakan untuk mengecualikan customer tertentu (saat update).
+// excludeID digunakan untuk mengecualikan customer tertentu (saat perbarui).
 func (r *CustomerRepo) PhoneExists(ctx context.Context, tenantID, phone, excludeID string) (bool, error) {
 	// Jika excludeID kosong, gunakan UUID nil agar tidak mengecualikan siapapun
 	exID := excludeID
@@ -480,8 +510,8 @@ func (r *CustomerRepo) BulkUpdateStatus(ctx context.Context, ids []string, statu
 	return results, nil
 }
 
-// BulkUpdateFields memperbarui field tertentu untuk beberapa customer sekaligus.
-// Fields yang didukung: area_id, due_date, notes.
+// BulkUpdatefield memperbarui field tertentu untuk beberapa customer sekaligus.
+// field yang didukung: area_id, due_date, notes.
 func (r *CustomerRepo) BulkUpdateFields(ctx context.Context, ids []string, fields map[string]interface{}) ([]domain.BulkResult, error) {
 	results := make([]domain.BulkResult, 0, len(ids))
 
@@ -497,7 +527,7 @@ func (r *CustomerRepo) BulkUpdateFields(ctx context.Context, ids []string, field
 			continue
 		}
 
-		// Apply field updates
+		// Terapkan pembaruan field
 		updateParams := UpdateCustomerParams{
 			ID:               current.ID,
 			Name:             current.Name,
@@ -520,7 +550,7 @@ func (r *CustomerRepo) BulkUpdateFields(ctx context.Context, ids []string, field
 			Notes:            current.Notes,
 		}
 
-		// Apply field overrides
+		// Terapkan penimpaan field
 		if v, ok := fields["area_id"]; ok {
 			if areaID, ok := v.(string); ok {
 				updateParams.AreaID = stringToUUID(areaID)
@@ -560,7 +590,7 @@ func (r *CustomerRepo) BulkUpdateFields(ctx context.Context, ids []string, field
 	return results, nil
 }
 
-// BulkSoftDelete melakukan soft delete untuk beberapa customer sekaligus.
+// BulkSoftDelete melakukan hapus lunak untuk beberapa customer sekaligus.
 func (r *CustomerRepo) BulkSoftDelete(ctx context.Context, ids []string) ([]domain.BulkResult, error) {
 	results := make([]domain.BulkResult, 0, len(ids))
 	for _, id := range ids {
@@ -588,7 +618,7 @@ func (r *CustomerRepo) GetByIDs(ctx context.Context, ids []string) ([]*domain.Cu
 		row, err := r.queries.GetCustomerByID(ctx, stringToUUID(id))
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				continue // skip not found
+				continue // lewati jika tidak ditemukan
 			}
 			return nil, fmt.Errorf("repository: gagal mengambil customer by ID %s: %w", id, err)
 		}
@@ -599,7 +629,7 @@ func (r *CustomerRepo) GetByIDs(ctx context.Context, ids []string) ([]*domain.Cu
 
 // SearchForPayment mencari pelanggan berdasarkan nama, customer_id_seq, atau telepon.
 // Mengembalikan maksimal 10 hasil, hanya status aktif/isolir.
-// Digunakan untuk quick payment flow.
+// Digunakan untuk alur pembayaran cepat.
 func (r *CustomerRepo) SearchForPayment(ctx context.Context, tenantID, searchTerm string) ([]*domain.Customer, error) {
 	searchPattern := "%" + searchTerm + "%"
 	rows, err := r.queries.SearchCustomersForPayment(ctx, SearchCustomersForPaymentParams{

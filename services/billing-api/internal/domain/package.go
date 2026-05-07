@@ -63,37 +63,39 @@ const (
 // Package merepresentasikan paket internet yang ditawarkan oleh tenant.
 // Mendukung dua jenis: PPPoE/Static (bulanan) dan Hotspot/Voucher (durasi).
 type Package struct {
-	ID                  string      `json:"id"`
-	TenantID            string      `json:"tenant_id"`
-	Type                PackageType `json:"type"`
-	Name                string      `json:"name"`
-	Description         string      `json:"description,omitempty"`
-	IsActive            bool        `json:"is_active"`
-	DownloadMbps        int         `json:"download_mbps"`
-	UploadMbps          int         `json:"upload_mbps"`
-	BandwidthType       string      `json:"bandwidth_type,omitempty"`
-	BurstDownloadMbps   *int        `json:"burst_download_mbps,omitempty"`
-	BurstUploadMbps     *int        `json:"burst_upload_mbps,omitempty"`
-	BurstThresholdMbps  *int        `json:"burst_threshold_mbps,omitempty"`
-	BurstTimeSeconds    *int        `json:"burst_time_seconds,omitempty"`
-	QuotaType           QuotaType   `json:"quota_type"`
-	QuotaMB             *int        `json:"quota_mb,omitempty"`
-	QuotaAction         string      `json:"quota_action,omitempty"`
-	ThrottleMbps        *int        `json:"throttle_mbps,omitempty"`
-	MonthlyPrice        *int64      `json:"monthly_price,omitempty"`
-	InstallationFee     int64       `json:"installation_fee"`
-	SellPrice           *int64      `json:"sell_price,omitempty"`
-	ResellerPrice       *int64      `json:"reseller_price,omitempty"`
-	DurationValue       *int        `json:"duration_value,omitempty"`
-	DurationUnit        string      `json:"duration_unit,omitempty"`
-	SharedUsers         int         `json:"shared_users"`
-	MikrotikProfileName string      `json:"mikrotik_profile_name,omitempty"`
-	AddressPool         string      `json:"address_pool,omitempty"`
-	ParentQueue         string      `json:"parent_queue,omitempty"`
-	HotspotProfileName  string      `json:"hotspot_profile_name,omitempty"`
-	CustomerCount       int         `json:"customer_count,omitempty"` // field komputasi, tidak disimpan
-	CreatedAt           time.Time   `json:"created_at"`
-	UpdatedAt           time.Time   `json:"updated_at"`
+	ID                   string      `json:"id"`
+	TenantID             string      `json:"tenant_id"`
+	Type                 PackageType `json:"type"`
+	Name                 string      `json:"name"`
+	Description          string      `json:"description,omitempty"`
+	IsActive             bool        `json:"is_active"`
+	DownloadMbps         int         `json:"download_mbps"`
+	UploadMbps           int         `json:"upload_mbps"`
+	BandwidthType        string      `json:"bandwidth_type,omitempty"`
+	BurstDownloadMbps    *int        `json:"burst_download_mbps,omitempty"`
+	BurstUploadMbps      *int        `json:"burst_upload_mbps,omitempty"`
+	BurstThresholdMbps   *int        `json:"burst_threshold_mbps,omitempty"`
+	BurstTimeSeconds     *int        `json:"burst_time_seconds,omitempty"`
+	QuotaType            QuotaType   `json:"quota_type"`
+	QuotaMB              *int        `json:"quota_mb,omitempty"`
+	QuotaAction          string      `json:"quota_action,omitempty"`
+	ThrottleMbps         *int        `json:"throttle_mbps,omitempty"`
+	MonthlyPrice         *int64      `json:"monthly_price,omitempty"`
+	InstallationFee      int64       `json:"installation_fee"`
+	SellPrice            *int64      `json:"sell_price,omitempty"`
+	ResellerPrice        *int64      `json:"reseller_price,omitempty"`
+	DurationValue        *int        `json:"duration_value,omitempty"`
+	DurationUnit         string      `json:"duration_unit,omitempty"`
+	SharedUsers          int         `json:"shared_users"`
+	MikrotikProfileName  string      `json:"mikrotik_profile_name,omitempty"`
+	AddressPool          string      `json:"address_pool,omitempty"`
+	ParentQueue          string      `json:"parent_queue,omitempty"`
+	HotspotProfileName   string      `json:"hotspot_profile_name,omitempty"`
+	CustomerCount        int         `json:"customer_count,omitempty"` // field komputasi, tidak disimpan
+	CustomerActiveCount  int         `json:"customer_active_count,omitempty"`
+	CustomerDeletedCount int         `json:"customer_deleted_count,omitempty"`
+	CreatedAt            time.Time   `json:"created_at"`
+	UpdatedAt            time.Time   `json:"updated_at"`
 }
 
 // --- Error Domain Paket ---

@@ -42,7 +42,7 @@ func (r *PackageRepo) Create(ctx context.Context, pkg *domain.Package) (*domain.
 	return mapPackageRow(row), nil
 }
 
-// GetByID mengambil paket berdasarkan ID (termasuk customer_count).
+// GetByID mengambil paket berdasarkan ID (termasuk customer_count yang menahan delete).
 func (r *PackageRepo) GetByID(ctx context.Context, id string) (*domain.Package, error) {
 	row, err := r.queries.GetPackageByID(ctx, stringToUUID(id))
 	if err != nil {
@@ -117,7 +117,7 @@ func (r *PackageRepo) NameExists(ctx context.Context, tenantID, name, excludeID 
 	return exists, nil
 }
 
-// CustomerCount menghitung jumlah pelanggan aktif yang menggunakan paket.
+// CustomerCount menghitung jumlah pelanggan yang masih mereferensikan paket.
 func (r *PackageRepo) CustomerCount(ctx context.Context, id string) (int, error) {
 	count, err := r.queries.PackageCustomerCount(ctx, stringToUUID(id))
 	if err != nil {
@@ -216,7 +216,9 @@ func (r *PackageRepo) List(ctx context.Context, params domain.PackageListParams)
 	// Build pagination
 	offset := (params.Page - 1) * params.PageSize
 
-	// Build data query dengan customer_count subquery
+	// Build data query dengan customer_count subquery.
+	// Count ini sengaja menghitung semua referensi customer, termasuk soft-deleted,
+	// agar angka UI sesuai dengan aturan foreign key saat delete paket.
 	dataQuery := fmt.Sprintf(`SELECT p.id, p.tenant_id, p.type, p.name, p.description, p.is_active,
 		p.download_mbps, p.upload_mbps, p.bandwidth_type,
 		p.burst_download_mbps, p.burst_upload_mbps, p.burst_threshold_mbps, p.burst_time_seconds,
@@ -225,7 +227,9 @@ func (r *PackageRepo) List(ctx context.Context, params domain.PackageListParams)
 		p.duration_value, p.duration_unit, p.shared_users,
 		p.mikrotik_profile_name, p.address_pool, p.parent_queue, p.hotspot_profile_name,
 		p.created_at, p.updated_at,
-		(SELECT COUNT(*) FROM customers c WHERE c.package_id = p.id AND c.deleted_at IS NULL) AS customer_count
+		(SELECT COUNT(*) FROM customers c WHERE c.package_id = p.id) AS customer_count,
+		(SELECT COUNT(*) FROM customers c WHERE c.package_id = p.id AND c.deleted_at IS NULL) AS customer_active_count,
+		(SELECT COUNT(*) FROM customers c WHERE c.package_id = p.id AND c.deleted_at IS NOT NULL) AS customer_deleted_count
 		FROM packages p %s
 		ORDER BY %s %s
 		LIMIT $%d OFFSET $%d`,
@@ -252,6 +256,8 @@ func (r *PackageRepo) List(ctx context.Context, params domain.PackageListParams)
 			&row.MikrotikProfileName, &row.AddressPool, &row.ParentQueue, &row.HotspotProfileName,
 			&row.CreatedAt, &row.UpdatedAt,
 			&row.CustomerCount,
+			&row.CustomerActiveCount,
+			&row.CustomerDeletedCount,
 		); err != nil {
 			return nil, fmt.Errorf("repository: gagal scan paket row: %w", err)
 		}

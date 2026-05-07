@@ -24,10 +24,14 @@ INSERT INTO packages (
 RETURNING *;
 
 -- name: GetPackageByID :one
--- Mengambil paket berdasarkan ID beserta jumlah pelanggan aktif.
+-- Mengambil paket berdasarkan ID beserta jumlah pelanggan yang masih mereferensikan paket.
 SELECT p.*,
     (SELECT COUNT(*) FROM customers c
-     WHERE c.package_id = p.id AND c.deleted_at IS NULL) AS customer_count
+     WHERE c.package_id = p.id) AS customer_count,
+    (SELECT COUNT(*) FROM customers c
+     WHERE c.package_id = p.id AND c.deleted_at IS NULL) AS customer_active_count,
+    (SELECT COUNT(*) FROM customers c
+     WHERE c.package_id = p.id AND c.deleted_at IS NOT NULL) AS customer_deleted_count
 FROM packages p
 WHERE p.id = $1;
 
