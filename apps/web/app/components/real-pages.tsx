@@ -812,6 +812,7 @@ export function PackagesLivePage() {
   const packages = useApi<any>("/api/billing/packages?page_size=50", { data: [] });
   const rows = listOf(packages.data);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [statusId, setStatusId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
 
@@ -836,6 +837,25 @@ export function PackagesLivePage() {
         setDeleteError(err instanceof Error ? err.message : "Gagal menghapus paket");
       } finally {
         setDeletingId(null);
+      }
+    },
+    [packages],
+  );
+
+  const togglePackageStatus = useCallback(
+    async (pkg: AnyRecord) => {
+      const action = pkg.is_active ? "deactivate" : "activate";
+      setStatusId(pkg.id);
+      setDeleteError(null);
+      setDeleteSuccess(null);
+      try {
+        await apiSend(`/api/billing/packages/${pkg.id}/${action}`, "POST", {});
+        packages.reload();
+        setDeleteSuccess(`Paket ${pkg.name} berhasil ${pkg.is_active ? "dinonaktifkan" : "diaktifkan"}.`);
+      } catch (err) {
+        setDeleteError(err instanceof Error ? err.message : "Gagal mengubah status paket");
+      } finally {
+        setStatusId(null);
       }
     },
     [packages],
@@ -869,6 +889,14 @@ export function PackagesLivePage() {
                 <a href={`/packages/${pkg.id}`} className="rounded-md px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50">
                   Edit
                 </a>
+                <button
+                  type="button"
+                  onClick={() => void togglePackageStatus(pkg)}
+                  disabled={statusId === pkg.id}
+                  className="rounded-md px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {statusId === pkg.id ? "Memproses..." : pkg.is_active ? "Nonaktifkan" : "Aktifkan"}
+                </button>
                 <button
                   type="button"
                   onClick={() => void deletePackage(pkg)}

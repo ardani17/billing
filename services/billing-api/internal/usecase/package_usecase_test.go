@@ -10,9 +10,10 @@ import (
 )
 
 type mockPackageRepo struct {
-	mu        sync.Mutex
-	packages  map[string]*domain.Package
-	deleteErr error
+	mu            sync.Mutex
+	packages      map[string]*domain.Package
+	customerCount int
+	deleteErr     error
 }
 
 func newMockPackageRepo() *mockPackageRepo {
@@ -84,7 +85,7 @@ func (m *mockPackageRepo) NameExists(_ context.Context, tenantID, name, excludeI
 }
 
 func (m *mockPackageRepo) CustomerCount(_ context.Context, _ string) (int, error) {
-	return 0, nil
+	return m.customerCount, nil
 }
 
 func (m *mockPackageRepo) ListNamesByPrefix(_ context.Context, _, _ string) ([]string, error) {
@@ -142,5 +143,43 @@ func TestPackageUsecase_Delete_PackageWithVouchersReturnsConflictError(t *testin
 	err := uc.Delete(context.Background(), "pkg-voucher", "Voucher 1 Hari", domain.ActorInfo{ActorID: "actor-1"})
 	if !errors.Is(err, domain.ErrPackageHasVouchers) {
 		t.Fatalf("expected ErrPackageHasVouchers, got %v", err)
+	}
+}
+
+func TestPackageUsecase_Delete_PackageWithCustomersReturnsConflictError(t *testing.T) {
+	packageRepo := newMockPackageRepo()
+	packageRepo.customerCount = 1
+	auditLogRepo := newMockAuditLogRepo()
+	uc := NewPackageUsecase(packageRepo, auditLogRepo, nil, newTestLogger())
+
+	packageRepo.packages["pkg-monthly"] = &domain.Package{
+		ID:       "pkg-monthly",
+		TenantID: "tenant-1",
+		Type:     domain.PackageTypeMonthly,
+		Name:     "Bulanan 20M",
+	}
+
+	err := uc.Delete(context.Background(), "pkg-monthly", "Bulanan 20M", domain.ActorInfo{ActorID: "actor-1"})
+	if !errors.Is(err, domain.ErrPackageHasCustomers) {
+		t.Fatalf("expected ErrPackageHasCustomers, got %v", err)
+	}
+}
+
+func TestPackageUsecase_Delete_FKCustomersReturnsConflictError(t *testing.T) {
+	packageRepo := newMockPackageRepo()
+	packageRepo.deleteErr = domain.ErrPackageHasCustomers
+	auditLogRepo := newMockAuditLogRepo()
+	uc := NewPackageUsecase(packageRepo, auditLogRepo, nil, newTestLogger())
+
+	packageRepo.packages["pkg-soft-deleted-ref"] = &domain.Package{
+		ID:       "pkg-soft-deleted-ref",
+		TenantID: "tenant-1",
+		Type:     domain.PackageTypeMonthly,
+		Name:     "Paket Lama",
+	}
+
+	err := uc.Delete(context.Background(), "pkg-soft-deleted-ref", "Paket Lama", domain.ActorInfo{ActorID: "actor-1"})
+	if !errors.Is(err, domain.ErrPackageHasCustomers) {
+		t.Fatalf("expected ErrPackageHasCustomers, got %v", err)
 	}
 }

@@ -204,9 +204,9 @@ func (h *PackageHandler) mapPackageError(c *fiber.Ctx, err error) error {
 	case errors.Is(err, domain.ErrPackageNameDuplicate):
 		return domain.ErrorResponse(c, fiber.StatusConflict, "PACKAGE_NAME_DUPLICATE", err.Error())
 	case errors.Is(err, domain.ErrPackageHasCustomers):
-		return domain.ErrorResponse(c, fiber.StatusConflict, "PACKAGE_HAS_CUSTOMERS", err.Error())
+		return domain.ErrorResponse(c, fiber.StatusConflict, "PACKAGE_HAS_CUSTOMERS", "paket masih digunakan pelanggan. Pindahkan pelanggan ke paket lain atau nonaktifkan paket ini.")
 	case errors.Is(err, domain.ErrPackageHasVouchers):
-		return domain.ErrorResponse(c, fiber.StatusConflict, "PACKAGE_HAS_VOUCHERS", err.Error())
+		return domain.ErrorResponse(c, fiber.StatusConflict, "PACKAGE_HAS_VOUCHERS", "paket masih memiliki voucher terkait. Habiskan/void voucher terlebih dahulu atau nonaktifkan paket ini.")
 	case errors.Is(err, domain.ErrPackageAlreadyActive):
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "PACKAGE_ALREADY_ACTIVE", err.Error())
 	case errors.Is(err, domain.ErrPackageAlreadyInactive):

@@ -255,7 +255,7 @@ func (uc *packageUsecase) Delete(ctx context.Context, id string, confirmName str
 
 	// Hard delete
 	if err := uc.packageRepo.Delete(ctx, id); err != nil {
-		if errors.Is(err, domain.ErrPackageHasVouchers) {
+		if errors.Is(err, domain.ErrPackageHasCustomers) || errors.Is(err, domain.ErrPackageHasVouchers) {
 			return err
 		}
 		return fmt.Errorf("usecase: gagal menghapus paket: %w", err)

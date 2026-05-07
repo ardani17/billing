@@ -71,8 +71,13 @@ func (r *PackageRepo) Delete(ctx context.Context, id string) error {
 	err := r.queries.DeletePackage(ctx, stringToUUID(id))
 	if err != nil {
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23503" && pgErr.ConstraintName == "vouchers_package_id_fkey" {
-			return domain.ErrPackageHasVouchers
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+			switch pgErr.ConstraintName {
+			case "fk_customers_package_id", "customers_package_id_fkey":
+				return domain.ErrPackageHasCustomers
+			case "vouchers_package_id_fkey":
+				return domain.ErrPackageHasVouchers
+			}
 		}
 		return fmt.Errorf("repository: gagal menghapus paket: %w", err)
 	}

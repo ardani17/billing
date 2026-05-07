@@ -80,9 +80,9 @@ SELECT EXISTS(
 ) AS exists;
 
 -- name: PackageCustomerCount :one
--- Menghitung jumlah pelanggan aktif yang menggunakan paket.
+-- Menghitung jumlah pelanggan yang masih mereferensikan paket.
 SELECT COUNT(*) FROM customers
-WHERE package_id = $1 AND deleted_at IS NULL;
+WHERE package_id = $1;
 
 -- name: ListPackageNamesByPrefix :many
 -- Mengambil daftar nama paket berdasarkan prefix (untuk generate nama duplikat).

@@ -259,10 +259,10 @@ func (q *Queries) ListPackageNamesByPrefix(ctx context.Context, arg ListPackageN
 
 const packageCustomerCount = `-- name: PackageCustomerCount :one
 SELECT COUNT(*) FROM customers
-WHERE package_id = $1 AND deleted_at IS NULL
+WHERE package_id = $1
 `
 
-// Menghitung jumlah pelanggan aktif yang menggunakan paket.
+// Menghitung jumlah pelanggan yang masih mereferensikan paket.
 func (q *Queries) PackageCustomerCount(ctx context.Context, packageID pgtype.UUID) (int64, error) {
 	row := q.db.QueryRow(ctx, packageCustomerCount, packageID)
 	var count int64
