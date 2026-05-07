@@ -77,12 +77,19 @@ type CreateRouterResponse = {
 type SystemResource = {
   version: string;
   board_name: string;
+  cpu?: string;
   cpu_count: number;
+  cpu_frequency_mhz?: number;
   cpu_load: number;
   total_ram: number;
   free_ram: number;
+  total_hdd_space?: number;
+  free_hdd_space?: number;
+  write_sect_since_reboot?: number;
+  write_sect_total?: number;
   uptime: number;
   architecture: string;
+  build_time?: string;
   identity: string;
 };
 
@@ -117,7 +124,7 @@ type SyncStatus = {
 };
 
 function formatUptime(seconds?: number) {
-  if (!seconds) return "-";
+  if (seconds == null) return "-";
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);

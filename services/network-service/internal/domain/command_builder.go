@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// CommandBuilder — abstraksi perintah RouterOS untuk v6 dan v7
+// CommandBuilder - abstraksi perintah RouterOS untuk v6 dan v7
 // =============================================================================
 
 // CommandBuilder membangun perintah RouterOS yang kompatibel dengan v6 dan v7.
@@ -10,7 +10,7 @@ type CommandBuilder interface {
 	// CreateSecret membangun perintah /ppp/secret/add.
 	CreateSecret(params PPPoESecretParams) (command string, args map[string]string)
 
-	// SetSecret membangun perintah /ppp/secret/set.
+	// SetSecret membangun perintah /ppp/secret/atur.
 	SetSecret(username string, params map[string]string) (command string, args map[string]string)
 
 	// RemoveSecret membangun perintah /ppp/secret/remove.
@@ -28,7 +28,7 @@ type CommandBuilder interface {
 	// CreateProfile membangun perintah /ppp/profile/add.
 	CreateProfile(params PPPoEProfileParams) (command string, args map[string]string)
 
-	// SetProfile membangun perintah /ppp/profile/set.
+	// SetProfile membangun perintah /ppp/profile/atur.
 	SetProfile(name string, params map[string]string) (command string, args map[string]string)
 
 	// CreateNATRule membangun perintah /ip/firewall/nat/add.
@@ -40,7 +40,7 @@ type CommandBuilder interface {
 	// CreateSimpleQueue membangun perintah /queue/simple/add.
 	CreateSimpleQueue(params SimpleQueueParams) (command string, args map[string]string)
 
-	// SetSimpleQueue membangun perintah /queue/simple/set.
+	// SetSimpleQueue membangun perintah /queue/simple/atur.
 	SetSimpleQueue(name string, params map[string]string) (command string, args map[string]string)
 
 	// RemoveSimpleQueue membangun perintah /queue/simple/remove.
@@ -49,4 +49,40 @@ type CommandBuilder interface {
 	// ResetSimpleQueueCounters membangun perintah /queue/simple/reset-counters.
 	// Digunakan saat buka isolir untuk reset traffic counter.
 	ResetSimpleQueueCounters(name string) (command string, args map[string]string)
+
+	// AddDHCPLease membangun perintah /ip/dhcp-server/lease/add.
+	AddDHCPLease(params map[string]string) (command string, args map[string]string)
+
+	// SetDHCPLease membangun perintah /ip/dhcp-server/lease/set.
+	SetDHCPLease(params map[string]string) (command string, args map[string]string)
+
+	// RemoveDHCPLease membangun perintah /ip/dhcp-server/lease/remove.
+	RemoveDHCPLease(leaseID string) (command string, args map[string]string)
+
+	// AddAddressList membangun perintah /ip/firewall/address-list/add.
+	AddAddressList(params map[string]string) (command string, args map[string]string)
+
+	// SetAddressList membangun perintah /ip/firewall/address-list/set.
+	SetAddressList(params map[string]string) (command string, args map[string]string)
+
+	// RemoveAddressList membangun perintah /ip/firewall/address-list/remove.
+	RemoveAddressList(entryID string) (command string, args map[string]string)
+
+	// AddHotspotUser membangun perintah /ip/hotspot/user/add.
+	AddHotspotUser(params map[string]string) (command string, args map[string]string)
+
+	// SetHotspotUser membangun perintah /ip/hotspot/user/set.
+	SetHotspotUser(params map[string]string) (command string, args map[string]string)
+
+	// RemoveHotspotUser membangun perintah /ip/hotspot/user/remove.
+	RemoveHotspotUser(userID string) (command string, args map[string]string)
+
+	// AddFirewallRule membangun perintah /ip/firewall/{kind}/add.
+	AddFirewallRule(kind string, params map[string]string) (command string, args map[string]string)
+
+	// SetFirewallRule membangun perintah /ip/firewall/{kind}/set.
+	SetFirewallRule(kind string, params map[string]string) (command string, args map[string]string)
+
+	// RemoveFirewallRule membangun perintah /ip/firewall/{kind}/remove.
+	RemoveFirewallRule(kind, ruleID string) (command string, args map[string]string)
 }

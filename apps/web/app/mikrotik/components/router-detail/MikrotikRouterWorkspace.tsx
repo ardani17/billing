@@ -48,6 +48,7 @@ export function MikrotikRouterWorkspace({
   const [editForm, setEditForm] = useState<RouterEditForm | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingSystem, setLoadingSystem] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [sessionsLoaded, setSessionsLoaded] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -85,8 +86,9 @@ export function MikrotikRouterWorkspace({
     }
   }
 
-  async function testConnection() {
-    setSystem(null);
+  async function loadLiveResource(options?: { clear?: boolean; refreshRouter?: boolean }) {
+    if (options?.clear) setSystem(null);
+    setLoadingSystem(true);
     setError("");
     setSuccess("");
     try {
@@ -94,10 +96,16 @@ export function MikrotikRouterWorkspace({
       const json = await response.json();
       if (!response.ok || !json.success) throw new Error(json.error?.message || "Test koneksi gagal");
       setSystem(json.data as SystemResource);
-      await loadRouter();
+      if (options?.refreshRouter) await loadRouter();
     } catch (testError) {
       setError(extractMessage(testError));
+    } finally {
+      setLoadingSystem(false);
     }
+  }
+
+  async function testConnection() {
+    await loadLiveResource({ clear: true, refreshRouter: true });
   }
 
   async function submitRouterUpdate(event: FormEvent<HTMLFormElement>) {
@@ -253,6 +261,7 @@ export function MikrotikRouterWorkspace({
 
   useEffect(() => {
     void loadRouter();
+    void loadLiveResource();
   }, [routerId]);
 
   const title = router?.name || "Router detail";
@@ -311,7 +320,7 @@ export function MikrotikRouterWorkspace({
                     }}
                   />
                 )}
-                {section === "overview" && <OverviewPanel router={router} system={system} />}
+                {section === "overview" && <OverviewPanel router={router} system={system} loadingSystem={loadingSystem} />}
                 {section === "pppoe" && (
                   <PppoeUsersPanel
                     users={pppoeUsers}

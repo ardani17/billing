@@ -1,6 +1,10 @@
 package domain
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+	"unicode"
+)
 
 // --- Router Status ---
 
@@ -68,17 +72,80 @@ const (
 	// PriorityHigh untuk perintah kritis: isolir, buka isolir, disconnect.
 	PriorityHigh CommandPriority = 3
 
-	// PriorityMedium untuk perintah operasional: CRUD user, update profile.
+	// PriorityMedium untuk perintah operasional: CRUD user, perbarui profile.
 	PriorityMedium CommandPriority = 2
 
-	// PriorityLow untuk perintah monitoring: sync, monitoring, backup.
+	// PriorityLow untuk perintah pemantauan: sync, pemantauan, backup.
 	PriorityLow CommandPriority = 1
 )
 
-// --- RouterOS Version Helper ---
+// --- RouterOS Version Fungsi bantu ---
+
+type RouterOSMajor int
+
+const (
+	RouterOSUnknown RouterOSMajor = 0
+	RouterOSv6      RouterOSMajor = 6
+	RouterOSv7      RouterOSMajor = 7
+)
+
+func NormalizeRouterOSVersion(version string) string {
+	return strings.TrimSpace(version)
+}
+
+func ParseRouterOSMajor(version string) RouterOSMajor {
+	version = NormalizeRouterOSVersion(version)
+	if version == "" {
+		return RouterOSUnknown
+	}
+	for i, r := range version {
+		if !unicode.IsDigit(r) {
+			continue
+		}
+		start := i
+		end := i + len(string(r))
+		for end < len(version) {
+			next, width := rune(version[end]), 1
+			if next >= 0x80 {
+				next = []rune(version[end:])[0]
+				width = len(string(next))
+			}
+			if !unicode.IsDigit(next) {
+				break
+			}
+			end += width
+		}
+		major, err := strconv.Atoi(version[start:end])
+		if err != nil {
+			return RouterOSUnknown
+		}
+		switch major {
+		case int(RouterOSv6):
+			return RouterOSv6
+		case int(RouterOSv7):
+			return RouterOSv7
+		default:
+			return RouterOSUnknown
+		}
+	}
+	return RouterOSUnknown
+}
+
+type RouterOSCapabilities struct {
+	Major             RouterOSMajor
+	SupportsWireGuard bool
+}
+
+func CapabilitiesForRouterOS(version string) RouterOSCapabilities {
+	major := ParseRouterOSMajor(version)
+	return RouterOSCapabilities{
+		Major:             major,
+		SupportsWireGuard: major == RouterOSv7,
+	}
+}
 
 // IsRouterOSv7 memeriksa apakah versi RouterOS adalah v7.
 // Digunakan untuk menentukan API path yang berbeda antara v6 dan v7.
 func IsRouterOSv7(version string) bool {
-	return strings.HasPrefix(version, "7")
+	return ParseRouterOSMajor(version) == RouterOSv7
 }
