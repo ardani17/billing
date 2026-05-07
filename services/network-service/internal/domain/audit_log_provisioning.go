@@ -30,11 +30,11 @@ const (
 	AuditActionAutoProvision AuditAction = "auto_provision"
 )
 
-// --- Provisioning Audit Log Entity ---
+// --- Provisioning Audit Log Entitas ---
 
 // ProvisioningAuditLog merepresentasikan satu record audit trail provisioning.
-// Tabel ini append-only — tidak ada operasi update atau delete.
-// Setiap command yang dikirim ke OLT dicatat beserta response-nya.
+// Tabel ini append-only - tidak ada operasi perbarui atau hapus.
+// Setiap command yang dikirim ke OLT dicatat beserta respons-nya.
 type ProvisioningAuditLog struct {
 	ID               string      `json:"id"`
 	TenantID         string      `json:"tenant_id"`
@@ -46,6 +46,10 @@ type ProvisioningAuditLog struct {
 	Status           string      `json:"status"`
 	ErrorMessage     string      `json:"error_message,omitempty"`
 	PerformedBy      string      `json:"performed_by"`
+	Brand            string      `json:"brand,omitempty"`
+	Model            string      `json:"model,omitempty"`
+	Transport        string      `json:"transport,omitempty"`
+	Operation        string      `json:"operation,omitempty"`
 	CorrelationID    string      `json:"correlation_id"`
 	CreatedAt        time.Time   `json:"created_at"`
 }

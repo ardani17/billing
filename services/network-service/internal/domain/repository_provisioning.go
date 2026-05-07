@@ -3,13 +3,13 @@ package domain
 import "context"
 
 // =============================================================================
-// ONTRepository — operasi data untuk tabel onts
+// ONTRepository - operasi data untuk tabel onts
 // =============================================================================
 
 // ONTRepository mendefinisikan operasi data untuk tabel onts.
-// Diimplementasikan oleh repository.ONTRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.ONTRepo menggunakan sqlc.
 type ONTRepository interface {
-	// Create membuat record ONT baru.
+	// Buat membuat record ONT baru.
 	Create(ctx context.Context, ont *ONT) (*ONT, error)
 
 	// GetByID mengambil ONT berdasarkan ID (tenant-scoped via RLS).
@@ -18,10 +18,10 @@ type ONTRepository interface {
 	// GetBySerialNumber mengambil ONT berdasarkan tenant_id dan serial_number.
 	GetBySerialNumber(ctx context.Context, tenantID, serialNumber string) (*ONT, error)
 
-	// Update memperbarui record ONT.
+	// Perbarui memperbarui record ONT.
 	Update(ctx context.Context, ont *ONT) (*ONT, error)
 
-	// SoftDelete melakukan soft-delete ONT (set deleted_at).
+	// SoftDelete melakukan hapus lunak ONT (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 
 	// List mengambil daftar ONT dengan paginasi dan filter.
@@ -50,22 +50,22 @@ type ONTRepository interface {
 }
 
 // =============================================================================
-// VLANRepository — operasi data untuk tabel vlans
+// VLANRepository - operasi data untuk tabel vlans
 // =============================================================================
 
 // VLANRepository mendefinisikan operasi data untuk tabel vlans.
-// Diimplementasikan oleh repository.VLANRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.VLANRepo menggunakan sqlc.
 type VLANRepository interface {
-	// Create membuat VLAN baru.
+	// Buat membuat VLAN baru.
 	Create(ctx context.Context, vlan *VLAN) (*VLAN, error)
 
 	// GetByID mengambil VLAN berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*VLAN, error)
 
-	// Update memperbarui data VLAN.
+	// Perbarui memperbarui data VLAN.
 	Update(ctx context.Context, vlan *VLAN) (*VLAN, error)
 
-	// SoftDelete melakukan soft-delete VLAN (set deleted_at).
+	// SoftDelete melakukan hapus lunak VLAN (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 
 	// List mengambil daftar VLAN per OLT dengan paginasi.
@@ -74,7 +74,7 @@ type VLANRepository interface {
 	// GetByOLTAndVLANID mengambil VLAN berdasarkan olt_id dan vlan_id.
 	GetByOLTAndVLANID(ctx context.Context, oltID string, vlanID int) (*VLAN, error)
 
-	// GetDefaultVLAN mengambil VLAN default untuk OLT (VLAN pertama tipe data).
+	// GetDefaultVLAN mengambil VLAN bawaan untuk OLT (VLAN pertama tipe data).
 	GetDefaultVLAN(ctx context.Context, oltID string) (*VLAN, error)
 
 	// VLANIDExists mengecek apakah vlan_id sudah ada pada OLT yang sama.
@@ -85,22 +85,22 @@ type VLANRepository interface {
 }
 
 // =============================================================================
-// ServiceProfileRepository — operasi data untuk tabel service_profiles
+// ServiceProfileRepository - operasi data untuk tabel service_profiles
 // =============================================================================
 
 // ServiceProfileRepository mendefinisikan operasi data untuk tabel service_profiles.
-// Diimplementasikan oleh repository.ServiceProfileRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.ServiceProfileRepo menggunakan sqlc.
 type ServiceProfileRepository interface {
-	// Create membuat service profile baru.
+	// Buat membuat service profile baru.
 	Create(ctx context.Context, profile *ServiceProfile) (*ServiceProfile, error)
 
 	// GetByID mengambil service profile berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*ServiceProfile, error)
 
-	// Update memperbarui data service profile.
+	// Perbarui memperbarui data service profile.
 	Update(ctx context.Context, profile *ServiceProfile) (*ServiceProfile, error)
 
-	// SoftDelete melakukan soft-delete service profile (set deleted_at).
+	// SoftDelete melakukan hapus lunak service profile (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 
 	// List mengambil daftar service profile per OLT dengan paginasi.
@@ -117,13 +117,13 @@ type ServiceProfileRepository interface {
 }
 
 // =============================================================================
-// AuditLogRepository — operasi data untuk tabel provisioning_audit_logs
+// AuditLogRepository - operasi data untuk tabel provisioning_audit_logs
 // =============================================================================
 
 // AuditLogRepository mendefinisikan operasi data untuk tabel provisioning_audit_logs.
-// Append-only: tidak ada operasi Update atau Delete.
+// Append-only: tidak ada operasi Perbarui atau Hapus.
 type AuditLogRepository interface {
-	// Create menyimpan record audit log baru.
+	// Buat menyimpan record audit log baru.
 	Create(ctx context.Context, log *ProvisioningAuditLog) (*ProvisioningAuditLog, error)
 
 	// List mengambil daftar audit log dengan paginasi dan filter.
@@ -131,11 +131,11 @@ type AuditLogRepository interface {
 }
 
 // =============================================================================
-// ProvisioningSettingsRepository — operasi data untuk tabel provisioning_settings
+// ProvisioningSettingsRepository - operasi data untuk tabel provisioning_settings
 // =============================================================================
 
 // ProvisioningSettingsRepository mendefinisikan operasi data untuk tabel provisioning_settings.
-// Satu record per tenant, upsert untuk create/update.
+// Satu record per tenant, upsert untuk buat/perbarui.
 type ProvisioningSettingsRepository interface {
 	// GetByTenantID mengambil settings berdasarkan tenant_id.
 	GetByTenantID(ctx context.Context, tenantID string) (*ProvisioningSettings, error)
@@ -145,7 +145,7 @@ type ProvisioningSettingsRepository interface {
 }
 
 // =============================================================================
-// ProvisioningManager — business logic untuk provisioning ONT
+// ProvisioningManager - business logic untuk provisioning ONT
 // =============================================================================
 
 // ProvisioningManager mendefinisikan business logic untuk provisioning ONT.
@@ -155,7 +155,10 @@ type ProvisioningManager interface {
 	// ProvisionONT melakukan provisioning satu ONT ke OLT.
 	ProvisionONT(ctx context.Context, tenantID string, req ProvisionONTRequest) (*ONTResponse, error)
 
-	// DecommissionONT menghapus ONT dari OLT dan update DB.
+	// PreviewProvisionONT membangun preview command provisioning tanpa eksekusi ke OLT.
+	PreviewProvisionONT(ctx context.Context, tenantID string, req ProvisionONTRequest) (*ProvisioningDryRun, error)
+
+	// DecommissionONT menghapus ONT dari OLT dan perbarui DB.
 	DecommissionONT(ctx context.Context, ontID string, performedBy string) error
 
 	// RebootONT mengirim perintah reboot ke ONT via OLT CLI.
@@ -176,7 +179,7 @@ type ProvisioningManager interface {
 	// HandlePortMigration memproses deteksi port migration dari sync engine.
 	HandlePortMigration(ctx context.Context, ontID string, oldPort, newPort, oldONTIdx, newONTIdx int) error
 
-	// ConfirmMigration mengkonfirmasi port migration dan update DB.
+	// ConfirmMigration mengkonfirmasi port migration dan perbarui DB.
 	ConfirmMigration(ctx context.Context, ontID string) error
 
 	// HandleCustomerTerminated memproses event customer.terminated untuk decommission.
@@ -202,22 +205,22 @@ type ProvisioningManager interface {
 }
 
 // =============================================================================
-// VLANManager — business logic untuk manajemen VLAN per OLT
+// VLANManager - business logic untuk manajemen VLAN per OLT
 // =============================================================================
 
 // VLANManager mendefinisikan business logic untuk manajemen VLAN per OLT.
 // Menangani CRUD VLAN dan resolusi VLAN berdasarkan strategy saat provisioning.
 type VLANManager interface {
-	// Create membuat VLAN baru untuk OLT.
+	// Buat membuat VLAN baru untuk OLT.
 	Create(ctx context.Context, tenantID string, req CreateVLANRequest) (*VLANResponse, error)
 
 	// GetByID mengambil detail VLAN.
 	GetByID(ctx context.Context, id string) (*VLANResponse, error)
 
-	// Update memperbarui data VLAN.
+	// Perbarui memperbarui data VLAN.
 	Update(ctx context.Context, id string, req UpdateVLANRequest) (*VLANResponse, error)
 
-	// Delete soft-delete VLAN (cek tidak ada ONT aktif yang menggunakan).
+	// Hapus hapus lunak VLAN (cek tidak ada ONT aktif yang menggunakan).
 	Delete(ctx context.Context, id string) error
 
 	// List mengambil daftar VLAN per OLT dengan paginasi.
@@ -228,22 +231,22 @@ type VLANManager interface {
 }
 
 // =============================================================================
-// ServiceProfileManager — business logic untuk manajemen service profile
+// ServiceProfileManager - business logic untuk manajemen service profile
 // =============================================================================
 
 // ServiceProfileManager mendefinisikan business logic untuk manajemen service profile.
 // Menangani CRUD profile dan mapping ke paket ISPBoss.
 type ServiceProfileManager interface {
-	// Create membuat service profile baru untuk OLT.
+	// Buat membuat service profile baru untuk OLT.
 	Create(ctx context.Context, tenantID string, req CreateServiceProfileRequest) (*ServiceProfileResponse, error)
 
 	// GetByID mengambil detail service profile.
 	GetByID(ctx context.Context, id string) (*ServiceProfileResponse, error)
 
-	// Update memperbarui data service profile.
+	// Perbarui memperbarui data service profile.
 	Update(ctx context.Context, id string, req UpdateServiceProfileRequest) (*ServiceProfileResponse, error)
 
-	// Delete soft-delete service profile (cek tidak ada ONT aktif yang menggunakan).
+	// Hapus hapus lunak service profile (cek tidak ada ONT aktif yang menggunakan).
 	Delete(ctx context.Context, id string) error
 
 	// List mengambil daftar service profile per OLT dengan paginasi.

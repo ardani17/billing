@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// Bulk Provisioning DTOs — preview dan result untuk bulk provisioning via CSV
+// Bulk Provisioning DTOs - preview dan result untuk bulk provisioning via CSV
 // =============================================================================
 
 // BulkPreview berisi hasil validasi CSV sebelum eksekusi.
@@ -51,8 +51,25 @@ type BulkRowResult struct {
 	ErrorMessage string `json:"error_message,omitempty"`
 }
 
+// ProvisioningDryRun berisi preview command provisioning tanpa eksekusi write ke OLT.
+type ProvisioningDryRun struct {
+	OLTID            string   `json:"olt_id"`
+	OLTName          string   `json:"olt_name,omitempty"`
+	Brand            OLTBrand `json:"brand"`
+	Model            string   `json:"model,omitempty"`
+	Transport        string   `json:"transport"`
+	Operation        string   `json:"operation"`
+	PONPortIndex     int      `json:"pon_port_index"`
+	ONTIndex         int      `json:"ont_index"`
+	VLANID           int      `json:"vlan_id"`
+	LineProfileID    int      `json:"line_profile_id"`
+	ServiceProfileID int      `json:"service_profile_id"`
+	Commands         []string `json:"commands"`
+	Warnings         []string `json:"warnings,omitempty"`
+}
+
 // =============================================================================
-// Provisioning Settings Request DTO
+// Provisioning Settings Permintaan DTO
 // =============================================================================
 
 // UpdateSettingsRequest adalah payload untuk PUT /api/v1/olt/provisioning/settings.
@@ -64,15 +81,15 @@ type UpdateSettingsRequest struct {
 }
 
 // =============================================================================
-// Audit Log List DTOs — parameter dan result untuk list audit log
+// Audit Log List DTOs - parameter dan result untuk list audit log
 // =============================================================================
 
 // AuditLogListParams berisi parameter untuk list audit log dengan paginasi dan filter.
-// TenantID diisi dari context auth middleware, bukan dari request body.
+// TenantID diisi dari context auth middleware, bukan dari permintaan body.
 type AuditLogListParams struct {
 	TenantID string     // diisi dari auth context
-	Page     int        // halaman saat ini (default 1)
-	PageSize int        // jumlah item per halaman (default 20)
+	Page     int        // halaman saat ini (bawaan 1)
+	PageSize int        // jumlah item per halaman (bawaan 20)
 	OLTID    string     // filter per OLT (opsional)
 	ONTID    string     // filter per ONT (opsional)
 	Action   string     // filter per action (opsional)

@@ -6,22 +6,22 @@ import (
 )
 
 // =============================================================================
-// RouterRepository — operasi data untuk tabel routers
+// RouterRepository - operasi data untuk tabel routers
 // =============================================================================
 
 // RouterRepository mendefinisikan operasi data untuk tabel routers.
-// Diimplementasikan oleh repository.RouterRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.RouterRepo menggunakan sqlc.
 type RouterRepository interface {
-	// Create membuat router baru dan mengembalikan router yang dibuat.
+	// Buat membuat router baru dan mengembalikan router yang dibuat.
 	Create(ctx context.Context, router *Router) (*Router, error)
 
 	// GetByID mengambil router berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*Router, error)
 
-	// Update memperbarui data router dan mengembalikan router yang diperbarui.
+	// Perbarui memperbarui data router dan mengembalikan router yang diperbarui.
 	Update(ctx context.Context, router *Router) (*Router, error)
 
-	// SoftDelete melakukan soft-delete router (set deleted_at).
+	// SoftDelete melakukan hapus lunak router (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 
 	// List mengambil daftar router dengan paginasi (tenant-scoped via RLS).
@@ -30,27 +30,27 @@ type RouterRepository interface {
 	// CountByStatus menghitung jumlah router per status untuk tenant.
 	CountByStatus(ctx context.Context) (map[RouterStatus]int64, error)
 
-	// GetActiveRouters mengambil semua router yang tidak di-delete dan bukan maintenance.
+	// GetActiveRouters mengambil semua router yang tidak di-hapus dan bukan maintenance.
 	GetActiveRouters(ctx context.Context) ([]*Router, error)
 
 	// NameExists mengecek apakah nama router sudah ada di tenant.
 	NameExists(ctx context.Context, tenantID, name, excludeID string) (bool, error)
 
-	// UpdateHealthCheck memperbarui field health check (last_checked_at, failure_count, status, last_uptime_sec).
+	// UpdateHealthCheck memperbarui field health cek (last_checked_at, failure_count, status, last_uptime_sec).
 	UpdateHealthCheck(ctx context.Context, id string, params HealthCheckUpdate) error
 }
 
 // =============================================================================
-// MetricsStore — penyimpanan metrik router di Redis sorted sets
+// MetricsStore - penyimpanan metrik router di Redis uruted sets
 // =============================================================================
 
 // MetricsStore menyimpan dan mengambil metrik router dari Redis.
-// Menggunakan sorted set dengan score=unix timestamp dan 7-day TTL.
+// Menggunakan uruted atur dengan score=unix timestamp dan 7-day TTL.
 type MetricsStore interface {
 	// Store menyimpan satu data point metrik untuk router.
 	Store(ctx context.Context, routerID string, metrics RouterMetrics) error
 
-	// Query mengambil data point metrik dalam rentang waktu tertentu.
+	// Kueri mengambil data point metrik dalam rentang waktu tertentu.
 	Query(ctx context.Context, routerID string, from, to time.Time) ([]RouterMetricsPoint, error)
 
 	// GetLatest mengambil data point metrik terbaru untuk router.
@@ -58,11 +58,11 @@ type MetricsStore interface {
 }
 
 // =============================================================================
-// EventPublisher — publikasi event router ke Redis queue
+// EventPublisher - publikasi event router ke Redis queue
 // =============================================================================
 
 // EventPublisher mempublikasikan event router ke Redis queue via pkg/queue.
-// Best-effort: log error jika publish gagal, jangan return error ke caller.
+// Best-effort: log error jika terbitkan gagal, jangan kembalikan error ke caller.
 type EventPublisher interface {
 	// PublishRouterOffline mempublikasikan event router offline.
 	PublishRouterOffline(ctx context.Context, router *Router) error
@@ -75,7 +75,7 @@ type EventPublisher interface {
 }
 
 // =============================================================================
-// CredentialEncryptor — enkripsi/dekripsi credential router (AES-256-GCM)
+// CredentialEncryptor - enkripsi/dekripsi credential router (AES-256-GCM)
 // =============================================================================
 
 // CredentialEncryptor mengenkripsi dan mendekripsi credential router.
@@ -89,7 +89,7 @@ type CredentialEncryptor interface {
 }
 
 // =============================================================================
-// RouterOSAdapter — interface komunikasi dengan RouterOS API
+// RouterOSAdapter - interface komunikasi dengan RouterOS API
 // =============================================================================
 
 // RouterOSAdapter mendefinisikan interface untuk komunikasi dengan RouterOS API.
@@ -112,7 +112,7 @@ type RouterOSAdapter interface {
 }
 
 // =============================================================================
-// ConnPool & PoolManager — connection pool per router
+// ConnPool & PoolManager - connection pool per router
 // =============================================================================
 
 // ConnPool mengelola pool koneksi TCP ke satu router MikroTik.
@@ -150,44 +150,44 @@ type PoolManager interface {
 }
 
 // =============================================================================
-// HealthChecker — health check periodik untuk semua router
+// HealthChecker - health cek periodik untuk semua router
 // =============================================================================
 
-// HealthChecker menjalankan health check periodik untuk semua router.
+// HealthChecker menjalankan health cek periodik untuk semua router.
 // Satu goroutine ticker per router, skip router dengan status maintenance.
 type HealthChecker interface {
-	// Start memulai health check goroutine untuk semua router aktif.
+	// Start memulai health cek goroutine untuk semua router aktif.
 	Start(ctx context.Context) error
 
-	// Stop menghentikan semua health check goroutine.
+	// Stop menghentikan semua health cek goroutine.
 	Stop()
 
-	// AddRouter menambahkan router baru ke health check schedule.
+	// AddRouter menambahkan router baru ke health cek jadwal.
 	AddRouter(router *Router)
 
-	// RemoveRouter menghapus router dari health check schedule.
+	// RemoveRouter menghapus router dari health cek jadwal.
 	RemoveRouter(routerID string)
 
-	// UpdateInterval mengubah interval health check untuk router tertentu.
+	// UpdateInterval mengubah interval health cek untuk router tertentu.
 	UpdateInterval(routerID string, intervalSec int)
 }
 
 // =============================================================================
-// RouterUsecase — business logic untuk manajemen router
+// RouterUsecase - business logic untuk manajemen router
 // =============================================================================
 
 // RouterUsecase mendefinisikan business logic untuk manajemen router.
 type RouterUsecase interface {
-	// Create membuat router baru, test koneksi, dan auto-detect info.
+	// Buat membuat router baru, test koneksi, dan auto-detect info.
 	Create(ctx context.Context, tenantID string, req CreateRouterRequest) (*RouterResponse, error)
 
 	// GetByID mengambil detail router termasuk live metrics jika online.
 	GetByID(ctx context.Context, id string) (*RouterDetailResponse, error)
 
-	// Update memperbarui data router.
+	// Perbarui memperbarui data router.
 	Update(ctx context.Context, id string, req UpdateRouterRequest) (*RouterResponse, error)
 
-	// Delete soft-delete router dan tutup pool koneksi.
+	// Hapus hapus lunak router dan tutup pool koneksi.
 	Delete(ctx context.Context, id string) error
 
 	// List mengambil daftar router dengan paginasi.
@@ -204,7 +204,7 @@ type RouterUsecase interface {
 }
 
 // =============================================================================
-// PPPoEEventPublisher — publikasi event hasil operasi PPPoE ke Redis queue
+// PPPoEEventPublisher - publikasi event hasil operasi PPPoE ke Redis queue
 // =============================================================================
 
 // PPPoEEventPublisher mempublikasikan event hasil operasi PPPoE ke Redis queue.
@@ -217,13 +217,13 @@ type PPPoEEventPublisher interface {
 }
 
 // =============================================================================
-// PPPoEUserRepository — operasi data untuk tabel pppoe_users
+// PPPoEUserRepository - operasi data untuk tabel pppoe_users
 // =============================================================================
 
 // PPPoEUserRepository mendefinisikan operasi data untuk tabel pppoe_users.
-// Diimplementasikan oleh repository.PPPoEUserRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.PPPoEUserRepo menggunakan sqlc.
 type PPPoEUserRepository interface {
-	// Create membuat record PPPoE user baru.
+	// Buat membuat record PPPoE user baru.
 	Create(ctx context.Context, user *PPPoEUser) (*PPPoEUser, error)
 
 	// GetByID mengambil PPPoE user berdasarkan ID.
@@ -235,10 +235,10 @@ type PPPoEUserRepository interface {
 	// GetByCustomerID mengambil PPPoE user berdasarkan customer_id.
 	GetByCustomerID(ctx context.Context, customerID string) (*PPPoEUser, error)
 
-	// Update memperbarui record PPPoE user.
+	// Perbarui memperbarui record PPPoE user.
 	Update(ctx context.Context, user *PPPoEUser) (*PPPoEUser, error)
 
-	// SoftDelete melakukan soft-delete PPPoE user.
+	// SoftDelete melakukan hapus lunak PPPoE user.
 	SoftDelete(ctx context.Context, id string) error
 
 	// List mengambil daftar PPPoE user dengan paginasi per router.
@@ -258,7 +258,7 @@ type PPPoEUserRepository interface {
 }
 
 // =============================================================================
-// DHCPBindingRepository — operasi data untuk tabel dhcp_bindings
+// DHCPBindingRepository - operasi data untuk tabel dhcp_bindings
 // =============================================================================
 
 type DHCPBindingRepository interface {
@@ -303,13 +303,13 @@ type StaticIPAssignmentRepository interface {
 }
 
 // =============================================================================
-// PPPoEProfileRepository — operasi data untuk tabel pppoe_profiles
+// PPPoEProfileRepository - operasi data untuk tabel pppoe_profiles
 // =============================================================================
 
 // PPPoEProfileRepository mendefinisikan operasi data untuk tabel pppoe_profiles.
-// Diimplementasikan oleh repository.PPPoEProfileRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.PPPoEProfileRepo menggunakan sqlc.
 type PPPoEProfileRepository interface {
-	// Create membuat record PPPoE profile baru.
+	// Buat membuat record PPPoE profile baru.
 	Create(ctx context.Context, profile *PPPoEProfile) (*PPPoEProfile, error)
 
 	// GetByID mengambil PPPoE profile berdasarkan ID.
@@ -321,7 +321,7 @@ type PPPoEProfileRepository interface {
 	// GetByProfileName mengambil PPPoE profile berdasarkan tenant_id dan profile_name.
 	GetByProfileName(ctx context.Context, tenantID, profileName string) (*PPPoEProfile, error)
 
-	// Update memperbarui record PPPoE profile.
+	// Perbarui memperbarui record PPPoE profile.
 	Update(ctx context.Context, profile *PPPoEProfile) (*PPPoEProfile, error)
 
 	// ListByTenant mengambil semua profile untuk satu tenant.
@@ -329,22 +329,22 @@ type PPPoEProfileRepository interface {
 }
 
 // =============================================================================
-// VPNTunnelRepository — operasi data untuk tabel vpn_tunnels
+// VPNTunnelRepository - operasi data untuk tabel vpn_tunnels
 // =============================================================================
 
 // VPNTunnelRepository mendefinisikan operasi data untuk tabel vpn_tunnels.
-// Diimplementasikan oleh repository.VPNTunnelRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.VPNTunnelRepo menggunakan sqlc.
 type VPNTunnelRepository interface {
-	// Create membuat record VPN tunnel baru.
+	// Buat membuat record VPN tunnel baru.
 	Create(ctx context.Context, tunnel *VPNTunnel) (*VPNTunnel, error)
 
 	// GetByID mengambil VPN tunnel berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*VPNTunnel, error)
 
-	// Update memperbarui record VPN tunnel.
+	// Perbarui memperbarui record VPN tunnel.
 	Update(ctx context.Context, tunnel *VPNTunnel) (*VPNTunnel, error)
 
-	// SoftDelete melakukan soft-delete VPN tunnel (set deleted_at).
+	// SoftDelete melakukan hapus lunak VPN tunnel (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 
 	// List mengambil daftar VPN tunnel dengan paginasi dan filter.
@@ -362,27 +362,27 @@ type VPNTunnelRepository interface {
 	// VPNIPExists mengecek apakah vpn_ip sudah digunakan di tenant.
 	VPNIPExists(ctx context.Context, tenantID, vpnIP string) (bool, error)
 
-	// UpdateStatus memperbarui status tunnel dan field terkait health check.
+	// UpdateStatus memperbarui status tunnel dan field terkait health cek.
 	UpdateStatus(ctx context.Context, id string, params TunnelHealthUpdate) error
 
 	// GetConnectedTunnels mengambil semua tunnel dengan status "connected" (cross-tenant untuk health monitor).
 	GetConnectedTunnels(ctx context.Context) ([]*VPNTunnel, error)
 
-	// GetDisconnectedTunnels mengambil semua tunnel dengan status "disconnected" (cross-tenant untuk recovery check).
+	// GetDisconnectedTunnels mengambil semua tunnel dengan status "disconnected" (cross-tenant untuk recovery cek).
 	GetDisconnectedTunnels(ctx context.Context) ([]*VPNTunnel, error)
 }
 
 // =============================================================================
-// VPNSubnetRepository — operasi data untuk tabel vpn_subnets
+// VPNSubnetRepository - operasi data untuk tabel vpn_subnets
 // =============================================================================
 
 // VPNSubnetRepository mendefinisikan operasi data untuk tabel vpn_subnets.
-// Diimplementasikan oleh repository.VPNSubnetRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.VPNSubnetRepo menggunakan sqlc.
 type VPNSubnetRepository interface {
 	// GetByTenantID mengambil subnet allocation untuk tenant.
 	GetByTenantID(ctx context.Context, tenantID string) (*VPNSubnet, error)
 
-	// Create membuat subnet allocation baru untuk tenant.
+	// Buat membuat subnet allocation baru untuk tenant.
 	Create(ctx context.Context, subnet *VPNSubnet) (*VPNSubnet, error)
 
 	// GetNextTenantSeq mengambil tenant_seq berikutnya yang tersedia.
@@ -393,16 +393,16 @@ type VPNSubnetRepository interface {
 }
 
 // =============================================================================
-// VPNBandwidthStore — penyimpanan bandwidth metrics per tunnel di Redis
+// VPNBandwidthStore - penyimpanan bandwidth metrics per tunnel di Redis
 // =============================================================================
 
 // VPNBandwidthStore menyimpan dan mengambil bandwidth metrics per tunnel dari Redis.
-// Menggunakan sorted set dengan score=unix timestamp dan 24-hour TTL.
+// Menggunakan uruted atur dengan score=unix timestamp dan 24-hour TTL.
 type VPNBandwidthStore interface {
 	// Store menyimpan satu data point bandwidth untuk tunnel.
 	Store(ctx context.Context, tunnelID string, metrics VPNBandwidthMetrics) error
 
-	// Query mengambil data point bandwidth dalam rentang waktu tertentu.
+	// Kueri mengambil data point bandwidth dalam rentang waktu tertentu.
 	Query(ctx context.Context, tunnelID string, from, to time.Time) ([]VPNBandwidthPoint, error)
 
 	// GetLatest mengambil data point bandwidth terbaru untuk tunnel.
@@ -410,11 +410,11 @@ type VPNBandwidthStore interface {
 }
 
 // =============================================================================
-// VPNEventPublisher — publikasi event VPN ke Redis queue via asynq
+// VPNEventPublisher - publikasi event VPN ke Redis queue via asynq
 // =============================================================================
 
 // VPNEventPublisher mempublikasikan event VPN ke Redis queue via asynq.
-// Best-effort: log error jika publish gagal, jangan return error ke caller.
+// Best-effort: log error jika terbitkan gagal, jangan kembalikan error ke caller.
 type VPNEventPublisher interface {
 	// PublishTunnelDown mempublikasikan event tunnel disconnected.
 	PublishTunnelDown(ctx context.Context, payload VPNTunnelDownPayload) error
@@ -436,7 +436,7 @@ type VPNEventPublisher interface {
 }
 
 // =============================================================================
-// VPNKeyGenerator — generate key pair dan credential untuk VPN tunnel
+// VPNKeyGenerator - buat key pair dan credential untuk VPN tunnel
 // =============================================================================
 
 // VPNKeyGenerator menghasilkan key pair dan credential untuk VPN tunnel.
@@ -457,7 +457,7 @@ type VPNKeyGenerator interface {
 }
 
 // =============================================================================
-// VPNCommandBuilder — membangun perintah RouterOS untuk konfigurasi VPN
+// VPNCommandBuilder - membangun perintah RouterOS untuk konfigurasi VPN
 // =============================================================================
 
 // VPNCommandBuilder membangun perintah RouterOS untuk konfigurasi VPN.
@@ -531,22 +531,22 @@ type VPNCommandBuilder interface {
 }
 
 // =============================================================================
-// VPNScriptGenerator — generate RouterOS script (.rsc) per protokol VPN
+// VPNScriptGenerator - buat RouterOS script (.rsc) per protokol VPN
 // =============================================================================
 
 // VPNScriptGenerator menghasilkan RouterOS script (.rsc) per protokol VPN.
 // Script berisi perintah lengkap untuk setup VPN di router MikroTik.
 type VPNScriptGenerator interface {
-	// Generate menghasilkan script .rsc berdasarkan tunnel configuration.
+	// Buat menghasilkan script .rsc berdasarkan tunnel configuration.
 	// Script TIDAK boleh mengandung server private key.
 	Generate(tunnel *VPNTunnel, subnet *VPNSubnet) (string, error)
 }
 
 // =============================================================================
-// VPNHealthMonitor — health check periodik untuk semua VPN tunnel
+// VPNHealthMonitor - health cek periodik untuk semua VPN tunnel
 // =============================================================================
 
-// VPNHealthMonitor menjalankan health check periodik untuk semua VPN tunnel.
+// VPNHealthMonitor menjalankan health cek periodik untuk semua VPN tunnel.
 // Satu goroutine dengan ticker 30 detik, memeriksa semua tunnel connected.
 type VPNHealthMonitor interface {
 	// Start memulai health monitor goroutine.
@@ -557,13 +557,13 @@ type VPNHealthMonitor interface {
 }
 
 // =============================================================================
-// VPNManager — business logic untuk manajemen VPN tunnel
+// VPNManager - business logic untuk manajemen VPN tunnel
 // =============================================================================
 
 // VPNManager mendefinisikan business logic untuk manajemen VPN tunnel.
-// Menangani lifecycle lengkap: create, configure, test, monitor, delete.
+// Menangani lifecycle lengkap: buat, configure, test, monitor, hapus.
 type VPNManager interface {
-	// CreateTunnel membuat VPN tunnel baru dengan auto-generate key/credential dan IP allocation.
+	// CreateTunnel membuat VPN tunnel baru dengan auto-buat key/credential dan IP allocation.
 	CreateTunnel(ctx context.Context, tenantID string, req CreateVPNTunnelRequest) (*VPNTunnelResponse, error)
 
 	// GetTunnel mengambil detail tunnel termasuk semua field (private key di-mask).
@@ -572,7 +572,7 @@ type VPNManager interface {
 	// UpdateTunnel memperbarui field yang diizinkan (tunnel_name, notes, router_id, persistent_keepalive, allowed_addresses).
 	UpdateTunnel(ctx context.Context, id string, req UpdateVPNTunnelRequest) (*VPNTunnelResponse, error)
 
-	// DeleteTunnel soft-delete tunnel, remove peer dari VPN server, dan opsional remove interface dari router.
+	// DeleteTunnel hapus lunak tunnel, remove peer dari VPN server, dan opsional remove interface dari router.
 	DeleteTunnel(ctx context.Context, id string) error
 
 	// ListTunnels mengambil daftar tunnel dengan paginasi dan filter.
@@ -598,22 +598,22 @@ type VPNManager interface {
 }
 
 // =============================================================================
-// OLTRepository — operasi data untuk tabel olts
+// OLTRepository - operasi data untuk tabel olts
 // =============================================================================
 
 // OLTRepository mendefinisikan operasi data untuk tabel olts.
-// Diimplementasikan oleh repository.OLTRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.OLTRepo menggunakan sqlc.
 type OLTRepository interface {
-	// Create membuat OLT baru dan mengembalikan OLT yang dibuat.
+	// Buat membuat OLT baru dan mengembalikan OLT yang dibuat.
 	Create(ctx context.Context, olt *OLT) (*OLT, error)
 
 	// GetByID mengambil OLT berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*OLT, error)
 
-	// Update memperbarui data OLT dan mengembalikan OLT yang diperbarui.
+	// Perbarui memperbarui data OLT dan mengembalikan OLT yang diperbarui.
 	Update(ctx context.Context, olt *OLT) (*OLT, error)
 
-	// SoftDelete melakukan soft-delete OLT (set deleted_at).
+	// SoftDelete melakukan hapus lunak OLT (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 
 	// List mengambil daftar OLT dengan paginasi dan filter (tenant-scoped via RLS).
@@ -622,7 +622,7 @@ type OLTRepository interface {
 	// CountByStatus menghitung jumlah OLT per status untuk tenant.
 	CountByStatus(ctx context.Context) (map[OLTStatus]int64, error)
 
-	// GetActiveOLTs mengambil semua OLT yang tidak di-delete dan bukan maintenance.
+	// GetActiveOLTs mengambil semua OLT yang tidak di-hapus dan bukan maintenance.
 	GetActiveOLTs(ctx context.Context) ([]*OLT, error)
 
 	// GetOnlineOLTs mengambil semua OLT dengan status online.
@@ -631,7 +631,7 @@ type OLTRepository interface {
 	// NameExists mengecek apakah nama OLT sudah ada di tenant.
 	NameExists(ctx context.Context, tenantID, name, excludeID string) (bool, error)
 
-	// UpdateHealthCheck memperbarui field health check (last_checked_at, failure_count, status).
+	// UpdateHealthCheck memperbarui field health cek (last_checked_at, failure_count, status).
 	UpdateHealthCheck(ctx context.Context, id string, params OLTHealthCheckUpdate) error
 
 	// UpdateONTCounts memperbarui total_ont_count setelah sync.
@@ -639,22 +639,22 @@ type OLTRepository interface {
 }
 
 // =============================================================================
-// ODPRepository — operasi data untuk tabel odps
+// ODPRepository - operasi data untuk tabel odps
 // =============================================================================
 
 // ODPRepository mendefinisikan operasi data untuk tabel odps.
-// Diimplementasikan oleh repository.ODPRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.ODPRepo menggunakan sqlc.
 type ODPRepository interface {
-	// Create membuat ODP baru.
+	// Buat membuat ODP baru.
 	Create(ctx context.Context, odp *ODP) (*ODP, error)
 
 	// GetByID mengambil ODP berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*ODP, error)
 
-	// Update memperbarui data ODP.
+	// Perbarui memperbarui data ODP.
 	Update(ctx context.Context, odp *ODP) (*ODP, error)
 
-	// SoftDelete melakukan soft-delete ODP.
+	// SoftDelete melakukan hapus lunak ODP.
 	SoftDelete(ctx context.Context, id string) error
 
 	// List mengambil daftar ODP dengan paginasi dan filter.
@@ -668,13 +668,13 @@ type ODPRepository interface {
 }
 
 // =============================================================================
-// AlarmRepository — operasi data untuk tabel olt_alarms
+// AlarmRepository - operasi data untuk tabel olt_alarms
 // =============================================================================
 
 // AlarmRepository mendefinisikan operasi data untuk tabel olt_alarms.
-// Diimplementasikan oleh repository.AlarmRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.AlarmRepo menggunakan sqlc.
 type AlarmRepository interface {
-	// Create menyimpan alarm baru.
+	// Buat menyimpan alarm baru.
 	Create(ctx context.Context, alarm *OLTAlarmRecord) (*OLTAlarmRecord, error)
 
 	// List mengambil daftar alarm dengan paginasi dan filter.
@@ -694,16 +694,16 @@ type AlarmRepository interface {
 }
 
 // =============================================================================
-// SignalStore — penyimpanan signal data ONT di Redis time-series
+// SignalStore - penyimpanan signal data ONT di Redis time-series
 // =============================================================================
 
 // SignalStore menyimpan dan mengambil signal data ONT dari Redis time-series.
-// Menggunakan sorted set dengan score=unix timestamp dan 30-day TTL.
+// Menggunakan uruted atur dengan score=unix timestamp dan 30-day TTL.
 type SignalStore interface {
 	// Store menyimpan satu data point signal untuk ONT.
 	Store(ctx context.Context, oltID string, portIndex int, ontIndex int, signal ONTSignalPoint) error
 
-	// Query mengambil data point signal dalam rentang waktu tertentu.
+	// Kueri mengambil data point signal dalam rentang waktu tertentu.
 	Query(ctx context.Context, oltID string, portIndex int, ontIndex int, from, to time.Time) ([]ONTSignalPoint, error)
 
 	// GetLatest mengambil data point signal terbaru untuk ONT.
@@ -711,16 +711,16 @@ type SignalStore interface {
 }
 
 // =============================================================================
-// TrafficStore — penyimpanan traffic data PON port di Redis time-series
+// TrafficStore - penyimpanan traffic data PON port di Redis time-series
 // =============================================================================
 
 // TrafficStore menyimpan dan mengambil traffic data PON port dari Redis time-series.
-// Menggunakan sorted set dengan score=unix timestamp dan 7-day TTL.
+// Menggunakan uruted atur dengan score=unix timestamp dan 7-day TTL.
 type TrafficStore interface {
 	// Store menyimpan satu data point traffic untuk PON port.
 	Store(ctx context.Context, oltID string, portIndex int, traffic PONTrafficPoint) error
 
-	// Query mengambil data point traffic dalam rentang waktu tertentu.
+	// Kueri mengambil data point traffic dalam rentang waktu tertentu.
 	Query(ctx context.Context, oltID string, portIndex int, from, to time.Time) ([]PONTrafficPoint, error)
 
 	// GetLatest mengambil data point traffic terbaru untuk PON port.
@@ -728,11 +728,11 @@ type TrafficStore interface {
 }
 
 // =============================================================================
-// OLTEventPublisher — publikasi event OLT ke Redis queue via asynq
+// OLTEventPublisher - publikasi event OLT ke Redis queue via asynq
 // =============================================================================
 
 // OLTEventPublisher mempublikasikan event OLT ke Redis queue via asynq.
-// Best-effort: log error jika publish gagal, jangan return error ke caller.
+// Best-effort: log error jika terbitkan gagal, jangan kembalikan error ke caller.
 // Pattern sama dengan EventPublisher dan VPNEventPublisher yang sudah ada.
 type OLTEventPublisher interface {
 	// PublishDeviceOffline mempublikasikan event OLT offline.
@@ -763,7 +763,7 @@ type OLTEventPublisher interface {
 }
 
 // =============================================================================
-// OLTAdapter — interface komunikasi dengan OLT device (multi-brand)
+// OLTAdapter - interface komunikasi dengan OLT device (multi-brand)
 // =============================================================================
 
 // OLTAdapter mendefinisikan interface untuk komunikasi dengan OLT device.
@@ -804,7 +804,7 @@ type OLTAdapter interface {
 	AddONT(ctx context.Context, params AddONTParams) (*ProvisioningResult, error)
 
 	// RemoveONT menghapus ONT dari PON port.
-	// Menghasilkan CLI command per brand: ZTE `onu delete`, Huawei `ont delete`, dll.
+	// Menghasilkan CLI command per brand: ZTE `onu hapus`, Huawei `ont hapus`, dll.
 	RemoveONT(ctx context.Context, params RemoveONTParams) (*ProvisioningResult, error)
 
 	// AddServicePort menambahkan service-port dengan VLAN assignment.
@@ -812,7 +812,7 @@ type OLTAdapter interface {
 	AddServicePort(ctx context.Context, params AddServicePortParams) (*ProvisioningResult, error)
 
 	// RemoveServicePort menghapus service-port.
-	// Menghasilkan CLI command per brand: ZTE `service-port delete`, dll.
+	// Menghasilkan CLI command per brand: ZTE `service-port hapus`, dll.
 	RemoveServicePort(ctx context.Context, params RemoveServicePortParams) (*ProvisioningResult, error)
 
 	// RebootONT mengirim perintah reboot ke ONT tertentu.
@@ -823,8 +823,14 @@ type OLTAdapter interface {
 	GetUnregisteredONTs(ctx context.Context) ([]UnregisteredONT, error)
 }
 
+// ProvisioningCommandPreviewer adalah capability opsional adapter untuk membangun
+// command provisioning tanpa mengeksekusi write ke OLT.
+type ProvisioningCommandPreviewer interface {
+	PreviewProvisioningCommands(ctx context.Context, add AddONTParams, service AddServicePortParams) (*ProvisioningResult, error)
+}
+
 // =============================================================================
-// OLTAdapterFactory — factory untuk membuat OLTAdapter berdasarkan brand
+// OLTAdapterFactory - factory untuk membuat OLTAdapter berdasarkan brand
 // =============================================================================
 
 // OLTAdapterFactory membuat instance OLTAdapter berdasarkan brand dan konfigurasi koneksi.
@@ -835,10 +841,10 @@ type OLTAdapterFactory interface {
 }
 
 // =============================================================================
-// SNMPConnector — koneksi SNMP ke OLT untuk monitoring
+// SNMPConnector - koneksi SNMP ke OLT untuk pemantauan
 // =============================================================================
 
-// SNMPConnector mengelola koneksi SNMP ke OLT untuk monitoring.
+// SNMPConnector mengelola koneksi SNMP ke OLT untuk pemantauan.
 // Menggunakan library gosnmp untuk operasi GET, WALK, GETBULK.
 type SNMPConnector interface {
 	// Get melakukan SNMP GET untuk satu atau lebih OID.
@@ -855,11 +861,11 @@ type SNMPConnector interface {
 }
 
 // =============================================================================
-// CLIConnector — koneksi CLI (SSH/Telnet) ke OLT untuk provisioning
+// CLIConnector - koneksi CLI (SSH/Telnet) ke OLT untuk provisioning
 // =============================================================================
 
 // CLIConnector mengelola koneksi CLI ke OLT untuk provisioning command.
-// Connect-on-demand: buka session → kirim command → terima response → tutup session.
+// Connect-on-demand: buka session -> kirim command -> terima respons -> tutup session.
 // TIDAK menggunakan connection pool (berbeda dari MikroTik RouterOS API).
 type CLIConnector interface {
 	// Execute membuka session, mengirim command, dan mengembalikan output.
@@ -875,22 +881,22 @@ type CLIConnector interface {
 }
 
 // =============================================================================
-// OLTManager — business logic untuk manajemen OLT device
+// OLTManager - business logic untuk manajemen OLT device
 // =============================================================================
 
 // OLTManager mendefinisikan business logic untuk manajemen OLT device.
 // Menangani CRUD, registrasi dengan auto-detect, test connection, dan status summary.
 type OLTManager interface {
-	// Create membuat OLT baru, test SNMP, auto-detect brand/model/firmware.
+	// Buat membuat OLT baru, test SNMP, auto-detect brand/model/firmware.
 	Create(ctx context.Context, tenantID string, req CreateOLTRequest) (*OLTResponse, error)
 
 	// GetByID mengambil detail OLT termasuk PON port summary dan alarm count.
 	GetByID(ctx context.Context, id string) (*OLTDetailResponse, error)
 
-	// Update memperbarui data OLT (name, host, credentials, interval, notes, status).
+	// Perbarui memperbarui data OLT (name, host, credentials, interval, notes, status).
 	Update(ctx context.Context, id string, req UpdateOLTRequest) (*OLTResponse, error)
 
-	// Delete soft-delete OLT dan stop health check monitoring.
+	// Hapus hapus lunak OLT dan stop health cek pemantauan.
 	Delete(ctx context.Context, id string) error
 
 	// List mengambil daftar OLT dengan paginasi dan filter (status, brand, search).
@@ -914,26 +920,32 @@ type OLTManager interface {
 	// GetSFPStatus mengambil status SFP module semua PON port.
 	GetSFPStatus(ctx context.Context, oltID string) ([]SFPInfo, error)
 
+	// GetTraffic mengambil data traffic PON port dari time-series store.
+	GetTraffic(ctx context.Context, oltID string, portIndex int, from, to time.Time) ([]PONTrafficPoint, error)
+
+	// GetSignal mengambil data signal ONT dari time-series store.
+	GetSignal(ctx context.Context, oltID string, portIndex int, ontIndex int, from, to time.Time) ([]ONTSignalPoint, error)
+
 	// GetCapacity mengambil data capacity planning untuk satu OLT.
 	GetCapacity(ctx context.Context, oltID string) (*OLTCapacity, error)
 }
 
 // =============================================================================
-// ODPManager — business logic untuk manajemen ODP/splitter
+// ODPManager - business logic untuk manajemen ODP/splitter
 // =============================================================================
 
 // ODPManager mendefinisikan business logic untuk manajemen ODP/splitter.
 type ODPManager interface {
-	// Create membuat ODP baru dengan auto-set capacity berdasarkan splitter_type.
+	// Buat membuat ODP baru dengan auto-atur capacity berdasarkan splitter_type.
 	Create(ctx context.Context, tenantID string, req CreateODPRequest) (*ODPResponse, error)
 
 	// GetByID mengambil detail ODP termasuk used_ports dan linked ONT list.
 	GetByID(ctx context.Context, id string) (*ODPDetailResponse, error)
 
-	// Update memperbarui data ODP.
+	// Perbarui memperbarui data ODP.
 	Update(ctx context.Context, id string, req UpdateODPRequest) (*ODPResponse, error)
 
-	// Delete soft-delete ODP.
+	// Hapus hapus lunak ODP.
 	Delete(ctx context.Context, id string) error
 
 	// List mengambil daftar ODP dengan paginasi dan filter (olt_id, pon_port).
@@ -941,35 +953,35 @@ type ODPManager interface {
 }
 
 // =============================================================================
-// OLTHealthChecker — health check periodik untuk semua OLT aktif
+// OLTHealthChecker - health cek periodik untuk semua OLT aktif
 // =============================================================================
 
-// OLTHealthChecker menjalankan health check periodik untuk semua OLT aktif.
+// OLTHealthChecker menjalankan health cek periodik untuk semua OLT aktif.
 // Satu goroutine ticker per OLT, skip OLT dengan status maintenance.
 // Pattern sama dengan MikroTik HealthChecker yang sudah ada.
 type OLTHealthChecker interface {
-	// Start memulai health check goroutine untuk semua OLT aktif.
+	// Start memulai health cek goroutine untuk semua OLT aktif.
 	Start(ctx context.Context) error
 
-	// Stop menghentikan semua health check goroutine.
+	// Stop menghentikan semua health cek goroutine.
 	Stop()
 
-	// AddOLT menambahkan OLT baru ke health check schedule.
+	// AddOLT menambahkan OLT baru ke health cek jadwal.
 	AddOLT(olt *OLT)
 
-	// RemoveOLT menghapus OLT dari health check schedule.
+	// RemoveOLT menghapus OLT dari health cek jadwal.
 	RemoveOLT(oltID string)
 
-	// UpdateInterval mengubah interval health check untuk OLT tertentu.
+	// UpdateInterval mengubah interval health cek untuk OLT tertentu.
 	UpdateInterval(oltID string, intervalSec int)
 }
 
 // =============================================================================
-// AlarmManager — manajemen alarm OLT (trap receiver + polling)
+// AlarmManager - manajemen alarm OLT (trap receiver + polling)
 // =============================================================================
 
 // AlarmManager mengelola alarm dari OLT (trap receiver + polling).
-// Menyimpan alarm ke database, publish event, dan manage alarm lifecycle.
+// Menyimpan alarm ke database, terbitkan event, dan manage alarm lifecycle.
 type AlarmManager interface {
 	// StartTrapReceiver memulai SNMP trap receiver pada port 162.
 	StartTrapReceiver(ctx context.Context) error
@@ -977,7 +989,7 @@ type AlarmManager interface {
 	// StopTrapReceiver menghentikan SNMP trap receiver.
 	StopTrapReceiver()
 
-	// PollAlarms mengambil alarm dari OLT via SNMP polling (fallback).
+	// PollAlarms mengambil alarm dari OLT via SNMP polling (cadangan).
 	PollAlarms(ctx context.Context, oltID string) ([]OLTAlarm, error)
 
 	// GetAlarms mengambil daftar alarm dengan filter (severity, status, olt_id).
@@ -988,11 +1000,11 @@ type AlarmManager interface {
 }
 
 // =============================================================================
-// SyncEngine — periodic sync antara OLT dan database
+// SyncEngine - periodic sync antara OLT dan database
 // =============================================================================
 
 // SyncEngine menjalankan periodic sync antara OLT dan database.
-// OLT = source of truth untuk data fisik (SN, port, signal, status).
+// OLT = sumber of truth untuk data fisik (SN, port, signal, status).
 type SyncEngine interface {
 	// Start memulai periodic sync goroutine (interval 30 menit).
 	Start(ctx context.Context) error

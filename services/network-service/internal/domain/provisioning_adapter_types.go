@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// Provisioning Adapter Params — parameter untuk operasi provisioning via adapter
+// Provisioning Adapter Params - parameter untuk operasi provisioning via adapter
 // =============================================================================
 
 // AddONTParams berisi parameter untuk menambahkan ONT ke OLT.
@@ -28,7 +28,7 @@ type AddServicePortParams struct {
 	PONPortIndex int // indeks PON port
 	ONTIndex     int // indeks ONT
 	VLANID       int // VLAN ID untuk assignment
-	GemPort      int // GEM port (default 1)
+	GemPort      int // GEM port (bawaan 1)
 }
 
 // RemoveServicePortParams berisi parameter untuk menghapus service-port.
@@ -47,20 +47,25 @@ type RebootONTParams struct {
 }
 
 // =============================================================================
-// Provisioning Result — hasil eksekusi provisioning command
+// Provisioning Result - hasil eksekusi provisioning command
 // =============================================================================
 
 // ProvisioningResult berisi hasil eksekusi provisioning command ke OLT.
 // CommandsSent berisi CLI commands yang dikirim, Responses berisi output dari OLT.
 type ProvisioningResult struct {
-	Success      bool     `json:"success"`
-	CommandsSent []string `json:"commands_sent"`
-	Responses    []string `json:"responses"`
-	ErrorMessage string   `json:"error_message,omitempty"`
+	Success          bool     `json:"success"`
+	CommandsSent     []string `json:"commands_sent"`
+	Responses        []string `json:"responses"`
+	ErrorMessage     string   `json:"error_message,omitempty"`
+	AssignedONTIndex int      `json:"assigned_ont_index,omitempty"`
+	Brand            string   `json:"brand,omitempty"`
+	Model            string   `json:"model,omitempty"`
+	Transport        string   `json:"transport,omitempty"`
+	Operation        string   `json:"operation,omitempty"`
 }
 
 // =============================================================================
-// Unregistered ONT — ONT terdeteksi di OLT tapi belum terdaftar di database
+// Unregistered ONT - ONT terdeteksi di OLT tapi belum terdaftar di database
 // =============================================================================
 
 // UnregisteredONT berisi informasi ONT yang terdeteksi oleh sync engine

@@ -11,7 +11,7 @@ import (
 
 // AuditLogRepo mengimplementasikan domain.AuditLogRepository dengan membungkus
 // sqlc-generated Queries dan memetakan tipe database ke domain.ProvisioningAuditLog.
-// Tabel ini append-only: hanya Create dan List, tidak ada Update atau Delete.
+// Tabel ini append-only: hanya Buat dan List, tidak ada Perbarui atau Hapus.
 type AuditLogRepo struct {
 	queries *Queries
 }
@@ -21,7 +21,7 @@ func NewAuditLogRepo(queries *Queries) *AuditLogRepo {
 	return &AuditLogRepo{queries: queries}
 }
 
-// --- Mapping sqlc ProvisioningAuditLog → domain.ProvisioningAuditLog ---
+// --- Mapping sqlc ProvisioningAuditLog -> domain.ProvisioningAuditLog ---
 
 // mapAuditLogRow memetakan ProvisioningAuditLog (sqlc model) ke domain.ProvisioningAuditLog.
 func mapAuditLogRow(row ProvisioningAuditLog) *domain.ProvisioningAuditLog {
@@ -36,12 +36,16 @@ func mapAuditLogRow(row ProvisioningAuditLog) *domain.ProvisioningAuditLog {
 		Status:           row.Status,
 		ErrorMessage:     textToString(row.ErrorMessage),
 		PerformedBy:      row.PerformedBy,
+		Brand:            textToString(row.Brand),
+		Model:            textToString(row.Model),
+		Transport:        textToString(row.Transport),
+		Operation:        textToString(row.Operation),
 		CorrelationID:    uuidToString(row.CorrelationID),
 		CreatedAt:        timestamptzToTime(row.CreatedAt),
 	}
 }
 
-// --- Helper konversi JSON ↔ []string ---
+// --- Fungsi bantu konversi JSON ↔ []string ---
 
 // stringSliceToJSON mengkonversi []string ke []byte (JSON) untuk JSONB column.
 func stringSliceToJSON(s []string) []byte {
@@ -63,7 +67,7 @@ func jsonToStringSlice(data []byte) []string {
 
 // --- Implementasi domain.AuditLogRepository ---
 
-// Create menyimpan record audit log baru.
+// Buat menyimpan record audit log baru.
 func (r *AuditLogRepo) Create(ctx context.Context, log *domain.ProvisioningAuditLog) (*domain.ProvisioningAuditLog, error) {
 	row, err := r.queries.CreateAuditLog(ctx, CreateAuditLogParams{
 		TenantID:         stringToUUID(log.TenantID),
@@ -75,6 +79,10 @@ func (r *AuditLogRepo) Create(ctx context.Context, log *domain.ProvisioningAudit
 		Status:           log.Status,
 		ErrorMessage:     stringToText(log.ErrorMessage),
 		PerformedBy:      log.PerformedBy,
+		Brand:            stringToText(log.Brand),
+		Model:            stringToText(log.Model),
+		Transport:        stringToText(log.Transport),
+		Operation:        stringToText(log.Operation),
 		CorrelationID:    stringToUUID(log.CorrelationID),
 	})
 	if err != nil {
@@ -135,12 +143,12 @@ func (r *AuditLogRepo) List(ctx context.Context, params domain.AuditLogListParam
 	}, nil
 }
 
-// --- Helper untuk nullable timestamptz filter ---
+// --- Fungsi bantu untuk nullable timestamptz filter ---
 
 // timePtrToNullableTimestamptz mengkonversi *time.Time ke pgtype.Timestamptz.
-// nil → Timestamptz tidak valid (NULL) agar filter diabaikan.
+// nil -> Timestamptz tidak valid (NULL) agar filter diabaikan.
 // Catatan: menggunakan timePtrToTimestamptz yang sudah ada di router_repo.go.
 var _ pgtype.Timestamptz // memastikan import pgtype digunakan
 
-// Compile-time check: AuditLogRepo mengimplementasikan domain.AuditLogRepository.
+// Compile-time cek: AuditLogRepo mengimplementasikan domain.AuditLogRepository.
 var _ domain.AuditLogRepository = (*AuditLogRepo)(nil)

@@ -269,6 +269,10 @@ type ProvisioningAuditLog struct {
 	Status           string             `json:"status"`
 	ErrorMessage     pgtype.Text        `json:"error_message"`
 	PerformedBy      string             `json:"performed_by"`
+	Brand            pgtype.Text        `json:"brand"`
+	Model            pgtype.Text        `json:"model"`
+	Transport        pgtype.Text        `json:"transport"`
+	Operation        pgtype.Text        `json:"operation"`
 	CorrelationID    pgtype.UUID        `json:"correlation_id"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 }
