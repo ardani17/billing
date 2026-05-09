@@ -9,19 +9,10 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: customer-crud, Property 6: Field Validation Rules
-// **Validates: Requirements 22.1, 22.3, 22.4, 22.5, 22.6, 22.7**
+// **Memvalidasi: Kebutuhan 22.1, 22.3, 22.4, 22.5, 22.6, 22.7**
 //
-// For any string input to the phone validator, it SHALL be accepted iff it starts
-// with +62 followed by 9-13 digits. For any float input to coordinate validators,
-// latitude SHALL be accepted iff in [-90,90] and longitude in [-180,180].
-// For any string input to mac_address, it SHALL be accepted iff it matches
-// XX:XX:XX:XX:XX:XX where X is hex. For any integer due_date, it SHALL be
-// accepted iff in [1,28]. For any string name, it SHALL be accepted iff length
-// in [3,255]. For any string address, it SHALL be accepted iff non-empty and
 // length <= 1000.
 
-// testStruct is a helper struct used to validate individual fields via struct tags.
 type testPhoneStruct struct {
 	Phone string `validate:"phone_id"`
 }
@@ -60,14 +51,12 @@ func TestProperty_PhoneValidation(t *testing.T) {
 	v := newTestValidator()
 
 	rapid.Check(t, func(t *rapid.T) {
-		// Decide whether to generate a valid or invalid phone
 		generateValid := rapid.Bool().Draw(t, "generateValid")
 
 		var phone string
 		var expectValid bool
 
 		if generateValid {
-			// Valid: +62 followed by 9-13 digits
 			digitCount := rapid.IntRange(9, 13).Draw(t, "digitCount")
 			digits := make([]byte, digitCount)
 			for i := range digits {
@@ -76,7 +65,6 @@ func TestProperty_PhoneValidation(t *testing.T) {
 			phone = "+62" + string(digits)
 			expectValid = true
 		} else {
-			// Generate various invalid phones
 			invalidType := rapid.IntRange(0, 5).Draw(t, "invalidType")
 			switch invalidType {
 			case 0:
@@ -94,7 +82,6 @@ func TestProperty_PhoneValidation(t *testing.T) {
 				// No + prefix
 				phone = "62" + strings.Repeat("5", 10)
 			case 4:
-				// Contains non-digit characters after +62
 				phone = "+62abc123456"
 			case 5:
 				// Empty string
@@ -122,7 +109,6 @@ func TestProperty_MACAddressValidation(t *testing.T) {
 		var expectValid bool
 
 		if generateValid {
-			// Valid: six groups of two hex digits separated by colons
 			hexChars := "0123456789ABCDEFabcdef"
 			groups := make([]string, 6)
 			for i := 0; i < 6; i++ {
@@ -136,7 +122,7 @@ func TestProperty_MACAddressValidation(t *testing.T) {
 			invalidType := rapid.IntRange(0, 4).Draw(t, "invalidType")
 			switch invalidType {
 			case 0:
-				// Too few groups
+				// Jumlah grup terlalu sedikit
 				mac = "AA:BB:CC:DD:EE"
 			case 1:
 				// Too many groups
@@ -176,7 +162,7 @@ func TestProperty_LatitudeValidation(t *testing.T) {
 			lat = rapid.Float64Range(-90, 90).Draw(t, "lat")
 			expectValid = true
 		} else {
-			// Generate out-of-range latitude
+			// Buat out-of-range latitude
 			if rapid.Bool().Draw(t, "above") {
 				lat = rapid.Float64Range(90.001, 1000).Draw(t, "latAbove")
 			} else {
@@ -264,7 +250,6 @@ func TestProperty_NameValidation(t *testing.T) {
 		var expectValid bool
 
 		if generateValid {
-			// Valid: length 3-255
 			length := rapid.IntRange(3, 255).Draw(t, "nameLen")
 			name = strings.Repeat("a", length)
 			expectValid = true
@@ -302,7 +287,6 @@ func TestProperty_AddressValidation(t *testing.T) {
 		var expectValid bool
 
 		if generateValid {
-			// Valid: non-empty, max 1000
 			length := rapid.IntRange(1, 1000).Draw(t, "addrLen")
 			address = strings.Repeat("x", length)
 			expectValid = true

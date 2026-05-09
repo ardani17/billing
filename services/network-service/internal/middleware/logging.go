@@ -7,12 +7,12 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// RequestLogger membuat Fiber middleware yang mencatat setiap HTTP request.
+// RequestLogger membuat Fiber middleware yang mencatat setiap HTTP permintaan.
 // Informasi yang dicatat: method, path, status code, dan durasi pemrosesan.
 // Menggunakan zerolog untuk output terstruktur.
 func RequestLogger(logger zerolog.Logger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Catat waktu mulai pemrosesan request
+		// Catat waktu mulai pemrosesan permintaan
 		start := time.Now()
 
 		// Lanjutkan ke handler berikutnya
@@ -34,7 +34,7 @@ func RequestLogger(logger zerolog.Logger) fiber.Handler {
 			event = logger.Info()
 		}
 
-		// Tulis log entry dengan informasi request
+		// Tulis log entry dengan informasi permintaan
 		event.
 			Str("method", c.Method()).
 			Str("path", c.Path()).

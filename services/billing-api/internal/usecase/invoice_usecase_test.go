@@ -1,6 +1,5 @@
 // invoice_usecase_test.go berisi unit test untuk InvoiceUsecase.
 // Menguji business logic: pembuatan manual dengan pajak/kredit, prepaid dengan diskon,
-// edit hanya belum_bayar, list dengan paginasi.
 package usecase
 
 import (
@@ -17,7 +16,6 @@ import (
 )
 
 // =============================================================================
-// Mock repositories untuk InvoiceUsecase tests
 // =============================================================================
 
 // mockInvoiceRepo adalah implementasi in-memory dari domain.InvoiceRepository.
@@ -318,15 +316,31 @@ func (m *invMockCustomerRepo) SoftDelete(_ context.Context, _ string) error { re
 func (m *invMockCustomerRepo) List(_ context.Context, _ domain.CustomerListParams) (*domain.CustomerListResult, error) {
 	return &domain.CustomerListResult{Data: []*domain.Customer{}, Pagination: domain.PaginationMeta{Total: 0, Page: 1, PageSize: 25, TotalPages: 1}}, nil
 }
-func (m *invMockCustomerRepo) UpdateStatus(_ context.Context, _ string, _ domain.CustomerStatus) (*domain.Customer, error) { return nil, nil }
-func (m *invMockCustomerRepo) UpdatePackage(_ context.Context, _, _ string) (*domain.Customer, error) { return nil, nil }
-func (m *invMockCustomerRepo) CountByStatus(_ context.Context) (map[domain.CustomerStatus]int64, error) { return nil, nil }
+func (m *invMockCustomerRepo) UpdateStatus(_ context.Context, _ string, _ domain.CustomerStatus) (*domain.Customer, error) {
+	return nil, nil
+}
+func (m *invMockCustomerRepo) UpdatePackage(_ context.Context, _, _ string) (*domain.Customer, error) {
+	return nil, nil
+}
+func (m *invMockCustomerRepo) CountByStatus(_ context.Context) (map[domain.CustomerStatus]int64, error) {
+	return nil, nil
+}
 func (m *invMockCustomerRepo) GetMaxSeq(_ context.Context, _ string) (int, error) { return 0, nil }
-func (m *invMockCustomerRepo) PhoneExists(_ context.Context, _, _, _ string) (bool, error) { return false, nil }
-func (m *invMockCustomerRepo) BulkUpdateStatus(_ context.Context, _ []string, _ domain.CustomerStatus) ([]domain.BulkResult, error) { return nil, nil }
-func (m *invMockCustomerRepo) BulkUpdateFields(_ context.Context, _ []string, _ map[string]interface{}) ([]domain.BulkResult, error) { return nil, nil }
-func (m *invMockCustomerRepo) BulkSoftDelete(_ context.Context, _ []string) ([]domain.BulkResult, error) { return nil, nil }
-func (m *invMockCustomerRepo) GetByIDs(_ context.Context, _ []string) ([]*domain.Customer, error) { return nil, nil }
+func (m *invMockCustomerRepo) PhoneExists(_ context.Context, _, _, _ string) (bool, error) {
+	return false, nil
+}
+func (m *invMockCustomerRepo) BulkUpdateStatus(_ context.Context, _ []string, _ domain.CustomerStatus) ([]domain.BulkResult, error) {
+	return nil, nil
+}
+func (m *invMockCustomerRepo) BulkUpdateFields(_ context.Context, _ []string, _ map[string]interface{}) ([]domain.BulkResult, error) {
+	return nil, nil
+}
+func (m *invMockCustomerRepo) BulkSoftDelete(_ context.Context, _ []string) ([]domain.BulkResult, error) {
+	return nil, nil
+}
+func (m *invMockCustomerRepo) GetByIDs(_ context.Context, _ []string) ([]*domain.Customer, error) {
+	return nil, nil
+}
 func (m *invMockCustomerRepo) SearchForPayment(_ context.Context, _, _ string) ([]*domain.Customer, error) {
 	return nil, nil
 }
@@ -340,7 +354,9 @@ func newInvMockPackageRepo() *invMockPackageRepo {
 	return &invMockPackageRepo{packages: make(map[string]*domain.Package)}
 }
 
-func (m *invMockPackageRepo) Create(_ context.Context, _ *domain.Package) (*domain.Package, error) { return nil, nil }
+func (m *invMockPackageRepo) Create(_ context.Context, _ *domain.Package) (*domain.Package, error) {
+	return nil, nil
+}
 func (m *invMockPackageRepo) GetByID(_ context.Context, id string) (*domain.Package, error) {
 	p, ok := m.packages[id]
 	if !ok {
@@ -348,16 +364,25 @@ func (m *invMockPackageRepo) GetByID(_ context.Context, id string) (*domain.Pack
 	}
 	return p, nil
 }
-func (m *invMockPackageRepo) Update(_ context.Context, _ *domain.Package) (*domain.Package, error) { return nil, nil }
+func (m *invMockPackageRepo) Update(_ context.Context, _ *domain.Package) (*domain.Package, error) {
+	return nil, nil
+}
 func (m *invMockPackageRepo) Delete(_ context.Context, _ string) error { return nil }
-func (m *invMockPackageRepo) List(_ context.Context, _ domain.PackageListParams) (*domain.PackageListResult, error) { return nil, nil }
-func (m *invMockPackageRepo) UpdateIsActive(_ context.Context, _ string, _ bool) (*domain.Package, error) { return nil, nil }
-func (m *invMockPackageRepo) NameExists(_ context.Context, _, _, _ string) (bool, error) { return false, nil }
+func (m *invMockPackageRepo) List(_ context.Context, _ domain.PackageListParams) (*domain.PackageListResult, error) {
+	return nil, nil
+}
+func (m *invMockPackageRepo) UpdateIsActive(_ context.Context, _ string, _ bool) (*domain.Package, error) {
+	return nil, nil
+}
+func (m *invMockPackageRepo) NameExists(_ context.Context, _, _, _ string) (bool, error) {
+	return false, nil
+}
 func (m *invMockPackageRepo) CustomerCount(_ context.Context, _ string) (int, error) { return 0, nil }
-func (m *invMockPackageRepo) ListNamesByPrefix(_ context.Context, _, _ string) ([]string, error) { return nil, nil }
+func (m *invMockPackageRepo) ListNamesByPrefix(_ context.Context, _, _ string) ([]string, error) {
+	return nil, nil
+}
 
 // =============================================================================
-// Helper untuk membuat InvoiceUsecase dengan mock repos
 // =============================================================================
 
 type invoiceUsecaseSetup struct {
@@ -399,7 +424,7 @@ func setupInvoiceUsecase() *invoiceUsecaseSetup {
 }
 
 // =============================================================================
-// Unit Tests — InvoiceUsecase
+// Unit Tests - InvoiceUsecase
 // =============================================================================
 
 // TestInvoiceUsecase_Create_Success menguji pembuatan invoice manual berhasil.
@@ -510,11 +535,9 @@ func TestInvoiceUsecase_Create_WithCredit(t *testing.T) {
 
 	// Verifikasi saldo kredit pelanggan berkurang
 	// Catatan: credit_balance diupdate secara atomik via SQL langsung (pool.Exec),
-	// bukan melalui customerRepo.Update, sehingga mock tidak terpengaruh.
 	// Verifikasi ini hanya berlaku di environment dengan database nyata.
 }
 
-// TestInvoiceUsecase_Create_CustomerNotFound menguji error saat pelanggan tidak ditemukan.
 func TestInvoiceUsecase_Create_CustomerNotFound(t *testing.T) {
 	s := setupInvoiceUsecase()
 	ctx := context.Background()
@@ -622,7 +645,6 @@ func TestInvoiceUsecase_Edit_Success(t *testing.T) {
 	}
 }
 
-// TestInvoiceUsecase_List_DefaultPagination menguji list dengan default paginasi.
 func TestInvoiceUsecase_List_DefaultPagination(t *testing.T) {
 	s := setupInvoiceUsecase()
 	ctx := context.Background()
@@ -648,7 +670,6 @@ func TestInvoiceUsecase_List_DefaultPagination(t *testing.T) {
 	}
 }
 
-// TestInvoiceUsecase_GetByID_NotFound menguji error saat invoice tidak ditemukan.
 func TestInvoiceUsecase_GetByID_NotFound(t *testing.T) {
 	s := setupInvoiceUsecase()
 	ctx := context.Background()

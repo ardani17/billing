@@ -9,10 +9,8 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: invoice-generation, Property 2: Invoice Number Format Round-Trip
-// **Validates: Requirements 7.4**
+// **Memvalidasi: Kebutuhan 7.4**
 //
-// Untuk setiap prefix valid (non-empty alphanumeric), year (2000-2099),
 // month (1-12), dan sequence (positive integer), FormatInvoiceNumber(prefix, year, month, seq)
 // menghasilkan string dengan format {prefix}-{YYYY}-{MM}-{SEQ} dimana SEQ zero-padded
 // minimal 3 digit, dan parsing komponen kembali menghasilkan nilai asli.
@@ -27,7 +25,6 @@ func TestProperty_InvoiceNumberFormatRoundTrip(t *testing.T) {
 		// Format nomor invoice
 		result := FormatInvoiceNumber(prefix, year, month, seq)
 
-		// Property 2a: Hasil harus sesuai format {prefix}-{YYYY}-{MM}-{SEQ}
 		parts := strings.SplitN(result, "-", 4)
 		if len(parts) != 4 {
 			t.Fatalf(
@@ -36,7 +33,6 @@ func TestProperty_InvoiceNumberFormatRoundTrip(t *testing.T) {
 			)
 		}
 
-		// Property 2b: Parsing prefix kembali menghasilkan nilai asli
 		parsedPrefix := parts[0]
 		if parsedPrefix != prefix {
 			t.Fatalf(
@@ -45,7 +41,6 @@ func TestProperty_InvoiceNumberFormatRoundTrip(t *testing.T) {
 			)
 		}
 
-		// Property 2c: Parsing year kembali menghasilkan nilai asli
 		parsedYear, err := strconv.Atoi(parts[1])
 		if err != nil {
 			t.Fatalf("Failed to parse year from %q: %v", result, err)
@@ -57,7 +52,6 @@ func TestProperty_InvoiceNumberFormatRoundTrip(t *testing.T) {
 			)
 		}
 
-		// Property 2d: Parsing month kembali menghasilkan nilai asli
 		parsedMonth, err := strconv.Atoi(parts[2])
 		if err != nil {
 			t.Fatalf("Failed to parse month from %q: %v", result, err)
@@ -69,7 +63,6 @@ func TestProperty_InvoiceNumberFormatRoundTrip(t *testing.T) {
 			)
 		}
 
-		// Property 2e: Parsing sequence kembali menghasilkan nilai asli
 		parsedSeq, err := strconv.Atoi(parts[3])
 		if err != nil {
 			t.Fatalf("Failed to parse seq from %q: %v", result, err)
@@ -81,7 +74,6 @@ func TestProperty_InvoiceNumberFormatRoundTrip(t *testing.T) {
 			)
 		}
 
-		// Property 2f: SEQ harus zero-padded minimal 3 digit
 		seqStr := parts[3]
 		if len(seqStr) < 3 {
 			t.Fatalf(
@@ -90,7 +82,6 @@ func TestProperty_InvoiceNumberFormatRoundTrip(t *testing.T) {
 			)
 		}
 
-		// Property 2g: Year harus 4 digit
 		if len(parts[1]) != 4 {
 			t.Fatalf(
 				"Year part %q has length %d, expected 4 digits in result %q",
@@ -98,7 +89,6 @@ func TestProperty_InvoiceNumberFormatRoundTrip(t *testing.T) {
 			)
 		}
 
-		// Property 2h: Month harus 2 digit
 		if len(parts[2]) != 2 {
 			t.Fatalf(
 				"Month part %q has length %d, expected 2 digits in result %q",
@@ -106,7 +96,6 @@ func TestProperty_InvoiceNumberFormatRoundTrip(t *testing.T) {
 			)
 		}
 
-		// Property 2i: Keseluruhan format harus cocok dengan rekonstruksi manual
 		expectedSeqStr := fmt.Sprintf("%03d", seq)
 		if seq >= 1000 {
 			expectedSeqStr = fmt.Sprintf("%d", seq)

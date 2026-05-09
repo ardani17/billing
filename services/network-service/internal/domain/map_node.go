@@ -6,7 +6,7 @@ import (
 )
 
 // =============================================================================
-// NodeType Constants — tipe node yang didukung di peta FTTH
+// NodeType Constants - tipe node yang didukung di peta FTTH
 // =============================================================================
 
 const (
@@ -34,7 +34,7 @@ func IsValidNodeType(nodeType string) bool {
 }
 
 // =============================================================================
-// MapNode Entity — titik di peta yang merepresentasikan OLT, ODP, atau ONT
+// MapNode Entitas - titik di peta yang merepresentasikan OLT, ODP, atau ONT
 // =============================================================================
 
 // MapNode merepresentasikan titik di peta (OLT, ODP, atau ONT).
@@ -54,7 +54,7 @@ type MapNode struct {
 }
 
 // =============================================================================
-// MapNodeWithRef — data gabungan MapNode + info dari entitas referensi
+// MapNodeWithRef - data gabungan MapNode + info dari entitas referensi
 // =============================================================================
 
 // MapNodeWithRef berisi data MapNode yang sudah di-join dengan informasi
@@ -72,32 +72,32 @@ type MapNodeWithRef struct {
 	UpdatedAt    time.Time       `json:"updated_at"`
 
 	// Data join dari entitas referensi (OLT/ODP/ONT)
-	Name          string  `json:"name"`
-	Status        string  `json:"status"`
+	Name          string   `json:"name"`
+	Status        string   `json:"status"`
 	Signal        *float64 `json:"signal,omitempty"`
-	CustomerName  *string `json:"customer_name,omitempty"`
-	CustomerID    *string `json:"customer_id,omitempty"`
-	PackageName   *string `json:"package_name,omitempty"`
-	SerialNumber  *string `json:"serial_number,omitempty"`
-	SplitterType  *string `json:"splitter_type,omitempty"`
-	Capacity      *int    `json:"capacity,omitempty"`
-	UsedPorts     *int    `json:"used_ports,omitempty"`
-	Address       *string `json:"address,omitempty"`
-	BillingStatus *string `json:"billing_status,omitempty"`
-	PackageID     *string `json:"package_id,omitempty"`
-	AreaID        *string `json:"area_id,omitempty"`
-	ODPID         *string `json:"odp_id,omitempty"`
+	CustomerName  *string  `json:"customer_name,omitempty"`
+	CustomerID    *string  `json:"customer_id,omitempty"`
+	PackageName   *string  `json:"package_name,omitempty"`
+	SerialNumber  *string  `json:"serial_number,omitempty"`
+	SplitterType  *string  `json:"splitter_type,omitempty"`
+	Capacity      *int     `json:"capacity,omitempty"`
+	UsedPorts     *int     `json:"used_ports,omitempty"`
+	Address       *string  `json:"address,omitempty"`
+	BillingStatus *string  `json:"billing_status,omitempty"`
+	PackageID     *string  `json:"package_id,omitempty"`
+	AreaID        *string  `json:"area_id,omitempty"`
+	ODPID         *string  `json:"odp_id,omitempty"`
 }
 
 // =============================================================================
-// MapNodeListParams — parameter query untuk list node berdasarkan bounding box
+// MapNodeListParams - parameter kueri untuk list node berdasarkan bounding box
 // =============================================================================
 
-// MapNodeListParams berisi parameter untuk query list node di peta.
+// MapNodeListParams berisi parameter untuk kueri list node di peta.
 // Bounds digunakan untuk membatasi area peta yang ditampilkan.
 // Filter digunakan untuk menyaring node berdasarkan kriteria tertentu.
 type MapNodeListParams struct {
-	// Bounding box — area peta yang visible
+	// Bounding box - area peta yang visible
 	MinLat float64 `json:"min_lat"`
 	MaxLat float64 `json:"max_lat"`
 	MinLng float64 `json:"min_lng"`
@@ -111,7 +111,7 @@ type MapNodeListParams struct {
 	AreaID        string `json:"area_id,omitempty"`
 	ODPID         string `json:"odp_id,omitempty"`
 
-	// Tenant context — diisi dari auth middleware
+	// Tenant context - diisi dari auth middleware
 	TenantID string `json:"-"`
 
 	// Paginasi opsional
@@ -120,10 +120,10 @@ type MapNodeListParams struct {
 }
 
 // =============================================================================
-// MapSearchResult — hasil pencarian node di peta
+// MapPencarianResult - hasil pencarian node di peta
 // =============================================================================
 
-// MapSearchResult berisi informasi ringkas hasil pencarian node.
+// MapPencarianResult berisi informasi ringkas hasil pencarian node.
 // Digunakan untuk autocomplete search di frontend.
 type MapSearchResult struct {
 	Type        string  `json:"type"`

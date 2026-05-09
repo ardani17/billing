@@ -3,15 +3,15 @@
 import { formatDelta, getDeltaColor } from "../../lib/formatters";
 
 interface MetricCardProps {
-  /** Label metrik (contoh: "Total Pendapatan") */
+  /** Label metrik (contoh: "Total Pendapatan")*/
   label: string;
-  /** Nilai yang sudah diformat (contoh: "Rp 12.345.678") */
+  /** Nilai yang sudah diformat (contoh: "Rp 12.345.678")*/
   value: string;
-  /** Delta persentase dibanding periode sebelumnya */
+  /** Delta persentase dibanding periode sebelumnya*/
   delta?: number;
-  /** Progress KPI (0-100) */
+  /** Progress KPI (0-100)*/
   kpiProgress?: number;
-  /** Label target KPI */
+  /** Label target KPI*/
   kpiLabel?: string;
 }
 

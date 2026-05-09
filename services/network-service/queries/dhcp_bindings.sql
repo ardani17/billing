@@ -1,4 +1,4 @@
--- Query SQL untuk operasi tabel dhcp_bindings.
+-- Kueri SQL untuk operasi tabel dhcp_bindings.
 
 -- name: CreateDHCPBinding :one
 INSERT INTO dhcp_bindings (

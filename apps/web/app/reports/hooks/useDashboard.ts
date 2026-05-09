@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type { DashboardData } from "../lib/types";
 import { fetchDashboardData } from "../lib/api";
 
-/** Interval auto-refresh: 5 menit */
+/** Interval auto-refresh: 5 menit*/
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 interface UseDashboardResult {
@@ -16,7 +16,7 @@ interface UseDashboardResult {
 
 /**
  * Hook untuk dashboard widget data dengan auto-refresh setiap 5 menit.
- * Tidak melakukan full page reload — hanya re-fetch data.
+ * Tidak melakukan muat ulang halaman penuh — hanya ambil ulang data.
  */
 export function useDashboard(): UseDashboardResult {
   const [data, setData] = useState<DashboardData | null>(null);

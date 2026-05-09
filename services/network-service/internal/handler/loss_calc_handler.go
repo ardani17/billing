@@ -1,5 +1,5 @@
-// loss_calc_handler.go menangani HTTP request untuk loss calculator.
-// Menerima parameter input, panggil domain CalculateLoss, return hasil.
+// loss_calc_handler.go menangani HTTP permintaan untuk loss calculator.
+// Menerima parameter input, panggil domain CalculateLoss, kembalikan hasil.
 package handler
 
 import (
@@ -10,7 +10,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// LossCalcHandler menangani HTTP request untuk kalkulasi optical loss budget.
+// LossCalcHandler menangani HTTP permintaan untuk kalkulasi optical loss budget.
 type LossCalcHandler struct{}
 
 // NewLossCalcHandler membuat instance baru LossCalcHandler.
@@ -19,7 +19,7 @@ func NewLossCalcHandler() *LossCalcHandler {
 }
 
 // CalculateLoss menangani POST /loss-calculator.
-// Parse input, validasi, hitung optical loss budget, return hasil.
+// Parsing input, validasi, hitung optical loss budget, kembalikan hasil.
 func (h *LossCalcHandler) CalculateLoss(c *fiber.Ctx) error {
 	var input domain.LossCalculatorInput
 	if err := c.BodyParser(&input); err != nil {
@@ -37,7 +37,7 @@ func (h *LossCalcHandler) CalculateLoss(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, result)
 }
 
-// mapError memetakan domain error loss calculator ke HTTP error response.
+// mapError memetakan domain error loss calculator ke HTTP error respons.
 func (h *LossCalcHandler) mapError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrInvalidLossInput):

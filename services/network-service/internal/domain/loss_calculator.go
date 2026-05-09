@@ -3,7 +3,7 @@ package domain
 import "fmt"
 
 // =============================================================================
-// Konstanta Loss Calculator — parameter standar untuk kalkulasi optical loss
+// Konstanta Loss Calculator - parameter standar untuk kalkulasi optical loss
 // =============================================================================
 
 const (
@@ -33,7 +33,7 @@ var SplitterLoss = map[string]float64{
 var ValidSplitterTypes = []string{"1:4", "1:8", "1:16", "1:32"}
 
 // =============================================================================
-// LossCalculatorInput — parameter input untuk kalkulasi optical loss budget
+// LossCalculatorInput - parameter input untuk kalkulasi optical loss budget
 // =============================================================================
 
 // LossCalculatorInput berisi parameter untuk kalkulasi optical loss budget.
@@ -50,7 +50,7 @@ type LossCalculatorInput struct {
 }
 
 // =============================================================================
-// LossCalculatorResult — hasil kalkulasi optical loss budget
+// LossCalculatorResult - hasil kalkulasi optical loss budget
 // =============================================================================
 
 // LossCalculatorResult berisi hasil kalkulasi optical loss budget.
@@ -69,7 +69,7 @@ type LossCalculatorResult struct {
 }
 
 // =============================================================================
-// ValidateLossInput — validasi input loss calculator
+// ValidateLossInput - validasi input loss calculator
 // =============================================================================
 
 // ValidateLossInput memvalidasi input loss calculator.
@@ -103,7 +103,7 @@ func ValidateLossInput(input LossCalculatorInput) error {
 }
 
 // =============================================================================
-// CalculateLoss — menghitung optical loss budget (pure function)
+// CalculateLoss - menghitung optical loss budget (pure function)
 // =============================================================================
 
 // CalculateLoss menghitung optical loss budget berdasarkan parameter input.
@@ -119,7 +119,7 @@ func ValidateLossInput(input LossCalculatorInput) error {
 //   - estimated_signal = sfp_tx_power - (total_loss - SafetyMargin)
 //   - feasible = remaining_margin > 0
 //
-// Fungsi pure — tidak ada side effect, cocok untuk property-based testing.
+// Fungsi pure - tidak ada side effect, cocok untuk property-based testing.
 func CalculateLoss(input LossCalculatorInput) LossCalculatorResult {
 	// Hitung loss per komponen
 	totalDistanceKm := input.DistanceOLTtoODPKm + input.DistanceODPtoONTKm

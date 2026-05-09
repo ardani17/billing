@@ -20,7 +20,7 @@ func NewLabelSettingsRepo(db DBTX) *LabelSettingsRepo {
 	return &LabelSettingsRepo{db: db}
 }
 
-// scanLabelSettings memindai satu baris hasil query ke domain.MapLabelSettings.
+// scanLabelSettings memindai satu baris hasil kueri ke domain.MapLabelSettings.
 func scanLabelSettings(row pgx.Row) (*domain.MapLabelSettings, error) {
 	var s domain.MapLabelSettings
 	err := row.Scan(
@@ -72,5 +72,5 @@ func (r *LabelSettingsRepo) Upsert(ctx context.Context, settings *domain.MapLabe
 	return result, nil
 }
 
-// Compile-time check: LabelSettingsRepo mengimplementasikan domain.LabelSettingsRepository.
+// Compile-time cek: LabelSettingsRepo mengimplementasikan domain.LabelSettingsRepository.
 var _ domain.LabelSettingsRepository = (*LabelSettingsRepo)(nil)

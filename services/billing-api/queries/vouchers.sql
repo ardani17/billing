@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel vouchers.
+-- Kueri SQL untuk operasi CRUD tabel vouchers.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel vouchers dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Query List dan ListByReseller dibangun secara dinamis di repository (sama seperti customer/package).
+-- Tabel vouchers dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: BulkCreateVouchers :copyfrom
 -- Bulk insert voucher baru menggunakan PostgreSQL COPY protocol.
@@ -37,7 +36,7 @@ WHERE id = $1
 RETURNING *;
 
 -- name: UpdateVoucherVoid :one
--- Memperbarui voucher menjadi void: set status, voided_at, dan updated_at.
+-- Memperbarui voucher menjadi void: atur status, voided_at, dan updated_at.
 UPDATE vouchers SET
     status = 'void',
     voided_at = NOW(),
@@ -46,7 +45,7 @@ WHERE id = $1
 RETURNING *;
 
 -- name: AssignVoucherToReseller :one
--- Meng-assign voucher ke reseller saat pembelian (set snapshot, purchased_at, expires_at).
+-- Meng-assign voucher ke reseller saat pembelian (atur snapshot, purchased_at, expires_at).
 UPDATE vouchers SET
     reseller_id = $2,
     status = 'terjual',
@@ -75,7 +74,7 @@ WHERE status = 'terjual' AND expires_at < NOW()
 LIMIT $1;
 
 -- name: VoucherCodeExists :one
--- Mengecek apakah kode voucher sudah ada di tenant (untuk collision check).
+-- Mengecek apakah kode voucher sudah ada di tenant (untuk collision cek).
 SELECT EXISTS(
     SELECT 1 FROM vouchers
     WHERE tenant_id = $1 AND code = $2
@@ -102,7 +101,7 @@ WHERE reseller_id = $1
   AND purchased_at < CURRENT_DATE + INTERVAL '1 day';
 
 -- name: UpdateVoucherExpired :one
--- Memperbarui voucher menjadi expired: set status dan updated_at.
+-- Memperbarui voucher menjadi expired: atur status dan updated_at.
 UPDATE vouchers SET
     status = 'expired',
     updated_at = NOW()

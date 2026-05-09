@@ -8,8 +8,7 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: reporting, Property 2: comparison delta calculation
-// **Validates: Requirements 1.3, 5.5, 7.7, 22.5**
+// **Memvalidasi: Kebutuhan 1.3, 5.5, 7.7, 22.5**
 //
 // Untuk dua nilai numerik (base_value dan compare_value),
 // delta_absolute HARUS sama dengan base_value - compare_value,
@@ -25,7 +24,7 @@ const epsilon = 1e-9
 // dan trend yang benar untuk semua kombinasi base dan compare values.
 func TestProperty_ComparisonDeltaCalculation(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate dua nilai float64 dalam range yang wajar untuk menghindari overflow
+		// Buat dua nilai float64 dalam range yang wajar untuk menghindari overflow
 		baseValue := rapid.Float64Range(-1e12, 1e12).Draw(t, "base_value")
 		compareValue := rapid.Float64Range(-1e12, 1e12).Draw(t, "compare_value")
 
@@ -107,22 +106,21 @@ func TestProperty_ComparisonDeltaZeroCompare(t *testing.T) {
 	})
 }
 
-// Feature: reporting, Property 8: linear regression prediction
-// **Validates: Requirements 21.2**
+// **Memvalidasi: Kebutuhan 21.2**
 //
-// Untuk set minimal 2 data points, hasil linear regression HARUS memenuhi:
+// Untuk atur minimal 2 titik data, hasil linear regression HARUS memenuhi:
 // - Predict(result, x) == result.Slope * x + result.Intercept untuk semua x
-// - Jika semua Y sama → slope == 0
-// - Jika 2 titik → R² == 1.0 (perfect fit)
+// - Jika semua Y sama -> slope == 0
+// - Jika 2 titik -> R² == 1.0 (perfect fit)
 // - Prediksi pada mean(X) mendekati mean(Y)
 
 const epsilonProp8 = 1e-6
 
 // TestProperty_LinearRegressionPredict memverifikasi bahwa Predict(result, x)
-// selalu sama dengan Slope*x + Intercept untuk semua x dan semua set data points.
+// selalu sama dengan Slope*x + Intercept untuk semua x dan semua atur titik data.
 func TestProperty_LinearRegressionPredict(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate minimal 2 data points dengan X dan Y dalam range wajar
+		// Buat minimal 2 titik data dengan X dan Y dalam range wajar
 		n := rapid.IntRange(2, 50).Draw(t, "n")
 		points := make([]DataPoint, n)
 		for i := 0; i < n; i++ {
@@ -132,7 +130,6 @@ func TestProperty_LinearRegressionPredict(t *testing.T) {
 			}
 		}
 
-		// Pastikan tidak semua X sama (agar regresi valid)
 		allXSame := true
 		for i := 1; i < len(points); i++ {
 			if points[i].X != points[0].X {
@@ -160,7 +157,7 @@ func TestProperty_LinearRegressionPredict(t *testing.T) {
 			}
 		}
 
-		// Verifikasi juga untuk setiap X dari data points
+		// Verifikasi juga untuk setiap X dari titik data
 		for i, p := range points {
 			predicted := Predict(result, p.X)
 			expected := result.Slope*p.X + result.Intercept
@@ -178,7 +175,7 @@ func TestProperty_LinearRegressionPredict(t *testing.T) {
 // bernilai sama, maka slope harus 0.
 func TestProperty_LinearRegressionConstantY(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate data points dengan Y konstan
+		// Buat titik data dengan Y konstan
 		n := rapid.IntRange(2, 50).Draw(t, "n")
 		constantY := rapid.Float64Range(-1e6, 1e6).Draw(t, "constant_y")
 		points := make([]DataPoint, n)
@@ -213,7 +210,7 @@ func TestProperty_LinearRegressionConstantY(t *testing.T) {
 // 2 titik data dengan Y berbeda, R² harus 1.0 (perfect fit).
 func TestProperty_LinearRegressionTwoPoints(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate 2 titik data dengan X dan Y dalam range wajar
+		// Buat 2 titik data dengan X dan Y dalam range wajar
 		// Menggunakan range yang cukup besar agar tidak ada masalah presisi float
 		x1 := rapid.Float64Range(-1e6, 1e6).Draw(t, "x1")
 		y1 := rapid.Float64Range(-1e6, 1e6).Draw(t, "y1")
@@ -249,7 +246,7 @@ func TestProperty_LinearRegressionTwoPoints(t *testing.T) {
 // pada mean(X) mendekati mean(Y).
 func TestProperty_LinearRegressionMeanPrediction(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate minimal 2 data points
+		// Buat minimal 2 titik data
 		n := rapid.IntRange(2, 50).Draw(t, "n")
 		points := make([]DataPoint, n)
 		for i := 0; i < n; i++ {
@@ -293,8 +290,7 @@ func TestProperty_LinearRegressionMeanPrediction(t *testing.T) {
 	})
 }
 
-// Feature: reporting, Property 10: insight generation berdasarkan delta terbesar
-// **Validates: Requirements 22.6**
+// **Memvalidasi: Kebutuhan 22.6**
 //
 // GenerateInsights mengembalikan 3-5 insight diurutkan berdasarkan
 // |delta_percentage| terbesar. Setiap insight mengandung nama metrik
@@ -306,11 +302,11 @@ func TestProperty_LinearRegressionMeanPrediction(t *testing.T) {
 // antara 0-5 (maksimal 5, minimal 3 jika ada cukup metrik signifikan).
 func TestProperty_InsightGenerationSortedByLargestDelta(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate 1-10 metrik perbandingan dengan delta signifikan (>= 1%)
+		// Buat 1-10 metrik perbandingan dengan delta signifikan (>= 1%)
 		n := rapid.IntRange(1, 10).Draw(t, "jumlah_metrik")
 		metrics := make([]ComparisonMetric, n)
 		for i := 0; i < n; i++ {
-			// Generate delta_percentage dengan |delta| >= 1% agar semua menghasilkan insight
+			// Buat delta_percentage dengan |delta| >= 1% agar semua menghasilkan insight
 			deltaPct := rapid.Float64Range(1.0, 500.0).Draw(t, fmt.Sprintf("abs_delta_%d", i))
 			// Acak arah positif atau negatif
 			if rapid.Bool().Draw(t, fmt.Sprintf("negatif_%d", i)) {
@@ -347,7 +343,7 @@ func TestProperty_InsightGenerationSortedByLargestDelta(t *testing.T) {
 // setiap insight mengandung nama metrik dan arah (naik/turun).
 func TestProperty_InsightContainsMetricNameAndDirection(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate 1-8 metrik dengan delta signifikan
+		// Buat 1-8 metrik dengan delta signifikan
 		n := rapid.IntRange(1, 8).Draw(t, "jumlah_metrik")
 		metrics := make([]ComparisonMetric, n)
 		for i := 0; i < n; i++ {
@@ -409,7 +405,7 @@ func TestProperty_InsightContainsMetricNameAndDirection(t *testing.T) {
 // |delta_percentage| < 1% tidak menghasilkan insight.
 func TestProperty_InsightSkipsSmallDelta(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate campuran metrik: beberapa signifikan, beberapa kecil (< 1%)
+		// Buat campuran metrik: beberapa signifikan, beberapa kecil (< 1%)
 		nSignifikan := rapid.IntRange(0, 5).Draw(t, "jumlah_signifikan")
 		nKecil := rapid.IntRange(1, 5).Draw(t, "jumlah_kecil")
 
@@ -427,7 +423,7 @@ func TestProperty_InsightSkipsSmallDelta(t *testing.T) {
 			})
 		}
 
-		// Metrik kecil (|delta| < 1%) — tidak boleh menghasilkan insight
+		// Metrik kecil (|delta| < 1%) - tidak boleh menghasilkan insight
 		for i := 0; i < nKecil; i++ {
 			deltaPct := rapid.Float64Range(-0.99, 0.99).Draw(t, fmt.Sprintf("kecil_delta_%d", i))
 			metrics = append(metrics, ComparisonMetric{
@@ -466,7 +462,6 @@ func TestProperty_InsightSkipsSmallDelta(t *testing.T) {
 }
 
 // TestProperty_InsightEmptyMetrics memverifikasi bahwa GenerateInsights
-// mengembalikan nil untuk input kosong.
 func TestProperty_InsightEmptyMetrics(t *testing.T) {
 	insights := GenerateInsights(nil)
 	if insights != nil {

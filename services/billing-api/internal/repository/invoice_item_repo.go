@@ -23,7 +23,7 @@ func NewInvoiceItemRepo(queries *Queries) *InvoiceItemRepo {
 	}
 }
 
-// --- Helper function untuk mapping sqlc InvoiceItem → domain.InvoiceItem ---
+// --- Helper function untuk mapping sqlc InvoiceItem -> domain.InvoiceItem ---
 
 // mapInvoiceItemRow memetakan InvoiceItem (sqlc model) ke domain.InvoiceItem.
 func mapInvoiceItemRow(row InvoiceItem) *domain.InvoiceItem {
@@ -98,7 +98,7 @@ func (r *InvoiceItemRepo) BulkCreate(ctx context.Context, items []*domain.Invoic
 	return r.listByInvoiceUUID(ctx, invoiceID)
 }
 
-// ListByInvoice mengambil semua item untuk invoice tertentu (urut berdasarkan sort_order).
+// ListByInvoice mengambil semua item untuk invoice tertentu (urut berdasarkan urut_order).
 func (r *InvoiceItemRepo) ListByInvoice(ctx context.Context, invoiceID string) ([]*domain.InvoiceItem, error) {
 	return r.listByInvoiceUUID(ctx, stringToUUID(invoiceID))
 }

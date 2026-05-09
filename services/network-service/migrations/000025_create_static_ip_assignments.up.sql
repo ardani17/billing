@@ -1,5 +1,5 @@
 -- Migration: create_static_ip_assignments
--- Managed static IP customers for MikroTik address-list and optional simple queue.
+-- Managed static IP customers untuk MikroTik address-list dan optional simple queue.
 
 CREATE TABLE static_ip_assignments (
     id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),

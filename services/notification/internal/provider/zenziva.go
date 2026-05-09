@@ -14,10 +14,10 @@ import (
 )
 
 // =============================================================================
-// ZenzivaAdapter — adapter untuk pengiriman pesan SMS via Zenziva API
+// ZenzivaAdapter - adapter untuk pengiriman pesan SMS via Zenziva API
 // =============================================================================
 
-// zenzivaDefaultURL adalah URL default endpoint Zenziva untuk pengiriman SMS reguler.
+// zenzivaDefaultURL adalah URL bawaan endpoint Zenziva untuk pengiriman SMS reguler.
 const zenzivaDefaultURL = "https://console.zenziva.net/reguler/api/sendsms/"
 
 // ZenzivaAdapter mengimplementasikan domain.SMSProvider menggunakan Zenziva HTTP API.
@@ -41,7 +41,7 @@ func NewZenzivaAdapter(apiKey, userKey string, timeout time.Duration) *ZenzivaAd
 	}
 }
 
-// zenzivaResponse merepresentasikan struktur response JSON dari Zenziva API.
+// zenzivaResponse merepresentasikan struktur respons JSON dari Zenziva API.
 type zenzivaResponse struct {
 	MessageID string `json:"messageId"`
 	Status    int    `json:"status"`
@@ -58,7 +58,7 @@ func (a *ZenzivaAdapter) Send(ctx context.Context, req domain.SMSMessage) (domai
 	formData.Set("to", req.Recipient)
 	formData.Set("message", req.Body)
 
-	// Buat HTTP request dengan context untuk mendukung timeout dan cancellation
+	// Buat HTTP permintaan dengan context untuk mendukung timeout dan cancellation
 	httpReq, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
@@ -75,7 +75,7 @@ func (a *ZenzivaAdapter) Send(ctx context.Context, req domain.SMSMessage) (domai
 	// Set header Content-Type untuk form data
 	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	// Kirim request ke Zenziva API
+	// Kirim permintaan ke Zenziva API
 	resp, err := a.httpClient.Do(httpReq)
 	if err != nil {
 		return domain.SendResult{
@@ -85,7 +85,7 @@ func (a *ZenzivaAdapter) Send(ctx context.Context, req domain.SMSMessage) (domai
 	}
 	defer resp.Body.Close()
 
-	// Baca response body
+	// Baca respons body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return domain.SendResult{
@@ -103,7 +103,7 @@ func (a *ZenzivaAdapter) Send(ctx context.Context, req domain.SMSMessage) (domai
 		}, fmt.Errorf("zenziva API error: %s", detail)
 	}
 
-	// Parse response JSON dari Zenziva
+	// Parsing respons JSON dari Zenziva
 	var zenzivaResp zenzivaResponse
 	if err := json.Unmarshal(body, &zenzivaResp); err != nil {
 		detail := fmt.Sprintf("gagal parse response JSON: %v", err)
@@ -113,7 +113,7 @@ func (a *ZenzivaAdapter) Send(ctx context.Context, req domain.SMSMessage) (domai
 		}, fmt.Errorf("gagal parse response zenziva: %w", err)
 	}
 
-	// Evaluasi status dari response Zenziva (status 1 = sukses, 0 = gagal)
+	// Evaluasi status dari respons Zenziva (status 1 = sukses, 0 = gagal)
 	if zenzivaResp.Status != 1 {
 		return domain.SendResult{
 			MessageID:   zenzivaResp.MessageID,

@@ -1,5 +1,5 @@
 -- Migrasi: membuat tabel billing_settings untuk menyimpan konfigurasi billing per tenant.
--- Mendukung pengaturan generate_days, grace_period, tax, penalty, invoice prefix, timezone, dan isolir.
+-- Mendukung pengaturan generate_days, grace_period, tax, denda, invoice prefix, timezone, dan isolir.
 -- Setiap tenant hanya memiliki satu baris billing_settings (UNIQUE pada tenant_id).
 -- Data dilindungi oleh RLS.
 

@@ -1,6 +1,6 @@
 -- Migrasi: membuat tabel expense_categories untuk menyimpan kategori pengeluaran per tenant.
 -- Setiap kategori dimiliki oleh satu tenant dan dilindungi oleh RLS.
--- Mendukung soft delete dan kategori default untuk tenant baru.
+-- Mendukung hapus lunak dan kategori bawaan untuk tenant baru.
 
 CREATE TABLE expense_categories (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),

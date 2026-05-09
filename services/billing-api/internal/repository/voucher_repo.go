@@ -20,7 +20,7 @@ type VoucherRepo struct {
 	// queries adalah sqlc-generated Queries untuk operasi voucher.
 	queries *Queries
 
-	// pool digunakan untuk dynamic list query (raw SQL dengan pgx).
+	// pool digunakan untuk dinamis list kueri (raw SQL dengan pgx).
 	pool *pgxpool.Pool
 }
 
@@ -42,7 +42,7 @@ func (r *VoucherRepo) dbtx() (DBTX, error) {
 	return nil, errors.New("repository: koneksi voucher tidak tersedia")
 }
 
-// --- Helper function untuk mapping sqlc Voucher → domain.Voucher ---
+// --- Helper function untuk mapping sqlc Voucher -> domain.Voucher ---
 
 // mapVoucherRow memetakan Voucher (sqlc model) ke domain.Voucher.
 func mapVoucherRow(row Voucher) *domain.Voucher {
@@ -119,7 +119,7 @@ func (r *VoucherRepo) BulkCreate(ctx context.Context, vouchers []*domain.Voucher
 		codes[i] = v.Code
 	}
 
-	// Query voucher yang baru dibuat berdasarkan tenant_id dan kode
+	// Kueri voucher yang baru dibuat berdasarkan tenant_id dan kode
 	tenantID := vouchers[0].TenantID
 	result := make([]*domain.Voucher, 0, len(vouchers))
 	for _, code := range codes {
@@ -165,7 +165,7 @@ func (r *VoucherRepo) GetByCode(ctx context.Context, tenantID, code string) (*do
 
 // UpdateStatus memperbarui status voucher dan mengembalikan voucher yang diperbarui.
 func (r *VoucherRepo) UpdateStatus(ctx context.Context, id string, status domain.VoucherStatus) (*domain.Voucher, error) {
-	// Gunakan query khusus untuk void agar voided_at juga di-set
+	// Gunakan kueri khusus untuk void agar voided_at juga di-atur
 	if status == domain.VoucherStatusVoid {
 		row, err := r.queries.UpdateVoucherVoid(ctx, stringToUUID(id))
 		if err != nil {
@@ -177,7 +177,7 @@ func (r *VoucherRepo) UpdateStatus(ctx context.Context, id string, status domain
 		return mapVoucherRow(row), nil
 	}
 
-	// Gunakan query khusus untuk expired
+	// Gunakan kueri khusus untuk expired
 	if status == domain.VoucherStatusExpired {
 		row, err := r.queries.UpdateVoucherExpired(ctx, stringToUUID(id))
 		if err != nil {
@@ -189,7 +189,7 @@ func (r *VoucherRepo) UpdateStatus(ctx context.Context, id string, status domain
 		return mapVoucherRow(row), nil
 	}
 
-	// Query umum untuk status lainnya
+	// Kueri umum untuk status lainnya
 	row, err := r.queries.UpdateVoucherStatus(ctx, UpdateVoucherStatusParams{
 		ID:     stringToUUID(id),
 		Status: string(status),
@@ -236,7 +236,7 @@ func (r *VoucherRepo) Activate(ctx context.Context, id string, expiresAt time.Ti
 	return mapVoucherRow(row), nil
 }
 
-// allowedVoucherSortColumns adalah whitelist kolom yang diizinkan untuk sorting voucher.
+// allowedVoucherSortColumns adalah whitelist kolom yang diizinkan untuk pengurutan voucher.
 // Mencegah SQL injection pada ORDER BY clause.
 var allowedVoucherSortColumns = map[string]string{
 	"code":         "v.code",
@@ -245,11 +245,11 @@ var allowedVoucherSortColumns = map[string]string{
 	"purchased_at": "v.purchased_at",
 }
 
-// List mengambil daftar voucher dengan dynamic filtering, search, sorting, dan pagination.
+// List mengambil daftar voucher dengan dinamis filtering, search, pengurutan, dan paginasi.
 // Menggunakan raw SQL karena sqlc tidak mendukung dynamic WHERE clause.
 // Termasuk joined field package_name dan reseller_name.
 func (r *VoucherRepo) List(ctx context.Context, params domain.VoucherListParams) (*domain.VoucherListResult, error) {
-	// Default values
+	// Nilai bawaan
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -257,17 +257,17 @@ func (r *VoucherRepo) List(ctx context.Context, params domain.VoucherListParams)
 		params.PageSize = 25
 	}
 
-	// Build WHERE clauses
+	// Bangun klausa WHERE
 	var conditions []string
 	var args []interface{}
 	argIdx := 1
 
-	// Tenant filter (wajib)
+	// Filter tenant (wajib)
 	conditions = append(conditions, fmt.Sprintf("v.tenant_id = $%d", argIdx))
 	args = append(args, stringToUUID(params.TenantID))
 	argIdx++
 
-	// Search filter (case-insensitive ILIKE pada code)
+	// Pencarian filter (case-insensitive ILIKE pada code)
 	if params.Search != "" {
 		searchPattern := "%" + params.Search + "%"
 		conditions = append(conditions, fmt.Sprintf("v.code ILIKE $%d", argIdx))
@@ -298,7 +298,7 @@ func (r *VoucherRepo) List(ctx context.Context, params domain.VoucherListParams)
 
 	whereClause := "WHERE " + strings.Join(conditions, " AND ")
 
-	// Count total
+	// Hitung total
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM vouchers v %s", whereClause)
 	var total int64
 	db, err := r.dbtx()
@@ -311,7 +311,7 @@ func (r *VoucherRepo) List(ctx context.Context, params domain.VoucherListParams)
 		return nil, fmt.Errorf("repository: gagal menghitung total voucher: %w", err)
 	}
 
-	// Build ORDER BY
+	// Bangun ORDER BY
 	orderBy := "v.created_at"
 	if params.SortBy != "" {
 		if col, ok := allowedVoucherSortColumns[params.SortBy]; ok {
@@ -323,10 +323,10 @@ func (r *VoucherRepo) List(ctx context.Context, params domain.VoucherListParams)
 		sortOrder = "DESC"
 	}
 
-	// Build pagination
+	// Bangun paginasi
 	offset := (params.Page - 1) * params.PageSize
 
-	// Build data query dengan joined package_name dan reseller_name
+	// Bangun data kueri dengan joined package_name dan reseller_name
 	dataQuery := fmt.Sprintf(`SELECT v.id, v.tenant_id, v.code, v.package_id, v.reseller_id,
 		v.status, v.sell_price_snapshot, v.reseller_price_snapshot,
 		v.purchased_at, v.activated_at, v.expires_at, v.voided_at,
@@ -417,17 +417,17 @@ func (r *VoucherRepo) List(ctx context.Context, params domain.VoucherListParams)
 	}, nil
 }
 
-// allowedResellerVoucherSortColumns adalah whitelist kolom sorting untuk list voucher reseller.
+// allowedResellerVoucherSortColumns adalah whitelist kolom pengurutan untuk list voucher reseller.
 var allowedResellerVoucherSortColumns = map[string]string{
 	"code":         "v.code",
 	"status":       "v.status",
 	"purchased_at": "v.purchased_at",
 }
 
-// ListByReseller mengambil daftar voucher milik reseller tertentu dengan filtering dan pagination.
+// ListByReseller mengambil daftar voucher milik reseller tertentu dengan filtering dan paginasi.
 // Menggunakan raw SQL karena sqlc tidak mendukung dynamic WHERE clause.
 func (r *VoucherRepo) ListByReseller(ctx context.Context, params domain.ResellerVoucherListParams) (*domain.VoucherListResult, error) {
-	// Default values
+	// Nilai bawaan
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -435,12 +435,12 @@ func (r *VoucherRepo) ListByReseller(ctx context.Context, params domain.Reseller
 		params.PageSize = 25
 	}
 
-	// Build WHERE clauses
+	// Bangun klausa WHERE
 	var conditions []string
 	var args []interface{}
 	argIdx := 1
 
-	// Tenant filter (wajib)
+	// Filter tenant (wajib)
 	conditions = append(conditions, fmt.Sprintf("v.tenant_id = $%d", argIdx))
 	args = append(args, stringToUUID(params.TenantID))
 	argIdx++
@@ -466,7 +466,7 @@ func (r *VoucherRepo) ListByReseller(ctx context.Context, params domain.Reseller
 
 	whereClause := "WHERE " + strings.Join(conditions, " AND ")
 
-	// Count total
+	// Hitung total
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM vouchers v %s", whereClause)
 	var total int64
 	db, err := r.dbtx()
@@ -479,7 +479,7 @@ func (r *VoucherRepo) ListByReseller(ctx context.Context, params domain.Reseller
 		return nil, fmt.Errorf("repository: gagal menghitung total voucher reseller: %w", err)
 	}
 
-	// Build ORDER BY
+	// Bangun ORDER BY
 	orderBy := "v.purchased_at"
 	if params.SortBy != "" {
 		if col, ok := allowedResellerVoucherSortColumns[params.SortBy]; ok {
@@ -491,10 +491,10 @@ func (r *VoucherRepo) ListByReseller(ctx context.Context, params domain.Reseller
 		sortOrder = "ASC"
 	}
 
-	// Build pagination
+	// Bangun paginasi
 	offset := (params.Page - 1) * params.PageSize
 
-	// Build data query dengan joined package_name
+	// Bangun data kueri dengan joined package_name
 	dataQuery := fmt.Sprintf(`SELECT v.id, v.tenant_id, v.code, v.package_id, v.reseller_id,
 		v.status, v.sell_price_snapshot, v.reseller_price_snapshot,
 		v.purchased_at, v.activated_at, v.expires_at, v.voided_at,
@@ -672,7 +672,7 @@ func (r *VoucherRepo) BulkAssign(ctx context.Context, ids []string, resellerID s
 }
 
 // AssignToReseller meng-assign voucher ke reseller saat pembelian.
-// Set snapshot harga, purchased_at, dan expires_at.
+// Atur snapshot harga, purchased_at, dan expires_at.
 func (r *VoucherRepo) AssignToReseller(ctx context.Context, id string, resellerID string, sellSnapshot, resellerSnapshot int64, expiresAt time.Time) (*domain.Voucher, error) {
 	row, err := r.queries.AssignVoucherToReseller(ctx, AssignVoucherToResellerParams{
 		ID:                    stringToUUID(id),

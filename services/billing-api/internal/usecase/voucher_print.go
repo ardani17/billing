@@ -1,4 +1,4 @@
-// voucher_print.go berisi business logic untuk generate PDF voucher.
+// voucher_print.go berisi business logic untuk buat PDF voucher.
 // Mengimplementasikan GeneratePDF pada VoucherPrintUsecase.
 // Saat ini menggunakan implementasi placeholder yang menghasilkan PDF sederhana berbasis teks.
 // Implementasi penuh dengan maroto/gofpdf akan ditambahkan kemudian.
@@ -15,7 +15,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// VoucherPrintUsecase mengimplementasikan business logic untuk generate PDF voucher.
+// VoucherPrintUsecase mengimplementasikan business logic untuk buat PDF voucher.
 type VoucherPrintUsecase struct {
 	voucherRepo domain.VoucherRepository
 	packageRepo domain.PackageRepository
@@ -37,14 +37,14 @@ func NewVoucherPrintUsecase(
 
 // voucherCardData berisi data yang ditampilkan pada setiap kartu voucher di PDF.
 type voucherCardData struct {
-	TenantName   string // nama tenant/ISP
-	TenantPhone  string // kontak tenant
-	VoucherCode  string // kode voucher
-	PackageName  string // nama paket
-	Bandwidth    string // bandwidth (download/upload)
-	Duration     string // durasi paket
-	SellPrice    int64  // harga jual
-	ExpiryDate   string // tanggal kedaluwarsa (jika ada)
+	TenantName  string // nama tenant/ISP
+	TenantPhone string // kontak tenant
+	VoucherCode string // kode voucher
+	PackageName string // nama paket
+	Bandwidth   string // bandwidth (download/upload)
+	Duration    string // durasi paket
+	SellPrice   int64  // harga jual
+	ExpiryDate  string // tanggal kedaluwarsa (jika ada)
 }
 
 // GeneratePDF menghasilkan PDF berisi kartu-kartu voucher dalam layout grid.
@@ -112,7 +112,7 @@ func (uc *VoucherPrintUsecase) GeneratePDF(ctx context.Context, voucherIDs []str
 				card.SellPrice = *pkg.SellPrice
 			}
 		} else {
-			// Fallback jika paket tidak ditemukan — gunakan data dari voucher
+			// Cadangan jika paket tidak ditemukan - gunakan data dari voucher
 			card.PackageName = v.PackageName
 			if v.SellPriceSnapshot != nil {
 				card.SellPrice = *v.SellPriceSnapshot
@@ -127,7 +127,7 @@ func (uc *VoucherPrintUsecase) GeneratePDF(ctx context.Context, voucherIDs []str
 		cards = append(cards, card)
 	}
 
-	// Generate PDF placeholder (teks sederhana)
+	// Buat PDF placeholder (teks sederhana)
 	// TODO: Ganti dengan implementasi maroto/gofpdf untuk layout grid A4 yang sebenarnya
 	pdfBytes, err := uc.generatePlaceholderPDF(cards)
 	if err != nil {

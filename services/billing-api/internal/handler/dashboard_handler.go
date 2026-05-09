@@ -1,4 +1,4 @@
-// dashboard_handler.go menangani HTTP request untuk dashboard widget.
+// dashboard_handler.go menangani HTTP permintaan untuk dashboard widget.
 // Termasuk: Dashboard (data ringkasan metrik kunci, target < 500ms).
 package handler
 
@@ -9,7 +9,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// DashboardHandler menangani HTTP request untuk dashboard widget.
+// DashboardHandler menangani HTTP permintaan untuk dashboard widget.
 type DashboardHandler struct {
 	reportUsecase domain.ReportUsecase
 	logger        zerolog.Logger
@@ -25,7 +25,7 @@ func NewDashboardHandler(reportUsecase domain.ReportUsecase, logger zerolog.Logg
 
 // Dashboard menangani GET /v1/reports/dashboard.
 // Mengembalikan data ringkasan untuk dashboard widget.
-// Target response time < 500ms (menggunakan Redis cache di usecase layer).
+// Target respons time < 500ms (menggunakan Redis cache di usecase layer).
 func (h *DashboardHandler) Dashboard(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {

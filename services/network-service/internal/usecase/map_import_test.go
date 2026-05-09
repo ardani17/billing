@@ -1,5 +1,4 @@
-// map_import_test.go — unit test untuk MapImportManager.
-// Menggunakan mock in-memory repository.
+// map_import_test.go - unit test untuk MapImportManager.
 // Semua komentar dalam Bahasa Indonesia.
 package usecase
 
@@ -13,7 +12,7 @@ import (
 )
 
 // =============================================================================
-// Unit Test 1: TestParseKML — verifikasi parsing file KML
+// Unit Tes 1: TestParseKML - verifikasi parsing file KML
 // =============================================================================
 
 // TestParseKML memverifikasi bahwa parseKMLImport mengekstrak placemark
@@ -65,7 +64,7 @@ func TestParseKML(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 2: TestParseKMZ — verifikasi ekstraksi KML dari KMZ
+// Unit Tes 2: TestParseKMZ - verifikasi ekstraksi KML dari KMZ
 // =============================================================================
 
 // TestParseKMZ memverifikasi bahwa parseKMZImport mengekstrak KML
@@ -109,7 +108,7 @@ func TestParseKMZ(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 3: TestParseGeoJSON — verifikasi parsing file GeoJSON
+// Unit Tes 3: TestParseGeoJSON - verifikasi parsing file GeoJSON
 // =============================================================================
 
 // TestParseGeoJSON memverifikasi bahwa parseGeoJSONImport mengekstrak
@@ -172,11 +171,10 @@ func TestParseGeoJSON(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 4: TestImportCoordinateValidation — verifikasi validasi koordinat
+// Unit Tes 4: TestImportCoordinateValidation - verifikasi validasi koordinat
 // =============================================================================
 
 // TestImportCoordinateValidation memverifikasi bahwa Execute menolak
-// item dengan koordinat di luar range valid.
 func TestImportCoordinateValidation(t *testing.T) {
 	nodeRepo := newMockMapNodeRepo()
 	cableRepo := newMockCableRouteRepo()
@@ -209,7 +207,6 @@ func TestImportCoordinateValidation(t *testing.T) {
 		t.Fatalf("Execute gagal: %v", err)
 	}
 
-	// Verifikasi: 1 sukses, 1 error (koordinat tidak valid)
 	if summary.Total != 2 {
 		t.Errorf("Total: got %d, want 2", summary.Total)
 	}

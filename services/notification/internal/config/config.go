@@ -1,4 +1,4 @@
-// Package config menyediakan konfigurasi aplikasi notification.
+// Paket config menyediakan konfigurasi aplikasi notification.
 // Memuat konfigurasi dari environment variables dan file .env menggunakan Viper.
 package config
 
@@ -47,8 +47,8 @@ type AppConfig struct {
 	SMTPTimeout    time.Duration `mapstructure:"SMTP_TIMEOUT"`
 }
 
-// Load memuat konfigurasi dari environment variables dan file .env.
-// Mengatur nilai default untuk variabel opsional.
+// Muat memuat konfigurasi dari environment variables dan file .env.
+// Mengatur nilai bawaan untuk variabel opsional.
 func Load() (*AppConfig, error) {
 	v := viper.New()
 
@@ -60,7 +60,7 @@ func Load() (*AppConfig, error) {
 	// Aktifkan pembacaan dari environment variables
 	v.AutomaticEnv()
 
-	// Atur nilai default untuk variabel opsional
+	// Atur nilai bawaan untuk variabel opsional
 	v.SetDefault("APP_NAME", "notification")
 	v.SetDefault("APP_ENV", "development")
 	v.SetDefault("APP_PORT", 3003)
@@ -112,7 +112,7 @@ func Load() (*AppConfig, error) {
 	return &cfg, nil
 }
 
-// Validate memeriksa bahwa semua variabel wajib sudah diisi.
+// Validasi memeriksa bahwa semua variabel wajib sudah diisi.
 // Mengembalikan error dengan daftar variabel yang hilang.
 func (c *AppConfig) Validate() error {
 	var missing []string
@@ -174,7 +174,7 @@ func (c *AppConfig) DSN() string {
 }
 
 // QueuePriorities mengembalikan prioritas queue untuk asynq worker.
-// critical: 6, default: 3, low: 1.
+// critical: 6, bawaan: 3, low: 1.
 func (c *AppConfig) QueuePriorities() map[string]int {
 	return map[string]int{
 		"critical": 6,

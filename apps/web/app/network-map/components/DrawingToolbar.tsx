@@ -29,7 +29,7 @@ const TOOLS: { mode: DrawingMode; icon: string; label: string }[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Component
+// Komponen
 // ---------------------------------------------------------------------------
 
 export default function DrawingToolbar({
@@ -62,7 +62,7 @@ export default function DrawingToolbar({
         </button>
       ))}
 
-      {/* Active mode indicator */}
+      {/* Active mode indicator*/}
       {activeMode && (
         <span className="ml-2 hidden text-xs text-gray-500 md:inline">
           {TOOLS.find((t) => t.mode === activeMode)?.label}

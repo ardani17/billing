@@ -1,5 +1,5 @@
 // Package middleware berisi Fiber middleware untuk notification service.
-// Termasuk autentikasi JWT, konteks tenant, dan logging request.
+// Termasuk autentikasi JWT, konteks tenant, dan logging permintaan.
 package middleware
 
 import (

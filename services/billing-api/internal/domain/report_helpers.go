@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// Report Helpers — pure functions untuk kalkulasi dan validasi laporan
+// Report Fungsi bantus - fungsi murni untuk kalkulasi dan validasi laporan
 // =============================================================================
 
 // BuildAgingReport mengelompokkan outstanding invoices ke aging buckets
@@ -54,9 +54,9 @@ func BuildRevenueByAreaTotal(areas []AreaRevenue) AreaRevenue {
 // Mengembalikan slice float64 dengan panjang sama dengan input, di mana setiap
 // elemen adalah persentase dari total (item_amount / total_amount * 100).
 // Kasus khusus:
-//   - Input kosong → return nil
-//   - Semua amount nol → distribusi merata (100 / jumlah item)
-//   - Satu item → return [100.0]
+//   - Input kosong -> mengembalikan nil
+//   - Semua nominal nol -> distribusi merata (100 / jumlah item)
+//   - Satu item -> mengembalikan [100.0]
 func CalculateDistribution(amounts []int64) []float64 {
 	if len(amounts) == 0 {
 		return nil
@@ -86,10 +86,10 @@ func CalculateDistribution(amounts []int64) []float64 {
 
 // ClassifyAgingBucket mengklasifikasikan jumlah hari tunggakan ke bucket aging
 // yang sesuai. Bucket yang tersedia:
-//   - "1-7 hari"   : overdue 1 sampai 7 hari
-//   - "8-14 hari"  : overdue 8 sampai 14 hari
-//   - "15-30 hari" : overdue 15 sampai 30 hari
-//   - "30+ hari"   : overdue lebih dari 30 hari
+//   - "1-7 hari"   : terlambat 1 sampai 7 hari
+//   - "8-14 hari"  : terlambat 8 sampai 14 hari
+//   - "15-30 hari" : terlambat 15 sampai 30 hari
+//   - "30+ hari"   : terlambat lebih dari 30 hari
 //
 // Invarian: setiap overdueDays >= 1 pasti masuk tepat satu bucket.
 func ClassifyAgingBucket(overdueDays int) string {
@@ -199,7 +199,7 @@ func SortAndLimitTopDebtors(debtors []TopDebtor, limit int) []TopDebtor {
 	sorted := make([]TopDebtor, len(debtors))
 	copy(sorted, debtors)
 
-	// Urutkan berdasarkan TotalOutstanding descending (insertion sort sederhana)
+	// Urutkan berdasarkan TotalOutstanding descending (insertion urut sederhana)
 	for i := 1; i < len(sorted); i++ {
 		key := sorted[i]
 		j := i - 1

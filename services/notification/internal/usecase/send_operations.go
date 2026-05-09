@@ -10,7 +10,7 @@ import (
 )
 
 // SendManual mengirim notifikasi manual ke pelanggan tertentu.
-// Mendukung template (substitusi variabel) atau custom body.
+// Mendukung template (substitusi variabel) atau kustom body.
 // Menghormati throttle (daily limit dan cooldown). Metadata: trigger="manual".
 func (p *DeliveryPipeline) SendManual(ctx context.Context, req domain.ManualSendRequest) (*domain.NotificationLog, error) {
 	cust, err := p.customerRepo.GetCustomerByID(ctx, req.CustomerID)
@@ -32,7 +32,7 @@ func (p *DeliveryPipeline) SendManual(ctx context.Context, req domain.ManualSend
 		return nil, domain.ErrDailyLimitExceeded
 	}
 
-	// Tentukan body: dari template atau custom body
+	// Tentukan body: dari template atau kustom body
 	var body, subject, templateID string
 	if req.TemplateID != "" {
 		tmpl, err := p.templateRepo.GetByID(ctx, req.TemplateID)
@@ -115,7 +115,7 @@ func (p *DeliveryPipeline) Resend(ctx context.Context, logID string) (*domain.No
 
 	s := p.getSettingsOrDefault(ctx, orig.TenantID)
 
-	// Cek quiet hours — jika di luar jam aktif, buat log pending
+	// Cek quiet hours - jika di luar jam aktif, buat log pending
 	if p.quietHours.IsQuietHours(time.Now(), s.Timezone, s.QuietHoursStart, s.QuietHoursEnd) {
 		sa := p.quietHours.CalculateScheduledAt(s.Timezone, s.QuietHoursStart)
 		return p.logRepo.Create(ctx, &domain.NotificationLog{
@@ -150,14 +150,14 @@ func (p *DeliveryPipeline) Resend(ctx context.Context, logID string) (*domain.No
 	})
 }
 
-// getSettingsOrDefault mengambil settings tenant, atau mengembalikan default.
+// getSettingsOrDefault mengambil settings tenant, atau mengembalikan bawaan.
 func (p *DeliveryPipeline) getSettingsOrDefault(ctx context.Context, tenantID string) *domain.ConfigSettings {
 	if s, err := p.configRepo.GetSettings(ctx, tenantID); err == nil && s != nil {
 		return s
 	}
 	return &domain.ConfigSettings{
 		ChannelPriority: []domain.Channel{domain.ChannelWhatsApp, domain.ChannelSMS, domain.ChannelEmail},
-		Timezone: "Asia/Jakarta", QuietHoursStart: "07:00", QuietHoursEnd: "21:00",
+		Timezone:        "Asia/Jakarta", QuietHoursStart: "07:00", QuietHoursEnd: "21:00",
 		DailyLimitPerCust: 5, CooldownMinutes: 30,
 	}
 }

@@ -1,7 +1,7 @@
--- Query SQL untuk operasi pada tabel invoice_audit_logs.
+-- Kueri SQL untuk operasi pada tabel invoice_audit_logs.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
 -- Tabel invoice_audit_logs bersifat append-only (hanya SELECT dan INSERT).
--- Dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateInvoiceAuditLog :one
 -- Membuat satu entri audit log invoice dan mengembalikan semua kolom.

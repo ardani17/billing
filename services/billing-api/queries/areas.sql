@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel areas.
+-- Kueri SQL untuk operasi CRUD tabel areas.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel areas dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel areas dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateArea :one
 INSERT INTO areas (tenant_id, name, description, odp_id, center_lat, center_lng)

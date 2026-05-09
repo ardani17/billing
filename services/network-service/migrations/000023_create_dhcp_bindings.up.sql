@@ -1,5 +1,5 @@
 -- Migration: create_dhcp_bindings
--- Managed DHCP static bindings for MikroTik routers.
+-- Managed DHCP static bindings untuk MikroTik routers.
 
 CREATE TABLE dhcp_bindings (
     id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),

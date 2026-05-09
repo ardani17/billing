@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// Konstanta Foto — batasan dan tipe file yang diizinkan untuk foto node
+// Konstanta Foto - batasan dan tipe file yang diizinkan untuk foto node
 // =============================================================================
 
 const (
@@ -32,7 +32,7 @@ func IsAllowedPhotoType(mimeType string) bool {
 }
 
 // =============================================================================
-// NodePhoto Entity — foto dokumentasi yang di-upload per node di peta
+// NodePhoto Entitas - foto dokumentasi yang di-upload per node di peta
 // =============================================================================
 
 // NodePhoto merepresentasikan foto yang di-upload per node untuk dokumentasi

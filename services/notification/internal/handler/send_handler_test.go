@@ -13,7 +13,6 @@ import (
 )
 
 // =============================================================================
-// Helper — membuat SendHandler dengan pipeline minimal (nil dependencies).
 // Validasi di handler terjadi sebelum pipeline dipanggil, sehingga aman.
 // =============================================================================
 
@@ -23,8 +22,8 @@ func newTestSendHandler() *SendHandler {
 }
 
 // =============================================================================
-// Test: SendHandler.TestSend — 422 saat template_id kosong
-// Validates: Requirements 15.1, 15.5
+// Tes: SendHandler.TestSend - 422 saat template_id kosong
+// Memvalidasi: Kebutuhan 15.1, 15.5
 // =============================================================================
 
 func TestSendHandler_TestSend_MissingTemplateID(t *testing.T) {
@@ -32,7 +31,6 @@ func TestSendHandler_TestSend_MissingTemplateID(t *testing.T) {
 	app := fiber.New()
 	app.Post("/api/v1/notifications/test", testTenantMiddleware("tenant-1"), handler.TestSend)
 
-	// Request tanpa template_id (kosong)
 	reqBody := domain.TestSendRequest{
 		TemplateID: "",
 		Channel:    domain.ChannelWhatsApp,
@@ -66,8 +64,8 @@ func TestSendHandler_TestSend_MissingTemplateID(t *testing.T) {
 }
 
 // =============================================================================
-// Test: SendHandler.ManualSend — 422 saat customer_id kosong
-// Validates: Requirements 16.1, 16.6
+// Tes: SendHandler.ManualSend - 422 saat customer_id kosong
+// Memvalidasi: Kebutuhan 16.1, 16.6
 // =============================================================================
 
 func TestSendHandler_ManualSend_MissingCustomerID(t *testing.T) {
@@ -75,7 +73,6 @@ func TestSendHandler_ManualSend_MissingCustomerID(t *testing.T) {
 	app := fiber.New()
 	app.Post("/api/v1/notifications/send", testTenantMiddleware("tenant-1"), handler.ManualSend)
 
-	// Request tanpa customer_id
 	reqBody := domain.ManualSendRequest{
 		CustomerID: "",
 		TemplateID: "tmpl-1",
@@ -109,8 +106,8 @@ func TestSendHandler_ManualSend_MissingCustomerID(t *testing.T) {
 }
 
 // =============================================================================
-// Test: SendHandler.ManualSend — 422 saat template_id dan custom_body kosong
-// Validates: Requirements 16.1
+// Tes: SendHandler.ManualSend - 422 saat template_id dan custom_body kosong
+// Memvalidasi: Kebutuhan 16.1
 // =============================================================================
 
 func TestSendHandler_ManualSend_MissingBodyAndTemplate(t *testing.T) {
@@ -118,7 +115,6 @@ func TestSendHandler_ManualSend_MissingBodyAndTemplate(t *testing.T) {
 	app := fiber.New()
 	app.Post("/api/v1/notifications/send", testTenantMiddleware("tenant-1"), handler.ManualSend)
 
-	// Request tanpa template_id dan tanpa custom_body
 	reqBody := domain.ManualSendRequest{
 		CustomerID: "cust-1",
 		TemplateID: "",
@@ -153,18 +149,16 @@ func TestSendHandler_ManualSend_MissingBodyAndTemplate(t *testing.T) {
 }
 
 // =============================================================================
-// Test: SendHandler.Resend — 400 saat ID kosong (empty path param)
-// Validates: Requirements 17.1, 17.3, 17.6
+// Tes: SendHandler.Resend - 400 saat ID kosong (empty path param)
+// Memvalidasi: Kebutuhan 17.1, 17.3, 17.6
 // =============================================================================
 
 func TestSendHandler_Resend_MissingID(t *testing.T) {
 	handler := newTestSendHandler()
 	app := fiber.New()
-	// Route dengan :id — Fiber akan mencocokkan path param
+	// Route dengan :id - Fiber akan mencocokkan path param
 	app.Post("/api/v1/notifications/logs/:id/resend", testTenantMiddleware("tenant-1"), handler.Resend)
 
-	// Request ke path tanpa ID (trailing slash sebelum resend)
-	// Fiber tidak akan mencocokkan route ini, sehingga akan return 404
 	req := httptest.NewRequest("POST", "/api/v1/notifications/logs//resend", nil)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req, -1)

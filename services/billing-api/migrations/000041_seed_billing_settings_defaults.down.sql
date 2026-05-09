@@ -1,1 +1,1 @@
--- No-op: default billing settings are safe tenant configuration data.
+-- No-op: bawaan billing settings are safe tenant configuration data.

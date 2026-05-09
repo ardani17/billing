@@ -1,6 +1,6 @@
 // comparison_engine.go berisi ComparisonEngine yang mengimplementasikan
 // domain.ComparisonUsecase untuk perbandingan metrik antar periode.
-// Mendukung MoM, YoY, QoQ, dan custom period comparison.
+// Mendukung MoM, YoY, QoQ, dan kustom period comparison.
 package usecase
 
 import (
@@ -33,12 +33,12 @@ func NewComparisonEngine(
 }
 
 // GetComparisonReport mengambil laporan perbandingan metrik antara dua periode.
-// Flow: tentukan comparison period → query metrik → hitung delta → generate insights.
+// Alur: tentukan comparison period -> kueri metrik -> hitung delta -> buat insights.
 func (ce *ComparisonEngine) GetComparisonReport(ctx context.Context, tenantID string, compType domain.ComparisonType, basePeriodStart, basePeriodEnd time.Time, comparePeriodStart, comparePeriodEnd *time.Time) (*domain.ComparisonReport, error) {
 	// Tentukan periode perbandingan berdasarkan tipe
 	compStart, compEnd := ce.resolveComparisonPeriod(compType, basePeriodStart, basePeriodEnd, comparePeriodStart, comparePeriodEnd)
 
-	// Query metrik untuk periode base
+	// Kueri metrik untuk periode base
 	baseRevenue, err := ce.aggregationRepo.GetRevenueSummary(ctx, tenantID, basePeriodStart, basePeriodEnd, "", "")
 	if err != nil {
 		ce.logger.Error().Err(err).Str("tenant_id", tenantID).Msg("gagal mengambil base revenue")
@@ -50,7 +50,7 @@ func (ce *ComparisonEngine) GetComparisonReport(ctx context.Context, tenantID st
 		ce.logger.Warn().Err(err).Msg("gagal mengambil base customer growth")
 	}
 
-	// Query metrik untuk periode comparison
+	// Kueri metrik untuk periode comparison
 	compRevenue, err := ce.aggregationRepo.GetRevenueSummary(ctx, tenantID, compStart, compEnd, "", "")
 	if err != nil {
 		ce.logger.Error().Err(err).Str("tenant_id", tenantID).Msg("gagal mengambil comparison revenue")
@@ -78,7 +78,7 @@ func (ce *ComparisonEngine) GetComparisonReport(ctx context.Context, tenantID st
 		metrics = append(metrics, ce.buildMetric("ARPU", float64(baseGrowth.ARPU), float64(compGrowth.ARPU)))
 	}
 
-	// Generate insights otomatis
+	// Buat insights otomatis
 	insights := domain.GenerateInsights(metrics)
 
 	return &domain.ComparisonReport{
@@ -103,11 +103,11 @@ func (ce *ComparisonEngine) resolveComparisonPeriod(compType domain.ComparisonTy
 		// Kuartal sebelumnya (3 bulan)
 		return baseStart.AddDate(0, -3, 0), baseEnd.AddDate(0, -3, 0)
 	case domain.ComparisonCustom:
-		// Periode custom dari parameter
+		// Periode kustom dari parameter
 		if customStart != nil && customEnd != nil {
 			return *customStart, *customEnd
 		}
-		// Fallback ke bulan sebelumnya jika custom period tidak disediakan
+		// Cadangan ke bulan sebelumnya jika kustom period tidak disediakan
 		return baseStart.AddDate(0, -1, 0), baseEnd.AddDate(0, -1, 0)
 	default:
 		return baseStart.AddDate(0, -1, 0), baseEnd.AddDate(0, -1, 0)

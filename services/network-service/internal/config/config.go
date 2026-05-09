@@ -1,4 +1,4 @@
-// Package config menyediakan konfigurasi aplikasi network-service.
+// Paket config menyediakan konfigurasi aplikasi network-service.
 // Memuat konfigurasi dari environment variables dan file .env menggunakan Viper.
 package config
 
@@ -39,18 +39,18 @@ type AppConfig struct {
 	// EncryptionKey adalah master key untuk enkripsi credential router (64 hex chars = 32 bytes)
 	EncryptionKey string `mapstructure:"ENCRYPTION_KEY"`
 
-	// SyncIntervalMinutes adalah interval periodic sync PPPoE user (default 15 menit)
+	// SyncIntervalMinutes adalah interval periodic sync PPPoE user (bawaan 15 menit)
 	SyncIntervalMinutes int `mapstructure:"SYNC_INTERVAL_MINUTES"`
 
-	// RouterHealthCheckEnabled mengaktifkan health check periodik ke RouterOS API.
-	// Default false agar router tidak menerima login API berulang saat idle.
+	// RouterHealthCheckEnabled mengaktifkan health cek periodik ke RouterOS API.
+	// Bawaan false agar router tidak menerima login API berulang saat idle.
 	RouterHealthCheckEnabled bool `mapstructure:"ROUTER_HEALTH_CHECK_ENABLED"`
 
 	// PPPoESyncSchedulerEnabled mengaktifkan sync PPPoE periodik ke RouterOS API.
-	// Default false; sync tetap bisa dipicu manual atau dari event operasional.
+	// Bawaan false; sync tetap bisa dipicu manual atau dari event operasional.
 	PPPoESyncSchedulerEnabled bool `mapstructure:"PPPOE_SYNC_SCHEDULER_ENABLED"`
 
-	// DefaultIsolirMethod adalah metode isolir default: "firewall_nat_redirect" atau "dns_redirect"
+	// DefaultIsolirMethod adalah metode isolir bawaan: "firewall_nat_redirect" atau "dns_redirect"
 	DefaultIsolirMethod string `mapstructure:"DEFAULT_ISOLIR_METHOD"`
 
 	// WalledGardenIP adalah IP address walled garden untuk redirect pelanggan terisolir
@@ -70,18 +70,32 @@ type AppConfig struct {
 	VPNServerCapacityMbps       int64  `mapstructure:"VPN_SERVER_CAPACITY_MBPS"`
 
 	// OLT Configuration
-	// OLTHealthCheckInterval adalah interval health check OLT dalam detik (default 300 = 5 menit)
+	// OLTHealthCheckEnabled mengaktifkan health cek periodik OLT.
+	// Bawaan false agar OLT tidak menerima polling berkala saat modul belum live.
+	OLTHealthCheckEnabled bool `mapstructure:"OLT_HEALTH_CHECK_ENABLED"`
+	// OLTSyncEnabled mengaktifkan periodic sync OLT.
+	// Bawaan false; sync tetap dapat ditambahkan sebagai aksi manual.
+	OLTSyncEnabled bool `mapstructure:"OLT_SYNC_ENABLED"`
+	// OLTSyncImmediateEnabled menjalankan sync pertama segera setelah sync engine start.
+	OLTSyncImmediateEnabled bool `mapstructure:"OLT_SYNC_IMMEDIATE_ENABLED"`
+	// OLTTrapEnabled mengaktifkan SNMP trap receiver.
+	// Bawaan false agar service tidak bind port trap tanpa konfigurasi eksplisit.
+	OLTTrapEnabled bool `mapstructure:"OLT_TRAP_ENABLED"`
+	// OLTProvisioningWriteEnabled mengizinkan command write provisioning ke OLT.
+	// Bawaan false agar operasi add/remove/reboot ONT harus diaktifkan eksplisit.
+	OLTProvisioningWriteEnabled bool `mapstructure:"OLT_PROVISIONING_WRITE_ENABLED"`
+	// OLTHealthCheckInterval adalah interval health cek OLT dalam detik (bawaan 300 = 5 menit)
 	OLTHealthCheckInterval int `mapstructure:"OLT_HEALTH_CHECK_INTERVAL"`
-	// OLTSyncInterval adalah interval periodic sync OLT dalam detik (default 1800 = 30 menit)
+	// OLTSyncInterval adalah interval periodic sync OLT dalam detik (bawaan 1800 = 30 menit)
 	OLTSyncInterval int `mapstructure:"OLT_SYNC_INTERVAL"`
-	// SNMPTrapPort adalah port untuk SNMP trap receiver (default 162)
+	// SNMPTrapPort adalah port untuk SNMP trap receiver (bawaan 162)
 	SNMPTrapPort int `mapstructure:"SNMP_TRAP_PORT"`
-	// MaxONTPerPort adalah jumlah maksimum ONT per PON port untuk capacity planning (default 64)
+	// MaxONTPerPort adalah jumlah maksimum ONT per PON port untuk capacity planning (bawaan 64)
 	MaxONTPerPort int `mapstructure:"MAX_ONT_PER_PORT"`
 }
 
-// Load memuat konfigurasi dari environment variables dan file .env.
-// Mengatur nilai default untuk variabel opsional.
+// Muat memuat konfigurasi dari environment variables dan file .env.
+// Mengatur nilai bawaan untuk variabel opsional.
 func Load() (*AppConfig, error) {
 	v := viper.New()
 
@@ -93,7 +107,7 @@ func Load() (*AppConfig, error) {
 	// Aktifkan pembacaan dari environment variables
 	v.AutomaticEnv()
 
-	// Atur nilai default untuk variabel opsional
+	// Atur nilai bawaan untuk variabel opsional
 	v.SetDefault("APP_NAME", "network-service")
 	v.SetDefault("APP_ENV", "development")
 	v.SetDefault("APP_PORT", 3002)
@@ -118,6 +132,11 @@ func Load() (*AppConfig, error) {
 	v.SetDefault("VPN_HEALTH_CHECK_INTERVAL", 30)
 	v.SetDefault("VPN_BANDWIDTH_COLLECT_INTERVAL", 30)
 	v.SetDefault("VPN_SERVER_CAPACITY_MBPS", 1000)
+	v.SetDefault("OLT_HEALTH_CHECK_ENABLED", false)
+	v.SetDefault("OLT_SYNC_ENABLED", false)
+	v.SetDefault("OLT_SYNC_IMMEDIATE_ENABLED", false)
+	v.SetDefault("OLT_TRAP_ENABLED", false)
+	v.SetDefault("OLT_PROVISIONING_WRITE_ENABLED", false)
 	v.SetDefault("OLT_HEALTH_CHECK_INTERVAL", 300)
 	v.SetDefault("OLT_SYNC_INTERVAL", 1800)
 	v.SetDefault("SNMP_TRAP_PORT", 162)
@@ -155,6 +174,11 @@ func Load() (*AppConfig, error) {
 		"VPN_HEALTH_CHECK_INTERVAL",
 		"VPN_BANDWIDTH_COLLECT_INTERVAL",
 		"VPN_SERVER_CAPACITY_MBPS",
+		"OLT_HEALTH_CHECK_ENABLED",
+		"OLT_SYNC_ENABLED",
+		"OLT_SYNC_IMMEDIATE_ENABLED",
+		"OLT_TRAP_ENABLED",
+		"OLT_PROVISIONING_WRITE_ENABLED",
 		"OLT_HEALTH_CHECK_INTERVAL",
 		"OLT_SYNC_INTERVAL",
 		"SNMP_TRAP_PORT",
@@ -176,7 +200,7 @@ func Load() (*AppConfig, error) {
 	return &cfg, nil
 }
 
-// Validate memeriksa bahwa semua variabel wajib sudah diisi.
+// Validasi memeriksa bahwa semua variabel wajib sudah diisi.
 // Mengembalikan error dengan daftar variabel yang hilang.
 func (c *AppConfig) Validate() error {
 	var missing []string

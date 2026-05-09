@@ -6,11 +6,11 @@ import (
 )
 
 // =============================================================================
-// Share Link Request DTOs — payload dari HTTP request untuk operasi share link
+// Share Link DTO permintaan - payload dari HTTP permintaan untuk operasi share link
 // =============================================================================
 
 // CreateShareLinkRequest adalah payload untuk POST /api/v1/network-map/share.
-// Digunakan untuk membuat share link read-only ke peta dengan opsi
+// Digunakan untuk membuat share link hanya baca ke peta dengan opsi
 // layer visibility, expiry, dan password protection.
 type CreateShareLinkRequest struct {
 	VisibleLayers json.RawMessage `json:"visible_layers" validate:"required"`
@@ -19,12 +19,12 @@ type CreateShareLinkRequest struct {
 }
 
 // =============================================================================
-// Share Link Response DTOs — format respons untuk operasi share link
+// Share Link Respons DTOs - format respons untuk operasi share link
 // =============================================================================
 
 // ShareLinkResponse adalah respons untuk operasi CRUD share link.
 // Berisi data share link lengkap termasuk token, URL, dan embed code
-// untuk berbagi peta read-only dengan pihak eksternal.
+// untuk berbagi peta hanya baca dengan pihak eksternal.
 type ShareLinkResponse struct {
 	ID            string          `json:"id"`
 	Token         string          `json:"token"`
@@ -39,7 +39,7 @@ type ShareLinkResponse struct {
 
 // SharedMapData adalah respons untuk GET /api/v1/network-map/share/:token.
 // Berisi data peta yang difilter berdasarkan visible_layers yang ditentukan
-// saat pembuatan share link. Digunakan untuk tampilan read-only publik.
+// saat pembuatan share link. Digunakan untuk tampilan hanya baca publik.
 type SharedMapData struct {
 	Nodes         []MapNodeWithRefResponse `json:"nodes"`
 	Cables        []CableRouteResponse     `json:"cables"`
@@ -47,7 +47,7 @@ type SharedMapData struct {
 }
 
 // =============================================================================
-// Shared Response DTOs — digunakan oleh beberapa DTO file lain
+// Shared Respons DTOs - digunakan oleh beberapa DTO file lain
 // =============================================================================
 
 // NodePhotoResponse adalah respons untuk data foto node.
@@ -75,7 +75,7 @@ type MapChangeHistoryResponse struct {
 }
 
 // =============================================================================
-// Geocoding DTOs — respons untuk reverse geocoding
+// Geocoding DTOs - respons untuk reverse geocoding
 // =============================================================================
 
 // GeocodingResult adalah respons untuk GET /api/v1/network-map/geocode/reverse.
@@ -83,20 +83,20 @@ type MapChangeHistoryResponse struct {
 // Jika provider gagal, field Error akan berisi pesan error dan
 // hanya Latitude/Longitude yang terisi.
 type GeocodingResult struct {
-	Address    string   `json:"address"`
-	Street     string   `json:"street,omitempty"`
-	Kelurahan  string   `json:"kelurahan,omitempty"`
-	Kecamatan  string   `json:"kecamatan,omitempty"`
-	City       string   `json:"city,omitempty"`
-	Province   string   `json:"province,omitempty"`
-	PostalCode string   `json:"postal_code,omitempty"`
-	Latitude   float64  `json:"latitude"`
-	Longitude  float64  `json:"longitude"`
-	Error      *string  `json:"error,omitempty"`
+	Address    string  `json:"address"`
+	Street     string  `json:"street,omitempty"`
+	Kelurahan  string  `json:"kelurahan,omitempty"`
+	Kecamatan  string  `json:"kecamatan,omitempty"`
+	City       string  `json:"city,omitempty"`
+	Province   string  `json:"province,omitempty"`
+	PostalCode string  `json:"postal_code,omitempty"`
+	Latitude   float64 `json:"latitude"`
+	Longitude  float64 `json:"longitude"`
+	Error      *string `json:"error,omitempty"`
 }
 
 // =============================================================================
-// Helper Functions — konversi entity ke response DTO
+// Fungsi bantu Functions - konversi entity ke respons DTO
 // =============================================================================
 
 // ToShareLinkResponse mengkonversi MapShareLink entity ke ShareLinkResponse DTO.

@@ -22,7 +22,7 @@ func NewAuditLogRepo(queries *Queries) *AuditLogRepo {
 	}
 }
 
-// --- Helper functions untuk mapping sqlc row → domain.AuditLog ---
+// --- Helper functions untuk mapping sqlc row -> domain.AuditLog ---
 
 // mapAuditLogRow memetakan AuditLog (sqlc model) ke domain.AuditLog.
 func mapAuditLogRow(row AuditLog) *domain.AuditLog {
@@ -52,7 +52,7 @@ func mapAuditLogRow(row AuditLog) *domain.AuditLog {
 
 // --- Implementasi domain.AuditLogRepository ---
 
-// Create membuat audit log entry baru.
+// Buat membuat audit log entry baru.
 func (r *AuditLogRepo) Create(ctx context.Context, log *domain.AuditLog) error {
 	var changesJSON []byte
 	if log.Changes != nil {
@@ -88,7 +88,7 @@ func (r *AuditLogRepo) Create(ctx context.Context, log *domain.AuditLog) error {
 	return nil
 }
 
-// ListByEntity mengambil semua audit log untuk entity tertentu.
+// ListByEntitas mengambil semua audit log untuk entity tertentu.
 // Diurutkan berdasarkan created_at DESC.
 func (r *AuditLogRepo) ListByEntity(ctx context.Context, entityType, entityID string) ([]*domain.AuditLog, error) {
 	rows, err := r.queries.ListAuditLogsByEntity(ctx, ListAuditLogsByEntityParams{

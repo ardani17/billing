@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// DTO: Expense — Request untuk CRUD pengeluaran
+// DTO: Expense - Permintaan untuk CRUD pengeluaran
 // =============================================================================
 
 // CreateExpenseRequest adalah payload untuk POST /v1/expenses.
@@ -59,7 +59,7 @@ type UpdateExpenseRequest struct {
 }
 
 // =============================================================================
-// DTO: Expense Category — Request untuk CRUD kategori pengeluaran
+// DTO: Expense Category - Permintaan untuk CRUD kategori pengeluaran
 // =============================================================================
 
 // CreateCategoryRequest adalah payload untuk POST /v1/expenses/categories.
@@ -75,7 +75,7 @@ type UpdateCategoryRequest struct {
 }
 
 // =============================================================================
-// DTO: Report Schedule — Request untuk CRUD jadwal laporan
+// DTO: Jadwal laporan - Permintaan untuk CRUD jadwal laporan
 // =============================================================================
 
 // CreateScheduleRequest adalah payload untuk POST /v1/reports/schedules.
@@ -83,7 +83,7 @@ type CreateScheduleRequest struct {
 	// ReportType adalah tipe laporan yang dijadwalkan.
 	ReportType string `json:"report_type" validate:"required"`
 
-	// ScheduleType adalah frekuensi jadwal (daily, weekly, monthly).
+	// ScheduleType adalah frekuensi jadwal (daily, weekly, bulanan).
 	ScheduleType string `json:"schedule_type" validate:"required,oneof=daily weekly monthly"`
 
 	// Format adalah format output laporan (pdf, xlsx).
@@ -110,7 +110,7 @@ type UpdateScheduleRequest struct {
 	// ReportType adalah tipe laporan yang dijadwalkan.
 	ReportType string `json:"report_type" validate:"omitempty"`
 
-	// ScheduleType adalah frekuensi jadwal (daily, weekly, monthly).
+	// ScheduleType adalah frekuensi jadwal (daily, weekly, bulanan).
 	ScheduleType string `json:"schedule_type" validate:"omitempty,oneof=daily weekly monthly"`
 
 	// Format adalah format output laporan (pdf, xlsx).
@@ -124,11 +124,10 @@ type UpdateScheduleRequest struct {
 }
 
 // =============================================================================
-// DTO: KPI Target — Request untuk update target KPI
 // =============================================================================
 
 // UpdateKPITargetRequest adalah payload untuk PUT /v1/reports/kpi-targets.
-// Semua field opsional — hanya field yang dikirim yang diupdate.
+// Semua field opsional - hanya field yang dikirim yang diupdate.
 type UpdateKPITargetRequest struct {
 	// MonthlyRevenueTarget adalah target pendapatan bulanan (Rupiah).
 	MonthlyRevenueTarget *int64 `json:"monthly_revenue_target,omitempty" validate:"omitempty,gt=0"`
@@ -159,10 +158,10 @@ type UpdateKPITargetRequest struct {
 }
 
 // =============================================================================
-// DTO: Custom Report Template — Request untuk buat template laporan custom
+// DTO: Template laporan kustom - Permintaan untuk buat template laporan kustom
 // =============================================================================
 
-// CreateTemplateRequest adalah payload untuk POST /v1/reports/custom/templates.
+// CreateTemplateRequest adalah payload untuk POST /v1/reports/kustom/templates.
 type CreateTemplateRequest struct {
 	// Name adalah nama template laporan.
 	Name string `json:"name" validate:"required,min=1,max=255"`
@@ -179,12 +178,12 @@ type CreateTemplateRequest struct {
 	// DisplayType adalah tipe tampilan laporan.
 	DisplayType string `json:"display_type" validate:"required,oneof=table bar_chart line_chart pie_chart"`
 
-	// DefaultPeriodRange adalah rentang periode default (opsional).
+	// DefaultPeriodRange adalah rentang periode bawaan (opsional).
 	DefaultPeriodRange string `json:"default_period_range,omitempty"`
 }
 
 // =============================================================================
-// DTO: Export — Request untuk export laporan
+// DTO: Export - Permintaan untuk export laporan
 // =============================================================================
 
 // ExportRequest adalah payload untuk POST /v1/reports/export.

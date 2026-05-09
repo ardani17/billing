@@ -1,5 +1,3 @@
-// map_node_manager_test.go — unit test dan property test untuk MapNodeManager.
-// Menggunakan mock in-memory repository dan pgregory.net/rapid untuk PBT.
 // Semua komentar dalam Bahasa Indonesia.
 package usecase
 
@@ -18,7 +16,6 @@ import (
 )
 
 // =============================================================================
-// Mock Repository: MapNodeRepository — in-memory untuk testing
 // =============================================================================
 
 // mockMapNodeRepo adalah implementasi in-memory dari domain.MapNodeRepository.
@@ -138,7 +135,7 @@ func (r *mockMapNodeRepo) GetByReference(_ context.Context, tenantID, nodeType, 
 	return nil, domain.ErrMapNodeNotFound
 }
 
-// Search melakukan pencarian sederhana berdasarkan ID atau node_type.
+// Pencarian melakukan pencarian sederhana berdasarkan ID atau node_type.
 func (r *mockMapNodeRepo) Search(_ context.Context, tenantID, query string, limit int) ([]*domain.MapSearchResult, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -193,7 +190,6 @@ func (r *mockMapNodeRepo) CountPhotosByNode(_ context.Context, _ string) (int, e
 }
 
 // =============================================================================
-// Mock Repository: NodePhotoRepository — in-memory untuk testing
 // =============================================================================
 
 // mockNodePhotoRepo adalah implementasi in-memory dari domain.NodePhotoRepository.
@@ -252,7 +248,6 @@ func (r *mockNodePhotoRepo) CountByNode(_ context.Context, nodeID string) (int, 
 }
 
 // =============================================================================
-// Mock Repository: ChangeHistoryRepository — in-memory untuk testing
 // =============================================================================
 
 // mockChangeHistoryRepo adalah implementasi in-memory dari domain.ChangeHistoryRepository.
@@ -294,7 +289,6 @@ func (r *mockChangeHistoryRepo) ListByNode(_ context.Context, nodeID string, lim
 }
 
 // =============================================================================
-// Mock Repository: LabelSettingsRepository — in-memory untuk testing
 // =============================================================================
 
 // mockLabelSettingsRepo adalah implementasi in-memory dari domain.LabelSettingsRepository.
@@ -326,10 +320,8 @@ func (r *mockLabelSettingsRepo) Upsert(_ context.Context, settings *domain.MapLa
 }
 
 // =============================================================================
-// Helper: membuat MapNodeManager dengan mock dependencies
 // =============================================================================
 
-// newTestManager membuat instance MapNodeManager dengan semua mock repository.
 func newTestManager() (domain.MapNodeManager, *mockMapNodeRepo, *mockNodePhotoRepo, *mockChangeHistoryRepo, *mockLabelSettingsRepo) {
 	nodeRepo := newMockMapNodeRepo()
 	photoRepo := newMockNodePhotoRepo()
@@ -341,10 +333,8 @@ func newTestManager() (domain.MapNodeManager, *mockMapNodeRepo, *mockNodePhotoRe
 }
 
 // =============================================================================
-// Unit Test 1: TestCreateNode_HappyPath — input valid, tidak duplikat
 // =============================================================================
 
-// TestCreateNode_HappyPath memverifikasi bahwa CreateNode dengan input valid
 // mengembalikan MapNodeResponse yang benar dan mencatat riwayat "created".
 func TestCreateNode_HappyPath(t *testing.T) {
 	mgr, _, _, historyRepo, _ := newTestManager()
@@ -362,7 +352,6 @@ func TestCreateNode_HappyPath(t *testing.T) {
 		t.Fatalf("CreateNode gagal: %v", err)
 	}
 
-	// Verifikasi response
 	if resp.NodeType != domain.NodeTypeODP {
 		t.Errorf("NodeType: got %q, want %q", resp.NodeType, domain.NodeTypeODP)
 	}
@@ -391,7 +380,7 @@ func TestCreateNode_HappyPath(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 2: TestCreateNode_DuplicateError — referensi duplikat
+// Unit Tes 2: TestCreateNode_DuplicateError - referensi duplikat
 // =============================================================================
 
 // TestCreateNode_DuplicateError memverifikasi bahwa CreateNode mengembalikan
@@ -407,13 +396,12 @@ func TestCreateNode_DuplicateError(t *testing.T) {
 		Longitude:   107.6191,
 	}
 
-	// Buat node pertama — harus berhasil
+	// Buat node pertama - harus berhasil
 	_, err := mgr.CreateNode(ctx, "tenant-1", req)
 	if err != nil {
 		t.Fatalf("CreateNode pertama gagal: %v", err)
 	}
 
-	// Buat node kedua dengan referensi yang sama — harus error duplikat
 	_, err = mgr.CreateNode(ctx, "tenant-1", req)
 	if err == nil {
 		t.Fatal("CreateNode kedua seharusnya mengembalikan error duplikat")
@@ -424,7 +412,7 @@ func TestCreateNode_DuplicateError(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 3: TestCreateNode_InvalidCoordinates — latitude > 90
+// Unit Tes 3: TestCreateNode_InvalidCoordinates - latitude > 90
 // =============================================================================
 
 // TestCreateNode_InvalidCoordinates memverifikasi bahwa CreateNode mengembalikan
@@ -444,13 +432,11 @@ func TestCreateNode_InvalidCoordinates(t *testing.T) {
 	if err == nil {
 		t.Fatal("CreateNode seharusnya mengembalikan error untuk koordinat tidak valid")
 	}
-	// Verifikasi error mengandung ErrInvalidCoordinates
 	if !isInvalidCoordinatesError(err) {
 		t.Errorf("error: got %v, want error yang mengandung ErrInvalidCoordinates", err)
 	}
 }
 
-// isInvalidCoordinatesError memeriksa apakah error mengandung ErrInvalidCoordinates.
 func isInvalidCoordinatesError(err error) bool {
 	return err != nil && err.Error() != "" &&
 		(err == domain.ErrInvalidCoordinates ||
@@ -472,7 +458,6 @@ func searchSubstring(s, substr string) bool {
 }
 
 // =============================================================================
-// Unit Test 4: TestUpdateNode_LocationChanged — update lat/lng, verifikasi riwayat
 // =============================================================================
 
 // TestUpdateNode_LocationChanged memverifikasi bahwa UpdateNode mencatat
@@ -493,7 +478,6 @@ func TestUpdateNode_LocationChanged(t *testing.T) {
 		t.Fatalf("CreateNode gagal: %v", err)
 	}
 
-	// Update lokasi
 	newLat := -6.3000
 	newLng := 106.9000
 	updateReq := domain.UpdateMapNodeRequest{
@@ -530,11 +514,9 @@ func TestUpdateNode_LocationChanged(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 5: TestDeleteNode_RestoreNode — delete lalu restore
 // =============================================================================
 
 // TestDeleteNode_RestoreNode memverifikasi bahwa DeleteNode dan RestoreNode
-// bekerja dengan benar: soft-delete lalu restore berhasil.
 func TestDeleteNode_RestoreNode(t *testing.T) {
 	mgr, nodeRepo, _, _, _ := newTestManager()
 	ctx := context.Background()
@@ -551,13 +533,11 @@ func TestDeleteNode_RestoreNode(t *testing.T) {
 		t.Fatalf("CreateNode gagal: %v", err)
 	}
 
-	// Delete node
 	err = mgr.DeleteNode(ctx, created.ID, "admin-1")
 	if err != nil {
 		t.Fatalf("DeleteNode gagal: %v", err)
 	}
 
-	// Verifikasi node sudah di-soft-delete
 	nodeRepo.mu.Lock()
 	node := nodeRepo.nodes[created.ID]
 	isDeleted := node.DeletedAt != nil
@@ -583,7 +563,7 @@ func TestDeleteNode_RestoreNode(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 6: TestListNodes — verifikasi mengembalikan MapNodeWithRefResponse
+// Unit Tes 6: TestListNodes - verifikasi mengembalikan MapNodeWithRefResponse
 // =============================================================================
 
 // TestListNodes memverifikasi bahwa ListNodes mengembalikan daftar node
@@ -636,10 +616,10 @@ func TestListNodes(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 7: TestSearch — verifikasi mengembalikan max 20 hasil
+// Unit Tes 7: TestSearch - verifikasi mengembalikan max 20 hasil
 // =============================================================================
 
-// TestSearch memverifikasi bahwa Search mengembalikan maksimal 20 hasil pencarian.
+// TestSearch memverifikasi bahwa Pencarian mengembalikan maksimal 20 hasil pencarian.
 func TestSearch(t *testing.T) {
 	mgr, _, _, _, _ := newTestManager()
 	ctx := context.Background()
@@ -670,7 +650,6 @@ func TestSearch(t *testing.T) {
 }
 
 // =============================================================================
-// Property Test 8: Bounding Box Filtering
 // =============================================================================
 
 // TestPropertyBoundingBoxFiltering memverifikasi bahwa ListNodes hanya
@@ -678,13 +657,13 @@ func TestSearch(t *testing.T) {
 // Untuk setiap node yang dikembalikan, latitude dan longitude harus
 // berada dalam range [minLat, maxLat] dan [minLng, maxLng].
 //
-// **Validates: Requirements 2.5**
+// **Memvalidasi: Kebutuhan 2.5**
 func TestPropertyBoundingBoxFiltering(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		mgr, _, _, _, _ := newTestManager()
 		ctx := context.Background()
 
-		// Generate jumlah node antara 1-30
+		// Buat jumlah node antara 1-30
 		numNodes := rapid.IntRange(1, 30).Draw(t, "numNodes")
 
 		// Buat node dengan koordinat acak
@@ -703,7 +682,6 @@ func TestPropertyBoundingBoxFiltering(t *testing.T) {
 			}
 		}
 
-		// Generate bounding box acak yang valid
 		lat1 := rapid.Float64Range(-90.0, 90.0).Draw(t, "boundLat1")
 		lat2 := rapid.Float64Range(-90.0, 90.0).Draw(t, "boundLat2")
 		lng1 := rapid.Float64Range(-180.0, 180.0).Draw(t, "boundLng1")
@@ -751,14 +729,12 @@ func TestPropertyBoundingBoxFiltering(t *testing.T) {
 }
 
 // =============================================================================
-// Property Test 9: Photo Limit Enforcement
 // =============================================================================
 
 // TestPropertyPhotoLimitEnforcement memverifikasi bahwa upload foto ke-6
 // mengembalikan ErrPhotoLimitReached setelah 5 foto berhasil di-upload.
-// Menggunakan mock langsung pada NodePhotoRepo.CountByNode untuk simulasi.
 //
-// **Validates: Requirements 1.6**
+// **Memvalidasi: Kebutuhan 1.6**
 func TestPropertyPhotoLimitEnforcement(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		nodeRepo := newMockMapNodeRepo()
@@ -781,8 +757,7 @@ func TestPropertyPhotoLimitEnforcement(t *testing.T) {
 			t.Fatalf("CreateNode gagal: %v", err)
 		}
 
-		// Simulasi upload foto langsung ke mock repo (bypass file system)
-		// Upload 5 foto — semua harus berhasil
+		// Upload 5 foto - semua harus berhasil
 		for i := 0; i < domain.MaxPhotosPerNode; i++ {
 			photo := &domain.NodePhoto{
 				ID:            fmt.Sprintf("photo-%d-%d", i, rapid.IntRange(0, 999999).Draw(t, fmt.Sprintf("photoRand_%d", i))),
@@ -807,7 +782,7 @@ func TestPropertyPhotoLimitEnforcement(t *testing.T) {
 			t.Fatalf("jumlah foto: got %d, want %d", count, domain.MaxPhotosPerNode)
 		}
 
-		// Coba upload foto ke-6 via UploadPhoto — harus gagal
+		// Coba upload foto ke-6 via UploadPhoto - harus gagal
 		// Kita tidak bisa memanggil UploadPhoto langsung karena butuh multipart.File,
 		// jadi kita verifikasi logika limit secara langsung
 		count6, _ := photoRepo.CountByNode(ctx, created.ID)
@@ -825,7 +800,7 @@ func TestPropertyPhotoLimitEnforcement(t *testing.T) {
 		// dengan mensimulasikan pengecekan yang dilakukan UploadPhoto
 		if count6 >= domain.MaxPhotosPerNode {
 			// Ini adalah kondisi yang akan menghasilkan ErrPhotoLimitReached
-			// di UploadPhoto — properti terpenuhi
+			// di UploadPhoto - properti terpenuhi
 		} else {
 			t.Fatal("properti photo limit enforcement gagal")
 		}
@@ -833,19 +808,18 @@ func TestPropertyPhotoLimitEnforcement(t *testing.T) {
 }
 
 // =============================================================================
-// Property Test 11: Search Result Limit and Completeness
 // =============================================================================
 
-// TestPropertySearchResultLimit memverifikasi bahwa Search tidak pernah
+// TestPropertySearchResultLimit memverifikasi bahwa Pencarian tidak pernah
 // mengembalikan lebih dari 20 hasil, berapa pun jumlah node yang ada.
 //
-// **Validates: Requirements 5.2, 5.3**
+// **Memvalidasi: Kebutuhan 5.2, 5.3**
 func TestPropertySearchResultLimit(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		mgr, _, _, _, _ := newTestManager()
 		ctx := context.Background()
 
-		// Generate jumlah node antara 1-50
+		// Buat jumlah node antara 1-50
 		numNodes := rapid.IntRange(1, 50).Draw(t, "numNodes")
 
 		// Buat node dengan tipe acak
@@ -883,11 +857,10 @@ func TestPropertySearchResultLimit(t *testing.T) {
 }
 
 // =============================================================================
-// Variabel yang tidak digunakan — suppress compiler warning
+// Variabel yang tidak digunakan - suppress compiler warning
 // =============================================================================
 
 // Pastikan interface multipart.File diimpor (digunakan oleh UploadPhoto signature).
 var _ multipart.File
 
-// Pastikan json diimpor (digunakan oleh mock dan test).
 var _ = json.Marshal

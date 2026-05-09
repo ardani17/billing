@@ -1,6 +1,5 @@
-// gateway_handler.go menangani endpoint konfigurasi payment gateway.
-// Termasuk: create, list, update, deactivate, dan test config.
-// Endpoint payment link dan walled garden ada di gateway_handler_link.go.
+// gateway_handler.go menangani endpoint konfigurasi gateway pembayaran.
+// Endpoint link pembayaran dan walled garden ada di gateway_handler_link.go.
 package handler
 
 import (
@@ -14,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// GatewayHandler menangani HTTP request untuk konfigurasi gateway dan payment link.
+// GatewayHandler menangani HTTP permintaan untuk konfigurasi gateway dan link pembayaran.
 type GatewayHandler struct {
 	gatewayUsecase *usecase.GatewayUsecase
 	webhookRepo    domain.WebhookLogRepository
@@ -115,7 +114,7 @@ func (h *GatewayHandler) UpdateConfig(c *fiber.Ctx) error {
 }
 
 // DeactivateConfig menangani DELETE /v1/settings/payment-gateways/:id.
-// Menonaktifkan konfigurasi gateway (soft delete).
+// Menonaktifkan konfigurasi gateway (hapus lunak).
 func (h *GatewayHandler) DeactivateConfig(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -132,7 +131,7 @@ func (h *GatewayHandler) DeactivateConfig(c *fiber.Ctx) error {
 }
 
 // TestConfig menangani POST /v1/settings/payment-gateways/:id/test.
-// Menguji koneksi dan kredensial ke payment gateway.
+// Menguji koneksi dan kredensial ke gateway pembayaran.
 func (h *GatewayHandler) TestConfig(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -147,7 +146,7 @@ func (h *GatewayHandler) TestConfig(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, result)
 }
 
-// mapGatewayError memetakan domain error ke HTTP error response untuk gateway.
+// mapGatewayError memetakan domain error ke HTTP error respons untuk gateway.
 func (h *GatewayHandler) mapGatewayError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrGatewayConfigNotFound):

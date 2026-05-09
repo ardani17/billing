@@ -1,6 +1,6 @@
 /**
- * Offline Manager — Service Worker registration and IndexedDB schema
- * for caching map tiles, node data, cable routes, and photo thumbnails.
+ * Offline Manager — Service Worker registration dan IndexedDB schema
+ * untuk caching map tiles, node data, cable routes, dan photo thumbnails.
  *
  * Max 100MB per area, expire after 7 days.
  */
@@ -35,33 +35,33 @@ function openDB(): Promise<IDBDatabase> {
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
 
-      // Nodes store — keyed by node ID
+      // Nodes store - keyed by node ID
       if (!db.objectStoreNames.contains(STORES.NODES)) {
         const nodeStore = db.createObjectStore(STORES.NODES, { keyPath: 'id' });
         nodeStore.createIndex('node_type', 'node_type', { unique: false });
         nodeStore.createIndex('cached_at', 'cached_at', { unique: false });
       }
 
-      // Cables store — keyed by cable ID
+      // Cables store - keyed by cable ID
       if (!db.objectStoreNames.contains(STORES.CABLES)) {
         const cableStore = db.createObjectStore(STORES.CABLES, { keyPath: 'id' });
         cableStore.createIndex('cached_at', 'cached_at', { unique: false });
       }
 
-      // Tiles store — keyed by tile URL
+      // Tiles store - keyed by tile URL
       if (!db.objectStoreNames.contains(STORES.TILES)) {
         const tileStore = db.createObjectStore(STORES.TILES, { keyPath: 'url' });
         tileStore.createIndex('cached_at', 'cached_at', { unique: false });
       }
 
-      // Photos store — keyed by photo ID
+      // Photos store - keyed by photo ID
       if (!db.objectStoreNames.contains(STORES.PHOTOS)) {
         const photoStore = db.createObjectStore(STORES.PHOTOS, { keyPath: 'id' });
         photoStore.createIndex('map_node_id', 'map_node_id', { unique: false });
         photoStore.createIndex('cached_at', 'cached_at', { unique: false });
       }
 
-      // Pending changes store — keyed by auto-increment
+      // Pending changes store - keyed by auto-increment
       if (!db.objectStoreNames.contains(STORES.PENDING_CHANGES)) {
         const changeStore = db.createObjectStore(STORES.PENDING_CHANGES, {
           keyPath: 'id',
@@ -70,7 +70,7 @@ function openDB(): Promise<IDBDatabase> {
         changeStore.createIndex('created_at', 'created_at', { unique: false });
       }
 
-      // Meta store — for cache metadata
+      // Store meta - untuk metadata cache
       if (!db.objectStoreNames.contains(STORES.META)) {
         db.createObjectStore(STORES.META, { keyPath: 'key' });
       }
@@ -136,42 +136,40 @@ export interface PendingChange {
   created_at: string;
 }
 
-/** Cache nodes to IndexedDB. */
+/** Simpan cache node ke IndexedDB.*/
 export async function cacheNodes(nodes: Record<string, unknown>[]): Promise<void> {
   await putItems(STORES.NODES, nodes);
 }
 
-/** Get cached nodes from IndexedDB. */
+/** Ambil cache node dari IndexedDB.*/
 export async function getCachedNodes(): Promise<Record<string, unknown>[]> {
   return getAllItems(STORES.NODES);
 }
 
-/** Cache cables to IndexedDB. */
+/** Simpan cache kabel ke IndexedDB.*/
 export async function cacheCables(cables: Record<string, unknown>[]): Promise<void> {
   await putItems(STORES.CABLES, cables);
 }
 
-/** Get cached cables from IndexedDB. */
+/** Ambil cache kabel dari IndexedDB.*/
 export async function getCachedCables(): Promise<Record<string, unknown>[]> {
   return getAllItems(STORES.CABLES);
 }
 
-/** Store a pending change for later sync. */
 export async function addPendingChange(change: Omit<PendingChange, 'id'>): Promise<void> {
   await putItems(STORES.PENDING_CHANGES, [change]);
 }
 
-/** Get all pending changes. */
+/** Ambil semua perubahan pending.*/
 export async function getPendingChanges(): Promise<PendingChange[]> {
   return getAllItems(STORES.PENDING_CHANGES);
 }
 
-/** Clear all pending changes after successful sync. */
 export async function clearPendingChanges(): Promise<void> {
   await clearStore(STORES.PENDING_CHANGES);
 }
 
-/** Remove expired cache entries (older than 7 days). */
+/** Hapus entri cache kedaluwarsa yang lebih lama dari 7 hari.*/
 export async function cleanExpiredCache(): Promise<void> {
   const expiryDate = new Date();
   expiryDate.setDate(expiryDate.getDate() - CACHE_EXPIRY_DAYS);
@@ -201,7 +199,7 @@ export async function cleanExpiredCache(): Promise<void> {
   }
 }
 
-/** Register the service worker for offline tile caching. */
+/** Daftarkan service worker untuk cache tile offline.*/
 export async function registerServiceWorker(): Promise<void> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
     return;
@@ -216,7 +214,7 @@ export async function registerServiceWorker(): Promise<void> {
   }
 }
 
-/** Get estimated cache size in bytes. */
+/** Ambil estimasi ukuran cache dalam byte.*/
 export async function getCacheSize(): Promise<number> {
   if (navigator.storage && navigator.storage.estimate) {
     const estimate = await navigator.storage.estimate();
@@ -225,7 +223,7 @@ export async function getCacheSize(): Promise<number> {
   return 0;
 }
 
-/** Check if cache size exceeds the limit. */
+/** Cek apakah ukuran cache melebihi batas.*/
 export async function isCacheFull(): Promise<boolean> {
   const size = await getCacheSize();
   return size >= MAX_CACHE_SIZE_BYTES;

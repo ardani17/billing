@@ -16,10 +16,8 @@ import (
 )
 
 // =============================================================================
-// Mock repositories untuk IsolirHandler tests
 // =============================================================================
 
-// mockIsolirCustomerRepo implementasi mock CustomerRepository.
 type mockIsolirCustomerRepo struct {
 	customers map[string]*domain.Customer
 }
@@ -89,7 +87,6 @@ func (m *mockIsolirCustomerRepo) SearchForPayment(_ context.Context, _, _ string
 	return nil, nil
 }
 
-// mockIsolirInvoiceRepo implementasi mock InvoiceRepository.
 type mockIsolirInvoiceRepo struct {
 	invoices map[string]*domain.Invoice
 }
@@ -197,7 +194,6 @@ func (m *mockIsolirInvoiceRepo) CountOutstandingInvoices(_ context.Context, cust
 	return count, nil
 }
 
-// mockIsolirInvoiceItemRepo implementasi mock InvoiceItemRepository.
 type mockIsolirInvoiceItemRepo struct {
 	items map[string][]*domain.InvoiceItem // invoiceID -> items
 }
@@ -220,7 +216,6 @@ func (m *mockIsolirInvoiceItemRepo) DeleteByInvoice(_ context.Context, invoiceID
 	return nil
 }
 
-// mockIsolirPendingSyncRepo implementasi mock PendingSyncRepository.
 type mockIsolirPendingSyncRepo struct {
 	syncs map[string]*domain.PendingSync
 }
@@ -338,7 +333,6 @@ func (m *mockIsolirPendingSyncRepo) CountByTenantAndStatuses(_ context.Context, 
 	return count, nil
 }
 
-// mockIsolirSettingsRepo implementasi mock BillingSettingsRepository.
 type mockIsolirSettingsRepo struct{}
 
 func (m *mockIsolirSettingsRepo) GetByTenantID(_ context.Context, _ string) (*domain.BillingSettings, error) {
@@ -351,7 +345,6 @@ func (m *mockIsolirSettingsRepo) ListAll(_ context.Context) ([]*domain.BillingSe
 	return nil, nil
 }
 
-// mockIsolirAuditLogRepo implementasi mock InvoiceAuditLogRepository.
 type mockIsolirAuditLogRepo struct{}
 
 func (m *mockIsolirAuditLogRepo) Create(_ context.Context, _ *domain.InvoiceAuditLog) error {
@@ -362,7 +355,6 @@ func (m *mockIsolirAuditLogRepo) ListByInvoice(_ context.Context, _ string) ([]*
 }
 
 // =============================================================================
-// Setup helper — membuat Fiber app dengan IsolirHandler dan mock repos
 // =============================================================================
 
 type isolirTestSetup struct {
@@ -373,7 +365,6 @@ type isolirTestSetup struct {
 	pendingSyncRepo *mockIsolirPendingSyncRepo
 }
 
-// setupIsolirTestApp membuat Fiber app dengan IsolirHandler yang di-back oleh mock repos.
 func setupIsolirTestApp() *isolirTestSetup {
 	customerRepo := newMockIsolirCustomerRepo()
 	invoiceRepo := newMockIsolirInvoiceRepo()
@@ -388,7 +379,7 @@ func setupIsolirTestApp() *isolirTestSetup {
 		pendingSyncRepo,
 		&mockIsolirSettingsRepo{},
 		&mockIsolirAuditLogRepo{},
-		nil, // pool — nil karena kita test handler layer
+		nil, // pool - nil karena kita test handler layer
 		nil, // queueClient
 		logger,
 	)
@@ -397,7 +388,7 @@ func setupIsolirTestApp() *isolirTestSetup {
 
 	app := fiber.New()
 
-	// Middleware untuk set locals (simulasi auth middleware)
+	// Middleware untuk atur locals (simulasi auth middleware)
 	setLocals := func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "test-tenant-id")
 		c.Locals("user_id", "test-user-id")
@@ -427,7 +418,6 @@ func setupIsolirTestApp() *isolirTestSetup {
 	}
 }
 
-// parseIsolirAPIResponse membaca dan parse response body ke APIResponse.
 func parseIsolirAPIResponse(t *testing.T, resp *io.ReadCloser) domain.APIResponse {
 	t.Helper()
 	body, err := io.ReadAll(*resp)
@@ -442,7 +432,6 @@ func parseIsolirAPIResponse(t *testing.T, resp *io.ReadCloser) domain.APIRespons
 }
 
 // =============================================================================
-// Test: ManualSync — 200 success, 404 no pending sync, 400 invalid UUID
 // =============================================================================
 
 func TestIsolirHandler_ManualSync_Success(t *testing.T) {
@@ -516,7 +505,6 @@ func TestIsolirHandler_ManualSync_InvalidUUID(t *testing.T) {
 }
 
 // =============================================================================
-// Test: ManualSyncAll — 200 success with count
 // =============================================================================
 
 func TestIsolirHandler_ManualSyncAll_Success(t *testing.T) {
@@ -560,7 +548,6 @@ func TestIsolirHandler_ManualSyncAll_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: ListPendingSyncs — 200 with pagination, filter by status
 // =============================================================================
 
 func TestIsolirHandler_ListPendingSyncs_Success(t *testing.T) {
@@ -628,7 +615,6 @@ func TestIsolirHandler_ListPendingSyncs_FilterByStatus(t *testing.T) {
 }
 
 // =============================================================================
-// Test: Summary — 200 with correct structure
 // =============================================================================
 
 func TestIsolirHandler_Summary_Success(t *testing.T) {
@@ -672,7 +658,6 @@ func TestIsolirHandler_Summary_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: WaivePenalty — 200 success, 404 not found, 422 no penalty, 422 not editable
 // =============================================================================
 
 func TestIsolirHandler_WaivePenalty_Success(t *testing.T) {
@@ -733,7 +718,7 @@ func TestIsolirHandler_WaivePenalty_NoPenalty(t *testing.T) {
 		InvoiceNumber: "INV-002", Subtotal: 100000, PenaltyAmount: 0,
 		TotalAmount: 100000, Status: domain.InvoiceStatusTerlambat,
 	}
-	// Hanya item biasa, tanpa penalty
+	// Hanya item biasa, tanpa denda
 	setup.invoiceItemRepo.items[invID] = []*domain.InvoiceItem{
 		{ID: "item-1", InvoiceID: invID, ItemType: domain.ItemTypeMonthly, Amount: 100000},
 	}
@@ -779,7 +764,6 @@ func TestIsolirHandler_WaivePenalty_NotEditable(t *testing.T) {
 }
 
 // =============================================================================
-// Test: Reactivate — 200 success, 404 not found, 422 outstanding invoices, 422 invalid status
 // =============================================================================
 
 func TestIsolirHandler_Reactivate_Success(t *testing.T) {
@@ -853,7 +837,6 @@ func TestIsolirHandler_Reactivate_OutstandingInvoices(t *testing.T) {
 		body, _ := io.ReadAll(resp.Body)
 		t.Fatalf("expected 422, got %d: %s", resp.StatusCode, string(body))
 	}
-	// Verifikasi error code
 	body, _ := io.ReadAll(resp.Body)
 	var apiResp domain.APIResponse
 	json.Unmarshal(body, &apiResp)

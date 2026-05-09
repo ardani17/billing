@@ -12,34 +12,34 @@ import {
   ReferenceLine,
 } from "recharts";
 
-/** Konfigurasi satu line dalam chart */
+/** Konfigurasi satu line dalam chart*/
 export interface LineConfig {
   dataKey: string;
   name: string;
   color: string;
-  /** Garis putus-putus (untuk proyeksi/forecast) */
+  /** Garis putus-putus (untuk proyeksi/forecast)*/
   dashed?: boolean;
 }
 
 interface LineChartProps {
-  /** Data array untuk chart */
+  /** Data array untuk chart*/
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: readonly any[];
-  /** Key untuk sumbu X */
+  /** Key untuk sumbu X*/
   xKey: string;
-  /** Konfigurasi line(s) */
+  /** Konfigurasi line(s)*/
   lines: LineConfig[];
-  /** Tinggi chart dalam pixel */
+  /** Tinggi chart dalam pixel*/
   height?: number;
-  /** Formatter untuk tooltip value */
+  /** Formatter untuk tooltip value*/
   valueFormatter?: (value: number) => string;
-  /** Formatter untuk label sumbu X */
+  /** Formatter untuk label sumbu X*/
   xFormatter?: (value: string) => string;
-  /** Garis referensi horizontal (contoh: target KPI) */
+  /** Garis referensi horizontal (contoh: target KPI)*/
   referenceLine?: { value: number; label: string; color?: string };
-  /** Tampilkan grid */
+  /** Tampilkan grid*/
   showGrid?: boolean;
-  /** Tampilkan legend */
+  /** Tampilkan legend*/
   showLegend?: boolean;
 }
 

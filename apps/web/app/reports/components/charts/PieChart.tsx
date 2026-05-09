@@ -16,17 +16,17 @@ interface PieChartDataItem {
 }
 
 interface PieChartProps {
-  /** Data array untuk chart */
+  /** Data array untuk chart*/
   data: PieChartDataItem[];
-  /** Tinggi chart dalam pixel */
+  /** Tinggi chart dalam pixel*/
   height?: number;
-  /** Formatter untuk tooltip value */
+  /** Formatter untuk tooltip value*/
   valueFormatter?: (value: number) => string;
-  /** Tampilkan sebagai donut chart */
+  /** Tampilkan sebagai donut chart*/
   donut?: boolean;
-  /** Tampilkan legend */
+  /** Tampilkan legend*/
   showLegend?: boolean;
-  /** Warna kustom (opsional, default menggunakan palet bawaan) */
+  /** Warna kustom (opsional, bawaan menggunakan palet bawaan)*/
   colors?: string[];
 }
 

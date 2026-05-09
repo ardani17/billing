@@ -77,7 +77,7 @@ func (p *DeliveryPipeline) ProcessEvent(ctx context.Context, env *queue.TaskEnve
 		p.mkLog(ctx, tid, cid, tmpl.ID, domain.ChannelWhatsApp, cust.Phone, "-", domain.StatusSkipped, dk, map[string]interface{}{"reason": "duplicate"})
 		return nil
 	}
-	// Ambil settings tenant (default jika belum ada)
+	// Ambil settings tenant (bawaan jika belum ada)
 	s, _ := p.configRepo.GetSettings(ctx, tid)
 	if s == nil {
 		s = &domain.ConfigSettings{ChannelPriority: []domain.Channel{domain.ChannelWhatsApp, domain.ChannelSMS, domain.ChannelEmail}, Timezone: "Asia/Jakarta", QuietHoursStart: "07:00", QuietHoursEnd: "21:00", DailyLimitPerCust: 5, CooldownMinutes: 30}
@@ -110,7 +110,7 @@ func (p *DeliveryPipeline) ProcessEvent(ctx context.Context, env *queue.TaskEnve
 			data[k] = sv
 		}
 	}
-	// Pilih channel dan kirim dengan retry + fallback
+	// Pilih channel dan kirim dengan retry + cadangan
 	cfgs, _ := p.configRepo.GetByTenant(ctx, tid)
 	return p.sendRetry(ctx, tmpl, p.pickChannels(s.ChannelPriority, tmpl.Channels, cfgs), cfgs, data, cust, dk, tid, cid)
 }
@@ -135,7 +135,7 @@ func (p *DeliveryPipeline) pickChannels(prio, tmplCh []domain.Channel, cfgs []*d
 	return out
 }
 
-// sendRetry mengirim notifikasi: 3 percobaan per channel, lalu fallback ke channel berikutnya.
+// sendRetry mengirim notifikasi: 3 percobaan per channel, lalu cadangan ke channel berikutnya.
 func (p *DeliveryPipeline) sendRetry(ctx context.Context, tmpl *domain.NotificationTemplate, chs []domain.Channel, cfgs []*domain.NotificationConfig, data map[string]string, cust *repository.CustomerData, dk, tid, cid string) error {
 	var lastErr string
 	for _, ch := range chs {

@@ -1,7 +1,7 @@
 -- Migration: create_provisioning_audit_logs_table
 -- Tabel audit trail append-only untuk semua provisioning command.
--- Mencatat setiap CLI command yang dikirim ke OLT beserta response-nya.
--- Tidak ada operasi update atau delete pada tabel ini.
+-- Mencatat setiap CLI command yang dikirim ke OLT beserta respons-nya.
+-- Tidak ada operasi perbarui atau hapus pada tabel ini.
 
 CREATE TABLE provisioning_audit_logs (
     id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -18,16 +18,16 @@ CREATE TABLE provisioning_audit_logs (
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index untuk query per OLT
+-- Index untuk kueri per OLT
 CREATE INDEX idx_audit_olt
     ON provisioning_audit_logs (olt_id, created_at DESC);
 
--- Index untuk query per ONT
+-- Index untuk kueri per ONT
 CREATE INDEX idx_audit_ont
     ON provisioning_audit_logs (ont_id, created_at DESC)
     WHERE ont_id IS NOT NULL;
 
--- Index untuk query per tenant dan tanggal
+-- Index untuk kueri per tenant dan tanggal
 CREATE INDEX idx_audit_tenant
     ON provisioning_audit_logs (tenant_id, created_at DESC);
 

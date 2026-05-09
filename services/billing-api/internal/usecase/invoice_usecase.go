@@ -1,5 +1,5 @@
 // invoice_usecase.go berisi business logic untuk manajemen invoice (CRUD).
-// Mengimplementasikan Create dan CreatePrepaid pada InvoiceUsecase.
+// Mengimplementasikan Buat dan CreatePrepaid pada InvoiceUsecase.
 package usecase
 
 import (
@@ -16,17 +16,17 @@ import (
 
 // InvoiceUsecase mengimplementasikan business logic untuk manajemen invoice.
 type InvoiceUsecase struct {
-	invoiceRepo    domain.InvoiceRepository
-	itemRepo       domain.InvoiceItemRepository
-	paymentRepo    domain.InvoicePaymentRepository
-	auditRepo      domain.InvoiceAuditLogRepository
-	sequenceRepo   domain.InvoiceSequenceRepository
-	settingsRepo   domain.BillingSettingsRepository
-	customerRepo   domain.CustomerRepository
-	packageRepo    domain.PackageRepository
-	pool           *pgxpool.Pool
-	queueClient    *asynq.Client
-	logger         zerolog.Logger
+	invoiceRepo  domain.InvoiceRepository
+	itemRepo     domain.InvoiceItemRepository
+	paymentRepo  domain.InvoicePaymentRepository
+	auditRepo    domain.InvoiceAuditLogRepository
+	sequenceRepo domain.InvoiceSequenceRepository
+	settingsRepo domain.BillingSettingsRepository
+	customerRepo domain.CustomerRepository
+	packageRepo  domain.PackageRepository
+	pool         *pgxpool.Pool
+	queueClient  *asynq.Client
+	logger       zerolog.Logger
 }
 
 // NewInvoiceUsecase membuat instance baru InvoiceUsecase.
@@ -58,10 +58,10 @@ func NewInvoiceUsecase(
 	}
 }
 
-// Create membuat invoice manual dengan item-item yang ditentukan.
-// Flow: validasi customer → generate nomor invoice → hitung subtotal →
-// hitung pajak (opsional) → terapkan kredit (opsional) → buat invoice →
-// buat item → tulis audit log → publish event.
+// Buat membuat invoice manual dengan item-item yang ditentukan.
+// Alur: validasi customer -> buat nomor invoice -> hitung subtotal ->
+// hitung pajak (opsional) -> terapkan kredit (opsional) -> buat invoice ->
+// buat item -> tulis audit log -> terbitkan event.
 func (uc *InvoiceUsecase) Create(ctx context.Context, tenantID string, req domain.CreateInvoiceRequest, actor domain.ActorInfo) (*domain.Invoice, error) {
 	// Validasi customer ada dan aktif
 	customer, err := uc.customerRepo.GetByID(ctx, req.CustomerID)
@@ -72,13 +72,13 @@ func (uc *InvoiceUsecase) Create(ctx context.Context, tenantID string, req domai
 		return nil, fmt.Errorf("pelanggan tidak aktif (status: %s)", customer.Status)
 	}
 
-	// Parse due date
+	// Parsing due date
 	dueDate, err := time.Parse("2006-01-02", req.DueDate)
 	if err != nil {
 		return nil, fmt.Errorf("format due_date tidak valid: %w", err)
 	}
 
-	// Generate nomor invoice via sequence atomik
+	// Buat nomor invoice via sequence atomik
 	periodMonth := int(dueDate.Month())
 	periodYear := dueDate.Year()
 
@@ -181,7 +181,7 @@ func (uc *InvoiceUsecase) Create(ctx context.Context, tenantID string, req domai
 		return nil, fmt.Errorf("gagal membuat invoice: %w", err)
 	}
 
-	// Set invoice_id pada semua items dan bulk create
+	// Set invoice_id pada semua items dan bulk buat
 	for _, item := range items {
 		item.InvoiceID = created.ID
 	}
@@ -192,7 +192,7 @@ func (uc *InvoiceUsecase) Create(ctx context.Context, tenantID string, req domai
 	// Tulis audit log
 	uc.writeInvoiceAuditLog(ctx, tenantID, created.ID, "invoice.created_manual", actor, nil)
 
-	// Publish event invoice.created
+	// Terbitkan event invoice.created
 	uc.publishEvent(tenantID, "invoice.created", domain.InvoiceCreatedPayload{
 		InvoiceID:     created.ID,
 		TenantID:      tenantID,

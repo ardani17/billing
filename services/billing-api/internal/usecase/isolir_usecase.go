@@ -28,7 +28,7 @@ type IsolirUsecase struct {
 	logger          zerolog.Logger
 }
 
-// SetTenantModuleRepository memasang repository entitlement modul tenant.
+// SetTenantModuleRepository memasang repositori entitlement modul tenant.
 func (uc *IsolirUsecase) SetTenantModuleRepository(moduleRepo TenantModuleRepository) {
 	uc.moduleRepo = moduleRepo
 }
@@ -109,7 +109,7 @@ func (uc *IsolirUsecase) isolirCustomer(ctx context.Context, inv *domain.Invoice
 	return nil
 }
 
-// ProcessSuspend memproses suspend untuk semua tenant (isolir → suspend).
+// ProcessSuspend memproses suspend untuk semua tenant (isolir -> suspend).
 func (uc *IsolirUsecase) ProcessSuspend(ctx context.Context) error {
 	allSettings, err := uc.settingsRepo.ListAll(ctx)
 	if err != nil {

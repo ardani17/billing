@@ -20,7 +20,7 @@ func NewONTRepo(queries *Queries) *ONTRepo {
 	return &ONTRepo{queries: queries}
 }
 
-// --- Mapping sqlc Ont → domain.ONT ---
+// --- Mapping sqlc Ont -> domain.ONT ---
 
 // mapONTRow memetakan Ont (sqlc model) ke domain.ONT.
 func mapONTRow(row Ont) *domain.ONT {
@@ -48,7 +48,7 @@ func mapONTRow(row Ont) *domain.ONT {
 
 // --- Implementasi CRUD domain.ONTRepository ---
 
-// Create membuat ONT baru dan mengembalikan ONT yang dibuat.
+// Buat membuat ONT baru dan mengembalikan ONT yang dibuat.
 func (r *ONTRepo) Create(ctx context.Context, ont *domain.ONT) (*domain.ONT, error) {
 	row, err := r.queries.CreateONT(ctx, CreateONTParams{
 		TenantID:          stringToUUID(ont.TenantID),
@@ -97,7 +97,7 @@ func (r *ONTRepo) GetBySerialNumber(ctx context.Context, tenantID, serialNumber 
 	return mapONTRow(row), nil
 }
 
-// Update memperbarui record ONT dan mengembalikan ONT yang diperbarui.
+// Perbarui memperbarui record ONT dan mengembalikan ONT yang diperbarui.
 func (r *ONTRepo) Update(ctx context.Context, ont *domain.ONT) (*domain.ONT, error) {
 	row, err := r.queries.UpdateONT(ctx, UpdateONTParams{
 		ID:                   stringToUUID(ont.ID),
@@ -123,7 +123,7 @@ func (r *ONTRepo) Update(ctx context.Context, ont *domain.ONT) (*domain.ONT, err
 	return mapONTRow(row), nil
 }
 
-// SoftDelete melakukan soft-delete ONT (set deleted_at).
+// SoftDelete melakukan hapus lunak ONT (atur deleted_at).
 func (r *ONTRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeleteONT(ctx, stringToUUID(id))
 	if err != nil {
@@ -132,5 +132,5 @@ func (r *ONTRepo) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-// Compile-time check: ONTRepo mengimplementasikan domain.ONTRepository.
+// Compile-time cek: ONTRepo mengimplementasikan domain.ONTRepository.
 var _ domain.ONTRepository = (*ONTRepo)(nil)

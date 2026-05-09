@@ -7,7 +7,7 @@ import (
 )
 
 // =============================================================================
-// Request DTO — payload dari HTTP request
+// Permintaan DTO - payload dari HTTP permintaan
 // =============================================================================
 
 // CreateRouterRequest adalah payload untuk POST /api/v1/mikrotik/routers.
@@ -26,7 +26,7 @@ type CreateRouterRequest struct {
 }
 
 // UpdateRouterRequest adalah payload untuk PUT /api/v1/mikrotik/routers/:id.
-// Field bersifat opsional — hanya field yang dikirim yang akan diupdate.
+// Field bersifat opsional - hanya field yang dikirim yang akan diupdate.
 type UpdateRouterRequest struct {
 	Name                   string `json:"name" validate:"omitempty,min=1,max=100"`
 	Host                   string `json:"host" validate:"omitempty,max=255"`
@@ -46,7 +46,7 @@ type RebootRequest struct {
 }
 
 // =============================================================================
-// Response DTO — format respons untuk router operations
+// Respons DTO - format respons untuk router operations
 // =============================================================================
 
 // RouterResponse adalah respons untuk operasi CRUD router.
@@ -81,7 +81,7 @@ type RouterListResult struct {
 }
 
 // =============================================================================
-// Event Payloads — payload untuk event antar service via Redis queue
+// Payload event - payload untuk event antar service via Redis queue
 // =============================================================================
 
 // RouterOfflinePayload adalah payload event mikrotik.router_offline.
@@ -110,7 +110,7 @@ type RouterRebootPayload struct {
 }
 
 // =============================================================================
-// API Response — format standar respons API (reuse pattern dari notification-service)
+// API Respons - format standar respons API (reuse pattern dari notification-service)
 // =============================================================================
 
 // APIResponse adalah format standar respons API.
@@ -143,7 +143,7 @@ type PaginatedData struct {
 }
 
 // =============================================================================
-// Response Helpers — fungsi pembantu untuk membuat respons API
+// Respons Fungsi bantus - fungsi pembantu untuk membuat respons API
 // =============================================================================
 
 // SuccessResponse mengembalikan respons sukses JSON dengan format standar.

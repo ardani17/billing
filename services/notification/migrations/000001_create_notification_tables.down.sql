@@ -1,5 +1,5 @@
 -- Rollback migrasi: menghapus tabel notifikasi beserta semua dependensinya.
--- Urutan drop berdasarkan dependensi FK (notification_logs → notification_templates → notification_configs).
+-- Urutan drop berdasarkan dependensi FK (notification_logs -> notification_templates -> notification_configs).
 
 -- ============================================================
 -- 1. Hapus tabel notification_logs (memiliki FK ke notification_templates)

@@ -1,4 +1,4 @@
-// map_node_handler_photo.go menangani HTTP request untuk foto dan riwayat map node.
+// map_node_handler_photo.go menangani HTTP permintaan untuk foto dan riwayat map node.
 // Termasuk: list foto, upload foto, hapus foto, dan riwayat perubahan.
 // Dipisah dari map_node_handler.go agar tidak melebihi 200 baris.
 package handler
@@ -64,7 +64,7 @@ func (h *MapNodeHandler) UploadPhoto(c *fiber.Ctx) error {
 }
 
 // DeletePhoto menangani DELETE /nodes/:id/photos/:photo_id.
-// Soft-delete foto dan catat riwayat perubahan.
+// Soft-hapus foto dan catat riwayat perubahan.
 func (h *MapNodeHandler) DeletePhoto(c *fiber.Ctx) error {
 	nodeID := c.Params("id")
 	if nodeID == "" {

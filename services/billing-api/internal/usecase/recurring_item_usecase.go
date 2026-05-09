@@ -1,5 +1,4 @@
-// recurring_item_usecase.go berisi business logic untuk manajemen recurring items pelanggan.
-// RecurringItemUsecase menangani CRUD recurring items (Create, List, Update, Delete/Deactivate).
+// recurring_item_usecase.go berisi business logic untuk manajemen item berulangs pelanggan.
 package usecase
 
 import (
@@ -12,7 +11,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// RecurringItemUsecase mengimplementasikan business logic untuk recurring items.
+// RecurringItemUsecase mengimplementasikan business logic untuk item berulangs.
 type RecurringItemUsecase struct {
 	recurringItemRepo domain.CustomerRecurringItemRepository
 	customerRepo      domain.CustomerRepository
@@ -32,8 +31,8 @@ func NewRecurringItemUsecase(
 	}
 }
 
-// Create membuat recurring item baru untuk pelanggan.
-// Flow: validasi pelanggan ada → parse tanggal → buat item dengan is_active=true.
+// Buat membuat item berulang baru untuk pelanggan.
+// Alur: validasi pelanggan ada -> parsing tanggal -> buat item dengan is_active=true.
 func (uc *RecurringItemUsecase) Create(
 	ctx context.Context,
 	customerID string,
@@ -46,13 +45,13 @@ func (uc *RecurringItemUsecase) Create(
 		return nil, domain.ErrCustomerNotFound
 	}
 
-	// Parse start_date
+	// Parsing start_date
 	startDate, err := time.Parse("2006-01-02", req.StartDate)
 	if err != nil {
 		return nil, fmt.Errorf("format start_date tidak valid: %w", err)
 	}
 
-	// Parse end_date (opsional)
+	// Parsing end_date (opsional)
 	var endDate *time.Time
 	if req.EndDate != "" {
 		parsed, err := time.Parse("2006-01-02", req.EndDate)
@@ -80,13 +79,13 @@ func (uc *RecurringItemUsecase) Create(
 	return created, nil
 }
 
-// List mengambil semua recurring items untuk pelanggan tertentu.
+// List mengambil semua item berulangs untuk pelanggan tertentu.
 func (uc *RecurringItemUsecase) List(ctx context.Context, customerID string) ([]*domain.CustomerRecurringItem, error) {
 	return uc.recurringItemRepo.ListByCustomer(ctx, customerID)
 }
 
-// Update memperbarui recurring item yang ada.
-// Flow: ambil item → verifikasi milik pelanggan → update field yang diberikan.
+// Perbarui memperbarui item berulang yang ada.
+// Alur: ambil item -> verifikasi milik pelanggan -> perbarui field yang diberikan.
 func (uc *RecurringItemUsecase) Update(
 	ctx context.Context,
 	customerID, itemID string,
@@ -104,7 +103,7 @@ func (uc *RecurringItemUsecase) Update(
 		return nil, domain.ErrRecurringItemNotFound
 	}
 
-	// Update field yang diberikan
+	// Perbarui field yang diberikan
 	if req.Description != "" {
 		item.Description = req.Description
 	}
@@ -127,8 +126,8 @@ func (uc *RecurringItemUsecase) Update(
 	return updated, nil
 }
 
-// Delete menonaktifkan recurring item (soft delete via deactivate).
-// Flow: ambil item → verifikasi milik pelanggan → set is_active=false.
+// Hapus menonaktifkan item berulang (hapus lunak via deactivate).
+// Alur: ambil item -> verifikasi milik pelanggan -> atur is_active=false.
 func (uc *RecurringItemUsecase) Delete(
 	ctx context.Context,
 	customerID, itemID string,
@@ -145,7 +144,7 @@ func (uc *RecurringItemUsecase) Delete(
 		return domain.ErrRecurringItemNotFound
 	}
 
-	// Deactivate (soft delete)
+	// Deactivate (hapus lunak)
 	if err := uc.recurringItemRepo.Deactivate(ctx, itemID); err != nil {
 		return fmt.Errorf("gagal menonaktifkan recurring item: %w", err)
 	}

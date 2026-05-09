@@ -1,5 +1,5 @@
 // reseller_usecase.go berisi business logic untuk manajemen reseller (CRUD).
-// Mengimplementasikan Create, GetByID, Update, List pada ResellerUsecase.
+// Mengimplementasikan Buat, GetByID, Perbarui, List pada ResellerUsecase.
 package usecase
 
 import (
@@ -38,10 +38,10 @@ func NewResellerUsecase(
 	}
 }
 
-// Create membuat reseller baru.
-// Flow: validasi phone uniqueness → hash password dengan bcrypt → create reseller
-// dengan status=aktif, balance=0 (atau sesuai request) → tulis audit log →
-// publish event reseller.created.
+// Buat membuat reseller baru.
+// Alur: validasi phone uniqueness -> hash password dengan bcrypt -> buat reseller
+// dengan status=aktif, balance=0 (atau sesuai permintaan) -> tulis audit log ->
+// terbitkan event reseller.created.
 func (uc *ResellerUsecase) Create(ctx context.Context, tenantID string, req domain.CreateResellerRequest, actor domain.ActorInfo) (*domain.Reseller, error) {
 	// Cek duplikat nomor telepon dalam tenant
 	exists, err := uc.resellerRepo.PhoneExists(ctx, tenantID, req.Phone, "")
@@ -58,13 +58,13 @@ func (uc *ResellerUsecase) Create(ctx context.Context, tenantID string, req doma
 		return nil, fmt.Errorf("usecase: gagal hash password: %w", err)
 	}
 
-	// Tentukan balance awal (default 0)
+	// Tentukan balance awal (bawaan 0)
 	var balance int64
 	if req.Balance != nil {
 		balance = *req.Balance
 	}
 
-	// Tentukan daily purchase limit (default 0 = unlimited)
+	// Tentukan daily purchase limit (bawaan 0 = unlimited)
 	var dailyPurchaseLimit int
 	if req.DailyPurchaseLimit != nil {
 		dailyPurchaseLimit = *req.DailyPurchaseLimit
@@ -92,7 +92,7 @@ func (uc *ResellerUsecase) Create(ctx context.Context, tenantID string, req doma
 	// Tulis audit log
 	uc.writeAuditLog(ctx, tenantID, created.ID, "reseller.created", actor, nil)
 
-	// Publish event reseller.created
+	// Terbitkan event reseller.created
 	uc.publishEvent(tenantID, "reseller.created", domain.ResellerCreatedPayload{
 		ResellerID: created.ID,
 		TenantID:   tenantID,
@@ -119,7 +119,7 @@ func (uc *ResellerUsecase) GetByID(ctx context.Context, id string, includeAudit 
 		logs, err := uc.auditLogRepo.ListByEntity(ctx, "reseller", id)
 		if err != nil {
 			uc.logger.Error().Err(err).Str("reseller_id", id).Msg("gagal mengambil audit logs")
-			// Jangan gagalkan request, skip audit logs saja
+			// Jangan gagalkan permintaan, skip audit logs saja
 		} else {
 			detail.AuditLogs = logs
 		}
@@ -128,9 +128,9 @@ func (uc *ResellerUsecase) GetByID(ctx context.Context, id string, includeAudit 
 	return detail, nil
 }
 
-// Update memperbarui data reseller.
-// Flow: fetch existing → validasi phone uniqueness (exclude self) → update →
-// hitung field yang berubah → tulis audit log dengan old/new values.
+// Perbarui memperbarui data reseller.
+// Alur: ambil existing -> validasi phone uniqueness (exclude self) -> perbarui ->
+// hitung field yang berubah -> tulis audit log dengan nilai lama/baru.
 func (uc *ResellerUsecase) Update(ctx context.Context, id string, req domain.UpdateResellerRequest, actor domain.ActorInfo) (*domain.Reseller, error) {
 	// Ambil reseller yang ada
 	existing, err := uc.resellerRepo.GetByID(ctx, id)
@@ -161,7 +161,7 @@ func (uc *ResellerUsecase) Update(ctx context.Context, id string, req domain.Upd
 	// Hitung field yang berubah untuk audit log
 	changes := computeResellerChanges(existing, result)
 
-	// Tulis audit log dengan old/new values
+	// Tulis audit log dengan nilai lama/baru
 	if len(changes) > 0 {
 		uc.writeAuditLog(ctx, existing.TenantID, id, "reseller.updated", actor, changes)
 	}
@@ -169,10 +169,10 @@ func (uc *ResellerUsecase) Update(ctx context.Context, id string, req domain.Upd
 	return result, nil
 }
 
-// List mengambil daftar reseller dengan paginasi, filter, dan sorting.
-// Menerapkan default: page=1, page_size=25.
+// List mengambil daftar reseller dengan paginasi, filter, dan pengurutan.
+// Menerapkan bawaan: page=1, page_size=25.
 func (uc *ResellerUsecase) List(ctx context.Context, params domain.ResellerListParams) (*domain.ResellerListResult, error) {
-	// Terapkan default
+	// Terapkan bawaan
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -183,7 +183,7 @@ func (uc *ResellerUsecase) List(ctx context.Context, params domain.ResellerListP
 	return uc.resellerRepo.List(ctx, params)
 }
 
-// --- Helper methods ---
+// --- Fungsi bantu methods ---
 
 // writeAuditLog menulis audit log. Tidak mengembalikan error agar operasi utama tidak gagal.
 func (uc *ResellerUsecase) writeAuditLog(ctx context.Context, tenantID, entityID, action string, actor domain.ActorInfo, changes map[string]interface{}) {

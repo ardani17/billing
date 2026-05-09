@@ -1,4 +1,4 @@
--- Query SQL untuk audit command MikroTik.
+-- Kueri SQL untuk audit command MikroTik.
 
 -- name: CreateMikroTikCommandAuditLog :exec
 INSERT INTO mikrotik_command_audit_logs (

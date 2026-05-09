@@ -13,7 +13,7 @@ import (
 )
 
 // RouterRepo mengimplementasikan domain.RouterRepository dengan membungkus
-// sqlc-generated Queries dan memetakan tipe database ke domain.Router.
+// Query hasil buat sqlc dan memetakan tipe database ke domain.Router.
 type RouterRepo struct {
 	queries *Queries
 }
@@ -23,7 +23,7 @@ func NewRouterRepo(queries *Queries) *RouterRepo {
 	return &RouterRepo{queries: queries}
 }
 
-// --- Helper functions untuk konversi pgtype ↔ domain types ---
+// --- Fungsi bantu untuk konversi pgtype ↔ domain types ---
 
 // uuidToString mengkonversi pgtype.UUID ke string.
 func uuidToString(u pgtype.UUID) string {
@@ -49,7 +49,7 @@ func textToString(t pgtype.Text) string {
 	return t.String
 }
 
-// stringToText mengkonversi string ke pgtype.Text. String kosong → NULL.
+// stringToText mengkonversi string ke pgtype.Text. String kosong -> NULL.
 func stringToText(s string) pgtype.Text {
 	if s == "" {
 		return pgtype.Text{Valid: false}
@@ -65,7 +65,7 @@ func int4ToInt(i pgtype.Int4) int {
 	return int(i.Int32)
 }
 
-// intToInt4 mengkonversi int ke pgtype.Int4. Nilai 0 → NULL.
+// intToInt4 mengkonversi int ke pgtype.Int4. Nilai 0 -> NULL.
 func intToInt4(i int) pgtype.Int4 {
 	if i == 0 {
 		return pgtype.Int4{Valid: false}
@@ -73,7 +73,7 @@ func intToInt4(i int) pgtype.Int4 {
 	return pgtype.Int4{Int32: int32(i), Valid: true}
 }
 
-// int8ToInt64Ptr mengkonversi pgtype.Int8 ke *int64. NULL → nil.
+// int8ToInt64Ptr mengkonversi pgtype.Int8 ke *int64. NULL -> nil.
 func int8ToInt64Ptr(i pgtype.Int8) *int64 {
 	if !i.Valid {
 		return nil
@@ -82,7 +82,7 @@ func int8ToInt64Ptr(i pgtype.Int8) *int64 {
 	return &v
 }
 
-// int64PtrToInt8 mengkonversi *int64 ke pgtype.Int8. nil → NULL.
+// int64PtrToInt8 mengkonversi *int64 ke pgtype.Int8. nil -> NULL.
 func int64PtrToInt8(i *int64) pgtype.Int8 {
 	if i == nil {
 		return pgtype.Int8{Valid: false}
@@ -98,7 +98,7 @@ func timestamptzToTime(t pgtype.Timestamptz) time.Time {
 	return t.Time
 }
 
-// timestamptzToTimePtr mengkonversi pgtype.Timestamptz ke *time.Time. NULL → nil.
+// timestamptzToTimePtr mengkonversi pgtype.Timestamptz ke *time.Time. NULL -> nil.
 func timestamptzToTimePtr(t pgtype.Timestamptz) *time.Time {
 	if !t.Valid {
 		return nil
@@ -106,7 +106,7 @@ func timestamptzToTimePtr(t pgtype.Timestamptz) *time.Time {
 	return &t.Time
 }
 
-// timePtrToTimestamptz mengkonversi *time.Time ke pgtype.Timestamptz. nil → NULL.
+// timePtrToTimestamptz mengkonversi *time.Time ke pgtype.Timestamptz. nil -> NULL.
 func timePtrToTimestamptz(t *time.Time) pgtype.Timestamptz {
 	if t == nil {
 		return pgtype.Timestamptz{Valid: false}
@@ -114,7 +114,7 @@ func timePtrToTimestamptz(t *time.Time) pgtype.Timestamptz {
 	return pgtype.Timestamptz{Time: *t, Valid: true}
 }
 
-// serviceTypesToJSON mengkonversi []string ke []byte (JSON) untuk JSONB column.
+// serviceTypesToJSON mengkonversi []string ke []byte (JSON) untuk JSONB kolom.
 func serviceTypesToJSON(types []string) ([]byte, error) {
 	if types == nil {
 		types = []string{"pppoe"}
@@ -122,7 +122,7 @@ func serviceTypesToJSON(types []string) ([]byte, error) {
 	return json.Marshal(types)
 }
 
-// jsonToServiceTypes mengkonversi []byte (JSON) ke []string dari JSONB column.
+// jsonToServiceTypes mengkonversi []byte (JSON) ke []string dari JSONB kolom.
 func jsonToServiceTypes(data []byte) []string {
 	var types []string
 	if err := json.Unmarshal(data, &types); err != nil {
@@ -131,7 +131,7 @@ func jsonToServiceTypes(data []byte) []string {
 	return types
 }
 
-// --- Mapping sqlc Router → domain.Router ---
+// --- Mapping sqlc Router -> domain.Router ---
 
 // mapRouterRow memetakan Router (sqlc model) ke domain.Router.
 func mapRouterRow(row Router) *domain.Router {
@@ -165,7 +165,7 @@ func mapRouterRow(row Router) *domain.Router {
 
 // --- Implementasi domain.RouterRepository ---
 
-// Create membuat router baru dan mengembalikan router yang dibuat.
+// Buat membuat router baru dan mengembalikan router yang dibuat.
 func (r *RouterRepo) Create(ctx context.Context, router *domain.Router) (*domain.Router, error) {
 	serviceTypesJSON, err := serviceTypesToJSON(router.ServiceTypes)
 	if err != nil {
@@ -208,7 +208,7 @@ func (r *RouterRepo) GetByID(ctx context.Context, id string) (*domain.Router, er
 	return mapRouterRow(row), nil
 }
 
-// Update memperbarui data router dan mengembalikan router yang diperbarui.
+// Perbarui memperbarui data router dan mengembalikan router yang diperbarui.
 func (r *RouterRepo) Update(ctx context.Context, router *domain.Router) (*domain.Router, error) {
 	serviceTypesJSON, err := serviceTypesToJSON(router.ServiceTypes)
 	if err != nil {
@@ -232,6 +232,7 @@ func (r *RouterRepo) Update(ctx context.Context, router *domain.Router) (*domain
 		Status:                 string(router.Status),
 		HealthCheckIntervalSec: int32(router.HealthCheckIntervalSec),
 		LastOnlineAt:           timePtrToTimestamptz(router.LastOnlineAt),
+		LastUptimeSec:          int64PtrToInt8(router.LastUptimeSec),
 		Notes:                  stringToText(router.Notes),
 	})
 	if err != nil {
@@ -243,7 +244,7 @@ func (r *RouterRepo) Update(ctx context.Context, router *domain.Router) (*domain
 	return mapRouterRow(row), nil
 }
 
-// SoftDelete melakukan soft-delete router (set deleted_at).
+// SoftDelete melakukan soft-Hapus router (atur deleted_at).
 func (r *RouterRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeleteRouter(ctx, stringToUUID(id))
 	if err != nil {
@@ -252,7 +253,7 @@ func (r *RouterRepo) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-// List mengambil daftar router dengan paginasi (tenant-scoped via RLS).
+// Daftar mengambil daftar router dengan paginasi (tenant-scoped via RLS).
 func (r *RouterRepo) List(ctx context.Context, params domain.RouterListParams) (*domain.RouterListResult, error) {
 	// Hitung offset dari page dan page_size
 	offset := (params.Page - 1) * params.PageSize
@@ -326,7 +327,7 @@ func (r *RouterRepo) GetActiveRouters(ctx context.Context) ([]*domain.Router, er
 }
 
 // NameExists mengecek apakah nama router sudah ada di tenant.
-// excludeID digunakan untuk mengecualikan router tertentu (saat update).
+// excludeID digunakan untuk mengecualikan router tertentu (saat perbarui).
 func (r *RouterRepo) NameExists(ctx context.Context, tenantID, name, excludeID string) (bool, error) {
 	// Jika excludeID kosong, gunakan UUID nil agar tidak mengecualikan siapapun
 	exID := excludeID
@@ -345,7 +346,7 @@ func (r *RouterRepo) NameExists(ctx context.Context, tenantID, name, excludeID s
 	return exists, nil
 }
 
-// UpdateHealthCheck memperbarui field health check router.
+// UpdateHealthCek memperbarui field health cek router.
 func (r *RouterRepo) UpdateHealthCheck(ctx context.Context, id string, params domain.HealthCheckUpdate) error {
 	// Tentukan status string, gunakan empty string jika nil
 	status := ""

@@ -1,5 +1,5 @@
-// credit_note_handler.go menangani HTTP request untuk credit notes.
-// Termasuk: create credit note.
+// credit_note_handler.go menangani HTTP permintaan untuk credit notes.
+// Termasuk: buat credit note.
 package handler
 
 import (
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// CreditNoteHandler menangani HTTP request untuk credit notes.
+// CreditNoteHandler menangani HTTP permintaan untuk credit notes.
 type CreditNoteHandler struct {
 	creditNoteUsecase *usecase.CreditNoteUsecase
 	validate          *validator.Validate
@@ -29,7 +29,7 @@ func NewCreditNoteHandler(creditNoteUsecase *usecase.CreditNoteUsecase, logger z
 	}
 }
 
-// Create menangani POST /v1/credit-notes.
+// Buat menangani POST /v1/credit-notes.
 // Membuat credit note baru untuk penyesuaian invoice.
 func (h *CreditNoteHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -60,7 +60,7 @@ func (h *CreditNoteHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, cn)
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *CreditNoteHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -70,7 +70,7 @@ func (h *CreditNoteHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapCreditNoteError memetakan domain error ke HTTP error response untuk credit notes.
+// mapCreditNoteError memetakan domain error ke HTTP error respons untuk credit notes.
 func (h *CreditNoteHandler) mapCreditNoteError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrInvoiceNotFound):

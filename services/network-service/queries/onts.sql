@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel onts.
+-- Kueri SQL untuk operasi CRUD tabel onts.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel onts dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel onts dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateONT :one
 INSERT INTO onts (

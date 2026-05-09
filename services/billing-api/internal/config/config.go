@@ -1,4 +1,4 @@
-// Package config menyediakan konfigurasi aplikasi billing-api.
+// Paket config menyediakan konfigurasi aplikasi billing-api.
 // Memuat konfigurasi dari environment variables dan file .env menggunakan Viper.
 package config
 
@@ -49,7 +49,7 @@ type AppConfig struct {
 	// HTTP security
 	CORSAllowOrigins string `mapstructure:"CORS_ALLOW_ORIGINS"`
 
-	// Payment gateway
+	// Gateway pembayaran
 	GatewayMasterKey        string `mapstructure:"GATEWAY_MASTER_KEY"`
 	XenditWebhookIPs        string `mapstructure:"XENDIT_WEBHOOK_IPS"`
 	MidtransWebhookIPs      string `mapstructure:"MIDTRANS_WEBHOOK_IPS"`
@@ -59,16 +59,16 @@ type AppConfig struct {
 	NetworkServiceURL string `mapstructure:"NETWORK_SERVICE_URL"`
 
 	// IsolirAutomationEnabled mengaktifkan cron auto-isolir/suspend harian.
-	// Default false untuk mencegah perubahan jaringan otomatis saat integrasi lokal.
+	// Bawaan false untuk mencegah perubahan jaringan otomatis saat integrasi lokal.
 	IsolirAutomationEnabled bool `mapstructure:"ISOLIR_AUTOMATION_ENABLED"`
 
 	// IsolirPeriodicSyncEnabled mengaktifkan retry sync jaringan periodik.
-	// Default false agar MikroTik tidak menerima dial API berkala.
+	// Bawaan false agar MikroTik tidak menerima dial API berkala.
 	IsolirPeriodicSyncEnabled bool `mapstructure:"ISOLIR_PERIODIC_SYNC_ENABLED"`
 }
 
-// Load memuat konfigurasi dari environment variables dan file .env.
-// Mengatur nilai default untuk variabel opsional.
+// Muat memuat konfigurasi dari environment variables dan file .env.
+// Mengatur nilai bawaan untuk variabel opsional.
 func Load() (*AppConfig, error) {
 	v := viper.New()
 
@@ -80,7 +80,7 @@ func Load() (*AppConfig, error) {
 	// Aktifkan pembacaan dari environment variables
 	v.AutomaticEnv()
 
-	// Atur nilai default untuk variabel opsional
+	// Atur nilai bawaan untuk variabel opsional
 	v.SetDefault("APP_ENV", "development")
 	v.SetDefault("APP_PORT", 3001)
 	v.SetDefault("LOG_LEVEL", "info")
@@ -149,7 +149,7 @@ func Load() (*AppConfig, error) {
 	return &cfg, nil
 }
 
-// Validate memeriksa bahwa semua variabel wajib sudah diisi.
+// Validasi memeriksa bahwa semua variabel wajib sudah diisi.
 // Mengembalikan error dengan daftar variabel yang hilang.
 func (c *AppConfig) Validate() error {
 	var missing []string

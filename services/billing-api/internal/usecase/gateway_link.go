@@ -1,4 +1,4 @@
-// gateway_link.go berisi method GatewayUsecase untuk generate, query, dan regenerasi payment link.
+// gateway_link.go berisi method GatewayUsecase untuk buat, kueri, dan regenerasi link pembayaran.
 // Method walled garden dan sync ada di file terpisah (gateway_link_walled.go).
 package usecase
 
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/gateway"
 )
 
-// GeneratePaymentLink membuat payment link baru via gateway untuk customer.
+// GeneratePaymentLink membuat link pembayaran baru via gateway untuk customer.
 // Ambil config aktif, dekripsi API key, hitung total sisa, panggil adapter, simpan ke DB.
 func (uc *GatewayUsecase) GeneratePaymentLink(ctx context.Context, req domain.GeneratePaymentLinkRequest) (*domain.PaymentLink, error) {
 	configs, err := uc.configRepo.GetActiveByTenant(ctx, req.TenantID)
@@ -35,7 +35,7 @@ func (uc *GatewayUsecase) GeneratePaymentLink(ctx context.Context, req domain.Ge
 		return nil, fmt.Errorf("tidak ada invoice terbuka untuk customer")
 	}
 
-	// Filter invoice sesuai request (jika InvoiceIDs diisi)
+	// Filter invoice sesuai permintaan (jika InvoiceIDs diisi)
 	filtered := filterInvoicesByIDs(invoices, req.InvoiceIDs)
 	if len(filtered) == 0 {
 		return nil, fmt.Errorf("invoice yang diminta tidak ditemukan atau sudah lunas")
@@ -64,7 +64,7 @@ func (uc *GatewayUsecase) GeneratePaymentLink(ctx context.Context, req domain.Ge
 		description = fmt.Sprintf("Pembayaran %d invoice - %s", len(filtered), customer.Name)
 	}
 
-	// Buat payment link ID dan adapter
+	// Buat link pembayaran ID dan adapter
 	linkID := uuid.New().String()
 	expiryDuration := time.Duration(config.PaymentLinkExpiryDays) * 24 * time.Hour
 	adapter, err := gateway.NewAdapter(config.GatewayProvider, plainKey)
@@ -88,7 +88,7 @@ func (uc *GatewayUsecase) GeneratePaymentLink(ctx context.Context, req domain.Ge
 		return nil, fmt.Errorf("%w: %v", domain.ErrGatewayUnavailable, err)
 	}
 
-	// Simpan payment link + junction rows ke database
+	// Simpan link pembayaran + junction rows ke database
 	link := &domain.PaymentLink{
 		ID:              linkID,
 		TenantID:        req.TenantID,
@@ -113,7 +113,7 @@ func (uc *GatewayUsecase) GeneratePaymentLink(ctx context.Context, req domain.Ge
 	return created, nil
 }
 
-// GetCustomerPaymentLink mengambil payment link aktif untuk customer. Nil jika tidak ada.
+// GetCustomerPaymentLink mengambil link pembayaran aktif untuk customer. Nil jika tidak ada.
 func (uc *GatewayUsecase) GetCustomerPaymentLink(ctx context.Context, customerID string) (*domain.CustomerPaymentLinkResponse, error) {
 	link, err := uc.linkRepo.GetActiveByCustomer(ctx, customerID)
 	if err != nil || link == nil {
@@ -162,12 +162,12 @@ func (uc *GatewayUsecase) RegeneratePaymentLink(ctx context.Context, customerID 
 	})
 }
 
-// GetInvoicePaymentLinks mengambil semua payment links untuk invoice tertentu.
+// GetInvoicePaymentLinks mengambil semua link pembayarans untuk invoice tertentu.
 func (uc *GatewayUsecase) GetInvoicePaymentLinks(ctx context.Context, invoiceID string) ([]*domain.PaymentLink, error) {
 	return uc.linkRepo.ListByInvoice(ctx, invoiceID)
 }
 
-// expireActiveLink meng-expire payment link aktif untuk customer via adapter dan repo.
+// expireActiveLink meng-expire link pembayaran aktif untuk customer via adapter dan repo.
 func (uc *GatewayUsecase) expireActiveLink(ctx context.Context, customerID string) error {
 	link, err := uc.linkRepo.GetActiveByCustomer(ctx, customerID)
 	if err != nil || link == nil {
@@ -202,6 +202,7 @@ func filterInvoicesByIDs(invoices []*domain.Invoice, ids []string) []*domain.Inv
 	}
 	return result
 }
+
 // buildOpenInvoiceItems mengkonversi daftar invoice menjadi OpenInvoiceItem dan total arrears.
 func buildOpenInvoiceItems(invoices []*domain.Invoice) ([]domain.OpenInvoiceItem, int64) {
 	var items []domain.OpenInvoiceItem

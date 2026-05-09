@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// --- Reseller Status State Machine ---
+// --- Reseller Status Mesin status ---
 
 // ResellerStatus mendefinisikan status reseller dalam sistem.
 type ResellerStatus string
@@ -23,7 +23,7 @@ const (
 var ValidResellerTransitions = map[ResellerStatus][]ResellerStatus{
 	ResellerStatusAktif:     {ResellerStatusSuspended, ResellerStatusNonaktif},
 	ResellerStatusSuspended: {ResellerStatusAktif, ResellerStatusNonaktif},
-	ResellerStatusNonaktif:  {}, // terminal state
+	ResellerStatusNonaktif:  {}, // status akhir
 }
 
 // CanResellerTransition memeriksa apakah transisi dari current ke target valid.
@@ -69,7 +69,7 @@ func AllowedResellerTargets(current ResellerStatus) []ResellerStatus {
 	return targets
 }
 
-// --- Reseller Entity ---
+// --- Reseller Entitas ---
 
 // Reseller merepresentasikan reseller voucher yang dikelola oleh tenant.
 type Reseller struct {
@@ -89,7 +89,7 @@ type Reseller struct {
 	UpdatedAt          time.Time      `json:"updated_at"`
 }
 
-// --- Domain Error Variables ---
+// --- Variabel error domain ---
 // Catatan: ErrConfirmationMismatch sudah didefinisikan di domain/customer.go
 
 var (

@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel expense_categories.
+-- Kueri SQL untuk operasi CRUD tabel expense_categories.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel expense_categories dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel expense_categories dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateExpenseCategory :one
 -- Membuat kategori pengeluaran baru dan mengembalikan semua kolom.
@@ -22,7 +22,7 @@ WHERE id = $1 AND deleted_at IS NULL
 RETURNING *;
 
 -- name: SoftDeleteExpenseCategory :exec
--- Menghapus kategori secara soft delete (set deleted_at).
+-- Menghapus kategori secara hapus lunak (atur deleted_at).
 UPDATE expense_categories SET
     deleted_at = NOW(),
     updated_at = NOW()
@@ -48,7 +48,7 @@ FROM expenses
 WHERE category_id = $1 AND deleted_at IS NULL;
 
 -- name: CreateDefaultExpenseCategories :exec
--- Membuat kategori default untuk tenant baru (7 kategori).
+-- Membuat kategori bawaan untuk tenant baru (7 kategori).
 INSERT INTO expense_categories (tenant_id, name, is_default) VALUES
     ($1, 'Bandwidth/Upstream', true),
     ($1, 'Gaji Karyawan', true),

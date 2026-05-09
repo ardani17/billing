@@ -1,7 +1,7 @@
 -- Migration: create_map_change_history_table
 -- Tabel audit trail append-only untuk riwayat perubahan map node.
--- Mencatat setiap modifikasi lokasi, custom fields, foto, dan status node.
--- Tidak ada operasi update atau delete pada tabel ini.
+-- Mencatat setiap modifikasi lokasi, kustom field, foto, dan status node.
+-- Tidak ada operasi perbarui atau hapus pada tabel ini.
 
 CREATE TABLE map_change_history (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -14,7 +14,7 @@ CREATE TABLE map_change_history (
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index untuk query riwayat per node (terbaru dulu)
+-- Index untuk kueri riwayat per node (terbaru dulu)
 CREATE INDEX idx_map_change_history_node
     ON map_change_history (map_node_id, created_at DESC);
 

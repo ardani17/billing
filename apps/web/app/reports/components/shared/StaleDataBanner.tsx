@@ -3,7 +3,7 @@
 import { formatDate } from "../../lib/formatters";
 
 interface StaleDataBannerProps {
-  /** Timestamp terakhir data diperbarui (ISO string) */
+  /** Timestamp terakhir data diperbarui (ISO string)*/
   lastUpdated?: string;
 }
 

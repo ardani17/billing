@@ -1,5 +1,5 @@
 -- Migration: create_map_share_links_table
--- Tabel share link read-only untuk FTTH Visual Mapping.
+-- Tabel share link hanya baca untuk FTTH Visual Mapping.
 -- Memungkinkan admin membagikan peta ke pihak eksternal
 -- dengan opsi expiry dan password protection.
 
@@ -19,7 +19,7 @@ CREATE TABLE map_share_links (
 CREATE UNIQUE INDEX idx_map_share_links_token
     ON map_share_links (token);
 
--- Index untuk query per tenant
+-- Index untuk kueri per tenant
 CREATE INDEX idx_map_share_links_tenant
     ON map_share_links (tenant_id);
 

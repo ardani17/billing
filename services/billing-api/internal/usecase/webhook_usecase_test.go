@@ -1,5 +1,4 @@
-// webhook_usecase_test.go berisi unit test untuk WebhookUsecase — early-exit path.
-// Fokus pada: external_id not found, invalid signature, duplicate.
+// webhook_usecase_test.go berisi unit test untuk WebhookUsecase - early-exit path.
 // pool=nil sehingga payment.paid flow (butuh transaksi DB) tidak ditest di sini.
 package usecase
 
@@ -11,7 +10,7 @@ import (
 )
 
 // =============================================================================
-// Test: ProcessWebhook — external_id tidak ditemukan
+// Tes: ProcessWebhook - external_id tidak ditemukan
 // =============================================================================
 
 // TestProcessWebhook_ExternalIDNotFound menguji bahwa webhook dengan external_id
@@ -45,16 +44,14 @@ func TestProcessWebhook_ExternalIDNotFound(t *testing.T) {
 }
 
 // =============================================================================
-// Test: ProcessWebhook — signature tidak valid
 // =============================================================================
 
 // TestProcessWebhook_InvalidSignature menguji bahwa webhook dengan signature
-// tidak valid ditandai failed dan signature_valid=false.
 func TestProcessWebhook_InvalidSignature(t *testing.T) {
 	s := setupWebhookUsecase()
 	seedWebhookConfig(s)
 
-	// Buat payment link yang cocok dengan external_id
+	// Buat tautan pembayaran yang cocok dengan external_id
 	s.linkRepo.links["link-1"] = &domain.PaymentLink{
 		ID: "link-1", TenantID: "tenant-1", CustomerID: "cust-1",
 		GatewayProvider: domain.GatewayXendit, GatewayConfigID: "cfg-1",
@@ -62,7 +59,6 @@ func TestProcessWebhook_InvalidSignature(t *testing.T) {
 		Status: domain.PaymentLinkActive,
 	}
 
-	// Buat webhook log TANPA _headers (x-callback-token kosong → signature invalid)
 	logID := seedWebhookLog(s, "ext-123", map[string]interface{}{
 		"id": "ext-123", "status": "PAID", "amount": 300000,
 	})
@@ -93,7 +89,7 @@ func TestProcessWebhook_InvalidSignature(t *testing.T) {
 }
 
 // =============================================================================
-// Test: ProcessWebhook — duplikat (sudah diproses sebelumnya)
+// Tes: ProcessWebhook - duplikat (sudah diproses sebelumnya)
 // =============================================================================
 
 // TestProcessWebhook_Duplicate menguji bahwa webhook duplikat ditandai duplicate
@@ -102,7 +98,7 @@ func TestProcessWebhook_Duplicate(t *testing.T) {
 	s := setupWebhookUsecase()
 	seedWebhookConfig(s)
 
-	// Buat payment link
+	// Buat tautan pembayaran
 	s.linkRepo.links["link-1"] = &domain.PaymentLink{
 		ID: "link-1", TenantID: "tenant-1", CustomerID: "cust-1",
 		GatewayProvider: domain.GatewayXendit, GatewayConfigID: "cfg-1",
@@ -110,7 +106,6 @@ func TestProcessWebhook_Duplicate(t *testing.T) {
 		Status: domain.PaymentLinkActive,
 	}
 
-	// Buat webhook log dengan _headers yang valid (signature cocok)
 	body := map[string]interface{}{
 		"id": "ext-123", "status": "PAID", "amount": 300000,
 		"_headers": map[string]interface{}{

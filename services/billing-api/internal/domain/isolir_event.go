@@ -1,23 +1,23 @@
 package domain
 
 // =============================================================================
-// Task Type Constants — konstanta tipe task untuk modul isolir
+// Task Type Constants - konstanta tipe task untuk modul isolir
 // =============================================================================
 
 const (
 	// Cron dan background task
-	TaskAutoIsolirCron       = "isolir.auto_isolir_cron"
-	TaskSuspendCron          = "isolir.suspend_cron"
-	TaskPeriodicSync         = "isolir.periodic_sync"
+	TaskAutoIsolirCron        = "isolir.auto_isolir_cron"
+	TaskSuspendCron           = "isolir.suspend_cron"
+	TaskPeriodicSync          = "isolir.periodic_sync"
 	TaskPaymentOnlineReceived = "payment.online.received"
-	TaskPaymentRecorded      = "payment.recorded"
+	TaskPaymentRecorded       = "payment.recorded"
 	TaskPaymentVoidedReIsolir = "payment.voided.re_isolir"
 
 	// Notifikasi task
-	TaskNotifIsolir           = "notification.isolir"
-	TaskNotifUnIsolir         = "notification.un_isolir"
-	TaskNotifSuspend          = "notification.suspend"
-	TaskNotifReactivated      = "notification.reactivated"
+	TaskNotifIsolir            = "notification.isolir"
+	TaskNotifUnIsolir          = "notification.un_isolir"
+	TaskNotifSuspend           = "notification.suspend"
+	TaskNotifReactivated       = "notification.reactivated"
 	TaskNotifPendingSyncFailed = "notification.pending_sync_failed"
 
 	// Event tipe untuk sinkronisasi router
@@ -28,7 +28,7 @@ const (
 )
 
 // =============================================================================
-// Event Payloads — struct payload event untuk modul isolir
+// Payload event - struct payload event untuk modul isolir
 // =============================================================================
 
 // CustomerIsolirPayload adalah payload event customer.isolir.

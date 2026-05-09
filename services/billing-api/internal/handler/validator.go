@@ -1,4 +1,4 @@
-// validator.go mendaftarkan custom validator untuk field pelanggan.
+// validator.go mendaftarkan kustom validator untuk field pelanggan.
 // Custom validator: phone_id (format telepon Indonesia) dan mac_addr (format MAC address).
 package handler
 
@@ -16,7 +16,7 @@ var phoneIDRegex = regexp.MustCompile(`^\+62\d{9,13}$`)
 // Contoh: AA:BB:CC:DD:EE:FF (case-insensitive).
 var macAddrRegex = regexp.MustCompile(`^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$`)
 
-// RegisterCustomValidators mendaftarkan custom validator pada instance validator.
+// RegisterCustomValidators mendaftarkan kustom validator pada instance validator.
 // - phone_id: validasi format telepon Indonesia (+62, 9-13 digit setelah prefix)
 // - mac_addr: validasi format MAC address (AA:BB:CC:DD:EE:FF)
 func RegisterCustomValidators(v *validator.Validate) {

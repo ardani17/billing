@@ -20,7 +20,7 @@ interface PhotoGalleryProps {
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Komponen
 // ---------------------------------------------------------------------------
 
 export default function PhotoGallery({
@@ -77,7 +77,7 @@ export default function PhotoGallery({
 
   return (
     <div className="space-y-4">
-      {/* Photo count indicator */}
+      {/* Photo count indicator*/}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">
           Foto ({photos.length}/{MAX_PHOTOS})
@@ -87,7 +87,7 @@ export default function PhotoGallery({
         )}
       </div>
 
-      {/* Photo grid */}
+      {/* Photo grid*/}
       {photos.length > 0 ? (
         <div className="grid grid-cols-2 gap-2">
           {photos.map((photo) => (
@@ -122,7 +122,7 @@ export default function PhotoGallery({
         </p>
       )}
 
-      {/* Upload section */}
+      {/* Upload section*/}
       {canUpload && (
         <div className="space-y-2">
           <input

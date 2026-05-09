@@ -21,7 +21,7 @@ func NewProvisioningSettingsRepo(queries *Queries) *ProvisioningSettingsRepo {
 	return &ProvisioningSettingsRepo{queries: queries}
 }
 
-// --- Mapping sqlc ProvisioningSetting → domain.ProvisioningSettings ---
+// --- Mapping sqlc ProvisioningSetting -> domain.ProvisioningSettings ---
 
 // mapSettingsRow memetakan ProvisioningSetting (sqlc model) ke domain.ProvisioningSettings.
 func mapSettingsRow(row ProvisioningSetting) *domain.ProvisioningSettings {
@@ -39,8 +39,8 @@ func mapSettingsRow(row ProvisioningSetting) *domain.ProvisioningSettings {
 // --- Implementasi domain.ProvisioningSettingsRepository ---
 
 // GetByTenantID mengambil settings berdasarkan tenant_id.
-// Mengembalikan nil dan ErrONTNotFound jika tidak ditemukan — caller
-// harus menggunakan DefaultProvisioningSettings sebagai fallback.
+// Mengembalikan nil dan ErrONTNotFound jika tidak ditemukan - caller
+// harus menggunakan DefaultProvisioningSettings sebagai cadangan.
 func (r *ProvisioningSettingsRepo) GetByTenantID(ctx context.Context, tenantID string) (*domain.ProvisioningSettings, error) {
 	row, err := r.queries.GetProvisioningSettingsByTenantID(ctx, stringToUUID(tenantID))
 	if err != nil {
@@ -66,5 +66,5 @@ func (r *ProvisioningSettingsRepo) Upsert(ctx context.Context, settings *domain.
 	return mapSettingsRow(row), nil
 }
 
-// Compile-time check: ProvisioningSettingsRepo mengimplementasikan domain.ProvisioningSettingsRepository.
+// Compile-time cek: ProvisioningSettingsRepo mengimplementasikan domain.ProvisioningSettingsRepository.
 var _ domain.ProvisioningSettingsRepository = (*ProvisioningSettingsRepo)(nil)

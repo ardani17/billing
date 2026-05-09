@@ -39,6 +39,6 @@ CREATE POLICY tenant_insert ON invoice_payments
     FOR INSERT
     WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Composite indexes untuk performa query
+-- Composite indexes untuk performa kueri
 CREATE INDEX idx_invoice_payments_tenant_invoice ON invoice_payments(tenant_id, invoice_id);
 CREATE INDEX idx_invoice_payments_tenant_payment_date ON invoice_payments(tenant_id, payment_date);

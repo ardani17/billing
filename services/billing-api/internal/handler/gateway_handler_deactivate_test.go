@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// --- Test DeactivateConfig ---
+// --- Tes DeactivateConfig ---
 
 func TestGatewayHandler_DeactivateConfig_Success(t *testing.T) {
 	setup := setupGatewayTestApp()
@@ -63,7 +63,7 @@ func TestGatewayHandler_DeactivateConfig_NotFound(t *testing.T) {
 	}
 }
 
-// --- Test TestConfig ---
+// --- Tes TestConfig ---
 
 func TestGatewayHandler_TestConfig_Success(t *testing.T) {
 	setup := setupGatewayTestApp()
@@ -78,15 +78,12 @@ func TestGatewayHandler_TestConfig_Success(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Test config — akan mengembalikan 200 dengan hasil test (success atau failure)
-	// Karena mock tidak punya gateway asli, adapter.TestConnection akan gagal,
 	// tapi handler tetap mengembalikan 200 dengan GatewayTestResult
 	req := httptest.NewRequest("POST", "/api/v1/settings/payment-gateways/"+createApiResp.Data.ID+"/test", nil)
 	resp, err := setup.app.Test(req, -1)
 	if err != nil {
 		t.Fatalf("request gagal: %v", err)
 	}
-	// TestConfig selalu mengembalikan 200 dengan GatewayTestResult (success atau failure)
 	if resp.StatusCode != fiber.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		t.Fatalf("expected 200, got %d: %s", resp.StatusCode, string(body))

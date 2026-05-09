@@ -16,8 +16,6 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// --- Mock repositories for area handler tests ---
-
 type mockHandlerAreaRepo struct {
 	areas map[string]*domain.Area
 }
@@ -83,7 +81,6 @@ func (m *mockHandlerAreaRepo) CustomerCount(_ context.Context, _ string) (int, e
 	return 0, nil
 }
 
-// mockHandlerAreaRepoWithCustomers returns a non-zero customer count for testing.
 type mockHandlerAreaRepoWithCustomers struct {
 	mockHandlerAreaRepo
 	customerCounts map[string]int
@@ -134,8 +131,6 @@ func setupAreaTestApp() *areaTestSetup {
 		areaRepo: areaRepo,
 	}
 }
-
-// --- Area Create tests ---
 
 func TestAreaHandler_Create_Success(t *testing.T) {
 	setup := setupAreaTestApp()
@@ -188,12 +183,10 @@ func TestAreaHandler_Create_DuplicateName(t *testing.T) {
 		Name: "Area Sukamaju",
 	})
 
-	// Create first area
 	req1 := httptest.NewRequest("POST", "/api/v1/areas", bytes.NewReader(body))
 	req1.Header.Set("Content-Type", "application/json")
 	setup.app.Test(req1, -1)
 
-	// Create second area with same name
 	body2, _ := json.Marshal(domain.CreateAreaRequest{
 		Name: "Area Sukamaju",
 	})
@@ -216,8 +209,6 @@ func TestAreaHandler_Create_DuplicateName(t *testing.T) {
 		t.Fatalf("expected AREA_NAME_DUPLICATE, got %v", apiResp.Error)
 	}
 }
-
-// --- Area Get tests ---
 
 func TestAreaHandler_Get_NotFound(t *testing.T) {
 	setup := setupAreaTestApp()
@@ -243,7 +234,6 @@ func TestAreaHandler_Get_NotFound(t *testing.T) {
 func TestAreaHandler_Get_Success(t *testing.T) {
 	setup := setupAreaTestApp()
 
-	// Create an area first
 	body, _ := json.Marshal(domain.CreateAreaRequest{Name: "Area Test"})
 	createReq := httptest.NewRequest("POST", "/api/v1/areas", bytes.NewReader(body))
 	createReq.Header.Set("Content-Type", "application/json")
@@ -256,7 +246,6 @@ func TestAreaHandler_Get_Success(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Get the area
 	getReq := httptest.NewRequest("GET", "/api/v1/areas/"+createApiResp.Data.ID, nil)
 	resp, err := setup.app.Test(getReq, -1)
 	if err != nil {
@@ -267,8 +256,6 @@ func TestAreaHandler_Get_Success(t *testing.T) {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
 	}
 }
-
-// --- Area List tests ---
 
 func TestAreaHandler_List_Success(t *testing.T) {
 	setup := setupAreaTestApp()
@@ -284,8 +271,6 @@ func TestAreaHandler_List_Success(t *testing.T) {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
 	}
 }
-
-// --- Area Update tests ---
 
 func TestAreaHandler_Update_NotFound(t *testing.T) {
 	setup := setupAreaTestApp()
@@ -307,7 +292,6 @@ func TestAreaHandler_Update_NotFound(t *testing.T) {
 func TestAreaHandler_Update_Success(t *testing.T) {
 	setup := setupAreaTestApp()
 
-	// Create an area first
 	createBody, _ := json.Marshal(domain.CreateAreaRequest{Name: "Area Old"})
 	createReq := httptest.NewRequest("POST", "/api/v1/areas", bytes.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
@@ -320,7 +304,6 @@ func TestAreaHandler_Update_Success(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Update the area
 	updateBody, _ := json.Marshal(domain.UpdateAreaRequest{Name: "Area New"})
 	updateReq := httptest.NewRequest("PUT", "/api/v1/areas/"+createApiResp.Data.ID, bytes.NewReader(updateBody))
 	updateReq.Header.Set("Content-Type", "application/json")
@@ -335,8 +318,6 @@ func TestAreaHandler_Update_Success(t *testing.T) {
 		t.Fatalf("expected 200, got %d: %s", resp.StatusCode, string(respBody))
 	}
 }
-
-// --- Area Delete tests ---
 
 func TestAreaHandler_Delete_NotFound(t *testing.T) {
 	setup := setupAreaTestApp()
@@ -356,7 +337,6 @@ func TestAreaHandler_Delete_NotFound(t *testing.T) {
 func TestAreaHandler_Delete_Success(t *testing.T) {
 	setup := setupAreaTestApp()
 
-	// Create an area first
 	createBody, _ := json.Marshal(domain.CreateAreaRequest{Name: "Area To Delete"})
 	createReq := httptest.NewRequest("POST", "/api/v1/areas", bytes.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
@@ -369,7 +349,6 @@ func TestAreaHandler_Delete_Success(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Delete the area
 	deleteReq := httptest.NewRequest("DELETE", "/api/v1/areas/"+createApiResp.Data.ID, nil)
 
 	resp, err := setup.app.Test(deleteReq, -1)
@@ -384,7 +363,6 @@ func TestAreaHandler_Delete_Success(t *testing.T) {
 }
 
 func TestAreaHandler_Delete_HasCustomers(t *testing.T) {
-	// Use a special repo that returns non-zero customer count
 	areaRepo := newMockHandlerAreaRepoWithCustomers()
 	auditLogRepo := newMockHandlerAuditLogRepo()
 	logger := zerolog.New(io.Discard)
@@ -403,7 +381,6 @@ func TestAreaHandler_Delete_HasCustomers(t *testing.T) {
 	areas.Post("/", handler.Create)
 	areas.Delete("/:id", handler.Delete)
 
-	// Create an area
 	createBody, _ := json.Marshal(domain.CreateAreaRequest{Name: "Area With Customers"})
 	createReq := httptest.NewRequest("POST", "/api/v1/areas", bytes.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
@@ -416,10 +393,8 @@ func TestAreaHandler_Delete_HasCustomers(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Set customer count for this area
 	areaRepo.customerCounts[createApiResp.Data.ID] = 5
 
-	// Try to delete the area
 	deleteReq := httptest.NewRequest("DELETE", "/api/v1/areas/"+createApiResp.Data.ID, nil)
 
 	resp, err := app.Test(deleteReq, -1)

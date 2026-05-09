@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel cable_routes.
+-- Kueri SQL untuk operasi CRUD tabel cable_routes.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel cable_routes dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel cable_routes dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateCableRoute :one
 INSERT INTO cable_routes (

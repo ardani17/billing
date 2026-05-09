@@ -11,12 +11,10 @@ import (
 )
 
 // =============================================================================
-// Test: TestConfig — sukses (config ditemukan, key bisa didekripsi)
+// Tes: TestConfig - sukses (config ditemukan, key bisa didekripsi)
 // =============================================================================
 
-// TestTestConfig_Success menguji TestConfig dengan config yang valid.
 // Karena adapter melakukan HTTP call ke gateway, kita verifikasi bahwa
-// method mengembalikan result (bukan error) saat config ditemukan.
 func TestTestConfig_Success(t *testing.T) {
 	s := setupGatewayUsecase()
 	ctx := context.Background()
@@ -33,21 +31,18 @@ func TestTestConfig_Success(t *testing.T) {
 		t.Fatalf("CreateConfig gagal: %v", err)
 	}
 
-	// TestConfig — akan mengembalikan result (mungkin gagal karena key tidak valid
-	// di gateway asli, tapi method tidak return error)
 	result, err := s.uc.TestConfig(ctx, created.ID)
 	if err != nil {
 		t.Fatalf("TestConfig gagal: %v", err)
 	}
 
-	// Result harus ada (bisa success=false karena key test tidak valid di gateway)
 	if result == nil {
 		t.Fatal("expected result, got nil")
 	}
 }
 
 // =============================================================================
-// Test: TestConfig — config tidak ditemukan
+// Tes: TestConfig - config tidak ditemukan
 // =============================================================================
 
 // TestTestConfig_NotFound menguji TestConfig dengan config yang tidak ada.
@@ -65,7 +60,7 @@ func TestTestConfig_NotFound(t *testing.T) {
 }
 
 // =============================================================================
-// Test: TestConfig — dekripsi gagal (key corrupt)
+// Tes: TestConfig - dekripsi gagal (key corrupt)
 // =============================================================================
 
 // TestTestConfig_DecryptionFailed menguji TestConfig saat API key corrupt.
@@ -103,7 +98,7 @@ func TestTestConfig_DecryptionFailed(t *testing.T) {
 }
 
 // =============================================================================
-// Test: CreateConfig — tenant berbeda bisa punya provider yang sama
+// Tes: CreateConfig - tenant berbeda bisa punya provider yang sama
 // =============================================================================
 
 // TestCreateConfig_DifferentTenantSameProvider menguji bahwa tenant berbeda
@@ -125,7 +120,7 @@ func TestCreateConfig_DifferentTenantSameProvider(t *testing.T) {
 		t.Fatalf("CreateConfig tenant-1 gagal: %v", err)
 	}
 
-	// Tenant 2 dengan provider yang sama — harus berhasil
+	// Tenant 2 dengan provider yang sama - harus berhasil
 	req2 := domain.CreateGatewayConfigRequest{
 		GatewayProvider: "xendit",
 		APIKey:          "xnd_production_other_key_67890",
@@ -143,10 +138,8 @@ func TestCreateConfig_DifferentTenantSameProvider(t *testing.T) {
 }
 
 // =============================================================================
-// Test: CreateConfig — Midtrans invalid method (ewallet_ovo tidak valid)
 // =============================================================================
 
-// TestCreateConfig_MidtransInvalidMethod menguji bahwa ewallet_ovo tidak valid untuk Midtrans.
 func TestCreateConfig_MidtransInvalidMethod(t *testing.T) {
 	s := setupGatewayUsecase()
 	ctx := context.Background()
@@ -168,10 +161,8 @@ func TestCreateConfig_MidtransInvalidMethod(t *testing.T) {
 }
 
 // =============================================================================
-// Test: UpdateConfig — invalid methods pada update
 // =============================================================================
 
-// TestUpdateConfig_InvalidMethods menguji error saat update dengan methods tidak valid.
 func TestUpdateConfig_InvalidMethods(t *testing.T) {
 	s := setupGatewayUsecase()
 	ctx := context.Background()
@@ -200,7 +191,6 @@ func TestUpdateConfig_InvalidMethods(t *testing.T) {
 }
 
 // =============================================================================
-// Helper: verifikasi enkripsi round-trip
 // =============================================================================
 
 // TestEncryptionRoundTrip_InUsecase memverifikasi bahwa key yang disimpan

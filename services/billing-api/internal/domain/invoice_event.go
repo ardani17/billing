@@ -11,7 +11,7 @@ type InvoiceCreatedPayload struct {
 	DueDate       string `json:"due_date"`
 }
 
-// InvoiceOverduePayload adalah payload event invoice.overdue.
+// InvoiceOverduePayload adalah payload event invoice.terlambat.
 // Dikirim saat invoice berubah status menjadi terlambat oleh cron harian.
 type InvoiceOverduePayload struct {
 	InvoiceID     string `json:"invoice_id"`

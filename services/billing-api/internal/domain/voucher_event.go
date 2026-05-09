@@ -18,7 +18,7 @@ type ResellerStatusChangedPayload struct {
 }
 
 // VoucherBatchGeneratedPayload adalah payload event voucher.batch_generated.
-// Dikirim saat batch voucher berhasil di-generate oleh admin.
+// Dikirim saat batch voucher berhasil di-buat oleh admin.
 type VoucherBatchGeneratedPayload struct {
 	TenantID    string `json:"tenant_id"`
 	PackageID   string `json:"package_id"`

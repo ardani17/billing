@@ -22,7 +22,7 @@ const (
 )
 
 // =============================================================================
-// Provisioning Event Payloads
+// Provisioning Payload event
 // =============================================================================
 
 // ONTProvisionedPayload adalah payload event ont.provisioned.

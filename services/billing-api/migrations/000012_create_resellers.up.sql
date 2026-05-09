@@ -41,6 +41,6 @@ CREATE POLICY tenant_insert ON resellers
 ALTER TABLE resellers ADD CONSTRAINT uq_resellers_tenant_phone
     UNIQUE (tenant_id, phone);
 
--- Composite indexes untuk performa query
+-- Composite indexes untuk performa kueri
 CREATE INDEX idx_resellers_tenant_status ON resellers(tenant_id, status);
 CREATE INDEX idx_resellers_tenant_phone ON resellers(tenant_id, phone);

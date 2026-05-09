@@ -17,12 +17,9 @@ import (
 	"pgregory.net/rapid"
 )
 
-// newTestLogger creates a zerolog.Logger that discards output (for tests).
 func newTestLogger() zerolog.Logger {
 	return zerolog.New(io.Discard)
 }
-
-// --- Mock repositories for testing ---
 
 // mockCustomerRepo is an in-memory implementation of domain.CustomerRepository.
 type mockCustomerRepo struct {
@@ -49,7 +46,6 @@ func (m *mockCustomerRepo) Create(_ context.Context, customer *domain.Customer) 
 	// Track max seq
 	seq := m.seqByTenant[customer.TenantID]
 	m.seqByTenant[customer.TenantID] = seq + 1
-	// Return a separate copy agar caller tidak terpengaruh oleh mutasi di map
 	ret := stored
 	return &ret, nil
 }
@@ -294,14 +290,12 @@ func (m *mockAuditLogRepo) lastLog() *domain.AuditLog {
 	return &copy
 }
 
-// reset clears all audit logs (useful for isolating test operations).
 func (m *mockAuditLogRepo) reset() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.logs = make([]*domain.AuditLog, 0)
 }
 
-// logsForEntity returns all audit logs for a specific entity.
 func (m *mockAuditLogRepo) logsForEntity(entityType, entityID string) []*domain.AuditLog {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -326,8 +320,6 @@ func (m mockTenantModuleRepo) Capabilities(_ context.Context, _ string) (domain.
 	}
 	return m.caps, nil
 }
-
-// --- Helper generators ---
 
 func genTenantID() *rapid.Generator[string] {
 	return rapid.StringMatching(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`)
@@ -359,7 +351,6 @@ func genConnectionMethod() *rapid.Generator[string] {
 	return rapid.SampledFrom([]string{"manual", "pppoe", "hotspot", "dhcp_binding", "static"})
 }
 
-// genValidCreateRequest generates a valid CreateCustomerRequest.
 func genValidCreateRequest(t *rapid.T) domain.CreateCustomerRequest {
 	connMethod := genConnectionMethod().Draw(t, "connMethod")
 	macAddr := ""
@@ -381,13 +372,7 @@ func genValidCreateRequest(t *rapid.T) domain.CreateCustomerRequest {
 	}
 }
 
-// --- Property Tests ---
-
-// Feature: customer-crud, Property 8: New Customer Default Status
-// **Validates: Requirements 8.1**
-//
-// For any valid creation request, the resulting customer always has
-// status == "pending", regardless of any status value in the request.
+// **Memvalidasi: Kebutuhan 8.1**
 func TestProperty_NewCustomerDefaultStatus(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		customerRepo := newMockCustomerRepo()
@@ -408,19 +393,14 @@ func TestProperty_NewCustomerDefaultStatus(t *testing.T) {
 			t.Fatalf("unexpected error creating customer: %v", err)
 		}
 
-		// Property: status must always be "pending"
 		if created.Status != domain.CustomerStatusPending {
 			t.Fatalf("expected status 'pending', got %q", created.Status)
 		}
 	})
 }
 
-// Feature: customer-crud, Property 2: PPPoE Auto-Generation Completeness
-// **Validates: Requirements 5.1, 5.2, 5.3**
+// **Memvalidasi: Kebutuhan 5.1, 5.2, 5.3**
 //
-// For any customer with connection_method == "pppoe", both pppoe_username and
-// pppoe_password are populated. Auto-generated username follows
-// {first-name-lowercase}-{id-lowercase-no-dash} format. Auto-generated password
 // is exactly 8 alphanumeric characters.
 func TestProperty_PPPoEAutoGenerationCompleteness(t *testing.T) {
 	alphanumRegex := regexp.MustCompile(`^[a-zA-Z0-9]{8}$`)
@@ -437,7 +417,7 @@ func TestProperty_PPPoEAutoGenerationCompleteness(t *testing.T) {
 		// Force connection method to pppoe
 		req.ConnectionMethod = "pppoe"
 
-		// Decide whether to provide credentials or let them auto-generate
+		// Decide whether to provide credentials atau let them auto-buat
 		provideUsername := rapid.Bool().Draw(t, "provideUsername")
 		providePassword := rapid.Bool().Draw(t, "providePassword")
 
@@ -462,7 +442,6 @@ func TestProperty_PPPoEAutoGenerationCompleteness(t *testing.T) {
 			t.Fatalf("unexpected error creating customer: %v", err)
 		}
 
-		// Property 2a: Both pppoe_username and pppoe_password must be populated
 		if created.PPPoEUsername == "" {
 			t.Fatal("pppoe_username is empty for pppoe customer")
 		}
@@ -470,7 +449,6 @@ func TestProperty_PPPoEAutoGenerationCompleteness(t *testing.T) {
 			t.Fatal("pppoe_password is empty for pppoe customer")
 		}
 
-		// Property 2b: If auto-generated, username follows {first-name-lowercase}-{id-lowercase-no-dash}
 		if !provideUsername {
 			name := req.Name
 			firstName := strings.ToLower(strings.Fields(name)[0])
@@ -482,7 +460,6 @@ func TestProperty_PPPoEAutoGenerationCompleteness(t *testing.T) {
 			}
 		}
 
-		// Property 2c: If auto-generated, password is exactly 8 alphanumeric characters
 		if !providePassword {
 			if !alphanumRegex.MatchString(created.PPPoEPassword) {
 				t.Fatalf("auto-generated password %q does not match 8 alphanumeric chars", created.PPPoEPassword)
@@ -491,40 +468,32 @@ func TestProperty_PPPoEAutoGenerationCompleteness(t *testing.T) {
 	})
 }
 
-// Feature: customer-crud, Property 13: Pagination Metadata Correctness
-// **Validates: Requirements 6.6**
+// **Memvalidasi: Kebutuhan 6.6**
 //
-// For any total count and page_size, total_pages == ceil(total / page_size),
-// page is within [1, total_pages], and items on current page equals
 // min(page_size, total - (page-1)*page_size).
 func TestProperty_PaginationMetadataCorrectness(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		total := rapid.Int64Range(0, 1000).Draw(t, "total")
 		pageSize := rapid.SampledFrom([]int{10, 25, 50}).Draw(t, "pageSize")
 
-		// Compute expected total_pages
 		expectedTotalPages := int(math.Ceil(float64(total) / float64(pageSize)))
 		if expectedTotalPages < 1 {
 			expectedTotalPages = 1
 		}
 
-		// Generate a valid page number
 		page := rapid.IntRange(1, expectedTotalPages).Draw(t, "page")
 
 		meta := ComputePaginationMeta(total, page, pageSize)
 
-		// Property 13a: total_pages == ceil(total / page_size)
 		if meta.TotalPages != expectedTotalPages {
 			t.Fatalf("total_pages: got %d, expected %d (total=%d, page_size=%d)",
 				meta.TotalPages, expectedTotalPages, total, pageSize)
 		}
 
-		// Property 13b: page is within [1, total_pages]
 		if meta.Page < 1 || meta.Page > meta.TotalPages {
 			t.Fatalf("page %d is out of range [1, %d]", meta.Page, meta.TotalPages)
 		}
 
-		// Property 13c: items on current page = min(page_size, total - (page-1)*page_size)
 		expectedItems := int64(pageSize)
 		remaining := total - int64((page-1)*pageSize)
 		if remaining < expectedItems {
@@ -534,7 +503,6 @@ func TestProperty_PaginationMetadataCorrectness(t *testing.T) {
 			expectedItems = 0
 		}
 
-		// Verify the formula holds
 		actualItems := int64(pageSize)
 		actualRemaining := total - int64((page-1)*pageSize)
 		if actualRemaining < actualItems {
@@ -551,12 +519,7 @@ func TestProperty_PaginationMetadataCorrectness(t *testing.T) {
 	})
 }
 
-// Feature: customer-crud, Property 9: Audit Trail Completeness
-// **Validates: Requirements 8.6, 9.5, 10.4, 11.5, 12.4, 20.1, 20.2**
-//
-// For any customer mutation (create, update, delete, status change, package change),
-// exactly one audit log is inserted with correct entity_type, entity_id, action,
-// actor_id, actor_name, and for updates the changes column contains old/new values.
+// **Memvalidasi: Kebutuhan 8.6, 9.5, 10.4, 11.5, 12.4, 20.1, 20.2**
 func TestProperty_AuditTrailCompleteness(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		customerRepo := newMockCustomerRepo()
@@ -571,7 +534,6 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 			Name: genName().Draw(t, "actorName"),
 		}
 
-		// Pick a random mutation operation
 		operation := rapid.SampledFrom([]string{
 			"create", "update", "delete", "status_change", "package_change",
 		}).Draw(t, "operation")
@@ -588,7 +550,6 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 				t.Fatalf("create failed: %v", err)
 			}
 
-			// Verify exactly one audit log for this customer
 			logs := auditLogRepo.logsForEntity("customer", created.ID)
 			if len(logs) != 1 {
 				t.Fatalf("expected 1 audit log for create, got %d", len(logs))
@@ -611,7 +572,6 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 			}
 
 		case "update":
-			// First create a customer
 			req := genValidCreateRequest(t)
 			created, err := uc.Create(ctx, tenantID, req, actor)
 			if err != nil {
@@ -620,7 +580,6 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 
 			auditLogRepo.reset()
 
-			// Update with a new name
 			newName := genName().Draw(t, "newName")
 			updateReq := domain.UpdateCustomerRequest{
 				Name: newName,
@@ -631,7 +590,6 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 				t.Fatalf("update failed: %v", err)
 			}
 
-			// If name actually changed, there should be exactly one audit log
 			if newName != created.Name {
 				logs := auditLogRepo.logsForEntity("customer", created.ID)
 				if len(logs) != 1 {
@@ -647,7 +605,6 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 				if log.ActorName != actor.Name {
 					t.Fatalf("expected actor_name %q, got %q", actor.Name, log.ActorName)
 				}
-				// Verify changes contain old/new values
 				if log.Changes == nil {
 					t.Fatal("expected changes to be non-nil for update")
 				}
@@ -668,7 +625,6 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 			}
 
 		case "delete":
-			// First create a customer
 			req := genValidCreateRequest(t)
 			created, err := uc.Create(ctx, tenantID, req, actor)
 			if err != nil {
@@ -698,14 +654,13 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 			}
 
 		case "status_change":
-			// Create a customer with status aktif (create as pending, then activate)
 			req := genValidCreateRequest(t)
 			created, err := uc.Create(ctx, tenantID, req, actor)
 			if err != nil {
 				t.Fatalf("create failed: %v", err)
 			}
 
-			// Activate (pending → aktif)
+			// Activate (pending -> aktif)
 			_, err = uc.Activate(ctx, created.ID, actor)
 			if err != nil {
 				t.Fatalf("activate failed: %v", err)
@@ -713,7 +668,7 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 
 			auditLogRepo.reset()
 
-			// Isolir (aktif → isolir)
+			// Isolir (aktif -> isolir)
 			_, err = uc.Isolir(ctx, created.ID, actor)
 			if err != nil {
 				t.Fatalf("isolir failed: %v", err)
@@ -749,7 +704,6 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 			}
 
 		case "package_change":
-			// Create a customer
 			req := genValidCreateRequest(t)
 			created, err := uc.Create(ctx, tenantID, req, actor)
 			if err != nil {
@@ -760,7 +714,6 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 
 			// Change package to a different one
 			newPackageID := genUUID().Draw(t, "newPackageID")
-			// Ensure it's different
 			for newPackageID == created.PackageID {
 				newPackageID = genUUID().Draw(t, "newPackageID2")
 			}
@@ -802,14 +755,8 @@ func TestProperty_AuditTrailCompleteness(t *testing.T) {
 	})
 }
 
-// Feature: customer-crud, Property 10: Event Publishing on Lifecycle Changes
-// **Validates: Requirements 8.5, 10.5, 21.1, 21.2, 21.3, 21.4, 21.5, 21.6, 21.7**
+// **Memvalidasi: Kebutuhan 8.5, 10.5, 21.1, 21.2, 21.3, 21.4, 21.5, 21.6, 21.7**
 //
-// For any lifecycle operation (create, activate, isolir, unblock, terminate,
-// package change), exactly one event is published. Since we can't easily test
-// asynq event publishing in unit tests without a real Redis connection, we verify
-// that the audit log is written correctly as a proxy for event publishing (both
-// are called in the same code path). The audit log serves as evidence that the
 // code path that publishes events was executed.
 func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
@@ -817,7 +764,7 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 		auditLogRepo := newMockAuditLogRepo()
 		logger := newTestLogger()
 
-		// Pass nil queueClient — publishEvent gracefully handles nil client
+		// Kirim nil queueClient - publishEvent menangani dengan aman nil client
 		uc := NewCustomerUsecase(customerRepo, auditLogRepo, nil, logger)
 
 		tenantID := genTenantID().Draw(t, "tenantID")
@@ -826,7 +773,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 			Name: genName().Draw(t, "actorName"),
 		}
 
-		// Pick a random lifecycle operation
 		operation := rapid.SampledFrom([]string{
 			"create", "activate_from_pending", "isolir", "unblock", "terminate", "package_change",
 		}).Draw(t, "operation")
@@ -843,7 +789,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 				t.Fatalf("create failed: %v", err)
 			}
 
-			// Verify audit log was written (proxy for event publishing)
 			logs := auditLogRepo.logsForEntity("customer", created.ID)
 			if len(logs) != 1 {
 				t.Fatalf("expected 1 audit log for create event, got %d", len(logs))
@@ -853,7 +798,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 			}
 
 		case "activate_from_pending":
-			// Create customer (pending) then activate
 			req := genValidCreateRequest(t)
 			created, err := uc.Create(ctx, tenantID, req, actor)
 			if err != nil {
@@ -867,7 +811,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 				t.Fatalf("activate failed: %v", err)
 			}
 
-			// Verify audit log for activation
 			logs := auditLogRepo.logsForEntity("customer", created.ID)
 			if len(logs) != 1 {
 				t.Fatalf("expected 1 audit log for activate event, got %d", len(logs))
@@ -875,7 +818,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 			if logs[0].Action != "customer.status_changed" {
 				t.Fatalf("expected action 'customer.status_changed', got %q", logs[0].Action)
 			}
-			// Verify status change in changes
 			statusChange := logs[0].Changes["status"].(map[string]interface{})
 			if statusChange["old"] != string(domain.CustomerStatusPending) {
 				t.Fatalf("expected old status 'pending', got %v", statusChange["old"])
@@ -885,7 +827,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 			}
 
 		case "isolir":
-			// Create → activate → isolir
 			req := genValidCreateRequest(t)
 			created, err := uc.Create(ctx, tenantID, req, actor)
 			if err != nil {
@@ -912,7 +853,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 			}
 
 		case "unblock":
-			// Create → activate → isolir → activate (unblock)
 			req := genValidCreateRequest(t)
 			created, err := uc.Create(ctx, tenantID, req, actor)
 			if err != nil {
@@ -941,7 +881,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 			if logs[0].Action != "customer.status_changed" {
 				t.Fatalf("expected action 'customer.status_changed', got %q", logs[0].Action)
 			}
-			// Verify it was from isolir → aktif
 			statusChange := logs[0].Changes["status"].(map[string]interface{})
 			if statusChange["old"] != string(domain.CustomerStatusIsolir) {
 				t.Fatalf("expected old status 'isolir', got %v", statusChange["old"])
@@ -951,7 +890,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 			}
 
 		case "terminate":
-			// Create customer then soft delete
 			req := genValidCreateRequest(t)
 			created, err := uc.Create(ctx, tenantID, req, actor)
 			if err != nil {
@@ -974,7 +912,6 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 			}
 
 		case "package_change":
-			// Create customer then change package
 			req := genValidCreateRequest(t)
 			created, err := uc.Create(ctx, tenantID, req, actor)
 			if err != nil {
@@ -1004,11 +941,7 @@ func TestProperty_EventPublishingOnLifecycleChanges(t *testing.T) {
 	})
 }
 
-// Feature: customer-crud, Property 3: Soft-Delete Exclusion
-// **Validates: Requirements 6.7, 7.4, 17.2**
-//
-// For any dataset with active and soft-deleted customers, list/stats/detail
-// operations never return soft-deleted customers.
+// **Memvalidasi: Kebutuhan 6.7, 7.4, 17.2**
 func TestProperty_SoftDeleteExclusion(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		customerRepo := newMockCustomerRepo()
@@ -1025,14 +958,12 @@ func TestProperty_SoftDeleteExclusion(t *testing.T) {
 
 		ctx := context.Background()
 
-		// Create a mix of active and to-be-deleted customers
 		activeCount := rapid.IntRange(1, 5).Draw(t, "activeCount")
 		deletedCount := rapid.IntRange(1, 5).Draw(t, "deletedCount")
 
 		var activeIDs []string
 		var deletedIDs []string
 
-		// Create active customers
 		for i := 0; i < activeCount; i++ {
 			req := genValidCreateRequest(t)
 			req.Phone = genPhone().Draw(t, fmt.Sprintf("activePhone_%d", i))
@@ -1043,7 +974,6 @@ func TestProperty_SoftDeleteExclusion(t *testing.T) {
 			activeIDs = append(activeIDs, created.ID)
 		}
 
-		// Create customers that will be soft-deleted
 		for i := 0; i < deletedCount; i++ {
 			req := genValidCreateRequest(t)
 			req.Phone = genPhone().Draw(t, fmt.Sprintf("deletedPhone_%d", i))
@@ -1053,14 +983,12 @@ func TestProperty_SoftDeleteExclusion(t *testing.T) {
 			}
 			deletedIDs = append(deletedIDs, created.ID)
 
-			// Soft-delete this customer
 			err = uc.SoftDelete(ctx, created.ID, created.Name, actor)
 			if err != nil {
 				t.Fatalf("soft delete failed: %v", err)
 			}
 		}
 
-		// Property 3a: List should never return soft-deleted customers
 		listResult, err := uc.List(ctx, domain.CustomerListParams{
 			TenantID: tenantID,
 			Page:     1,
@@ -1078,12 +1006,10 @@ func TestProperty_SoftDeleteExclusion(t *testing.T) {
 			}
 		}
 
-		// Verify list only contains active customers
 		if int64(activeCount) != listResult.Pagination.Total {
 			t.Fatalf("list total: expected %d active customers, got %d", activeCount, listResult.Pagination.Total)
 		}
 
-		// Property 3b: Stats should never count soft-deleted customers
 		stats, err := uc.Stats(ctx)
 		if err != nil {
 			t.Fatalf("stats failed: %v", err)
@@ -1097,7 +1023,6 @@ func TestProperty_SoftDeleteExclusion(t *testing.T) {
 			t.Fatalf("stats total: expected %d active customers, got %d", activeCount, totalStats)
 		}
 
-		// Property 3c: GetByID should return ErrCustomerNotFound for soft-deleted customers
 		for _, deletedID := range deletedIDs {
 			_, err := uc.GetByID(ctx, deletedID, false)
 			if err == nil {
@@ -1108,7 +1033,6 @@ func TestProperty_SoftDeleteExclusion(t *testing.T) {
 			}
 		}
 
-		// Property 3d: GetByID should still work for active customers
 		for _, activeID := range activeIDs {
 			detail, err := uc.GetByID(ctx, activeID, false)
 			if err != nil {
@@ -1121,7 +1045,7 @@ func TestProperty_SoftDeleteExclusion(t *testing.T) {
 	})
 }
 
-// --- Unit Tests for CustomerUsecase ---
+// --- Unit Tests untuk CustomerUsecase ---
 
 func TestCustomerUsecase_Create_PhoneDuplicate(t *testing.T) {
 	customerRepo := newMockCustomerRepo()
@@ -1146,13 +1070,11 @@ func TestCustomerUsecase_Create_PhoneDuplicate(t *testing.T) {
 		ConnectionMethod: "pppoe",
 	}
 
-	// Create first customer
 	_, err := uc.Create(ctx, tenantID, req, actor)
 	if err != nil {
 		t.Fatalf("first create failed: %v", err)
 	}
 
-	// Create second customer with same phone
 	req2 := req
 	req2.Name = "Budi Santoso"
 	_, err = uc.Create(ctx, tenantID, req2, actor)
@@ -1189,13 +1111,11 @@ func TestCustomerUsecase_SoftDelete_ConfirmationMismatch(t *testing.T) {
 		t.Fatalf("create failed: %v", err)
 	}
 
-	// Try to delete with wrong confirmation name
 	err = uc.SoftDelete(ctx, created.ID, "Wrong Name", actor)
 	if err != domain.ErrConfirmationMismatch {
 		t.Fatalf("expected ErrConfirmationMismatch, got %v", err)
 	}
 
-	// Delete with correct confirmation name should succeed
 	err = uc.SoftDelete(ctx, created.ID, created.Name, actor)
 	if err != nil {
 		t.Fatalf("delete with correct name failed: %v", err)
@@ -1230,13 +1150,11 @@ func TestCustomerUsecase_ChangePackage_SamePackageError(t *testing.T) {
 		t.Fatalf("create failed: %v", err)
 	}
 
-	// Try to change to the same package
 	_, err = uc.ChangePackage(ctx, created.ID, created.PackageID, actor)
 	if err != domain.ErrSamePackage {
 		t.Fatalf("expected ErrSamePackage, got %v", err)
 	}
 
-	// Change to a different package should succeed
 	_, err = uc.ChangePackage(ctx, created.ID, "00000000-0000-0000-0000-000000000002", actor)
 	if err != nil {
 		t.Fatalf("change to different package failed: %v", err)
@@ -1271,31 +1189,26 @@ func TestCustomerUsecase_InvalidStatusTransitions(t *testing.T) {
 		t.Fatalf("create failed: %v", err)
 	}
 
-	// pending → isolir should fail
 	_, err = uc.Isolir(ctx, created.ID, actor)
 	if err == nil {
 		t.Fatal("expected error for pending → isolir transition")
 	}
 
-	// pending → aktif should succeed
 	_, err = uc.Activate(ctx, created.ID, actor)
 	if err != nil {
 		t.Fatalf("activate from pending failed: %v", err)
 	}
 
-	// aktif → aktif should fail (activate on already active)
 	_, err = uc.Activate(ctx, created.ID, actor)
 	if err == nil {
 		t.Fatal("expected error for aktif → aktif transition")
 	}
 
-	// aktif → isolir should succeed
 	_, err = uc.Isolir(ctx, created.ID, actor)
 	if err != nil {
 		t.Fatalf("isolir from aktif failed: %v", err)
 	}
 
-	// isolir → aktif (unblock) should succeed
 	_, err = uc.Activate(ctx, created.ID, actor)
 	if err != nil {
 		t.Fatalf("activate from isolir failed: %v", err)
@@ -1313,7 +1226,6 @@ func TestCustomerUsecase_PPPoEAutoGeneration(t *testing.T) {
 	actor := ActorInfo{ID: "actor-1", Name: "Test Actor"}
 	ctx := context.Background()
 
-	// Test auto-generation when connection_method is pppoe and no credentials provided
 	req := domain.CreateCustomerRequest{
 		Name:             "Ahmad Rizki",
 		Phone:            "+6281234567890",
@@ -1331,12 +1243,10 @@ func TestCustomerUsecase_PPPoEAutoGeneration(t *testing.T) {
 		t.Fatalf("create failed: %v", err)
 	}
 
-	// PPPoE username should be auto-generated
 	if created.PPPoEUsername == "" {
 		t.Fatal("expected pppoe_username to be auto-generated")
 	}
 
-	// PPPoE password should be auto-generated (8 chars)
 	if created.PPPoEPassword == "" {
 		t.Fatal("expected pppoe_password to be auto-generated")
 	}
@@ -1344,13 +1254,12 @@ func TestCustomerUsecase_PPPoEAutoGeneration(t *testing.T) {
 		t.Fatalf("expected pppoe_password length 8, got %d", len(created.PPPoEPassword))
 	}
 
-	// Username should follow format: {first-name-lowercase}-{id-lowercase-no-dash}
 	expectedPrefix := "ahmad-"
 	if !strings.HasPrefix(created.PPPoEUsername, expectedPrefix) {
 		t.Fatalf("expected pppoe_username to start with %q, got %q", expectedPrefix, created.PPPoEUsername)
 	}
 
-	// Test that non-pppoe connection methods don't auto-generate
+	// Tes that non-pppoe connection methods don't auto-buat
 	req2 := domain.CreateCustomerRequest{
 		Name:             "Budi Santoso",
 		Phone:            "+6281234567891",
@@ -1485,7 +1394,6 @@ func TestCustomerUsecase_Update_PhoneDuplicate(t *testing.T) {
 	actor := ActorInfo{ID: "actor-1", Name: "Test Actor"}
 	ctx := context.Background()
 
-	// Create two customers with different phones
 	req1 := domain.CreateCustomerRequest{
 		Name:             "Ahmad Rizki",
 		Phone:            "+6281234567890",
@@ -1520,7 +1428,6 @@ func TestCustomerUsecase_Update_PhoneDuplicate(t *testing.T) {
 		t.Fatalf("create second customer failed: %v", err)
 	}
 
-	// Try to update second customer's phone to first customer's phone
 	updateReq := domain.UpdateCustomerRequest{
 		Phone: "+6281234567890",
 	}
@@ -1540,7 +1447,6 @@ func TestCustomerUsecase_List_Defaults(t *testing.T) {
 
 	ctx := context.Background()
 
-	// List with zero page/pageSize should apply defaults
 	result, err := uc.List(ctx, domain.CustomerListParams{
 		TenantID: "test-tenant",
 		Page:     0,

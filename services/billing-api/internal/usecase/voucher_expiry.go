@@ -1,4 +1,4 @@
-// voucher_expiry.go berisi business logic untuk proses expiry voucher (cron job).
+// voucher_expiry.go berisi business logic untuk proses expiry voucher (job cron).
 // Mengimplementasikan ProcessExpiredVouchers pada VoucherExpiryUsecase.
 // Memproses voucher terjual yang sudah melewati expires_at secara batch,
 // mengembalikan saldo reseller_price_snapshot ke reseller, dan mencatat transaksi refund.
@@ -51,11 +51,11 @@ func NewVoucherExpiryUsecase(
 }
 
 // ProcessExpiredVouchers memproses semua voucher terjual yang sudah melewati expires_at.
-// Flow: loop dalam batch (batchSize=100) → GetExpiredVouchers(batchSize) →
-// untuk setiap voucher expired: BEGIN TX → GetForUpdate(resellerID) (row lock) →
-// transisi voucher ke expired → refund reseller_price_snapshot ke saldo reseller →
-// buat reseller_transaction (type=refund, reference_id=voucher_id) →
-// tulis voucher audit log (voucher.expired, actor=System) → COMMIT →
+// Alur: loop dalam batch (batchSize=100) -> GetExpiredVouchers(batchSize) ->
+// untuk setiap voucher expired: BEGIN TX -> GetForUpdate(resellerID) (row lock) ->
+// transisi voucher ke expired -> refund reseller_price_snapshot ke saldo reseller ->
+// buat reseller_transaction (type=refund, reference_id=voucher_id) ->
+// tulis voucher audit log (voucher.expired, actor=System) -> COMMIT ->
 // lanjutkan sampai tidak ada lagi voucher expired.
 func (uc *VoucherExpiryUsecase) ProcessExpiredVouchers(ctx context.Context) error {
 	totalProcessed := 0
@@ -94,8 +94,8 @@ func (uc *VoucherExpiryUsecase) ProcessExpiredVouchers(ctx context.Context) erro
 }
 
 // processOneExpiredVoucher memproses satu voucher expired secara atomik dalam database transaction.
-// Flow: BEGIN TX → GetForUpdate(resellerID) → transisi voucher ke expired →
-// refund reseller_price_snapshot → buat transaksi refund → tulis audit log → COMMIT.
+// Alur: BEGIN TX -> GetForUpdate(resellerID) -> transisi voucher ke expired ->
+// refund reseller_price_snapshot -> buat transaksi refund -> tulis audit log -> COMMIT.
 func (uc *VoucherExpiryUsecase) processOneExpiredVoucher(ctx context.Context, voucher *domain.Voucher) error {
 	// Validasi voucher memiliki reseller_price_snapshot untuk refund
 	if voucher.ResellerPriceSnapshot == nil {
@@ -134,7 +134,6 @@ func (uc *VoucherExpiryUsecase) processOneExpiredVoucher(ctx context.Context, vo
 		return fmt.Errorf("gagal transisi voucher %s ke expired: %w", voucher.ID, err)
 	}
 
-	// Update status voucher di database
 	_, err = txVoucherRepo.UpdateStatus(ctx, voucher.ID, domain.VoucherStatusExpired)
 	if err != nil {
 		return fmt.Errorf("gagal update status voucher %s ke expired: %w", voucher.ID, err)
@@ -144,7 +143,7 @@ func (uc *VoucherExpiryUsecase) processOneExpiredVoucher(ctx context.Context, vo
 	balanceBefore := reseller.Balance
 	balanceAfter := balanceBefore + refundAmount
 
-	// Update saldo reseller (refund reseller_price_snapshot)
+	// Perbarui saldo reseller (refund reseller_price_snapshot)
 	if err := txResellerRepo.UpdateBalance(ctx, reseller.ID, balanceAfter); err != nil {
 		return fmt.Errorf("gagal update saldo reseller %s saat refund: %w", reseller.ID, err)
 	}
@@ -173,7 +172,7 @@ func (uc *VoucherExpiryUsecase) processOneExpiredVoucher(ctx context.Context, vo
 		ActorName: "System",
 		Metadata: map[string]interface{}{
 			"refund_amount":  refundAmount,
-			"reseller_id":   reseller.ID,
+			"reseller_id":    reseller.ID,
 			"balance_before": balanceBefore,
 			"balance_after":  balanceAfter,
 		},

@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// Channel — tipe channel pengiriman notifikasi
+// Channel - tipe channel pengiriman notifikasi
 // =============================================================================
 
 // Channel mendefinisikan media pengiriman notifikasi.
@@ -36,7 +36,7 @@ func IsValidChannel(c Channel) bool {
 }
 
 // =============================================================================
-// LogStatus — status pengiriman notifikasi
+// LogStatus - status pengiriman notifikasi
 // =============================================================================
 
 // LogStatus mendefinisikan status catatan pengiriman notifikasi.
@@ -91,7 +91,7 @@ func IsValidLogStatus(s LogStatus) bool {
 }
 
 // =============================================================================
-// TemplateCategory — kategori template notifikasi
+// TemplateCategory - kategori template notifikasi
 // =============================================================================
 
 // TemplateCategory mendefinisikan kategori template notifikasi.
@@ -130,7 +130,7 @@ func IsValidTemplateCategory(c TemplateCategory) bool {
 }
 
 // =============================================================================
-// Bypass Event Types — event yang dikecualikan dari quiet hours dan throttle
+// Bypass Event Types - event yang dikecualikan dari quiet hours dan throttle
 // =============================================================================
 
 // BypassEventTypes berisi daftar event_type yang dikecualikan dari

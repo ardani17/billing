@@ -1,5 +1,5 @@
 // Package handler berisi HTTP handler untuk billing-api.
-// Setiap handler menerima request Fiber dan mengembalikan respons JSON.
+// Setiap handler menerima permintaan Fiber dan mengembalikan respons JSON.
 package handler
 
 import (
@@ -24,7 +24,7 @@ type ReadyResponse struct {
 	Dependencies map[string]string `json:"dependencies"`
 }
 
-// HealthHandler menangani health check dan readiness check.
+// HealthHandler menangani pemeriksaan kesehatan dan pemeriksaan kesiapan.
 // Memeriksa konektivitas ke database PostgreSQL dan Redis.
 type HealthHandler struct {
 	serviceName string
@@ -43,7 +43,7 @@ func NewHealthHandler(serviceName string, db *pgxpool.Pool, redisClient *redis.C
 
 // Healthz mengembalikan status service (selalu 200 jika service berjalan).
 // Endpoint ini tidak memeriksa dependency eksternal.
-// @Summary Health check
+// @Summary Pemeriksaan kesehatan
 // @Tags System
 // @Success 200 {object} HealthResponse
 // @Router /healthz [get]
@@ -57,7 +57,7 @@ func (h *HealthHandler) Healthz(c *fiber.Ctx) error {
 
 // Readyz memeriksa konektivitas ke database dan Redis.
 // Mengembalikan 200 jika semua dependency reachable, 503 jika ada yang gagal.
-// @Summary Readiness check
+// @Summary Pemeriksaan kesiapan
 // @Tags System
 // @Success 200 {object} ReadyResponse
 // @Failure 503 {object} ReadyResponse

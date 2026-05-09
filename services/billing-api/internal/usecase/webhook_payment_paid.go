@@ -1,5 +1,4 @@
 // webhook_payment_paid.go berisi method processPaymentPaid pada WebhookUsecase.
-// Alokasi FIFO, insert pembayaran, update invoice, handle double payment.
 package usecase
 
 import (
@@ -19,7 +18,7 @@ func (uc *WebhookUsecase) processPaymentPaid(ctx context.Context, event *domain.
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
 
-	// Ambil invoice IDs yang terkait dengan payment link
+	// Ambil invoice IDs yang terkait dengan link pembayaran
 	invoiceIDs, err := uc.linkRepo.GetInvoiceIDsByLinkID(ctx, link.ID)
 	if err != nil {
 		return fmt.Errorf("gagal mengambil invoice IDs: %w", err)
@@ -47,7 +46,7 @@ func (uc *WebhookUsecase) processPaymentPaid(ctx context.Context, event *domain.
 		return uc.handleDoublePayment(ctx, event, link, invoices)
 	}
 
-	// Siapkan input FIFO dari invoices (sudah terurut due_date ASC dari query)
+	// Siapkan input FIFO dari invoices (sudah terurut due_date ASC dari kueri)
 	fifoInputs := make([]domain.FIFOInput, 0, len(invoices))
 	for _, inv := range invoices {
 		fifoInputs = append(fifoInputs, domain.FIFOInput{
@@ -62,7 +61,7 @@ func (uc *WebhookUsecase) processPaymentPaid(ctx context.Context, event *domain.
 	// Alokasi pembayaran FIFO
 	result := domain.AllocatePaymentFIFO(fifoInputs, event.Amount)
 
-	// Generate receipt_group_id dan nomor kwitansi
+	// Buat receipt_group_id dan nomor kwitansi
 	receiptGroupID := uuid.New().String()
 	now := time.Now()
 	seq, err := uc.receiptSeqRepo.NextSequence(ctx, link.TenantID, now.Year(), int(now.Month()))
@@ -78,14 +77,14 @@ func (uc *WebhookUsecase) processPaymentPaid(ctx context.Context, event *domain.
 		}
 	}
 
-	// Handle kelebihan bayar → tambah ke credit_balance customer
+	// Tangani kelebihan bayar -> tambah ke credit_balance customer
 	if result.ExcessToCredit > 0 {
 		if err := uc.adjustCreditBalance(ctx, link.CustomerID, result.ExcessToCredit); err != nil {
 			return fmt.Errorf("gagal menambah kredit pelanggan: %w", err)
 		}
 	}
 
-	// Update payment link status menjadi paid
+	// Perbarui link pembayaran status menjadi paid
 	if err := uc.linkRepo.UpdateStatusPaid(ctx, link.ID, event.PaidMethod, now); err != nil {
 		return fmt.Errorf("gagal update status payment link: %w", err)
 	}
@@ -95,7 +94,7 @@ func (uc *WebhookUsecase) processPaymentPaid(ctx context.Context, event *domain.
 		return fmt.Errorf("gagal commit transaksi: %w", err)
 	}
 
-	// Publish event setelah commit (non-blocking)
+	// Terbitkan event setelah commit (non-blocking)
 	uc.publishWebhookEvent(link.TenantID, "payment.online.received", map[string]interface{}{
 		"tenant_id":      link.TenantID,
 		"customer_id":    link.CustomerID,
@@ -121,7 +120,7 @@ func (uc *WebhookUsecase) processPaymentPaid(ctx context.Context, event *domain.
 	return nil
 }
 
-// processAllocation memproses satu alokasi pembayaran: insert payment, update invoice, audit log.
+// processAllocation memproses satu alokasi pembayaran: insert payment, perbarui invoice, audit log.
 func (uc *WebhookUsecase) processAllocation(
 	ctx context.Context,
 	alloc domain.PaymentAllocation,
@@ -155,13 +154,13 @@ func (uc *WebhookUsecase) processAllocation(
 		}
 	}
 
-	// Update paid_amount dengan optimistic locking
+	// Perbarui paid_amount dengan optimistic locking
 	updated, err := uc.invoiceRepo.UpdatePaidAmount(ctx, alloc.InvoiceID, alloc.NewPaidAmount, version)
 	if err != nil {
 		return fmt.Errorf("%w: gagal update paid_amount invoice", domain.ErrConcurrentModification)
 	}
 
-	// Update status jika berubah
+	// Perbarui status jika berubah
 	for _, inv := range invoices {
 		if inv.ID == alloc.InvoiceID && alloc.NewStatus != inv.Status {
 			if _, err := uc.invoiceRepo.UpdateStatus(ctx, alloc.InvoiceID, alloc.NewStatus, updated.Version); err != nil {
@@ -191,12 +190,12 @@ func (uc *WebhookUsecase) handleDoublePayment(
 	link *domain.PaymentLink,
 	invoices []*domain.Invoice,
 ) error {
-	// Tambah seluruh amount ke credit_balance customer
+	// Tambah seluruh nominal ke credit_balance customer
 	if err := uc.adjustCreditBalance(ctx, link.CustomerID, event.Amount); err != nil {
 		return fmt.Errorf("gagal menambah kredit double payment: %w", err)
 	}
 
-	// Update payment link status menjadi paid
+	// Perbarui link pembayaran status menjadi paid
 	now := time.Now()
 	if err := uc.linkRepo.UpdateStatusPaid(ctx, link.ID, event.PaidMethod, now); err != nil {
 		return fmt.Errorf("gagal update status payment link: %w", err)
@@ -212,7 +211,7 @@ func (uc *WebhookUsecase) handleDoublePayment(
 		})
 	}
 
-	// Publish event double payment
+	// Terbitkan event double payment
 	uc.publishWebhookEvent(link.TenantID, "payment.double_payment", map[string]interface{}{
 		"tenant_id":        link.TenantID,
 		"customer_id":      link.CustomerID,

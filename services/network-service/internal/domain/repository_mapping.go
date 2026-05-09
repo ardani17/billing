@@ -7,25 +7,25 @@ import (
 )
 
 // =============================================================================
-// MapNodeRepository — operasi data untuk tabel map_nodes
+// MapNodeRepository - operasi data untuk tabel map_nodes
 // =============================================================================
 
 // MapNodeRepository mendefinisikan operasi data untuk tabel map_nodes.
-// Diimplementasikan oleh repository.MapNodeRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.MapNodeRepo menggunakan sqlc.
 type MapNodeRepository interface {
-	// Create membuat map node baru dan mengembalikan node yang dibuat.
+	// Buat membuat map node baru dan mengembalikan node yang dibuat.
 	Create(ctx context.Context, node *MapNode) (*MapNode, error)
 
 	// GetByID mengambil map node berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*MapNode, error)
 
-	// Update memperbarui data map node dan mengembalikan node yang diperbarui.
+	// Perbarui memperbarui data map node dan mengembalikan node yang diperbarui.
 	Update(ctx context.Context, node *MapNode) (*MapNode, error)
 
-	// SoftDelete melakukan soft-delete map node (set deleted_at).
+	// SoftDelete melakukan hapus lunak map node (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 
-	// Restore mengembalikan map node yang sudah di-soft-delete (clear deleted_at).
+	// Restore mengembalikan map node yang sudah di-hapus lunak (clear deleted_at).
 	Restore(ctx context.Context, id string) error
 
 	// ListByBounds mengambil daftar map node dengan join data referensi (OLT/ODP/ONT)
@@ -33,14 +33,14 @@ type MapNodeRepository interface {
 	ListByBounds(ctx context.Context, params MapNodeListParams) ([]*MapNodeWithRef, error)
 
 	// GetByReference mengambil map node berdasarkan tenant_id, node_type, dan reference_id.
-	// Digunakan untuk cek duplikasi sebelum create.
+	// Digunakan untuk cek duplikasi sebelum buat.
 	GetByReference(ctx context.Context, tenantID, nodeType, referenceID string) (*MapNode, error)
 
-	// Search melakukan pencarian full-text di map node dan entitas referensi.
+	// Pencarian melakukan pencarian full-text di map node dan entitas referensi.
 	// Mengembalikan maksimal `limit` hasil pencarian.
 	Search(ctx context.Context, tenantID, query string, limit int) ([]*MapSearchResult, error)
 
-	// ListTrashed mengambil daftar map node yang sudah di-soft-delete (tenant-scoped).
+	// ListTrashed mengambil daftar map node yang sudah di-hapus lunak (tenant-scoped).
 	ListTrashed(ctx context.Context, tenantID string) ([]*MapNode, error)
 
 	// PermanentDeleteExpired menghapus permanen map node yang deleted_at lebih tua dari olderThan.
@@ -52,22 +52,22 @@ type MapNodeRepository interface {
 }
 
 // =============================================================================
-// CableRouteRepository — operasi data untuk tabel cable_routes
+// CableRouteRepository - operasi data untuk tabel cable_routes
 // =============================================================================
 
 // CableRouteRepository mendefinisikan operasi data untuk tabel cable_routes.
-// Diimplementasikan oleh repository.CableRouteRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.CableRouteRepo menggunakan sqlc.
 type CableRouteRepository interface {
-	// Create membuat cable route baru dan mengembalikan route yang dibuat.
+	// Buat membuat cable route baru dan mengembalikan route yang dibuat.
 	Create(ctx context.Context, route *CableRoute) (*CableRoute, error)
 
 	// GetByID mengambil cable route berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*CableRoute, error)
 
-	// Update memperbarui data cable route dan mengembalikan route yang diperbarui.
+	// Perbarui memperbarui data cable route dan mengembalikan route yang diperbarui.
 	Update(ctx context.Context, route *CableRoute) (*CableRoute, error)
 
-	// SoftDelete melakukan soft-delete cable route (set deleted_at).
+	// SoftDelete melakukan hapus lunak cable route (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 
 	// ListByBounds mengambil daftar cable route berdasarkan bounding box dan filter opsional.
@@ -79,19 +79,19 @@ type CableRouteRepository interface {
 }
 
 // =============================================================================
-// NodePhotoRepository — operasi data untuk tabel node_photos
+// NodePhotoRepository - operasi data untuk tabel node_photos
 // =============================================================================
 
 // NodePhotoRepository mendefinisikan operasi data untuk tabel node_photos.
-// Diimplementasikan oleh repository.NodePhotoRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.NodePhotoRepo menggunakan sqlc.
 type NodePhotoRepository interface {
-	// Create membuat record foto baru dan mengembalikan foto yang dibuat.
+	// Buat membuat record foto baru dan mengembalikan foto yang dibuat.
 	Create(ctx context.Context, photo *NodePhoto) (*NodePhoto, error)
 
 	// ListByNode mengambil daftar foto aktif (non-deleted) untuk satu node.
 	ListByNode(ctx context.Context, nodeID string) ([]*NodePhoto, error)
 
-	// SoftDelete melakukan soft-delete foto (set deleted_at).
+	// SoftDelete melakukan hapus lunak foto (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 
 	// CountByNode menghitung jumlah foto aktif (non-deleted) untuk satu node.
@@ -99,14 +99,14 @@ type NodePhotoRepository interface {
 }
 
 // =============================================================================
-// ChangeHistoryRepository — operasi data untuk tabel map_change_history
+// ChangeHistoryRepository - operasi data untuk tabel map_change_history
 // =============================================================================
 
 // ChangeHistoryRepository mendefinisikan operasi data untuk tabel map_change_history.
-// Tabel ini bersifat append-only: tidak ada operasi Update atau Delete.
-// Diimplementasikan oleh repository.ChangeHistoryRepo menggunakan sqlc.
+// Tabel ini bersifat append-only: tidak ada operasi Perbarui atau Hapus.
+// Diimplementasikan oleh repositori.ChangeHistoryRepo menggunakan sqlc.
 type ChangeHistoryRepository interface {
-	// Create menyimpan entri riwayat perubahan baru.
+	// Buat menyimpan entri riwayat perubahan baru.
 	Create(ctx context.Context, entry *MapChangeHistory) (*MapChangeHistory, error)
 
 	// ListByNode mengambil daftar riwayat perubahan untuk satu node
@@ -115,11 +115,11 @@ type ChangeHistoryRepository interface {
 }
 
 // =============================================================================
-// LabelSettingsRepository — operasi data untuk tabel map_label_settings
+// LabelSettingsRepository - operasi data untuk tabel map_label_settings
 // =============================================================================
 
 // LabelSettingsRepository mendefinisikan operasi data untuk tabel map_label_settings.
-// Diimplementasikan oleh repository.LabelSettingsRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.LabelSettingsRepo menggunakan sqlc.
 type LabelSettingsRepository interface {
 	// GetByTenantID mengambil konfigurasi label berdasarkan tenant_id.
 	// Mengembalikan nil jika tenant belum memiliki konfigurasi.
@@ -130,19 +130,19 @@ type LabelSettingsRepository interface {
 }
 
 // =============================================================================
-// ShareLinkRepository — operasi data untuk tabel map_share_links
+// ShareLinkRepository - operasi data untuk tabel map_share_links
 // =============================================================================
 
 // ShareLinkRepository mendefinisikan operasi data untuk tabel map_share_links.
-// Diimplementasikan oleh repository.ShareLinkRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.ShareLinkRepo menggunakan sqlc.
 type ShareLinkRepository interface {
-	// Create membuat share link baru dan mengembalikan link yang dibuat.
+	// Buat membuat share link baru dan mengembalikan link yang dibuat.
 	Create(ctx context.Context, link *MapShareLink) (*MapShareLink, error)
 
 	// GetByToken mengambil share link berdasarkan token unik.
 	GetByToken(ctx context.Context, token string) (*MapShareLink, error)
 
-	// Delete menghapus share link berdasarkan token.
+	// Hapus menghapus share link berdasarkan token.
 	Delete(ctx context.Context, token string) error
 
 	// ListByTenant mengambil daftar share link untuk satu tenant.
@@ -153,11 +153,11 @@ type ShareLinkRepository interface {
 }
 
 // =============================================================================
-// GeocodingCacheRepository — operasi data untuk tabel geocoding_cache
+// GeocodingCacheRepository - operasi data untuk tabel geocoding_cache
 // =============================================================================
 
 // GeocodingCacheRepository mendefinisikan operasi data untuk tabel geocoding_cache.
-// Diimplementasikan oleh repository.GeocodingCacheRepo menggunakan sqlc.
+// Diimplementasikan oleh repositori.GeocodingCacheRepo menggunakan sqlc.
 type GeocodingCacheRepository interface {
 	// Get mengambil cache geocoding berdasarkan koordinat yang sudah dibulatkan.
 	// Mengembalikan nil jika cache tidak ditemukan atau sudah kedaluwarsa.
@@ -172,7 +172,7 @@ type GeocodingCacheRepository interface {
 }
 
 // =============================================================================
-// MapNodeManager — business logic untuk manajemen map node
+// MapNodeManager - business logic untuk manajemen map node
 // =============================================================================
 
 // MapNodeManager mendefinisikan business logic untuk manajemen map node.
@@ -184,16 +184,16 @@ type MapNodeManager interface {
 	// GetNode mengambil detail lengkap map node termasuk foto, riwayat, dan data referensi.
 	GetNode(ctx context.Context, id string) (*MapNodeDetailResponse, error)
 
-	// UpdateNode memperbarui lokasi dan/atau custom fields node dengan pencatatan riwayat.
+	// UpdateNode memperbarui lokasi dan/atau kustom field node dengan pencatatan riwayat.
 	UpdateNode(ctx context.Context, id string, req UpdateMapNodeRequest) (*MapNodeResponse, error)
 
-	// DeleteNode melakukan soft-delete node dengan pencatatan riwayat.
+	// DeleteNode melakukan hapus lunak node dengan pencatatan riwayat.
 	DeleteNode(ctx context.Context, id string, performedBy string) error
 
 	// ListNodes mengambil daftar node berdasarkan bounding box dan filter.
 	ListNodes(ctx context.Context, params MapNodeListParams) ([]*MapNodeWithRefResponse, error)
 
-	// Search melakukan pencarian full-text di node dan entitas referensi.
+	// Pencarian melakukan pencarian full-text di node dan entitas referensi.
 	Search(ctx context.Context, tenantID, query string) ([]*MapSearchResult, error)
 
 	// UploadPhoto meng-upload foto ke node dengan validasi tipe file dan batas jumlah.
@@ -202,19 +202,19 @@ type MapNodeManager interface {
 	// ListPhotos mengambil daftar foto aktif untuk satu node.
 	ListPhotos(ctx context.Context, nodeID string) ([]*NodePhotoResponse, error)
 
-	// DeletePhoto melakukan soft-delete foto dengan pencatatan riwayat.
+	// DeletePhoto melakukan hapus lunak foto dengan pencatatan riwayat.
 	DeletePhoto(ctx context.Context, nodeID, photoID, performedBy string) error
 
 	// GetHistory mengambil riwayat perubahan node dengan paginasi.
 	GetHistory(ctx context.Context, nodeID string, limit, offset int) ([]*MapChangeHistoryResponse, error)
 
-	// ListTrashed mengambil daftar node yang ada di trash (sudah di-soft-delete).
+	// ListTrashed mengambil daftar node yang ada di trash (sudah di-hapus lunak).
 	ListTrashed(ctx context.Context, tenantID string) ([]*MapNodeResponse, error)
 
 	// RestoreNode mengembalikan node dari trash dengan pencatatan riwayat.
 	RestoreNode(ctx context.Context, id, performedBy string) error
 
-	// GetLabelSettings mengambil konfigurasi label untuk tenant (return default jika belum ada).
+	// GetLabelSettings mengambil konfigurasi label untuk tenant (kembalikan bawaan jika belum ada).
 	GetLabelSettings(ctx context.Context, tenantID string) (*MapLabelSettingsResponse, error)
 
 	// UpdateLabelSettings memperbarui konfigurasi label untuk tenant.
@@ -222,7 +222,7 @@ type MapNodeManager interface {
 }
 
 // =============================================================================
-// CableRouteManager — business logic untuk manajemen cable route
+// CableRouteManager - business logic untuk manajemen cable route
 // =============================================================================
 
 // CableRouteManager mendefinisikan business logic untuk manajemen cable route.
@@ -237,7 +237,7 @@ type CableRouteManager interface {
 	// UpdateRoute memperbarui cable route dengan kalkulasi ulang jarak jika koordinat berubah.
 	UpdateRoute(ctx context.Context, id string, req UpdateCableRouteRequest) (*CableRouteResponse, error)
 
-	// DeleteRoute melakukan soft-delete cable route.
+	// DeleteRoute melakukan hapus lunak cable route.
 	DeleteRoute(ctx context.Context, id string) error
 
 	// ListRoutes mengambil daftar cable route berdasarkan bounding box dan filter.
@@ -245,7 +245,7 @@ type CableRouteManager interface {
 }
 
 // =============================================================================
-// MapExportManager — business logic untuk export peta
+// MapExportManager - business logic untuk export peta
 // =============================================================================
 
 // MapExportManager mendefinisikan business logic untuk export peta.
@@ -262,14 +262,14 @@ type MapExportManager interface {
 }
 
 // =============================================================================
-// MapImportManager — business logic untuk import peta
+// MapImportManager - business logic untuk import peta
 // =============================================================================
 
 // MapImportManager mendefinisikan business logic untuk import peta.
 // Mendukung format KML, KMZ, dan GeoJSON.
 // Dataset besar (>100 items) diproses secara async via asynq job.
 type MapImportManager interface {
-	// Preview mem-parse file import dan mengembalikan preview item yang terdeteksi.
+	// Preview mem-parsing file import dan mengembalikan preview item yang terdeteksi.
 	Preview(ctx context.Context, tenantID string, file multipart.File, filename string) (*ImportPreview, error)
 
 	// Execute mengeksekusi import berdasarkan mapping yang dipilih user.
@@ -280,7 +280,7 @@ type MapImportManager interface {
 }
 
 // =============================================================================
-// GeocodingManager — business logic untuk reverse geocoding
+// GeocodingManager - business logic untuk reverse geocoding
 // =============================================================================
 
 // GeocodingManager mendefinisikan business logic untuk reverse geocoding.
@@ -292,11 +292,11 @@ type GeocodingManager interface {
 }
 
 // =============================================================================
-// ShareManager — business logic untuk share link
+// ShareManager - business logic untuk share link
 // =============================================================================
 
 // ShareManager mendefinisikan business logic untuk share link peta.
-// Menangani pembuatan, validasi, dan penghapusan share link read-only.
+// Menangani pembuatan, validasi, dan penghapusan share link hanya baca.
 type ShareManager interface {
 	// CreateShareLink membuat share link baru dengan opsi expiry dan password.
 	CreateShareLink(ctx context.Context, tenantID, createdBy string, req CreateShareLinkRequest) (*ShareLinkResponse, error)

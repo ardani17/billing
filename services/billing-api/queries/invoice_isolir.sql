@@ -1,7 +1,7 @@
--- Query SQL untuk operasi invoice terkait modul isolir.
+-- Kueri SQL untuk operasi invoice terkait modul isolir.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel invoices dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Query ini digunakan oleh IsolirUsecase untuk mendeteksi invoice overdue dan outstanding.
+-- Tabel invoices dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
+-- Kueri ini digunakan oleh IsolirUsecase untuk mendeteksi invoice terlambat dan outstanding.
 
 -- name: FindOverdueForIsolir :many
 -- Mengambil invoice yang sudah melewati grace period untuk proses auto-isolir.

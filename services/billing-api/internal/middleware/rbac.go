@@ -13,14 +13,14 @@ import (
 //
 // Alur pengecekan:
 //  1. Ekstrak role dari c.Locals("role")
-//  2. Super_admin → bypass semua pengecekan
+//  2. Super_admin -> bypass semua pengecekan
 //  3. Cek apakah role ada di AllowedRoles
 //  4. Cek MethodRestrictions per role (jika ada)
-//  5. Reseller → hanya boleh akses /v1/reseller/* dan /v1/auth/*
-//  6. Jika semua lolos → lanjut ke handler berikutnya
+//  5. Reseller -> hanya boleh akses /v1/reseller/* dan /v1/auth/*
+//  6. Jika semua lolos -> lanjut ke handler berikutnya
 func RBAC(config domain.RBACConfig) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Ekstrak role dari locals (di-set oleh Auth middleware)
+		// Ekstrak role dari locals (di-atur oleh Auth middleware)
 		roleStr, ok := c.Locals("role").(string)
 		if !ok || roleStr == "" {
 			return domain.ErrorResponse(c, fiber.StatusForbidden, "FORBIDDEN", "role tidak ditemukan")

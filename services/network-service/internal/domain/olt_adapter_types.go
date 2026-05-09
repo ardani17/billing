@@ -2,8 +2,8 @@ package domain
 
 import "time"
 
-// --- Adapter Response Types ---
-// Tipe-tipe berikut digunakan sebagai response dari OLTAdapter
+// --- Adapter Respons Types ---
+// Tipe-tipe berikut digunakan sebagai respons dari OLTAdapter
 // dan connector (SNMP/CLI) untuk komunikasi antar layer.
 
 // OLTSystemInfo berisi informasi sistem OLT dari auto-detect.
@@ -21,22 +21,23 @@ type OLTSystemInfo struct {
 // PONPortStatus berisi status satu PON port.
 type PONPortStatus struct {
 	PortIndex      int    `json:"port_index"`
-	AdminStatus    string `json:"admin_status"`    // up / down
-	OperStatus     string `json:"oper_status"`     // up / down
+	AdminStatus    string `json:"admin_status"` // up / down
+	OperStatus     string `json:"oper_status"`  // up / down
 	ONTCount       int    `json:"ont_count"`
 	ONTOnlineCount int    `json:"ont_online_count"`
 	Description    string `json:"description,omitempty"`
 }
 
 // ONTPortStatus berisi status satu ONT pada PON port.
-// Digunakan sebagai response dari adapter GetONTList.
+// Digunakan sebagai respons dari adapter GetONTList.
 type ONTPortStatus struct {
+	PONPortIndex int         `json:"pon_port_index"`
 	ONTIndex     int         `json:"ont_index"`
 	SerialNumber string      `json:"serial_number"`
 	Name         string      `json:"name,omitempty"`
-	Status       string      `json:"status"`         // online / offline
+	Status       string      `json:"status"` // online / offline
 	RxSignalDBm  float64     `json:"rx_signal_dbm"`
-	SignalLevel  SignalLevel  `json:"signal_level"`
+	SignalLevel  SignalLevel `json:"signal_level"`
 	Distance     int         `json:"distance_meters"`
 	Uptime       int64       `json:"uptime_seconds"`
 }
@@ -46,7 +47,7 @@ type ONTSignalInfo struct {
 	ONTIndex    int         `json:"ont_index"`
 	RxPowerDBm  float64     `json:"rx_power_dbm"`
 	TxPowerDBm  float64     `json:"tx_power_dbm,omitempty"`
-	SignalLevel SignalLevel  `json:"signal_level"`
+	SignalLevel SignalLevel `json:"signal_level"`
 	Distance    int         `json:"distance_meters"`
 }
 
@@ -75,7 +76,7 @@ type PONTrafficStats struct {
 type ONTSignalPoint struct {
 	Timestamp   time.Time   `json:"timestamp"`
 	RxPowerDBm  float64     `json:"rx_power_dbm"`
-	SignalLevel SignalLevel  `json:"signal_level"`
+	SignalLevel SignalLevel `json:"signal_level"`
 }
 
 // PONTrafficPoint berisi data point traffic untuk time-series storage.
@@ -92,7 +93,7 @@ type PONTrafficPoint struct {
 // SNMPConfig berisi konfigurasi koneksi SNMP ke OLT.
 type SNMPConfig struct {
 	Host         string        // alamat IP atau hostname OLT
-	Port         int           // default 161
+	Port         int           // bawaan 161
 	Version      SNMPVersion   // v2c atau v3
 	Community    string        // untuk v2c
 	Username     string        // untuk v3
@@ -100,19 +101,19 @@ type SNMPConfig struct {
 	AuthPassword string        // untuk v3
 	PrivProtocol string        // DES atau AES (v3)
 	PrivPassword string        // untuk v3
-	Timeout      time.Duration // default 5s connect, 10s request
+	Timeout      time.Duration // bawaan 5s connect, 10s permintaan
 }
 
 // CLIConfig berisi konfigurasi koneksi CLI (SSH/Telnet) ke OLT.
 type CLIConfig struct {
-	Host           string        // alamat IP atau hostname OLT
-	Port           int           // default 22 (SSH) atau 23 (Telnet)
-	Protocol       CLIProtocol   // ssh atau telnet
+	Host           string      // alamat IP atau hostname OLT
+	Port           int         // bawaan 22 (SSH) atau 23 (Telnet)
+	Protocol       CLIProtocol // ssh atau telnet
 	Username       string
 	Password       string
 	EnablePassword string        // opsional, untuk privileged mode
-	ConnTimeout    time.Duration // default 10s
-	CmdTimeout     time.Duration // default 30s
+	ConnTimeout    time.Duration // bawaan 10s
+	CmdTimeout     time.Duration // bawaan 30s
 }
 
 // --- SNMP Result Types ---
@@ -142,7 +143,7 @@ const (
 
 // SNMPResult berisi hasil satu SNMP operation.
 type SNMPResult struct {
-	OID   string        // OID yang di-query
+	OID   string        // OID yang di-kueri
 	Type  SNMPValueType // tipe nilai hasil
 	Value interface{}   // nilai hasil SNMP
 }

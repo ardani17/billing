@@ -1,4 +1,4 @@
-// Package queue menyediakan factory untuk membuat asynq client dan server,
+// Paket queue menyediakan factory untuk membuat asynq client dan server,
 // serta format standar TaskEnvelope untuk komunikasi antar service via Redis queue.
 package queue
 
@@ -32,7 +32,7 @@ type TaskEnvelope struct {
 	Timestamp time.Time `json:"timestamp"`
 
 	// CorrelationID adalah UUID v4 untuk tracing lintas service.
-	// Jika kosong saat enqueue, akan di-generate otomatis.
+	// Jika kosong saat antrekan, akan di-buat otomatis.
 	CorrelationID string `json:"correlation_id"`
 
 	// Payload berisi data spesifik event dalam format JSON mentah
@@ -69,7 +69,7 @@ func (c ClientConfig) toRedisClientOpt() asynq.RedisClientOpt {
 }
 
 // NewClient membuat asynq client baru untuk mengirim task ke queue.
-// Client harus di-close setelah selesai digunakan.
+// Klien harus di-close setelah selesai digunakan.
 func NewClient(cfg ClientConfig) (*asynq.Client, error) {
 	client := asynq.NewClient(cfg.toRedisClientOpt())
 	return client, nil
@@ -77,7 +77,7 @@ func NewClient(cfg ClientConfig) (*asynq.Client, error) {
 
 // NewServer membuat asynq server baru untuk memproses task dari queue.
 // Parameter concurrency menentukan jumlah worker goroutine.
-// Parameter queues menentukan prioritas queue, contoh: {"critical": 6, "default": 3, "low": 1}.
+// Parameter queues menentukan prioritas queue, contoh: {"critical": 6, "bawaan": 3, "low": 1}.
 func NewServer(cfg ClientConfig, concurrency int, queues map[string]int) (*asynq.Server, error) {
 	srv := asynq.NewServer(
 		cfg.toRedisClientOpt(),
@@ -91,14 +91,14 @@ func NewServer(cfg ClientConfig, concurrency int, queues map[string]int) (*asynq
 
 // EnqueueTask membuat asynq.Task dari TaskEnvelope dan mengirimnya ke queue.
 // EventType digunakan sebagai tipe task di asynq.
-// Jika CorrelationID kosong, akan di-generate UUID v4 baru.
+// Jika CorrelationID kosong, akan di-buat UUID v4 baru.
 // Jika Timestamp kosong (zero value), akan diisi dengan waktu saat ini.
 func EnqueueTask(client *asynq.Client, envelope TaskEnvelope) error {
 	return EnqueueTaskWithOptions(client, envelope)
 }
 
 // EnqueueTaskWithOptions membuat asynq.Task dari TaskEnvelope dan mengirimnya
-// dengan opsi asynq tambahan, misalnya asynq.Queue("critical").
+// dengan opsi asynq tambahan, misalnya asynq.Antrean("critical").
 func EnqueueTaskWithOptions(client *asynq.Client, envelope TaskEnvelope, opts ...asynq.Option) error {
 	if envelope.EventType == "" {
 		return ErrEmptyEventType
@@ -107,7 +107,7 @@ func EnqueueTaskWithOptions(client *asynq.Client, envelope TaskEnvelope, opts ..
 		return ErrEmptyTenantID
 	}
 
-	// Generate correlation ID jika belum diisi
+	// Buat correlation ID jika belum diisi
 	if envelope.CorrelationID == "" {
 		envelope.CorrelationID = uuid.New().String()
 	}

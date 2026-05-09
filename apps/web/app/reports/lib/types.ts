@@ -1,8 +1,8 @@
 // =============================================================================
-// TypeScript types — matching semua backend DTOs untuk Reporting & Analytics
+// TypeScript types - matching semua backend DTOs untuk Reporting & Analytics
 // =============================================================================
 
-// --- Report Filter ---
+// --- Filter laporan ---
 
 export interface ReportFilter {
   period_start: string;
@@ -14,7 +14,7 @@ export interface ReportFilter {
   router_id?: string;
 }
 
-// --- Revenue Report ---
+// --- Laporan pendapatan ---
 
 export interface RevenueSource {
   monthly_subscription: number;
@@ -47,7 +47,7 @@ export interface RevenueReport {
   kpi_progress?: number;
 }
 
-// --- Aging Report ---
+// --- Laporan aging ---
 
 export interface AgingBucket {
   label: string;
@@ -77,7 +77,7 @@ export interface AgingReport {
   kpi_target?: number;
 }
 
-// --- Payment Report ---
+// --- Laporan pembayaran ---
 
 export interface PaymentMethodBreakdown {
   method_name: string;
@@ -99,7 +99,7 @@ export interface PaymentReport {
   peak_amount: number;
 }
 
-// --- Voucher Revenue Report ---
+// --- Voucher Laporan pendapatan ---
 
 export interface VoucherByPackage {
   package_name: string;
@@ -123,7 +123,7 @@ export interface VoucherRevenueReport {
   total_reseller_margin: number;
 }
 
-// --- Profit Loss Report ---
+// --- Laporan laba rugi ---
 
 export interface ProfitLossLineItem {
   label: string;
@@ -140,7 +140,7 @@ export interface ProfitLossReport {
   comparison?: ProfitLossReport;
 }
 
-// --- Customer Growth Report ---
+// --- Laporan pertumbuhan pelanggan ---
 
 export interface MonthlyGrowthTrend {
   month: string;
@@ -162,7 +162,7 @@ export interface CustomerGrowthReport {
   delta?: Record<string, RevenueDelta>;
 }
 
-// --- Customer Distribution Report ---
+// --- Laporan distribusi pelanggan ---
 
 export interface DistributionItem {
   id?: string;
@@ -178,7 +178,7 @@ export interface CustomerDistributionReport {
   by_connection_method: DistributionItem[];
 }
 
-// --- Churn Analysis Report ---
+// --- Laporan analisis churn ---
 
 export interface ChurnByReason {
   reason: string;
@@ -195,7 +195,7 @@ export interface ChurnAnalysisReport {
   average_lifetime_months: number;
 }
 
-// --- Revenue by Area Report ---
+// --- Laporan pendapatan per area ---
 
 export interface AreaRevenue {
   area_id: string;
@@ -213,7 +213,7 @@ export interface RevenueByAreaReport {
   attention_needed_area: string;
 }
 
-// --- Comparison Report ---
+// --- Laporan perbandingan ---
 
 export type ComparisonType = "mom" | "yoy" | "qoq" | "custom";
 
@@ -234,7 +234,7 @@ export interface ComparisonReport {
   insights: string[];
 }
 
-// --- Forecast Report ---
+// --- Laporan forecast ---
 
 export interface ForecastMonth {
   month: string;
@@ -501,7 +501,7 @@ export interface KPITarget {
   updated_at: string;
 }
 
-// --- Report Schedule ---
+// --- Jadwal laporan ---
 
 export type ScheduleType = "daily" | "weekly" | "monthly";
 
@@ -524,7 +524,7 @@ export interface ReportSchedule {
   updated_at: string;
 }
 
-// --- Report Job ---
+// --- Job laporan ---
 
 export type ReportJobStatus = "pending" | "processing" | "completed" | "failed";
 
@@ -542,7 +542,7 @@ export interface ReportJob {
   updated_at: string;
 }
 
-// --- Custom Report Template ---
+// --- Template laporan kustom ---
 
 export interface CustomReportTemplate {
   id: string;
@@ -558,7 +558,7 @@ export interface CustomReportTemplate {
   updated_at: string;
 }
 
-// --- Request DTOs ---
+// --- DTO permintaan ---
 
 export interface CreateExpenseRequest {
   category_id: string;

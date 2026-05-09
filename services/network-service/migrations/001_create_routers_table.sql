@@ -29,15 +29,15 @@ CREATE TABLE routers (
     updated_at                TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Unique constraint: nama router unik per tenant (exclude soft-deleted)
+-- Unique constraint: nama router unik per tenant (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_routers_tenant_name
     ON routers (tenant_id, name)
     WHERE deleted_at IS NULL;
 
--- Index untuk query per tenant
+-- Index untuk kueri per tenant
 CREATE INDEX idx_routers_tenant_id ON routers (tenant_id) WHERE deleted_at IS NULL;
 
--- Index untuk health check query (router aktif)
+-- Index untuk health cek kueri (router aktif)
 CREATE INDEX idx_routers_status ON routers (status) WHERE deleted_at IS NULL;
 
 -- Row-Level Security

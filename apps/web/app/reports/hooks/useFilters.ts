@@ -108,7 +108,7 @@ const DEFAULT_STATE: FilterState = {
 };
 
 /**
- * Hook untuk filter state management yang sync dengan URL query params.
+ * Hook untuk filter manajemen state yang sync dengan URL kueri params.
  */
 export function useFilters() {
   const [filters, setFilters] = useState<FilterState>(() => {

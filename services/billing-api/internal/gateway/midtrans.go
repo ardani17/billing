@@ -14,7 +14,7 @@ import (
 )
 
 // MidtransAdapter mengimplementasikan PaymentGatewayAdapter untuk Midtrans.
-// Menggunakan Midtrans Snap API untuk membuat payment link.
+// Menggunakan Midtrans Snap API untuk membuat link pembayaran.
 type MidtransAdapter struct {
 	serverKey  string
 	httpClient *http.Client
@@ -32,7 +32,7 @@ func NewMidtransAdapter(serverKey string) *MidtransAdapter {
 	}
 }
 
-// Tipe request/response untuk Midtrans Snap API.
+// Tipe permintaan/respons untuk Midtrans Snap API.
 type midtransSnapRequest struct {
 	TransactionDetails midtransTransactionDetails `json:"transaction_details"`
 	CustomerDetails    midtransCustomerDetails    `json:"customer_details"`
@@ -60,11 +60,11 @@ type midtransSnapResponse struct {
 	RedirectURL string `json:"redirect_url"`
 }
 
-// CreatePaymentLink membuat payment link via Midtrans Snap API (POST /snap/v1/transactions).
+// CreatePaymentLink membuat link pembayaran via Midtrans Snap API (POST /snap/v1/transactions).
 func (a *MidtransAdapter) CreatePaymentLink(ctx context.Context, req CreateLinkRequest) (*domain.PaymentLinkResponse, error) {
 	durationMin := int(req.ExpiryDuration.Minutes())
 	if durationMin <= 0 {
-		durationMin = 7 * 24 * 60 // default 7 hari dalam menit
+		durationMin = 7 * 24 * 60 // bawaan 7 hari dalam menit
 	}
 
 	body := midtransSnapRequest{
@@ -129,7 +129,7 @@ func (a *MidtransAdapter) CreatePaymentLink(ctx context.Context, req CreateLinkR
 	}, nil
 }
 
-// ExpirePaymentLink meng-cancel payment link di Midtrans (POST /v2/{order_id}/cancel).
+// ExpirePaymentLink meng-cancel link pembayaran di Midtrans (POST /v2/{order_id}/cancel).
 func (a *MidtransAdapter) ExpirePaymentLink(ctx context.Context, externalID string) error {
 	url := fmt.Sprintf("%s/v2/%s/cancel", a.baseURL, externalID)
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)

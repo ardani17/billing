@@ -9,22 +9,19 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: notification-service, Property 13: Credential masking preserves last 4 characters
-// **Validates: Requirements 13.6**
+// **Memvalidasi: Kebutuhan 13.6**
 //
 // Untuk setiap string credential dengan panjang >= 4, MaskCredential menghasilkan
-// output yang diakhiri 4 karakter terakhir dari string asli, dan semua karakter
 // sebelumnya diganti dengan "•". Untuk string < 4 karakter, seluruh string
 // di-mask menjadi "••••••••".
 func TestProperty_CredentialMaskingPreservesLast4(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate string credential acak (panjang 0-100, karakter printable)
+		// Buat string credential acak (panjang 0-100, karakter printable)
 		value := rapid.StringMatching(`[a-zA-Z0-9!@#$%^&*()_+\-=]{0,100}`).Draw(t, "credential")
 
 		result := MaskCredential(value)
 
 		if len(value) >= 4 {
-			// Verifikasi: output diakhiri 4 karakter terakhir dari string asli
 			last4 := value[len(value)-4:]
 			if !strings.HasSuffix(result, last4) {
 				t.Fatalf(
@@ -43,7 +40,6 @@ func TestProperty_CredentialMaskingPreservesLast4(t *testing.T) {
 				)
 			}
 
-			// Verifikasi: panjang output sama dengan panjang input
 			if len(result) != len(value)+(len(value)-4)*(len("•")-1) {
 				// Karena "•" adalah multi-byte, kita cek jumlah rune
 				expectedRuneLen := len(value) - 4 + 4
@@ -67,8 +63,7 @@ func TestProperty_CredentialMaskingPreservesLast4(t *testing.T) {
 	})
 }
 
-// Feature: notification-service, Property 14: Config validation — credentials required when enabled
-// **Validates: Requirements 13.3**
+// **Memvalidasi: Kebutuhan 13.3**
 //
 // Untuk setiap NotificationConfig dengan is_enabled=true, ValidateCredentials
 // gagal jika ada field credential yang kosong, dan berhasil jika semua field
@@ -80,7 +75,6 @@ func TestProperty_ConfigValidationCredentialsRequired(t *testing.T) {
 		channelIdx := rapid.IntRange(0, len(channels)-1).Draw(t, "channelIdx")
 		channel := channels[channelIdx]
 
-		// Generate credential yang valid (semua field non-empty)
 		allFilled := rapid.Bool().Draw(t, "allFilled")
 
 		var creds json.RawMessage
@@ -170,7 +164,7 @@ func TestProperty_ConfigValidationCredentialsRequired(t *testing.T) {
 		validationErr := ValidateCredentials(channel, creds)
 
 		if allFilled {
-			// Semua field terisi → validasi harus berhasil
+			// Semua field terisi -> validasi harus berhasil
 			if validationErr != nil {
 				t.Fatalf(
 					"ValidateCredentials(%s, %s) gagal padahal semua field terisi: %v",
@@ -178,7 +172,7 @@ func TestProperty_ConfigValidationCredentialsRequired(t *testing.T) {
 				)
 			}
 		} else {
-			// Ada field kosong → validasi harus gagal
+			// Ada field kosong -> validasi harus gagal
 			if validationErr == nil {
 				t.Fatalf(
 					"ValidateCredentials(%s, %s) berhasil padahal ada field kosong",
@@ -189,14 +183,13 @@ func TestProperty_ConfigValidationCredentialsRequired(t *testing.T) {
 	})
 }
 
-// Feature: notification-service, Property 15: Template validation — at least one channel body required
-// **Validates: Requirements 14.5**
+// **Memvalidasi: Kebutuhan 14.5**
 //
 // Untuk setiap kombinasi body template, ValidateTemplateBody gagal jika semua
 // body kosong, dan berhasil jika minimal satu body channel terisi.
 func TestProperty_TemplateBodyValidation(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate 4 body field — masing-masing bisa kosong atau terisi
+		// Buat 4 body field - masing-masing bisa kosong atau terisi
 		allEmpty := rapid.Bool().Draw(t, "allEmpty")
 
 		var bodyWA, bodySMS, bodyEmailSubject, bodyEmailHTML string
@@ -208,7 +201,7 @@ func TestProperty_TemplateBodyValidation(t *testing.T) {
 			bodyEmailSubject = ""
 			bodyEmailHTML = ""
 		} else {
-			// Minimal satu body terisi — generate secara acak
+			// Minimal satu body terisi - buat secara acak
 			bodyWA = rapid.StringMatching(`[a-zA-Z0-9 ]{0,50}`).Draw(t, "bodyWA")
 			bodySMS = rapid.StringMatching(`[a-zA-Z0-9 ]{0,50}`).Draw(t, "bodySMS")
 			bodyEmailSubject = rapid.StringMatching(`[a-zA-Z0-9 ]{0,50}`).Draw(t, "bodyEmailSubject")
@@ -237,8 +230,7 @@ func TestProperty_TemplateBodyValidation(t *testing.T) {
 	})
 }
 
-// Feature: notification-service, Property 16: Settings range validation
-// **Validates: Requirements 20.5, 20.6**
+// **Memvalidasi: Kebutuhan 20.5, 20.6**
 //
 // Untuk setiap integer daily_limit, validasi berhasil jika dan hanya jika
 // nilainya dalam [1, 20]. Untuk setiap integer cooldown_minutes, validasi
@@ -259,7 +251,7 @@ func TestProperty_SettingsRangeValidation(t *testing.T) {
 		cooldownValid := cooldown >= 5 && cooldown <= 120
 
 		if dailyValid && cooldownValid {
-			// Kedua nilai dalam range → validasi harus berhasil
+			// Kedua nilai dalam range -> validasi harus berhasil
 			if err != nil {
 				t.Fatalf(
 					"ValidateSettings(daily=%d, cooldown=%d) gagal padahal dalam range: %v",
@@ -267,7 +259,7 @@ func TestProperty_SettingsRangeValidation(t *testing.T) {
 				)
 			}
 		} else {
-			// Salah satu di luar range → validasi harus gagal
+			// Salah satu di luar range -> validasi harus gagal
 			if err == nil {
 				t.Fatalf(
 					"ValidateSettings(daily=%d, cooldown=%d) berhasil padahal di luar range",
@@ -278,14 +270,11 @@ func TestProperty_SettingsRangeValidation(t *testing.T) {
 	})
 }
 
-// Feature: notification-service, Property 17: Quiet hours time validation
-// **Validates: Requirements 20.3**
+// **Memvalidasi: Kebutuhan 20.3**
 //
-// Untuk setiap pasangan string HH:MM yang valid, ValidateQuietHours berhasil
 // jika dan hanya jika start secara kronologis sebelum end dalam hari yang sama.
 func TestProperty_QuietHoursTimeValidation(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate jam dan menit yang valid
 		startHour := rapid.IntRange(0, 23).Draw(t, "startHour")
 		startMin := rapid.IntRange(0, 59).Draw(t, "startMin")
 		endHour := rapid.IntRange(0, 23).Draw(t, "endHour")
@@ -300,7 +289,7 @@ func TestProperty_QuietHoursTimeValidation(t *testing.T) {
 		endTotal := endHour*60 + endMin
 
 		if startTotal < endTotal {
-			// start sebelum end → validasi harus berhasil
+			// start sebelum end -> validasi harus berhasil
 			if err != nil {
 				t.Fatalf(
 					"ValidateQuietHours(%q, %q) gagal padahal start < end: %v",
@@ -308,7 +297,7 @@ func TestProperty_QuietHoursTimeValidation(t *testing.T) {
 				)
 			}
 		} else {
-			// start >= end → validasi harus gagal
+			// start >= end -> validasi harus gagal
 			if err == nil {
 				t.Fatalf(
 					"ValidateQuietHours(%q, %q) berhasil padahal start >= end",
@@ -319,8 +308,7 @@ func TestProperty_QuietHoursTimeValidation(t *testing.T) {
 	})
 }
 
-// Feature: notification-service, Property 18: Page size normalization
-// **Validates: Requirements 12.3**
+// **Memvalidasi: Kebutuhan 12.3**
 //
 // Untuk setiap integer page_size, NormalizePageSize mengembalikan nilai apa adanya
 // jika termasuk {10, 25, 50}, dan mengembalikan 25 untuk nilai lainnya.
@@ -333,7 +321,6 @@ func TestProperty_PageSizeNormalization(t *testing.T) {
 		validSizes := map[int]bool{10: true, 25: true, 50: true}
 
 		if validSizes[pageSize] {
-			// Nilai valid → harus dikembalikan apa adanya
 			if result != pageSize {
 				t.Fatalf(
 					"NormalizePageSize(%d) = %d, expected %d (nilai valid)",
@@ -341,7 +328,6 @@ func TestProperty_PageSizeNormalization(t *testing.T) {
 				)
 			}
 		} else {
-			// Nilai tidak valid → harus default ke 25
 			if result != 25 {
 				t.Fatalf(
 					"NormalizePageSize(%d) = %d, expected 25 (default)",

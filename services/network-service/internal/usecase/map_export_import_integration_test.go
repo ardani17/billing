@@ -1,8 +1,6 @@
 //go:build integration
 
-// map_export_import_integration_test.go — integration test untuk export/import GeoJSON.
-// Menguji alur: buat node + cable → export GeoJSON → parse GeoJSON → verifikasi round-trip.
-// Menggunakan mock in-memory repository (sama seperti map_node_manager_test.go).
+// map_export_import_integration_test.go - integration test untuk export/import GeoJSON.
 // Semua komentar dalam Bahasa Indonesia.
 package usecase
 
@@ -15,19 +13,15 @@ import (
 )
 
 // =============================================================================
-// Integration Test: Export GeoJSON → Parse → Verifikasi Round-Trip
 // =============================================================================
 
 // TestIntegration_ExportImportGeoJSON menguji alur end-to-end:
 // 1. Buat beberapa node (OLT, ODP, ONT)
 // 2. Buat cable route antar node
 // 3. Export ke format GeoJSON
-// 4. Parse GeoJSON yang dihasilkan
-// 5. Verifikasi jumlah feature sesuai (node=Point, cable=LineString)
 // 6. Verifikasi properti node (node_type, name) terjaga
 // 7. Verifikasi properti cable (route_type, distance_meters) terjaga
 func TestIntegration_ExportImportGeoJSON(t *testing.T) {
-	// --- Inisialisasi mock repository ---
 	nodeRepo := newMockMapNodeRepo()
 	photoRepo := newMockNodePhotoRepo()
 	historyRepo := newMockChangeHistoryRepo()
@@ -84,7 +78,7 @@ func TestIntegration_ExportImportGeoJSON(t *testing.T) {
 	}
 
 	// =========================================================================
-	// Langkah 4: Buat cable route backbone (OLT → ODP)
+	// Langkah 4: Buat cable route backbone (OLT -> ODP)
 	// =========================================================================
 	t.Log("Langkah 4: Membuat cable route backbone OLT → ODP")
 	backboneCoords := [][2]float64{
@@ -104,7 +98,7 @@ func TestIntegration_ExportImportGeoJSON(t *testing.T) {
 	}
 
 	// =========================================================================
-	// Langkah 5: Buat cable route drop (ODP → ONT)
+	// Langkah 5: Buat cable route drop (ODP -> ONT)
 	// =========================================================================
 	t.Log("Langkah 5: Membuat cable route drop ODP → ONT")
 	dropCoords := [][2]float64{
@@ -145,7 +139,6 @@ func TestIntegration_ExportImportGeoJSON(t *testing.T) {
 	}
 
 	// =========================================================================
-	// Langkah 7: Parse GeoJSON yang dihasilkan
 	// =========================================================================
 	t.Log("Langkah 7: Parse GeoJSON yang dihasilkan")
 	var collection geoJSONCollection
@@ -159,7 +152,6 @@ func TestIntegration_ExportImportGeoJSON(t *testing.T) {
 	}
 
 	// =========================================================================
-	// Langkah 8: Verifikasi jumlah feature (3 node + 2 cable = 5)
 	// =========================================================================
 	t.Log("Langkah 8: Verifikasi jumlah feature")
 	expectedFeatures := 5 // 3 node (Point) + 2 cable (LineString)
@@ -199,12 +191,10 @@ func TestIntegration_ExportImportGeoJSON(t *testing.T) {
 			}
 			nodeTypeSet[nt.(string)] = true
 
-			// Verifikasi property 'name' ada
 			if _, ok := f.Properties["name"]; !ok {
 				t.Error("Point feature seharusnya memiliki property 'name'")
 			}
 
-			// Verifikasi property 'id' ada
 			if _, ok := f.Properties["id"]; !ok {
 				t.Error("Point feature seharusnya memiliki property 'id'")
 			}
@@ -235,12 +225,10 @@ func TestIntegration_ExportImportGeoJSON(t *testing.T) {
 			}
 			routeTypeSet[rt.(string)] = true
 
-			// Verifikasi property 'distance_meters' ada
 			if _, ok := f.Properties["distance_meters"]; !ok {
 				t.Error("LineString feature seharusnya memiliki property 'distance_meters'")
 			}
 
-			// Verifikasi property 'from_node_id' dan 'to_node_id' ada
 			if _, ok := f.Properties["from_node_id"]; !ok {
 				t.Error("LineString feature seharusnya memiliki property 'from_node_id'")
 			}
@@ -258,7 +246,6 @@ func TestIntegration_ExportImportGeoJSON(t *testing.T) {
 	}
 
 	// =========================================================================
-	// Langkah 11: Verifikasi round-trip — parse GeoJSON kembali sebagai import
 	// =========================================================================
 	t.Log("Langkah 11: Verifikasi round-trip — parse GeoJSON sebagai import")
 	importItems, err := parseGeoJSONImport(result.FileBytes)
@@ -289,14 +276,12 @@ func TestIntegration_ExportImportGeoJSON(t *testing.T) {
 		t.Errorf("jumlah import lines: got %d, want 2", importLines)
 	}
 
-	// Verifikasi koordinat point items memiliki lat/lng yang valid
 	for _, item := range importItems {
 		if item.Type == "point" {
 			if item.Lat == nil || item.Lng == nil {
 				t.Error("import point item seharusnya memiliki lat dan lng")
 				continue
 			}
-			// Koordinat harus dalam range valid
 			if *item.Lat < -90 || *item.Lat > 90 {
 				t.Errorf("import point lat di luar range: %f", *item.Lat)
 			}
@@ -331,13 +316,12 @@ func TestIntegration_ExportImportGeoJSON(t *testing.T) {
 }
 
 // =============================================================================
-// Integration Test: Export Async untuk Dataset Besar
+// Integration Tes: Export Async untuk Dataset Besar
 // =============================================================================
 
 // TestIntegration_ExportAsyncLargeDataset memverifikasi bahwa export dengan
 // dataset besar (>500 items) menghasilkan job async, bukan file langsung.
 func TestIntegration_ExportAsyncLargeDataset(t *testing.T) {
-	// --- Inisialisasi mock repository ---
 	nodeRepo := newMockMapNodeRepo()
 	cableRepo := newMockCableRouteRepo()
 	photoRepo := newMockNodePhotoRepo()
@@ -367,7 +351,7 @@ func TestIntegration_ExportAsyncLargeDataset(t *testing.T) {
 	}
 
 	// =========================================================================
-	// Export — harus menghasilkan async job
+	// Export - harus menghasilkan async job
 	// =========================================================================
 	t.Log("Export GeoJSON — seharusnya async")
 	result, err := exportMgr.Export(ctx, tenantID, domain.ExportRequest{

@@ -1,5 +1,5 @@
-// customer_bulk.go menangani HTTP request untuk bulk actions pada pelanggan.
-// Termasuk: bulk isolir, activate, notify, change-package, edit, dan delete.
+// customer_bulk.go menangani HTTP permintaan untuk bulk actions pada pelanggan.
+// Termasuk: isolir massal, aktivasi, notifikasi, ubah paket, edit, dan hapus.
 package handler
 
 import (
@@ -38,7 +38,7 @@ func (h *CustomerHandler) BulkIsolir(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, result)
 }
 
-// BulkActivate menangani POST /v1/customers/bulk/activate.
+// BulkActivate menangani POST /v1/customers/bulk/aktifkan.
 // Mentransisikan status beberapa pelanggan ke aktif.
 func (h *CustomerHandler) BulkActivate(c *fiber.Ctx) error {
 	var req domain.BulkIDsRequest
@@ -147,7 +147,7 @@ func (h *CustomerHandler) BulkEdit(c *fiber.Ctx) error {
 }
 
 // BulkDelete menangani DELETE /v1/customers/bulk.
-// Soft delete beberapa pelanggan.
+// Soft hapus beberapa pelanggan.
 func (h *CustomerHandler) BulkDelete(c *fiber.Ctx) error {
 	var req domain.BulkIDsRequest
 	if err := c.BodyParser(&req); err != nil {

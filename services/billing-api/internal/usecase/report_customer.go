@@ -64,7 +64,7 @@ func (rm *ReportManager) attachCustomerKPI(ctx context.Context, tenantID string,
 		return
 	}
 	// KPI target untuk churn rate dan pelanggan baru bisa ditambahkan
-	// ke response jika diperlukan oleh frontend melalui field Delta
+	// ke respons jika diperlukan oleh frontend melalui field Delta
 }
 
 // GetCustomerDistributionReport mengambil laporan distribusi pelanggan

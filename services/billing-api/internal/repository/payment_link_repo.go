@@ -18,7 +18,7 @@ type PaymentLinkRepo struct {
 	// queries adalah sqlc-generated Queries untuk operasi payment_links.
 	queries *Queries
 
-	// pool digunakan untuk transaksi pada method Create.
+	// pool digunakan untuk transaksi pada method Buat.
 	pool *pgxpool.Pool
 }
 
@@ -30,11 +30,11 @@ func NewPaymentLinkRepo(queries *Queries, pool *pgxpool.Pool) *PaymentLinkRepo {
 	}
 }
 
-// --- Helper: mapping sqlc PaymentLink → domain.PaymentLink ---
+// --- Helper: mapping sqlc PaymentLink -> domain.PaymentLink ---
 
 // mapPaymentLinkRow memetakan PaymentLink (sqlc model) ke domain.PaymentLink.
-// Konversi: pgtype.UUID → string, pgtype.Timestamptz → time.Time,
-// pgtype.Text → string.
+// Konversi: pgtype.UUID -> string, pgtype.Timestamptz -> time.Time,
+// pgtype.Text -> string.
 func mapPaymentLinkRow(row PaymentLink) *domain.PaymentLink {
 	return &domain.PaymentLink{
 		ID:              uuidToString(row.ID),
@@ -56,7 +56,7 @@ func mapPaymentLinkRow(row PaymentLink) *domain.PaymentLink {
 
 // --- Implementasi domain.PaymentLinkRepository ---
 
-// Create membuat payment link baru beserta junction ke invoices (payment_link_invoices).
+// Buat membuat link pembayaran baru beserta junction ke invoices (payment_link_invoices).
 // Menggunakan transaksi untuk atomicity antara insert payment_link dan payment_link_invoices.
 func (r *PaymentLinkRepo) Create(ctx context.Context, link *domain.PaymentLink, invoiceIDs []string) (*domain.PaymentLink, error) {
 	tx, err := r.pool.Begin(ctx)
@@ -101,7 +101,7 @@ func (r *PaymentLinkRepo) Create(ctx context.Context, link *domain.PaymentLink, 
 	return mapPaymentLinkRow(row), nil
 }
 
-// GetByID mengambil payment link berdasarkan ID (tenant-scoped via RLS).
+// GetByID mengambil link pembayaran berdasarkan ID (tenant-scoped via RLS).
 func (r *PaymentLinkRepo) GetByID(ctx context.Context, id string) (*domain.PaymentLink, error) {
 	row, err := r.queries.GetPaymentLinkByID(ctx, stringToUUID(id))
 	if err != nil {
@@ -113,7 +113,7 @@ func (r *PaymentLinkRepo) GetByID(ctx context.Context, id string) (*domain.Payme
 	return mapPaymentLinkRow(row), nil
 }
 
-// GetByExternalID mengambil payment link berdasarkan external_id dari gateway.
+// GetByExternalID mengambil link pembayaran berdasarkan external_id dari gateway.
 func (r *PaymentLinkRepo) GetByExternalID(ctx context.Context, externalID string) (*domain.PaymentLink, error) {
 	row, err := r.queries.GetPaymentLinkByExternalID(ctx, externalID)
 	if err != nil {
@@ -125,7 +125,7 @@ func (r *PaymentLinkRepo) GetByExternalID(ctx context.Context, externalID string
 	return mapPaymentLinkRow(row), nil
 }
 
-// GetActiveByCustomer mengambil payment link aktif (status='active') untuk customer.
+// GetActiveByCustomer mengambil link pembayaran aktif (status='active') untuk customer.
 func (r *PaymentLinkRepo) GetActiveByCustomer(ctx context.Context, customerID string) (*domain.PaymentLink, error) {
 	row, err := r.queries.GetActivePaymentLinkByCustomer(ctx, stringToUUID(customerID))
 	if err != nil {
@@ -137,7 +137,7 @@ func (r *PaymentLinkRepo) GetActiveByCustomer(ctx context.Context, customerID st
 	return mapPaymentLinkRow(row), nil
 }
 
-// GetInvoiceIDsByLinkID mengambil daftar invoice ID yang terkait dengan payment link.
+// GetInvoiceIDsByLinkID mengambil daftar invoice ID yang terkait dengan link pembayaran.
 func (r *PaymentLinkRepo) GetInvoiceIDsByLinkID(ctx context.Context, linkID string) ([]string, error) {
 	uuids, err := r.queries.GetInvoiceIDsByPaymentLinkID(ctx, stringToUUID(linkID))
 	if err != nil {
@@ -150,7 +150,7 @@ func (r *PaymentLinkRepo) GetInvoiceIDsByLinkID(ctx context.Context, linkID stri
 	return ids, nil
 }
 
-// UpdateStatus memperbarui status payment link.
+// UpdateStatus memperbarui status link pembayaran.
 func (r *PaymentLinkRepo) UpdateStatus(ctx context.Context, id string, status domain.PaymentLinkStatus) error {
 	err := r.queries.UpdatePaymentLinkStatus(ctx, UpdatePaymentLinkStatusParams{
 		ID:     stringToUUID(id),
@@ -175,11 +175,11 @@ func (r *PaymentLinkRepo) UpdateStatusPaid(ctx context.Context, id string, paidM
 	return nil
 }
 
-// ListByInvoice mengambil semua payment links untuk invoice tertentu (via junction table).
+// ListByInvoice mengambil semua link pembayarans untuk invoice tertentu (via junction table).
 func (r *PaymentLinkRepo) ListByInvoice(ctx context.Context, invoiceID string) ([]*domain.PaymentLink, error) {
 	rows, err := r.queries.ListPaymentLinksByInvoice(ctx, stringToUUID(invoiceID))
 	if err != nil {
-		return nil, fmt.Errorf("repository: gagal mengambil payment links by invoice: %w", err)
+		return nil, fmt.Errorf("repository: gagal mengambil payment link by invoice: %w", err)
 	}
 	links := make([]*domain.PaymentLink, 0, len(rows))
 	for _, row := range rows {
@@ -188,11 +188,11 @@ func (r *PaymentLinkRepo) ListByInvoice(ctx context.Context, invoiceID string) (
 	return links, nil
 }
 
-// FindExpired mengambil payment links yang sudah melewati expires_at tapi masih active.
+// FindExpired mengambil link pembayarans yang sudah melewati expires_at tapi masih active.
 func (r *PaymentLinkRepo) FindExpired(ctx context.Context, batchSize int) ([]*domain.PaymentLink, error) {
 	rows, err := r.queries.FindExpiredPaymentLinks(ctx, int32(batchSize))
 	if err != nil {
-		return nil, fmt.Errorf("repository: gagal mengambil payment links expired: %w", err)
+		return nil, fmt.Errorf("repository: gagal mengambil payment link expired: %w", err)
 	}
 	links := make([]*domain.PaymentLink, 0, len(rows))
 	for _, row := range rows {
@@ -201,7 +201,7 @@ func (r *PaymentLinkRepo) FindExpired(ctx context.Context, batchSize int) ([]*do
 	return links, nil
 }
 
-// ExpireByID mengubah status payment link menjadi expired berdasarkan ID.
+// ExpireByID mengubah status link pembayaran menjadi expired berdasarkan ID.
 func (r *PaymentLinkRepo) ExpireByID(ctx context.Context, id string) error {
 	err := r.queries.ExpirePaymentLinkByID(ctx, stringToUUID(id))
 	if err != nil {

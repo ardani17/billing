@@ -3,7 +3,7 @@ package domain
 import "errors"
 
 // =============================================================================
-// Domain Errors — error untuk modul pengeluaran, laporan, dan KPI
+// Domain Errors - error untuk modul pengeluaran, laporan, dan KPI
 // =============================================================================
 
 var (

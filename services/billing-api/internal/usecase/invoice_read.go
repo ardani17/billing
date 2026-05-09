@@ -1,4 +1,3 @@
-// invoice_read.go berisi business logic untuk query invoice (GetByID, Edit, List, Summary, GeneratePDF).
 package usecase
 
 import (
@@ -52,8 +51,8 @@ func (uc *InvoiceUsecase) GetByID(ctx context.Context, id string, includeAudit b
 }
 
 // Edit memperbarui invoice yang masih berstatus belum_bayar.
-// Flow: ambil invoice → verifikasi status → hapus items lama → hitung ulang →
-// update invoice → buat items baru → tulis audit log.
+// Alur: ambil invoice -> verifikasi status -> hapus items lama -> hitung ulang ->
+// perbarui invoice -> buat items baru -> tulis audit log.
 func (uc *InvoiceUsecase) Edit(ctx context.Context, id string, req domain.EditInvoiceRequest, actor domain.ActorInfo) (*domain.Invoice, error) {
 	// Ambil invoice yang ada
 	invoice, err := uc.invoiceRepo.GetByID(ctx, id)
@@ -66,7 +65,7 @@ func (uc *InvoiceUsecase) Edit(ctx context.Context, id string, req domain.EditIn
 		return nil, domain.ErrInvoiceNotEditable
 	}
 
-	// Update due date jika diberikan
+	// Perbarui due date jika diberikan
 	if req.DueDate != "" {
 		dueDate, err := time.Parse("2006-01-02", req.DueDate)
 		if err != nil {
@@ -75,7 +74,7 @@ func (uc *InvoiceUsecase) Edit(ctx context.Context, id string, req domain.EditIn
 		invoice.DueDate = dueDate
 	}
 
-	// Update notes jika diberikan
+	// Perbarui notes jika diberikan
 	if req.Notes != "" {
 		invoice.Notes = req.Notes
 	}
@@ -166,8 +165,8 @@ func (uc *InvoiceUsecase) Edit(ctx context.Context, id string, req domain.EditIn
 	return updated, nil
 }
 
-// List mengambil daftar invoice dengan filter, search, sorting, dan paginasi.
-// Menerapkan default: page=1, page_size=25.
+// List mengambil daftar invoice dengan filter, search, pengurutan, dan paginasi.
+// Menerapkan bawaan: page=1, page_size=25.
 func (uc *InvoiceUsecase) List(ctx context.Context, params domain.InvoiceListParams) (*domain.InvoiceListResult, error) {
 	if params.Page < 1 {
 		params.Page = 1
@@ -185,7 +184,7 @@ func (uc *InvoiceUsecase) Summary(ctx context.Context, tenantID string, periodMo
 
 // GeneratePDF menghasilkan PDF untuk invoice menggunakan gofpdf.
 // Termasuk: nomor invoice, tanggal jatuh tempo, status, data pelanggan,
-// semua line items, subtotal, pajak, denda, diskon, kredit, total, dan riwayat pembayaran.
+// semua line item, subtotal, pajak, denda, diskon, kredit, total, dan riwayat pembayaran.
 func (uc *InvoiceUsecase) GeneratePDF(ctx context.Context, id string) ([]byte, string, error) {
 	// Ambil detail invoice lengkap (items + payments)
 	detail, err := uc.GetByID(ctx, id, false)
@@ -326,7 +325,7 @@ func (uc *InvoiceUsecase) GeneratePDF(ctx context.Context, id string) ([]byte, s
 		}
 	}
 
-	// Generate PDF bytes
+	// Buat PDF bytes
 	var buf bytes.Buffer
 	if err := pdf.Output(&buf); err != nil {
 		return nil, "", fmt.Errorf("gagal generate PDF: %w", err)

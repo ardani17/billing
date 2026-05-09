@@ -54,7 +54,7 @@ export function ProfitLossSection({ filter }: Props) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {/* Pendapatan */}
+        {/* Pendapatan*/}
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <h3 className="mb-3 text-sm font-medium text-emerald-700">Pendapatan</h3>
           <div className="space-y-2">
@@ -73,7 +73,7 @@ export function ProfitLossSection({ filter }: Props) {
           </div>
         </div>
 
-        {/* Pengeluaran */}
+        {/* Pengeluaran*/}
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <h3 className="mb-3 text-sm font-medium text-red-700">Pengeluaran</h3>
           <div className="space-y-2">

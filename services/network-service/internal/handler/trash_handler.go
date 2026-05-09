@@ -1,4 +1,4 @@
-// trash_handler.go menangani HTTP request untuk manajemen trash (soft-delete).
+// trash_handler.go menangani HTTP permintaan untuk manajemen trash (hapus lunak).
 // Termasuk: list node yang dihapus dan restore node.
 package handler
 
@@ -11,7 +11,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// TrashHandler menangani HTTP request untuk trash management.
+// TrashHandler menangani HTTP permintaan untuk trash management.
 type TrashHandler struct {
 	manager domain.MapNodeManager
 }
@@ -22,7 +22,7 @@ func NewTrashHandler(manager domain.MapNodeManager) *TrashHandler {
 }
 
 // ListTrashed menangani GET /trash.
-// Mengambil daftar node yang sudah di-soft-delete untuk tenant saat ini.
+// Mengambil daftar node yang sudah di-hapus lunak untuk tenant saat ini.
 func (h *TrashHandler) ListTrashed(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -57,7 +57,7 @@ func (h *TrashHandler) RestoreNode(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, fiber.Map{"message": "node berhasil di-restore"})
 }
 
-// mapError memetakan domain error trash ke HTTP error response.
+// mapError memetakan domain error trash ke HTTP error respons.
 func (h *TrashHandler) mapError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrMapNodeNotFound):

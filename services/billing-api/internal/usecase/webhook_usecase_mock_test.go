@@ -1,4 +1,3 @@
-// webhook_usecase_mock_test.go berisi mock repository dan setup helper
 // untuk unit test WebhookUsecase.
 package usecase
 
@@ -9,12 +8,11 @@ import (
 	"io"
 	"time"
 
-	"github.com/rs/zerolog"
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 	"github.com/ispboss/ispboss/services/billing-api/internal/gateway"
+	"github.com/rs/zerolog"
 )
 
-// --- Mock: WebhookLogRepository ---
 type whMockWebhookLogRepo struct {
 	logs             map[string]*domain.WebhookLog
 	alreadyProcessed map[string]bool // key: "externalID|eventType"
@@ -84,7 +82,6 @@ func (m *whMockWebhookLogRepo) DeleteOlderThan(_ context.Context, _ time.Time) (
 	return 0, nil
 }
 
-// --- Mock: InvoicePaymentRepository ---
 type whMockPaymentRepo struct{ payments []*domain.InvoicePayment }
 
 func (m *whMockPaymentRepo) Create(_ context.Context, p *domain.InvoicePayment) (*domain.InvoicePayment, error) {
@@ -109,7 +106,6 @@ func (m *whMockPaymentRepo) FindDuplicate(_ context.Context, _ string, _ int64, 
 	return false, nil
 }
 
-// --- Mock: InvoiceAuditLogRepository ---
 type whMockAuditRepo struct{ logs []*domain.InvoiceAuditLog }
 
 func (m *whMockAuditRepo) Create(_ context.Context, l *domain.InvoiceAuditLog) error {
@@ -121,7 +117,6 @@ func (m *whMockAuditRepo) ListByInvoice(_ context.Context, _ string) ([]*domain.
 	return nil, nil
 }
 
-// --- Mock: ReceiptSequenceRepository ---
 type whMockReceiptSeqRepo struct{ seq int }
 
 func (m *whMockReceiptSeqRepo) NextSequence(_ context.Context, _ string, _, _ int) (int, error) {
@@ -129,7 +124,6 @@ func (m *whMockReceiptSeqRepo) NextSequence(_ context.Context, _ string, _, _ in
 	return m.seq, nil
 }
 
-// --- Setup helper ---
 type whTestSetup struct {
 	uc           *WebhookUsecase
 	webhookRepo  *whMockWebhookLogRepo
@@ -141,8 +135,7 @@ type whTestSetup struct {
 	customerRepo *gwMockCustomerRepo
 }
 
-// setupWebhookUsecase membuat WebhookUsecase dengan mock repos.
-// pool dan queueClient nil — hanya early-exit path dan event sederhana yang ditest.
+// pool dan queueClient nil - hanya early-exit path dan event sederhana yang ditest.
 func setupWebhookUsecase() *whTestSetup {
 	webhookRepo := newWhMockWebhookLogRepo()
 	linkRepo := newGwMockLinkRepo()
@@ -176,7 +169,6 @@ func seedWebhookConfig(s *whTestSetup) {
 	}
 }
 
-// seedWebhookLog membuat webhook log Xendit di mock repo.
 func seedWebhookLog(s *whTestSetup, extID string, body map[string]interface{}) string {
 	raw, _ := json.Marshal(body)
 	log := &domain.WebhookLog{

@@ -18,10 +18,8 @@ import (
 )
 
 // =============================================================================
-// Mock repositories untuk PaymentHandler tests
 // =============================================================================
 
-// mockPaymentInvoiceRepo implementasi mock InvoiceRepository untuk handler tests.
 type mockPaymentInvoiceRepo struct {
 	invoices map[string]*domain.Invoice
 }
@@ -139,7 +137,6 @@ func (m *mockPaymentInvoiceRepo) CountOutstandingInvoices(_ context.Context, _ s
 	return 0, nil
 }
 
-// mockPaymentInvoiceItemRepo implementasi mock InvoiceItemRepository.
 type mockPaymentInvoiceItemRepo struct{}
 
 func (m *mockPaymentInvoiceItemRepo) BulkCreate(_ context.Context, items []*domain.InvoiceItem) ([]*domain.InvoiceItem, error) {
@@ -154,7 +151,6 @@ func (m *mockPaymentInvoiceItemRepo) DeleteByInvoice(_ context.Context, _ string
 	return nil
 }
 
-// mockPaymentPaymentRepo implementasi mock InvoicePaymentRepository.
 type mockPaymentPaymentRepo struct {
 	payments map[string]*domain.InvoicePayment
 }
@@ -210,7 +206,6 @@ func (m *mockPaymentPaymentRepo) FindDuplicate(_ context.Context, _ string, _ in
 	return false, nil
 }
 
-// mockPaymentAuditLogRepo implementasi mock InvoiceAuditLogRepository.
 type mockPaymentAuditLogRepo struct{}
 
 func (m *mockPaymentAuditLogRepo) Create(_ context.Context, _ *domain.InvoiceAuditLog) error {
@@ -221,14 +216,12 @@ func (m *mockPaymentAuditLogRepo) ListByInvoice(_ context.Context, _ string) ([]
 	return nil, nil
 }
 
-// mockPaymentReceiptSeqRepo implementasi mock ReceiptSequenceRepository.
 type mockPaymentReceiptSeqRepo struct{}
 
 func (m *mockPaymentReceiptSeqRepo) NextSequence(_ context.Context, _ string, _, _ int) (int, error) {
 	return 1, nil
 }
 
-// mockPaymentSettingsRepo implementasi mock BillingSettingsRepository.
 type mockPaymentSettingsRepo struct{}
 
 func (m *mockPaymentSettingsRepo) GetByTenantID(_ context.Context, _ string) (*domain.BillingSettings, error) {
@@ -243,7 +236,6 @@ func (m *mockPaymentSettingsRepo) ListAll(_ context.Context) ([]*domain.BillingS
 	return nil, nil
 }
 
-// mockPaymentCustomerRepo implementasi mock CustomerRepository untuk payment tests.
 type mockPaymentCustomerRepo struct {
 	customers map[string]*domain.Customer
 }
@@ -321,17 +313,15 @@ func (m *mockPaymentCustomerRepo) SearchForPayment(_ context.Context, _, searchT
 }
 
 // =============================================================================
-// Setup helper — membuat Fiber app dengan PaymentHandler dan mock repos
 // =============================================================================
 
 type paymentTestSetup struct {
-	app         *fiber.App
-	invoiceRepo *mockPaymentInvoiceRepo
-	paymentRepo *mockPaymentPaymentRepo
+	app          *fiber.App
+	invoiceRepo  *mockPaymentInvoiceRepo
+	paymentRepo  *mockPaymentPaymentRepo
 	customerRepo *mockPaymentCustomerRepo
 }
 
-// setupPaymentTestApp membuat Fiber app dengan PaymentHandler yang di-back oleh mock repos.
 // PaymentUsecase dibuat dengan pool=nil dan queueClient=nil karena kita hanya test handler layer.
 func setupPaymentTestApp() *paymentTestSetup {
 	invoiceRepo := newMockPaymentInvoiceRepo()
@@ -347,7 +337,7 @@ func setupPaymentTestApp() *paymentTestSetup {
 		&mockPaymentReceiptSeqRepo{},
 		&mockPaymentSettingsRepo{},
 		customerRepo,
-		nil, // pool — nil karena kita test error paths sebelum transaksi
+		nil, // pool - nil karena kita test error paths sebelum transaksi
 		nil, // queueClient
 		logger,
 	)
@@ -356,7 +346,7 @@ func setupPaymentTestApp() *paymentTestSetup {
 
 	app := fiber.New()
 
-	// Middleware untuk set locals (simulasi auth middleware)
+	// Middleware untuk atur locals (simulasi auth middleware)
 	setLocals := func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "test-tenant-id")
 		c.Locals("user_id", "test-user-id")
@@ -378,14 +368,13 @@ func setupPaymentTestApp() *paymentTestSetup {
 	payments.Get("/:payment_id/proof", handler.GetProof)
 
 	return &paymentTestSetup{
-		app:         app,
-		invoiceRepo: invoiceRepo,
-		paymentRepo: paymentRepo,
+		app:          app,
+		invoiceRepo:  invoiceRepo,
+		paymentRepo:  paymentRepo,
 		customerRepo: customerRepo,
 	}
 }
 
-// parseAPIResponse membaca dan parse response body ke APIResponse.
 func parseAPIResponse(t *testing.T, resp *io.ReadCloser) domain.APIResponse {
 	t.Helper()
 	body, err := io.ReadAll(*resp)
@@ -400,7 +389,6 @@ func parseAPIResponse(t *testing.T, resp *io.ReadCloser) domain.APIResponse {
 }
 
 // =============================================================================
-// Test: List — paginasi dan filter
 // =============================================================================
 
 func TestPaymentHandler_List_Success(t *testing.T) {
@@ -454,7 +442,7 @@ func TestPaymentHandler_List_WithFilters(t *testing.T) {
 }
 
 // =============================================================================
-// Test: Summary
+// Tes: Summary
 // =============================================================================
 
 func TestPaymentHandler_Summary_Success(t *testing.T) {
@@ -493,13 +481,13 @@ func TestPaymentHandler_Summary_WithPeriod(t *testing.T) {
 }
 
 // =============================================================================
-// Test: SearchCustomers — 400 untuk term terlalu pendek
+// Tes: SearchCustomers - 400 untuk term terlalu pendek
 // =============================================================================
 
 func TestPaymentHandler_SearchCustomers_ShortTerm(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Kata pencarian kurang dari 2 karakter → 400
+	// Kata pencarian kurang dari 2 karakter -> 400
 	req := httptest.NewRequest("GET", "/api/v1/payments/quick/customers?search=A", nil)
 	resp, err := setup.app.Test(req, -1)
 	if err != nil {
@@ -533,7 +521,7 @@ func TestPaymentHandler_SearchCustomers_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: GetOpenInvoices — 404 untuk customer tidak ditemukan
+// Tes: GetOpenInvoices - 404 untuk customer tidak ditemukan
 // =============================================================================
 
 func TestPaymentHandler_GetOpenInvoices_Success(t *testing.T) {
@@ -575,14 +563,12 @@ func TestPaymentHandler_GetOpenInvoices_Success(t *testing.T) {
 func TestPaymentHandler_GetOpenInvoices_EmptyResult(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Customer tanpa invoice terbuka — tetap 200 dengan list kosong
 	req := httptest.NewRequest("GET", "/api/v1/payments/quick/customers/cust-nonexistent/invoices", nil)
 	resp, err := setup.app.Test(req, -1)
 	if err != nil {
 		t.Fatalf("request gagal: %v", err)
 	}
 
-	// GetOpenInvoices mengembalikan list kosong, bukan 404
 	if resp.StatusCode != fiber.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		t.Fatalf("expected 200, got %d: %s", resp.StatusCode, string(body))
@@ -590,13 +576,12 @@ func TestPaymentHandler_GetOpenInvoices_EmptyResult(t *testing.T) {
 }
 
 // =============================================================================
-// Test: RecordMultiPayment — 400 validasi, 422 invalid selection, 409 concurrent
 // =============================================================================
 
 func TestPaymentHandler_RecordMultiPayment_ValidationError(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Body tanpa field wajib → 400 VALIDATION_ERROR
+	// Body tanpa field wajib -> 400 VALIDATION_ERROR
 	body, _ := json.Marshal(map[string]interface{}{
 		"customer_id": "", // kosong
 	})
@@ -623,7 +608,7 @@ func TestPaymentHandler_RecordMultiPayment_ValidationError(t *testing.T) {
 func TestPaymentHandler_RecordMultiPayment_InvalidBody(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Body bukan JSON → 400 BAD_REQUEST
+	// Body bukan JSON -> 400 BAD_REQUEST
 	req := httptest.NewRequest("POST", "/api/v1/payments/multi", bytes.NewReader([]byte("bukan json")))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -641,7 +626,7 @@ func TestPaymentHandler_RecordMultiPayment_InvalidBody(t *testing.T) {
 func TestPaymentHandler_RecordMultiPayment_MissingAmount(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Amount = 0 (harus > 0) → 400 VALIDATION_ERROR
+	// Amount = 0 (harus > 0) -> 400 VALIDATION_ERROR
 	body, _ := json.Marshal(domain.MultiPaymentRequest{
 		CustomerID:    "00000000-0000-0000-0000-000000000001",
 		Amount:        0,
@@ -671,7 +656,6 @@ func TestPaymentHandler_RecordMultiPayment_MissingAmount(t *testing.T) {
 func TestPaymentHandler_RecordMultiPayment_InvalidMethod(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// payment_method tidak valid → 400 VALIDATION_ERROR
 	body, _ := json.Marshal(map[string]interface{}{
 		"customer_id":    "00000000-0000-0000-0000-000000000001",
 		"amount":         100000,
@@ -694,13 +678,13 @@ func TestPaymentHandler_RecordMultiPayment_InvalidMethod(t *testing.T) {
 }
 
 // =============================================================================
-// Test: PayAll — 422 tidak ada invoice terbuka
+// Tes: PayAll - 422 tidak ada invoice terbuka
 // =============================================================================
 
 func TestPaymentHandler_PayAll_ValidationError(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Body tanpa field wajib → 400 VALIDATION_ERROR
+	// Body tanpa field wajib -> 400 VALIDATION_ERROR
 	body, _ := json.Marshal(map[string]interface{}{})
 
 	req := httptest.NewRequest("POST", "/api/v1/payments/pay-all", bytes.NewReader(body))
@@ -740,7 +724,7 @@ func TestPaymentHandler_PayAll_InvalidBody(t *testing.T) {
 }
 
 // =============================================================================
-// Test: GetReceipt — 404 tidak ditemukan
+// Tes: GetReceipt - 404 tidak ditemukan
 // =============================================================================
 
 func TestPaymentHandler_GetReceipt_NotFound(t *testing.T) {
@@ -764,13 +748,13 @@ func TestPaymentHandler_GetReceipt_NotFound(t *testing.T) {
 }
 
 // =============================================================================
-// Test: VoidPayment — 422 already voided, 422 time limit, validasi
+// Tes: VoidPayment - 422 sudah voided, 422 time limit, validasi
 // =============================================================================
 
 func TestPaymentHandler_VoidPayment_ValidationError(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Reason terlalu pendek (min 5 karakter) → 400 VALIDATION_ERROR
+	// Reason terlalu pendek (min 5 karakter) -> 400 VALIDATION_ERROR
 	body, _ := json.Marshal(domain.VoidPaymentRequest{
 		Reason: "ab",
 	})
@@ -814,7 +798,7 @@ func TestPaymentHandler_VoidPayment_InvalidBody(t *testing.T) {
 func TestPaymentHandler_VoidPayment_MissingReason(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Reason kosong → 400 VALIDATION_ERROR
+	// Reason kosong -> 400 VALIDATION_ERROR
 	body, _ := json.Marshal(domain.VoidPaymentRequest{
 		Reason: "",
 	})
@@ -834,13 +818,12 @@ func TestPaymentHandler_VoidPayment_MissingReason(t *testing.T) {
 }
 
 // =============================================================================
-// Test: BulkImport — 400 CSV too large, 422 validation errors
+// Tes: BulkImport - 400 CSV too large, 422 validation errors
 // =============================================================================
 
 func TestPaymentHandler_BulkImport_NoFile(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Request tanpa file → 400 BAD_REQUEST
 	req := httptest.NewRequest("POST", "/api/v1/payments/import", nil)
 	req.Header.Set("Content-Type", "multipart/form-data")
 
@@ -860,7 +843,6 @@ func TestPaymentHandler_BulkImport_NoFile(t *testing.T) {
 	}
 }
 
-// createMultipartCSV membuat request multipart dengan file CSV.
 func createMultipartCSV(t *testing.T, csvContent string) (*bytes.Buffer, string) {
 	t.Helper()
 	body := &bytes.Buffer{}
@@ -880,9 +862,6 @@ func createMultipartCSV(t *testing.T, csvContent string) (*bytes.Buffer, string)
 func TestPaymentHandler_BulkImport_WithCSVFile(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// CSV valid tapi customer tidak ditemukan — akan error di usecase
-	// Karena pool=nil, usecase akan panic/error saat akses DB.
-	// Kita test bahwa handler berhasil parse file dan memanggil usecase.
 	csvContent := "customer_id_seq,amount,payment_method,payment_date,reference_number,notes\n"
 	body, contentType := createMultipartCSV(t, csvContent)
 
@@ -894,8 +873,7 @@ func TestPaymentHandler_BulkImport_WithCSVFile(t *testing.T) {
 		t.Fatalf("request gagal: %v", err)
 	}
 
-	// CSV kosong (hanya header) → usecase mengembalikan hasil kosong
-	// Status bisa 200 (0 rows) atau error tergantung implementasi
+	// CSV kosong (hanya header) -> usecase mengembalikan hasil kosong
 	// Yang penting handler tidak crash
 	if resp.StatusCode != fiber.StatusOK && resp.StatusCode != fiber.StatusInternalServerError {
 		body, _ := io.ReadAll(resp.Body)
@@ -904,13 +882,12 @@ func TestPaymentHandler_BulkImport_WithCSVFile(t *testing.T) {
 }
 
 // =============================================================================
-// Test: UploadProof dan GetProof
+// Tes: UploadProof dan GetProof
 // =============================================================================
 
 func TestPaymentHandler_UploadProof_NoFile(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Request tanpa file → 400 BAD_REQUEST
 	req := httptest.NewRequest("POST", "/api/v1/payments/some-id/proof", nil)
 	req.Header.Set("Content-Type", "multipart/form-data")
 
@@ -928,7 +905,7 @@ func TestPaymentHandler_UploadProof_NoFile(t *testing.T) {
 func TestPaymentHandler_GetProof_NotFound(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Payment tidak ada → 404
+	// Payment tidak ada -> 404
 	req := httptest.NewRequest("GET", "/api/v1/payments/nonexistent-id/proof", nil)
 	resp, err := setup.app.Test(req, -1)
 	if err != nil {
@@ -942,7 +919,6 @@ func TestPaymentHandler_GetProof_NotFound(t *testing.T) {
 }
 
 // =============================================================================
-// Test: Response format — memastikan format JSON standar
 // =============================================================================
 
 func TestPaymentHandler_ResponseFormat_Success(t *testing.T) {
@@ -960,12 +936,10 @@ func TestPaymentHandler_ResponseFormat_Success(t *testing.T) {
 		t.Fatalf("response bukan JSON valid: %v", err)
 	}
 
-	// Cek field "success" ada
 	if _, ok := raw["success"]; !ok {
 		t.Fatal("response harus memiliki field 'success'")
 	}
 
-	// Cek field "data" ada untuk response sukses
 	if _, ok := raw["data"]; !ok {
 		t.Fatal("response sukses harus memiliki field 'data'")
 	}
@@ -974,7 +948,6 @@ func TestPaymentHandler_ResponseFormat_Success(t *testing.T) {
 func TestPaymentHandler_ResponseFormat_Error(t *testing.T) {
 	setup := setupPaymentTestApp()
 
-	// Trigger error: search term terlalu pendek
 	req := httptest.NewRequest("GET", "/api/v1/payments/quick/customers?search=A", nil)
 	resp, err := setup.app.Test(req, -1)
 	if err != nil {
@@ -987,23 +960,19 @@ func TestPaymentHandler_ResponseFormat_Error(t *testing.T) {
 		t.Fatalf("response bukan JSON valid: %v", err)
 	}
 
-	// Cek field "success" = false
 	if success, ok := raw["success"].(bool); !ok || success {
 		t.Fatal("response error harus memiliki success=false")
 	}
 
-	// Cek field "error" ada
 	errObj, ok := raw["error"].(map[string]interface{})
 	if !ok {
 		t.Fatal("response error harus memiliki field 'error'")
 	}
 
-	// Cek field "error.code" ada
 	if _, ok := errObj["code"]; !ok {
 		t.Fatal("error harus memiliki field 'code'")
 	}
 
-	// Cek field "error.message" ada
 	if _, ok := errObj["message"]; !ok {
 		t.Fatal("error harus memiliki field 'message'")
 	}

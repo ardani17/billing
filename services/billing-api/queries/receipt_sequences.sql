@@ -1,6 +1,6 @@
--- Query SQL untuk operasi pada tabel receipt_sequences.
+-- Kueri SQL untuk operasi pada tabel receipt_sequences.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel receipt_sequences dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel receipt_sequences dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Sequence digunakan untuk auto-increment nomor kwitansi per tenant per bulan.
 
 -- name: NextReceiptSequence :one

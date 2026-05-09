@@ -1,4 +1,4 @@
-// Package metrics — implementasi TrafficStore menggunakan Redis sorted sets.
+// Package metrics - implementasi TrafficStore menggunakan Redis uruted sets.
 // Menyimpan traffic data PON port sebagai time-series dengan retensi 7 hari.
 package metrics
 
@@ -15,11 +15,11 @@ import (
 // ttlTraffic7Days adalah durasi retensi traffic data (7 hari).
 const ttlTraffic7Days = 7 * 24 * time.Hour
 
-// Compile-time check: redisTrafficStore mengimplementasikan domain.TrafficStore.
+// Compile-time cek: redisTrafficStore mengimplementasikan domain.TrafficStore.
 var _ domain.TrafficStore = (*redisTrafficStore)(nil)
 
-// redisTrafficStore mengimplementasikan domain.TrafficStore menggunakan Redis sorted sets.
-// Setiap kombinasi OLT/port memiliki sorted set dengan key "olt:traffic:{olt_id}:{port}",
+// redisTrafficStore mengimplementasikan domain.TrafficStore menggunakan Redis uruted sets.
+// Setiap kombinasi OLT/port memiliki uruted atur dengan key "olt:traffic:{olt_id}:{port}",
 // score = unix timestamp, member = JSON-encoded PONTrafficPoint.
 type redisTrafficStore struct {
 	client redis.Cmdable
@@ -30,18 +30,18 @@ func NewRedisTrafficStore(client redis.Cmdable) domain.TrafficStore {
 	return &redisTrafficStore{client: client}
 }
 
-// trafficKey mengembalikan key Redis sorted set untuk traffic PON port tertentu.
+// trafficKey mengembalikan key Redis uruted atur untuk traffic PON port tertentu.
 func trafficKey(oltID string, portIndex int) string {
 	return fmt.Sprintf("olt:traffic:%s:%d", oltID, portIndex)
 }
 
 // Store menyimpan satu data point traffic untuk PON port.
-// Data di-encode ke JSON dan disimpan di sorted set dengan score = unix timestamp.
-// TTL 7 hari di-set via EXPIRE setiap kali Store dipanggil.
+// Data di-encode ke JSON dan disimpan di uruted atur dengan score = unix timestamp.
+// TTL 7 hari di-atur via EXPIRE setiap kali Store dipanggil.
 func (s *redisTrafficStore) Store(ctx context.Context, oltID string, portIndex int, traffic domain.PONTrafficPoint) error {
 	key := trafficKey(oltID, portIndex)
 
-	// Encode traffic ke JSON sebagai member sorted set
+	// Encode traffic ke JSON sebagai member uruted atur
 	data, err := json.Marshal(traffic)
 	if err != nil {
 		return fmt.Errorf("gagal marshal traffic: %w", err)
@@ -66,8 +66,8 @@ func (s *redisTrafficStore) Store(ctx context.Context, oltID string, portIndex i
 	return nil
 }
 
-// Query mengambil data point traffic dalam rentang waktu [from, to].
-// Mengembalikan slice PONTrafficPoint sorted ascending berdasarkan timestamp.
+// Kueri mengambil data point traffic dalam rentang waktu [from, to].
+// Mengembalikan slice PONTrafficPoint uruted ascending berdasarkan timestamp.
 func (s *redisTrafficStore) Query(ctx context.Context, oltID string, portIndex int, from, to time.Time) ([]domain.PONTrafficPoint, error) {
 	key := trafficKey(oltID, portIndex)
 
@@ -80,7 +80,7 @@ func (s *redisTrafficStore) Query(ctx context.Context, oltID string, portIndex i
 		return nil, fmt.Errorf("gagal ZRANGEBYSCORE traffic: %w", err)
 	}
 
-	// Parse setiap member menjadi PONTrafficPoint
+	// Parsing setiap member menjadi PONTrafficPoint
 	points := make([]domain.PONTrafficPoint, 0, len(results))
 	for _, z := range results {
 		point, err := parseTrafficMember(z)
@@ -98,7 +98,7 @@ func (s *redisTrafficStore) Query(ctx context.Context, oltID string, portIndex i
 func (s *redisTrafficStore) GetLatest(ctx context.Context, oltID string, portIndex int) (*domain.PONTrafficPoint, error) {
 	key := trafficKey(oltID, portIndex)
 
-	// ZREVRANGEBYSCORE +inf -inf LIMIT 0 1 — ambil member dengan score tertinggi
+	// ZREVRANGEBYSCORE +inf -inf LIMIT 0 1 - ambil member dengan score tertinggi
 	results, err := s.client.ZRevRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
 		Min:    "-inf",
 		Max:    "+inf",
@@ -122,7 +122,7 @@ func (s *redisTrafficStore) GetLatest(ctx context.Context, oltID string, portInd
 	return &point, nil
 }
 
-// parseTrafficMember mengekstrak PONTrafficPoint dari member sorted set.
+// parseTrafficMember mengekstrak PONTrafficPoint dari member uruted atur.
 // Format member: "{unix_timestamp}:{json_traffic}"
 func parseTrafficMember(z redis.Z) (domain.PONTrafficPoint, error) {
 	memberStr, ok := z.Member.(string)

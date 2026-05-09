@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel node_photos.
+-- Kueri SQL untuk operasi CRUD tabel node_photos.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel node_photos dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel node_photos dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateNodePhoto :one
 INSERT INTO node_photos (

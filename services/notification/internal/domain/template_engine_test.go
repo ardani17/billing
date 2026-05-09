@@ -10,7 +10,6 @@ import (
 // variableRe digunakan untuk mendeteksi pola {variable} yang tersisa setelah render.
 var variableRe = regexp.MustCompile(`\{[a-zA-Z_][a-zA-Z0-9_]*\}`)
 
-// genVarName menghasilkan nama variabel valid: dimulai huruf/underscore, diikuti alfanumerik/underscore.
 func genVarName(t *rapid.T, label string) string {
 	return rapid.StringMatching(`[a-zA-Z_][a-zA-Z0-9_]{0,9}`).Draw(t, label)
 }
@@ -20,17 +19,15 @@ func genPlainText(t *rapid.T, label string) string {
 	return rapid.StringMatching(`[a-zA-Z0-9 .,!?:;\-]{0,30}`).Draw(t, label)
 }
 
-// Feature: notification-service, Property 1: Template rendering completeness
-// **Validates: Requirements 5.1, 5.3**
+// **Memvalidasi: Kebutuhan 5.1, 5.3**
 //
 // Untuk setiap template body yang mengandung placeholder {variable} dan data map
-// (yang mungkin tidak memiliki semua key), setelah Render(), output TIDAK BOLEH
-// mengandung pola {variable} — semua placeholder diganti dengan nilai atau string kosong.
+// mengandung pola {variable} - semua placeholder diganti dengan nilai atau string kosong.
 func TestProperty_TemplateRenderingCompleteness(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		engine := NewTemplateEngine()
 
-		// Generate jumlah variabel acak (1-5)
+		// Buat jumlah variabel acak (1-5)
 		numVars := rapid.IntRange(1, 5).Draw(t, "numVars")
 		varNames := make([]string, numVars)
 		for i := 0; i < numVars; i++ {
@@ -48,7 +45,7 @@ func TestProperty_TemplateRenderingCompleteness(t *testing.T) {
 			}
 		}
 
-		// Generate data map — sebagian variabel mungkin tidak ada di map
+		// Buat data map - sebagian variabel mungkin tidak ada di map
 		data := make(map[string]string)
 		for _, v := range varNames {
 			if rapid.Bool().Draw(t, "includeVar_"+v) {
@@ -70,17 +67,14 @@ func TestProperty_TemplateRenderingCompleteness(t *testing.T) {
 	})
 }
 
-// Feature: notification-service, Property 2: Template render idempotence
-// **Validates: Requirements 5.1, 5.3, 5.4**
+// **Memvalidasi: Kebutuhan 5.1, 5.3, 5.4**
 //
-// Untuk setiap template body dan data map yang valid, render sekali lalu render lagi
-// dengan data yang sama HARUS menghasilkan output yang identik.
 // render(render(body, data), data) == render(body, data)
 func TestProperty_TemplateRenderIdempotence(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		engine := NewTemplateEngine()
 
-		// Generate jumlah variabel acak (1-5)
+		// Buat jumlah variabel acak (1-5)
 		numVars := rapid.IntRange(1, 5).Draw(t, "numVars")
 		varNames := make([]string, numVars)
 		for i := 0; i < numVars; i++ {
@@ -98,7 +92,7 @@ func TestProperty_TemplateRenderIdempotence(t *testing.T) {
 			}
 		}
 
-		// Generate data map — semua variabel memiliki nilai
+		// Buat data map - semua variabel memiliki nilai
 		data := make(map[string]string)
 		for _, v := range varNames {
 			data[v] = genPlainText(t, "val_"+v)
@@ -107,7 +101,6 @@ func TestProperty_TemplateRenderIdempotence(t *testing.T) {
 		// Render pertama
 		firstRender := engine.Render(body, data)
 
-		// Render kedua dengan output pertama dan data yang sama
 		secondRender := engine.Render(firstRender, data)
 
 		// Verifikasi: hasil render kedua identik dengan render pertama

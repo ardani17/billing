@@ -1,6 +1,6 @@
 -- Migrasi: membuat tabel expenses untuk menyimpan pengeluaran bisnis per tenant.
 -- Setiap pengeluaran terkait dengan satu kategori dan satu user yang membuat.
--- Mendukung soft delete, recurring expenses, dan dilindungi oleh RLS.
+-- Mendukung hapus lunak, berulang expenses, dan dilindungi oleh RLS.
 
 CREATE TABLE expenses (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),

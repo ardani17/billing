@@ -3,7 +3,7 @@ package domain
 import "fmt"
 
 // =============================================================================
-// Invoice Number Formatting — fungsi pemformatan nomor invoice, credit note, debit note
+// Invoice Number Formatting - fungsi pemformatan nomor invoice, credit note, debit note
 // =============================================================================
 
 // FormatInvoiceNumber memformat nomor invoice dari komponen.

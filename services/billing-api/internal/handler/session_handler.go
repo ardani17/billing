@@ -1,4 +1,4 @@
-// session_handler.go menangani HTTP request untuk manajemen session.
+// session_handler.go menangani HTTP permintaan untuk manajemen session.
 // Termasuk: list active sessions, revoke single session, dan revoke all other sessions.
 package handler
 
@@ -12,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// SessionHandler menangani HTTP request untuk manajemen session.
+// SessionHandler menangani HTTP permintaan untuk manajemen session.
 type SessionHandler struct {
 	sessionRepo domain.SessionRepository
 	logger      zerolog.Logger
@@ -42,7 +42,7 @@ func (h *SessionHandler) List(c *fiber.Ctx) error {
 	}
 
 	// Tentukan session mana yang merupakan session saat ini
-	// berdasarkan refresh token dari request body/header
+	// berdasarkan refresh token dari permintaan body/header
 	currentTokenHash := getCurrentTokenHash(c)
 	for _, s := range sessions {
 		if currentTokenHash != "" && s.TokenHash == currentTokenHash {
@@ -107,7 +107,7 @@ func (h *SessionHandler) RevokeOthers(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "user tidak terautentikasi")
 	}
 
-	// Ambil refresh token dari request untuk identifikasi session saat ini
+	// Ambil refresh token dari permintaan untuk identifikasi session saat ini
 	currentTokenHash := getCurrentTokenHash(c)
 	if currentTokenHash == "" {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "refresh_token diperlukan untuk identifikasi session saat ini")
@@ -132,10 +132,10 @@ func (h *SessionHandler) RevokeOthers(c *fiber.Ctx) error {
 	})
 }
 
-// getCurrentTokenHash mengambil hash refresh token dari request.
-// Token bisa dikirim via query parameter atau header X-Refresh-Token.
+// getCurrentTokenHash mengambil hash refresh token dari permintaan.
+// Token bisa dikirim via kueri parameter atau header X-Refresh-Token.
 func getCurrentTokenHash(c *fiber.Ctx) string {
-	// Coba dari query parameter
+	// Coba dari kueri parameter
 	refreshToken := c.Query("refresh_token")
 	if refreshToken == "" {
 		// Coba dari header

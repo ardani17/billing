@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// ont_repo_query.go berisi method query ONTRepo: List, ListByOLTAndStatus,
+// ont_repo_kueri.go berisi method kueri ONTRepo: List, ListByOLTAndStatus,
 // GetByCustomerID, SerialNumberExists, PositionExists, UpdateStatus,
 // UpdatePortMigration, DeleteUnregisteredByOLT.
 
@@ -191,10 +191,10 @@ func (r *ONTRepo) DeleteUnregisteredByOLT(ctx context.Context, oltID string, kee
 	return count, nil
 }
 
-// --- Helper untuk nullable UUID filter ---
+// --- Fungsi bantu untuk nullable UUID filter ---
 
 // stringToNullableUUID mengkonversi string ke pgtype.UUID untuk filter opsional.
-// String kosong → UUID tidak valid (NULL) agar filter diabaikan.
+// String kosong -> UUID tidak valid (NULL) agar filter diabaikan.
 func stringToNullableUUID(s string) pgtype.UUID {
 	if s == "" {
 		return pgtype.UUID{Valid: false}

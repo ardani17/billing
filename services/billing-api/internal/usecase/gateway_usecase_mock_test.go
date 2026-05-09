@@ -1,4 +1,3 @@
-// gateway_usecase_mock_test.go berisi mock GatewayConfigRepository, PaymentLinkRepository,
 // dan BillingSettingsRepository untuk unit test GatewayUsecase.
 package usecase
 
@@ -12,8 +11,6 @@ import (
 
 // testMasterKey adalah 32-byte key untuk test enkripsi.
 var testMasterKey = []byte("01234567890123456789012345678901")
-
-// --- Mock: GatewayConfigRepository ---
 
 type gwMockConfigRepo struct {
 	configs map[string]*domain.GatewayConfig
@@ -102,8 +99,6 @@ func (m *gwMockConfigRepo) ExistsByProvider(_ context.Context, tenantID string, 
 	}
 	return false, nil
 }
-
-// --- Mock: PaymentLinkRepository ---
 
 type gwMockLinkRepo struct {
 	links    map[string]*domain.PaymentLink

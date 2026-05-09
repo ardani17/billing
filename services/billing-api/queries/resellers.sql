@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel resellers.
+-- Kueri SQL untuk operasi CRUD tabel resellers.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel resellers dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Query List dibangun secara dinamis di repository (sama seperti customer/package).
+-- Tabel resellers dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateReseller :one
 -- Membuat reseller baru dan mengembalikan semua kolom.

@@ -64,8 +64,8 @@ func NewWebhookUsecase(
 }
 
 // ProcessWebhook memproses webhook yang sudah di-log secara asinkron.
-// Langkah: fetch log → lookup payment link → verify signature → check duplicate →
-// acquire advisory lock → dispatch ke handler event → update status log.
+// Langkah: ambil log -> lookup link pembayaran -> verify signature -> cek duplicate ->
+// acquire advisory lock -> dispatch ke handler event -> perbarui status log.
 func (uc *WebhookUsecase) ProcessWebhook(ctx context.Context, webhookLogID string) error {
 	// 1. Ambil webhook log berdasarkan ID
 	wlog, err := uc.webhookRepo.GetByID(ctx, webhookLogID)
@@ -73,7 +73,7 @@ func (uc *WebhookUsecase) ProcessWebhook(ctx context.Context, webhookLogID strin
 		return fmt.Errorf("gagal mengambil webhook log %s: %w", webhookLogID, err)
 	}
 
-	// 2. Cari payment link berdasarkan external_id
+	// 2. Cari link pembayaran berdasarkan external_id
 	link, err := uc.linkRepo.GetByExternalID(ctx, wlog.ExternalID)
 	if err != nil || link == nil {
 		_ = uc.webhookRepo.UpdateStatus(ctx, webhookLogID, domain.WebhookFailed, "payment_link_not_found")
@@ -82,7 +82,7 @@ func (uc *WebhookUsecase) ProcessWebhook(ctx context.Context, webhookLogID strin
 		return nil
 	}
 
-	// 3. Identifikasi tenant dari payment link
+	// 3. Identifikasi tenant dari link pembayaran
 	tenantID := link.TenantID
 
 	// 4. Ambil konfigurasi gateway untuk tenant dan provider
@@ -122,14 +122,14 @@ func (uc *WebhookUsecase) ProcessWebhook(ctx context.Context, webhookLogID strin
 	}
 	_ = uc.webhookRepo.UpdateSignatureValid(ctx, webhookLogID, true)
 
-	// 8. Parse payload webhook menjadi event
+	// 8. Parsing payload webhook menjadi event
 	event, err := adapter.ParseWebhookPayload(wlog.RequestBody)
 	if err != nil {
 		_ = uc.webhookRepo.UpdateStatus(ctx, webhookLogID, domain.WebhookFailed, "parse_failed: "+err.Error())
 		return fmt.Errorf("gagal parse webhook payload: %w", err)
 	}
 
-	// 9. Cek duplikat — apakah webhook dengan external_id + event_type sudah diproses
+	// 9. Cek duplikat - apakah webhook dengan external_id + event_type sudah diproses
 	duplicate, err := uc.webhookRepo.IsAlreadyProcessed(ctx, wlog.ExternalID, event.EventType)
 	if err != nil {
 		return fmt.Errorf("gagal cek duplikat webhook: %w", err)
@@ -140,7 +140,7 @@ func (uc *WebhookUsecase) ProcessWebhook(ctx context.Context, webhookLogID strin
 		return nil
 	}
 
-	// 10. Acquire pg_advisory_xact_lock pada payment link ID untuk mencegah race condition
+	// 10. Acquire pg_advisory_xact_lock pada link pembayaran ID untuk mencegah race condition
 	if err := uc.acquireAdvisoryLock(ctx, link.ID); err != nil {
 		return fmt.Errorf("gagal acquire advisory lock: %w", err)
 	}
@@ -167,7 +167,7 @@ func (uc *WebhookUsecase) ProcessWebhook(ctx context.Context, webhookLogID strin
 		return nil
 	}
 
-	// 12. Update webhook log status menjadi processed
+	// 12. Perbarui webhook log status menjadi processed
 	_ = uc.webhookRepo.UpdateStatus(ctx, webhookLogID, domain.WebhookProcessed, "")
 	uc.logger.Info().Str("webhook_id", webhookLogID).Str("event", event.EventType).
 		Msg("webhook berhasil diproses")
@@ -175,7 +175,7 @@ func (uc *WebhookUsecase) ProcessWebhook(ctx context.Context, webhookLogID strin
 	return nil
 }
 
-// acquireAdvisoryLock mengambil pg_advisory_xact_lock berdasarkan payment link ID.
+// acquireAdvisoryLock mengambil pg_advisory_xact_lock berdasarkan link pembayaran ID.
 // Menggunakan hash dari UUID string sebagai lock key.
 // Jika pool nil (misalnya dalam unit test), lock dilewati.
 func (uc *WebhookUsecase) acquireAdvisoryLock(ctx context.Context, linkID string) error {
@@ -196,7 +196,7 @@ func (uc *WebhookUsecase) acquireAdvisoryLock(ctx context.Context, linkID string
 // dalam request_body JSON saat logging. Midtrans tidak memerlukan headers (signature di body).
 func extractWebhookHeaders(wlog *domain.WebhookLog) map[string]string {
 	headers := make(map[string]string)
-	// Parse request_body untuk mengekstrak _headers jika ada
+	// Parsing request_body untuk mengekstrak _headers jika ada
 	var body map[string]interface{}
 	if err := json.Unmarshal(wlog.RequestBody, &body); err != nil {
 		return headers

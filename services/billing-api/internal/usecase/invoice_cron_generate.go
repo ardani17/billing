@@ -1,4 +1,4 @@
-// invoice_cron_generate.go berisi logika generate invoice per pelanggan untuk cron job.
+// invoice_cron_generate.go berisi logika buat invoice per pelanggan untuk job cron.
 package usecase
 
 import (
@@ -10,9 +10,9 @@ import (
 )
 
 // generateInvoiceForCustomer membuat invoice untuk satu pelanggan.
-// Flow: cek idempotency → cek prepaid → generate nomor → ambil paket (snapshot harga) →
-// tambah item instalasi jika invoice pertama → ambil recurring items → hitung subtotal →
-// hitung pajak → terapkan kredit → buat invoice → buat items → tulis audit log → publish event.
+// Alur: cek idempotency -> cek prepaid -> buat nomor -> ambil paket (snapshot harga) ->
+// tambah item instalasi jika invoice pertama -> ambil item berulangs -> hitung subtotal ->
+// hitung pajak -> terapkan kredit -> buat invoice -> buat items -> tulis audit log -> terbitkan event.
 func (uc *InvoiceCronUsecase) generateInvoiceForCustomer(
 	ctx context.Context,
 	settings *domain.BillingSettings,
@@ -40,7 +40,7 @@ func (uc *InvoiceCronUsecase) generateInvoiceForCustomer(
 		return nil // periode sudah di-cover prepaid, skip
 	}
 
-	// Generate nomor invoice via sequence atomik
+	// Buat nomor invoice via sequence atomik
 	prefix := "INV"
 	if settings.InvoicePrefix != "" {
 		prefix = settings.InvoicePrefix
@@ -129,7 +129,7 @@ func (uc *InvoiceCronUsecase) generateInvoiceForCustomer(
 		return fmt.Errorf("gagal membuat invoice: %w", err)
 	}
 
-	// Set invoice_id pada semua items dan bulk create
+	// Set invoice_id pada semua items dan bulk buat
 	for _, item := range items {
 		item.InvoiceID = created.ID
 	}
@@ -137,10 +137,10 @@ func (uc *InvoiceCronUsecase) generateInvoiceForCustomer(
 		return fmt.Errorf("gagal membuat invoice items: %w", err)
 	}
 
-	// Tulis audit log (aktor = System untuk cron job)
+	// Tulis audit log (aktor = System untuk job cron)
 	uc.writeCronAuditLog(ctx, settings.TenantID, created.ID, "invoice.generated")
 
-	// Publish event invoice.created
+	// Terbitkan event invoice.created
 	uc.publishCronEvent(settings.TenantID, "invoice.created", domain.InvoiceCreatedPayload{
 		InvoiceID:     created.ID,
 		TenantID:      settings.TenantID,

@@ -1,5 +1,5 @@
-// voucher_handler.go menangani HTTP request untuk manajemen voucher (admin).
-// Termasuk: generate, list, get, bulk void, bulk assign, export CSV.
+// voucher_handler.go menangani HTTP permintaan untuk manajemen voucher (admin).
+// Termasuk: buat, daftar, ambil, void massal, assign massal, ekspor CSV.
 package handler
 
 import (
@@ -20,7 +20,7 @@ import (
 // alphanumHyphenRegex memvalidasi format prefix voucher: hanya huruf, angka, dan hyphen.
 var alphanumHyphenRegex = regexp.MustCompile(`^[A-Za-z0-9\-]+$`)
 
-// VoucherHandler menangani HTTP request untuk manajemen voucher (admin).
+// VoucherHandler menangani HTTP permintaan untuk manajemen voucher (admin).
 type VoucherHandler struct {
 	voucherUsecase       *usecase.VoucherUsecase
 	voucherActionUsecase *usecase.VoucherActionUsecase
@@ -29,7 +29,7 @@ type VoucherHandler struct {
 }
 
 // NewVoucherHandler membuat instance baru VoucherHandler.
-// Mendaftarkan custom validator alphanum_hyphen untuk prefix voucher.
+// Mendaftarkan kustom validator alphanum_hyphen untuk prefix voucher.
 func NewVoucherHandler(
 	voucherUsecase *usecase.VoucherUsecase,
 	voucherActionUsecase *usecase.VoucherActionUsecase,
@@ -51,7 +51,7 @@ func validateAlphanumHyphen(fl validator.FieldLevel) bool {
 	return alphanumHyphenRegex.MatchString(fl.Field().String())
 }
 
-// Generate menangani POST /v1/vouchers/generate.
+// Buat menangani POST /v1/vouchers/buat.
 // Menghasilkan batch voucher baru. Mengembalikan 201 (sync) atau 202 (async).
 func (h *VoucherHandler) Generate(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -88,7 +88,7 @@ func (h *VoucherHandler) Generate(c *fiber.Ctx) error {
 }
 
 // List menangani GET /v1/vouchers.
-// Mengembalikan daftar voucher dengan paginasi, filter, dan sorting.
+// Mengembalikan daftar voucher dengan paginasi, filter, dan pengurutan.
 func (h *VoucherHandler) List(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -139,7 +139,7 @@ func (h *VoucherHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, detail)
 }
 
-// Activate menangani POST /v1/vouchers/activate.
+// Activate menangani POST /v1/vouchers/aktifkan.
 // Mengaktifkan kode voucher dan menerbitkan event untuk provisioning Hotspot.
 func (h *VoucherHandler) Activate(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -247,7 +247,7 @@ func (h *VoucherHandler) Export(c *fiber.Ctx) error {
 	return c.Send(csvBytes)
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *VoucherHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -257,7 +257,7 @@ func (h *VoucherHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapVoucherError memetakan domain error ke HTTP error response untuk voucher.
+// mapVoucherError memetakan domain error ke HTTP error respons untuk voucher.
 func (h *VoucherHandler) mapVoucherError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrVoucherNotFound):

@@ -8,14 +8,14 @@ import (
 	"github.com/ispboss/ispboss/services/notification/internal/domain"
 )
 
-// ConfigHandler menangani HTTP request untuk konfigurasi notifikasi.
+// ConfigHandler menangani HTTP permintaan untuk konfigurasi notifikasi.
 // Menyediakan endpoint untuk melihat dan memperbarui konfigurasi provider per channel.
 type ConfigHandler struct {
 	configRepo   domain.ConfigRepository
 	templateRepo domain.TemplateRepository
 }
 
-// NewConfigHandler membuat instance ConfigHandler baru dengan dependensi repository.
+// NewConfigHandler membuat instance ConfigHandler baru dengan dependensi repositori.
 func NewConfigHandler(configRepo domain.ConfigRepository, templateRepo domain.TemplateRepository) *ConfigHandler {
 	return &ConfigHandler{configRepo: configRepo, templateRepo: templateRepo}
 }
@@ -23,7 +23,7 @@ func NewConfigHandler(configRepo domain.ConfigRepository, templateRepo domain.Te
 // Get menangani GET /api/v1/notifications/config.
 // Mengembalikan konfigurasi notifikasi tenant dengan credential yang di-mask.
 func (h *ConfigHandler) Get(c *fiber.Ctx) error {
-	// Ambil tenant_id dari Fiber locals (di-set oleh auth middleware)
+	// Ambil tenant_id dari Fiber locals (di-atur oleh auth middleware)
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant_id tidak ditemukan")
@@ -59,7 +59,7 @@ func (h *ConfigHandler) Get(c *fiber.Ctx) error {
 			"updated_at": cfg.UpdatedAt,
 		}
 
-		// Parse dan mask setiap field credential
+		// Parsing dan mask setiap field credential
 		masked["credentials"] = maskCredentials(cfg.Credentials)
 		maskedConfigs = append(maskedConfigs, masked)
 	}
@@ -71,17 +71,17 @@ func (h *ConfigHandler) Get(c *fiber.Ctx) error {
 	})
 }
 
-// Update menangani PUT /api/v1/notifications/config.
-// Memvalidasi dan menyimpan konfigurasi provider, serta seed template default
+// Perbarui menangani PUT /api/v1/notifications/config.
+// Memvalidasi dan menyimpan konfigurasi provider, serta seed template bawaan
 // jika ini adalah konfigurasi pertama untuk tenant.
 func (h *ConfigHandler) Update(c *fiber.Ctx) error {
-	// Ambil tenant_id dari Fiber locals (di-set oleh auth middleware)
+	// Ambil tenant_id dari Fiber locals (di-atur oleh auth middleware)
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant_id tidak ditemukan")
 	}
 
-	// Parse request body
+	// Parsing permintaan body
 	var req domain.UpdateConfigRequest
 	if err := c.BodyParser(&req); err != nil {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "format request tidak valid")
@@ -120,7 +120,7 @@ func (h *ConfigHandler) Update(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal menyimpan konfigurasi")
 	}
 
-	// Jika ini konfigurasi pertama untuk tenant, seed template default
+	// Jika ini konfigurasi pertama untuk tenant, seed template bawaan
 	if len(existingConfigs) == 0 {
 		h.seedDefaultTemplates(c, tenantID)
 	}
@@ -131,13 +131,13 @@ func (h *ConfigHandler) Update(c *fiber.Ctx) error {
 // UpdateSettings menangani PUT /api/v1/notifications/config/settings.
 // Memvalidasi dan menyimpan pengaturan umum notifikasi.
 func (h *ConfigHandler) UpdateSettings(c *fiber.Ctx) error {
-	// Ambil tenant_id dari Fiber locals (di-set oleh auth middleware)
+	// Ambil tenant_id dari Fiber locals (di-atur oleh auth middleware)
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant_id tidak ditemukan")
 	}
 
-	// Parse request body
+	// Parsing permintaan body
 	var settings domain.ConfigSettings
 	if err := c.BodyParser(&settings); err != nil {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "format request tidak valid")
@@ -169,7 +169,7 @@ func (h *ConfigHandler) seedDefaultTemplates(c *fiber.Ctx, tenantID string) {
 	_ = h.templateRepo.BulkCreate(c.UserContext(), templates)
 }
 
-// maskCredentials mem-parse credential JSON dan menyembunyikan nilai setiap field.
+// maskCredentials mem-parsing credential JSON dan menyembunyikan nilai setiap field.
 // Menampilkan hanya 4 karakter terakhir dari setiap nilai string.
 func maskCredentials(raw json.RawMessage) json.RawMessage {
 	if len(raw) == 0 {

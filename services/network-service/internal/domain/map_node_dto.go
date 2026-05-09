@@ -6,7 +6,7 @@ import (
 )
 
 // =============================================================================
-// Map Node Request DTOs — payload dari HTTP request untuk operasi map node
+// Map Node DTO permintaan - payload dari HTTP permintaan untuk operasi map node
 // =============================================================================
 
 // CreateMapNodeRequest adalah payload untuk POST /api/v1/network-map/nodes.
@@ -20,7 +20,7 @@ type CreateMapNodeRequest struct {
 }
 
 // UpdateMapNodeRequest adalah payload untuk PUT /api/v1/network-map/nodes/:id.
-// Semua field bersifat opsional — hanya field yang dikirim yang akan diupdate.
+// Semua field bersifat opsional - hanya field yang dikirim yang akan diupdate.
 type UpdateMapNodeRequest struct {
 	Latitude     *float64        `json:"latitude,omitempty" validate:"omitempty,min=-90,max=90"`
 	Longitude    *float64        `json:"longitude,omitempty" validate:"omitempty,min=-180,max=180"`
@@ -28,10 +28,9 @@ type UpdateMapNodeRequest struct {
 }
 
 // =============================================================================
-// Map Node Response DTOs — format respons untuk operasi map node
 // =============================================================================
 
-// MapNodeResponse adalah respons dasar untuk operasi create/update map node.
+// MapNodeResponse adalah respons dasar untuk operasi buat/perbarui map node.
 // Berisi data map node tanpa informasi join dari entitas referensi.
 type MapNodeResponse struct {
 	ID           string          `json:"id"`
@@ -83,12 +82,12 @@ type MapNodeWithRefResponse struct {
 }
 
 // =============================================================================
-// Label Settings DTOs — request/response untuk konfigurasi label di peta
+// Label Settings DTOs - permintaan/respons untuk konfigurasi label di peta
 // =============================================================================
 
 // UpdateLabelSettingsRequest adalah payload untuk PUT /api/v1/network-map/settings/labels.
 // Menentukan informasi apa yang tampil di label node per tipe di peta.
-// Semua field bersifat opsional — hanya field yang dikirim yang akan diupdate.
+// Semua field bersifat opsional - hanya field yang dikirim yang akan diupdate.
 type UpdateLabelSettingsRequest struct {
 	OLTLabels    json.RawMessage `json:"olt_labels,omitempty"`
 	ODPLabels    json.RawMessage `json:"odp_labels,omitempty"`
@@ -106,7 +105,7 @@ type MapLabelSettingsResponse struct {
 }
 
 // =============================================================================
-// Helper Functions — konversi entity ke response DTO
+// Fungsi bantu Functions - konversi entity ke respons DTO
 // =============================================================================
 
 // ToMapNodeResponse mengkonversi MapNode entity ke MapNodeResponse DTO.
@@ -150,7 +149,7 @@ func ToMapNodeWithRefResponse(n *MapNodeWithRef) *MapNodeWithRefResponse {
 	}
 }
 
-// ToMapLabelSettingsResponse mengkonversi MapLabelSettings entity ke response DTO.
+// ToMapLabelSettingsResponse mengkonversi MapLabelSettings entity ke respons DTO.
 func ToMapLabelSettingsResponse(s *MapLabelSettings) *MapLabelSettingsResponse {
 	return &MapLabelSettingsResponse{
 		OLTLabels:    s.OLTLabels,

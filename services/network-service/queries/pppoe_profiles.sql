@@ -1,7 +1,7 @@
--- Query SQL untuk operasi CRUD tabel pppoe_profiles.
+-- Kueri SQL untuk operasi CRUD tabel pppoe_profiles.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel pppoe_profiles dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Tabel ini TIDAK menggunakan soft-delete (tidak ada kolom deleted_at).
+-- Tabel pppoe_profiles dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
+-- Tabel ini TIDAK menggunakan hapus lunak (tidak ada kolom deleted_at).
 
 -- name: CreatePPPoEProfile :one
 INSERT INTO pppoe_profiles (

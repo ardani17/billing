@@ -20,7 +20,7 @@ func NewPPPoEProfileRepo(queries *Queries) *PPPoEProfileRepo {
 	return &PPPoEProfileRepo{queries: queries}
 }
 
-// --- Mapping sqlc PppoeProfile → domain.PPPoEProfile ---
+// --- Mapping sqlc PppoeProfile -> domain.PPPoEProfile ---
 
 // mapPPPoEProfileRow memetakan PppoeProfile (sqlc model) ke domain.PPPoEProfile.
 func mapPPPoEProfileRow(row PppoeProfile) *domain.PPPoEProfile {
@@ -46,7 +46,7 @@ func mapPPPoEProfileRow(row PppoeProfile) *domain.PPPoEProfile {
 
 // --- Implementasi domain.PPPoEProfileRepository ---
 
-// Create membuat record PPPoE profile baru.
+// Buat membuat record PPPoE profile baru.
 func (r *PPPoEProfileRepo) Create(ctx context.Context, profile *domain.PPPoEProfile) (*domain.PPPoEProfile, error) {
 	row, err := r.queries.CreatePPPoEProfile(ctx, CreatePPPoEProfileParams{
 		TenantID:               stringToUUID(profile.TenantID),
@@ -111,7 +111,7 @@ func (r *PPPoEProfileRepo) GetByProfileName(ctx context.Context, tenantID, profi
 	return mapPPPoEProfileRow(row), nil
 }
 
-// Update memperbarui record PPPoE profile.
+// Perbarui memperbarui record PPPoE profile.
 func (r *PPPoEProfileRepo) Update(ctx context.Context, profile *domain.PPPoEProfile) (*domain.PPPoEProfile, error) {
 	row, err := r.queries.UpdatePPPoEProfile(ctx, UpdatePPPoEProfileParams{
 		ID:                     stringToUUID(profile.ID),

@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel notification_configs.
+-- Kueri SQL untuk operasi CRUD tabel notification_configs.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel notification_configs dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel notification_configs dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Setiap tenant bisa memiliki satu konfigurasi per channel (UNIQUE pada tenant_id, channel).
 
 -- name: GetConfigsByTenant :many

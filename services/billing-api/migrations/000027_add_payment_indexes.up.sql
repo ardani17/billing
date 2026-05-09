@@ -1,5 +1,5 @@
 -- Migrasi: menambahkan index untuk modul pembayaran manual.
--- Index ini mengoptimalkan query daftar pembayaran, filter metode, deteksi duplikat,
+-- Index ini mengoptimalkan kueri daftar pembayaran, filter metode, deteksi duplikat,
 -- pencarian pelanggan (trigram), dan lookup invoice terbuka per pelanggan.
 
 -- Aktifkan ekstensi pg_trgm untuk index trigram pencarian pelanggan

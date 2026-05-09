@@ -1,5 +1,4 @@
-// package_handler.go menangani HTTP request untuk manajemen paket.
-// Termasuk: list, get, create, update, dan delete.
+// package_handler.go menangani HTTP permintaan untuk manajemen paket.
 package handler
 
 import (
@@ -14,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// PackageHandler menangani HTTP request untuk manajemen paket.
+// PackageHandler menangani HTTP permintaan untuk manajemen paket.
 type PackageHandler struct {
 	packageUsecase domain.PackageUsecase
 	validate       *validator.Validate
@@ -22,7 +21,7 @@ type PackageHandler struct {
 }
 
 // NewPackageHandler membuat instance baru PackageHandler.
-// Mendaftarkan custom validator untuk validasi type-conditional.
+// Mendaftarkan kustom validator untuk validasi type-conditional.
 func NewPackageHandler(packageUsecase domain.PackageUsecase, logger zerolog.Logger) *PackageHandler {
 	v := validator.New()
 	v.RegisterStructValidation(validatePackageCreate, domain.CreatePackageRequest{})
@@ -35,7 +34,7 @@ func NewPackageHandler(packageUsecase domain.PackageUsecase, logger zerolog.Logg
 }
 
 // List menangani GET /v1/packages.
-// Mengembalikan daftar paket dengan paginasi, filter, dan sorting.
+// Mengembalikan daftar paket dengan paginasi, filter, dan pengurutan.
 func (h *PackageHandler) List(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -91,7 +90,7 @@ func (h *PackageHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, detail)
 }
 
-// Create menangani POST /v1/packages.
+// Buat menangani POST /v1/packages.
 // Membuat paket baru (bulanan, PPPoE, atau Voucher).
 func (h *PackageHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -122,7 +121,7 @@ func (h *PackageHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, pkg)
 }
 
-// Update menangani PUT /v1/packages/:id.
+// Perbarui menangani PUT /v1/packages/:id.
 // Memperbarui data paket.
 func (h *PackageHandler) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -153,8 +152,8 @@ func (h *PackageHandler) Update(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, pkg)
 }
 
-// Delete menangani DELETE /v1/packages/:id.
-// Hard delete paket dengan konfirmasi nama.
+// Hapus menangani DELETE /v1/packages/:id.
+// Hard hapus paket dengan konfirmasi nama.
 func (h *PackageHandler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -186,7 +185,7 @@ func (h *PackageHandler) Delete(c *fiber.Ctx) error {
 	})
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *PackageHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -196,7 +195,7 @@ func (h *PackageHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapPackageError memetakan domain error ke HTTP error response untuk paket.
+// mapPackageError memetakan domain error ke HTTP error respons untuk paket.
 func (h *PackageHandler) mapPackageError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrPackageNotFound):
@@ -262,9 +261,9 @@ func validatePackageCreate(sl validator.StructLevel) {
 }
 
 // validatePackageUpdate melakukan validasi struct-level untuk UpdatePackageRequest.
-// Sama seperti create, tapi semua field opsional — hanya validasi jika field diisi.
+// Sama seperti buat, tapi semua field opsional - hanya validasi jika field diisi.
 func validatePackageUpdate(sl validator.StructLevel) {
-	// Update tidak memerlukan validasi struct-level tambahan karena semua field opsional.
-	// Validasi type-conditional dilakukan di usecase layer setelah merge dengan data existing.
+	// Perbarui tidak memerlukan validasi struct-level tambahan karena semua field opsional.
+	// Validasi type-conditional dilakukan di usecase layer setelah gabungkan dengan data existing.
 	_ = sl.Current().Interface().(domain.UpdatePackageRequest)
 }

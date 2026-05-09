@@ -1,5 +1,4 @@
 // invoice_handler_test.go berisi unit test untuk InvoiceHandler.
-// Menguji HTTP status codes, parsing request, format response untuk semua endpoint CRUD.
 package handler
 
 import (
@@ -21,7 +20,6 @@ import (
 )
 
 // =============================================================================
-// Mock repositories untuk InvoiceHandler tests
 // =============================================================================
 
 // mockInvoiceRepo adalah implementasi in-memory dari domain.InvoiceRepository.
@@ -367,19 +365,35 @@ func (m *mockInvCustomerRepo) Update(_ context.Context, c *domain.Customer) (*do
 	return &copy, nil
 }
 
-func (m *mockInvCustomerRepo) SoftDelete(_ context.Context, _ string) error                                  { return nil }
+func (m *mockInvCustomerRepo) SoftDelete(_ context.Context, _ string) error { return nil }
 func (m *mockInvCustomerRepo) List(_ context.Context, _ domain.CustomerListParams) (*domain.CustomerListResult, error) {
 	return &domain.CustomerListResult{Data: []*domain.Customer{}, Pagination: domain.PaginationMeta{Total: 0, Page: 1, PageSize: 25, TotalPages: 1}}, nil
 }
-func (m *mockInvCustomerRepo) UpdateStatus(_ context.Context, _ string, _ domain.CustomerStatus) (*domain.Customer, error) { return nil, nil }
-func (m *mockInvCustomerRepo) UpdatePackage(_ context.Context, _, _ string) (*domain.Customer, error) { return nil, nil }
-func (m *mockInvCustomerRepo) CountByStatus(_ context.Context) (map[domain.CustomerStatus]int64, error) { return nil, nil }
+func (m *mockInvCustomerRepo) UpdateStatus(_ context.Context, _ string, _ domain.CustomerStatus) (*domain.Customer, error) {
+	return nil, nil
+}
+func (m *mockInvCustomerRepo) UpdatePackage(_ context.Context, _, _ string) (*domain.Customer, error) {
+	return nil, nil
+}
+func (m *mockInvCustomerRepo) CountByStatus(_ context.Context) (map[domain.CustomerStatus]int64, error) {
+	return nil, nil
+}
 func (m *mockInvCustomerRepo) GetMaxSeq(_ context.Context, _ string) (int, error) { return 0, nil }
-func (m *mockInvCustomerRepo) PhoneExists(_ context.Context, _, _, _ string) (bool, error) { return false, nil }
-func (m *mockInvCustomerRepo) BulkUpdateStatus(_ context.Context, _ []string, _ domain.CustomerStatus) ([]domain.BulkResult, error) { return nil, nil }
-func (m *mockInvCustomerRepo) BulkUpdateFields(_ context.Context, _ []string, _ map[string]interface{}) ([]domain.BulkResult, error) { return nil, nil }
-func (m *mockInvCustomerRepo) BulkSoftDelete(_ context.Context, _ []string) ([]domain.BulkResult, error) { return nil, nil }
-func (m *mockInvCustomerRepo) GetByIDs(_ context.Context, _ []string) ([]*domain.Customer, error) { return nil, nil }
+func (m *mockInvCustomerRepo) PhoneExists(_ context.Context, _, _, _ string) (bool, error) {
+	return false, nil
+}
+func (m *mockInvCustomerRepo) BulkUpdateStatus(_ context.Context, _ []string, _ domain.CustomerStatus) ([]domain.BulkResult, error) {
+	return nil, nil
+}
+func (m *mockInvCustomerRepo) BulkUpdateFields(_ context.Context, _ []string, _ map[string]interface{}) ([]domain.BulkResult, error) {
+	return nil, nil
+}
+func (m *mockInvCustomerRepo) BulkSoftDelete(_ context.Context, _ []string) ([]domain.BulkResult, error) {
+	return nil, nil
+}
+func (m *mockInvCustomerRepo) GetByIDs(_ context.Context, _ []string) ([]*domain.Customer, error) {
+	return nil, nil
+}
 func (m *mockInvCustomerRepo) SearchForPayment(_ context.Context, _, _ string) ([]*domain.Customer, error) {
 	return nil, nil
 }
@@ -393,7 +407,9 @@ func newMockInvPackageRepo() *mockInvPackageRepo {
 	return &mockInvPackageRepo{packages: make(map[string]*domain.Package)}
 }
 
-func (m *mockInvPackageRepo) Create(_ context.Context, _ *domain.Package) (*domain.Package, error) { return nil, nil }
+func (m *mockInvPackageRepo) Create(_ context.Context, _ *domain.Package) (*domain.Package, error) {
+	return nil, nil
+}
 func (m *mockInvPackageRepo) GetByID(_ context.Context, id string) (*domain.Package, error) {
 	p, ok := m.packages[id]
 	if !ok {
@@ -401,16 +417,25 @@ func (m *mockInvPackageRepo) GetByID(_ context.Context, id string) (*domain.Pack
 	}
 	return p, nil
 }
-func (m *mockInvPackageRepo) Update(_ context.Context, _ *domain.Package) (*domain.Package, error) { return nil, nil }
+func (m *mockInvPackageRepo) Update(_ context.Context, _ *domain.Package) (*domain.Package, error) {
+	return nil, nil
+}
 func (m *mockInvPackageRepo) Delete(_ context.Context, _ string) error { return nil }
-func (m *mockInvPackageRepo) List(_ context.Context, _ domain.PackageListParams) (*domain.PackageListResult, error) { return nil, nil }
-func (m *mockInvPackageRepo) UpdateIsActive(_ context.Context, _ string, _ bool) (*domain.Package, error) { return nil, nil }
-func (m *mockInvPackageRepo) NameExists(_ context.Context, _, _, _ string) (bool, error) { return false, nil }
+func (m *mockInvPackageRepo) List(_ context.Context, _ domain.PackageListParams) (*domain.PackageListResult, error) {
+	return nil, nil
+}
+func (m *mockInvPackageRepo) UpdateIsActive(_ context.Context, _ string, _ bool) (*domain.Package, error) {
+	return nil, nil
+}
+func (m *mockInvPackageRepo) NameExists(_ context.Context, _, _, _ string) (bool, error) {
+	return false, nil
+}
 func (m *mockInvPackageRepo) CustomerCount(_ context.Context, _ string) (int, error) { return 0, nil }
-func (m *mockInvPackageRepo) ListNamesByPrefix(_ context.Context, _, _ string) ([]string, error) { return nil, nil }
+func (m *mockInvPackageRepo) ListNamesByPrefix(_ context.Context, _, _ string) ([]string, error) {
+	return nil, nil
+}
 
 // =============================================================================
-// Setup helper untuk InvoiceHandler tests
 // =============================================================================
 
 // invoiceTestSetup berisi semua dependensi untuk testing InvoiceHandler.
@@ -423,7 +448,6 @@ type invoiceTestSetup struct {
 	sequenceRepo *mockInvoiceSequenceRepo
 }
 
-// setupInvoiceTestApp membuat Fiber app dengan InvoiceHandler yang di-back oleh mock repos.
 func setupInvoiceTestApp() *invoiceTestSetup {
 	invoiceRepo := newMockInvoiceRepo()
 	itemRepo := newMockInvoiceItemRepo()
@@ -435,7 +459,7 @@ func setupInvoiceTestApp() *invoiceTestSetup {
 	packageRepo := newMockInvPackageRepo()
 	logger := zerolog.New(io.Discard)
 
-	// Tambah pelanggan aktif default untuk testing (UUID untuk validasi)
+	// Tambah pelanggan aktif bawaan untuk testing (UUID untuk validasi)
 	customerRepo.customers["00000000-0000-0000-0000-000000000001"] = &domain.Customer{
 		ID:       "00000000-0000-0000-0000-000000000001",
 		TenantID: "test-tenant",
@@ -453,7 +477,7 @@ func setupInvoiceTestApp() *invoiceTestSetup {
 
 	app := fiber.New()
 
-	// Middleware untuk set locals (simulasi auth middleware)
+	// Middleware untuk atur locals (simulasi auth middleware)
 	setLocals := func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "test-tenant")
 		c.Locals("user_id", "test-user")
@@ -480,12 +504,9 @@ func setupInvoiceTestApp() *invoiceTestSetup {
 }
 
 // =============================================================================
-// Unit Tests — InvoiceHandler
+// Unit Tests - InvoiceHandler
 // =============================================================================
 
-// --- List endpoint ---
-
-// TestInvoiceHandler_List_Success menguji list invoice berhasil dengan status 200.
 func TestInvoiceHandler_List_Success(t *testing.T) {
 	setup := setupInvoiceTestApp()
 
@@ -500,7 +521,6 @@ func TestInvoiceHandler_List_Success(t *testing.T) {
 	}
 }
 
-// TestInvoiceHandler_List_InvalidPageSize menguji validasi page_size yang tidak valid.
 func TestInvoiceHandler_List_InvalidPageSize(t *testing.T) {
 	setup := setupInvoiceTestApp()
 
@@ -514,8 +534,6 @@ func TestInvoiceHandler_List_InvalidPageSize(t *testing.T) {
 		t.Fatalf("expected 400, got %d: %s", resp.StatusCode, string(body))
 	}
 }
-
-// --- Get endpoint ---
 
 // TestInvoiceHandler_Get_NotFound menguji 404 saat invoice tidak ditemukan.
 func TestInvoiceHandler_Get_NotFound(t *testing.T) {
@@ -538,7 +556,6 @@ func TestInvoiceHandler_Get_NotFound(t *testing.T) {
 	}
 }
 
-// TestInvoiceHandler_Get_Success menguji get invoice berhasil.
 func TestInvoiceHandler_Get_Success(t *testing.T) {
 	setup := setupInvoiceTestApp()
 
@@ -562,8 +579,6 @@ func TestInvoiceHandler_Get_Success(t *testing.T) {
 		t.Fatalf("expected 200, got %d: %s", resp.StatusCode, string(body))
 	}
 }
-
-// --- Create endpoint ---
 
 // TestInvoiceHandler_Create_Success menguji pembuatan invoice manual berhasil.
 func TestInvoiceHandler_Create_Success(t *testing.T) {
@@ -590,7 +605,6 @@ func TestInvoiceHandler_Create_Success(t *testing.T) {
 	}
 }
 
-// TestInvoiceHandler_Create_ValidationError menguji validasi gagal saat body tidak valid.
 func TestInvoiceHandler_Create_ValidationError(t *testing.T) {
 	setup := setupInvoiceTestApp()
 
@@ -618,7 +632,6 @@ func TestInvoiceHandler_Create_ValidationError(t *testing.T) {
 	}
 }
 
-// TestInvoiceHandler_Create_InvalidBody menguji body JSON yang tidak valid.
 func TestInvoiceHandler_Create_InvalidBody(t *testing.T) {
 	setup := setupInvoiceTestApp()
 
@@ -634,7 +647,6 @@ func TestInvoiceHandler_Create_InvalidBody(t *testing.T) {
 	}
 }
 
-// TestInvoiceHandler_Create_CustomerNotFound menguji error saat customer tidak ditemukan.
 func TestInvoiceHandler_Create_CustomerNotFound(t *testing.T) {
 	setup := setupInvoiceTestApp()
 

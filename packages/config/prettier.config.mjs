@@ -1,5 +1,5 @@
 // Konfigurasi Prettier bersama untuk monorepo ISPBoss.
-/** @type {import("prettier").Config} */
+/** @type {import("prettier").Config}*/
 const config = {
   semi: true,
   singleQuote: false,

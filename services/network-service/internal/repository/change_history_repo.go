@@ -10,7 +10,7 @@ import (
 
 // ChangeHistoryRepo mengimplementasikan domain.ChangeHistoryRepository dengan membungkus
 // DBTX dan memetakan tipe database ke domain.MapChangeHistory.
-// Tabel ini bersifat append-only: hanya Create dan ListByNode, tidak ada Update atau Delete.
+// Tabel ini bersifat append-only: hanya Buat dan ListByNode, tidak ada Perbarui atau Hapus.
 type ChangeHistoryRepo struct {
 	db DBTX
 }
@@ -20,7 +20,7 @@ func NewChangeHistoryRepo(db DBTX) *ChangeHistoryRepo {
 	return &ChangeHistoryRepo{db: db}
 }
 
-// scanChangeHistory memindai satu baris hasil query ke domain.MapChangeHistory.
+// scanChangeHistory memindai satu baris hasil kueri ke domain.MapChangeHistory.
 func scanChangeHistory(row pgx.Row) (*domain.MapChangeHistory, error) {
 	var h domain.MapChangeHistory
 	err := row.Scan(
@@ -33,7 +33,7 @@ func scanChangeHistory(row pgx.Row) (*domain.MapChangeHistory, error) {
 	return &h, nil
 }
 
-// Create menyimpan entri riwayat perubahan baru.
+// Buat menyimpan entri riwayat perubahan baru.
 func (r *ChangeHistoryRepo) Create(ctx context.Context, entry *domain.MapChangeHistory) (*domain.MapChangeHistory, error) {
 	row := r.db.QueryRow(ctx,
 		`INSERT INTO map_change_history (tenant_id, map_node_id, action, old_value, new_value, performed_by)
@@ -77,5 +77,5 @@ func (r *ChangeHistoryRepo) ListByNode(ctx context.Context, nodeID string, limit
 	return results, rows.Err()
 }
 
-// Compile-time check: ChangeHistoryRepo mengimplementasikan domain.ChangeHistoryRepository.
+// Compile-time cek: ChangeHistoryRepo mengimplementasikan domain.ChangeHistoryRepository.
 var _ domain.ChangeHistoryRepository = (*ChangeHistoryRepo)(nil)

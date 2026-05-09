@@ -9,11 +9,7 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: package-crud, Property 2: Reseller Margin Integrity
-// **Validates: Requirements 3.4, 14.8, 15.1, 15.3**
-//
-// For any sell_price S and reseller_price R, ValidateResellerMargin returns nil
-// iff R < S and S - R >= 500; returns ErrInsufficientMargin otherwise.
+// **Memvalidasi: Kebutuhan 3.4, 14.8, 15.1, 15.3**
 func TestProperty_ResellerMarginIntegrity(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		sellPrice := rapid.Int64Range(1, 1_000_000).Draw(t, "sellPrice")
@@ -40,11 +36,9 @@ func TestProperty_ResellerMarginIntegrity(t *testing.T) {
 	})
 }
 
-// Feature: package-crud, Property 5: Profile Name Auto-Generation
-// **Validates: Requirements 2.8, 3.7**
+// **Memvalidasi: Kebutuhan 2.8, 3.7**
 //
-// For any package name, GenerateProfileName produces a lowercase string with
-// spaces replaced by hyphens, containing no uppercase letters or spaces.
+// spaces replaced by hyphens, containing no uppercase letters atau spaces.
 func TestProperty_ProfileNameAutoGeneration(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		name := rapid.StringMatching(`[a-zA-Z0-9 ]{1,50}`).Draw(t, "name")
@@ -71,11 +65,7 @@ func TestProperty_ProfileNameAutoGeneration(t *testing.T) {
 	})
 }
 
-// Feature: package-crud, Property 6: Burst Fields All-or-Nothing
-// **Validates: Requirements 2.5, 14.10**
-//
-// ValidateBurstFields returns nil when all four burst fields are provided or
-// all four are nil; returns ErrBurstFieldsIncomplete for any partial combination.
+// **Memvalidasi: Kebutuhan 2.5, 14.10**
 func TestProperty_BurstFieldsAllOrNothing(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// Buat 4 boolean untuk menentukan apakah field diisi atau nil
@@ -136,12 +126,7 @@ func TestProperty_BurstFieldsAllOrNothing(t *testing.T) {
 	})
 }
 
-// Feature: package-crud, Property 11: Duplicate Name Generation
-// **Validates: Requirements 9.1, 9.2**
-//
-// GenerateDuplicateName produces "{name} (Copy)" when no collision exists,
-// and "{name} (Copy N)" when previous copies exist. The result is never in
-// the existingNames list.
+// **Memvalidasi: Kebutuhan 9.1, 9.2**
 func TestProperty_DuplicateNameGeneration(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		originalName := rapid.StringMatching(`[a-zA-Z0-9 ]{1,30}`).Draw(t, "originalName")

@@ -19,7 +19,7 @@ type ResellerRepo struct {
 	// queries adalah sqlc-generated Queries untuk operasi reseller.
 	queries *Queries
 
-	// pool digunakan untuk dynamic list query (raw SQL dengan pgx).
+	// pool digunakan untuk dinamis list kueri (raw SQL dengan pgx).
 	pool *pgxpool.Pool
 }
 
@@ -31,7 +31,7 @@ func NewResellerRepo(queries *Queries, pool *pgxpool.Pool) *ResellerRepo {
 	}
 }
 
-// --- Helper function untuk mapping sqlc Reseller → domain.Reseller ---
+// --- Helper function untuk mapping sqlc Reseller -> domain.Reseller ---
 
 // mapResellerRow memetakan Reseller (sqlc model) ke domain.Reseller.
 func mapResellerRow(row Reseller) *domain.Reseller {
@@ -75,7 +75,7 @@ func mapGetResellerByIDRow(row GetResellerByIDRow) *domain.Reseller {
 
 // --- Implementasi domain.ResellerRepository ---
 
-// Create membuat reseller baru dan mengembalikan reseller yang dibuat.
+// Buat membuat reseller baru dan mengembalikan reseller yang dibuat.
 func (r *ResellerRepo) Create(ctx context.Context, reseller *domain.Reseller) (*domain.Reseller, error) {
 	row, err := r.queries.CreateReseller(ctx, CreateResellerParams{
 		TenantID:           stringToUUID(reseller.TenantID),
@@ -136,7 +136,7 @@ func (r *ResellerRepo) GetByPhoneGlobal(ctx context.Context, phone string) (*dom
 	return mapResellerRow(row), nil
 }
 
-// Update memperbarui data reseller dan mengembalikan reseller yang diperbarui.
+// Perbarui memperbarui data reseller dan mengembalikan reseller yang diperbarui.
 func (r *ResellerRepo) Update(ctx context.Context, reseller *domain.Reseller) (*domain.Reseller, error) {
 	row, err := r.queries.UpdateReseller(ctx, UpdateResellerParams{
 		ID:                 stringToUUID(reseller.ID),
@@ -191,7 +191,7 @@ func (r *ResellerRepo) UpdateLastLogin(ctx context.Context, id string) error {
 	return nil
 }
 
-// allowedResellerSortColumns adalah whitelist kolom yang diizinkan untuk sorting reseller.
+// allowedResellerSortColumns adalah whitelist kolom yang diizinkan untuk pengurutan reseller.
 // Mencegah SQL injection pada ORDER BY clause.
 var allowedResellerSortColumns = map[string]string{
 	"name":       "r.name",
@@ -199,10 +199,10 @@ var allowedResellerSortColumns = map[string]string{
 	"created_at": "r.created_at",
 }
 
-// List mengambil daftar reseller dengan dynamic filtering, search, sorting, dan pagination.
+// List mengambil daftar reseller dengan dinamis filtering, search, pengurutan, dan paginasi.
 // Menggunakan raw SQL karena sqlc tidak mendukung dynamic WHERE clause.
 func (r *ResellerRepo) List(ctx context.Context, params domain.ResellerListParams) (*domain.ResellerListResult, error) {
-	// Default values
+	// Nilai bawaan
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -210,17 +210,17 @@ func (r *ResellerRepo) List(ctx context.Context, params domain.ResellerListParam
 		params.PageSize = 25
 	}
 
-	// Build WHERE clauses
+	// Bangun klausa WHERE
 	var conditions []string
 	var args []interface{}
 	argIdx := 1
 
-	// Tenant filter (wajib)
+	// Filter tenant (wajib)
 	conditions = append(conditions, fmt.Sprintf("r.tenant_id = $%d", argIdx))
 	args = append(args, stringToUUID(params.TenantID))
 	argIdx++
 
-	// Search filter (case-insensitive ILIKE pada name atau phone)
+	// Pencarian filter (case-insensitive ILIKE pada name atau phone)
 	if params.Search != "" {
 		searchPattern := "%" + params.Search + "%"
 		conditions = append(conditions, fmt.Sprintf(
@@ -240,7 +240,7 @@ func (r *ResellerRepo) List(ctx context.Context, params domain.ResellerListParam
 
 	whereClause := "WHERE " + strings.Join(conditions, " AND ")
 
-	// Count total
+	// Hitung total
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM resellers r %s", whereClause)
 	var total int64
 	err := r.pool.QueryRow(ctx, countQuery, args...).Scan(&total)
@@ -248,7 +248,7 @@ func (r *ResellerRepo) List(ctx context.Context, params domain.ResellerListParam
 		return nil, fmt.Errorf("repository: gagal menghitung total reseller: %w", err)
 	}
 
-	// Build ORDER BY
+	// Bangun ORDER BY
 	orderBy := "r.created_at"
 	if params.SortBy != "" {
 		if col, ok := allowedResellerSortColumns[params.SortBy]; ok {
@@ -260,10 +260,10 @@ func (r *ResellerRepo) List(ctx context.Context, params domain.ResellerListParam
 		sortOrder = "DESC"
 	}
 
-	// Build pagination
+	// Bangun paginasi
 	offset := (params.Page - 1) * params.PageSize
 
-	// Build data query dengan subquery total_vouchers_sold
+	// Bangun data kueri dengan subkueri total_vouchers_sold
 	dataQuery := fmt.Sprintf(`SELECT r.id, r.tenant_id, r.name, r.phone, r.email, r.address,
 		r.password_hash, r.balance, r.daily_purchase_limit, r.status,
 		r.last_login, r.created_at, r.updated_at,
@@ -347,7 +347,7 @@ func (r *ResellerRepo) List(ctx context.Context, params domain.ResellerListParam
 }
 
 // PhoneExists mengecek apakah nomor telepon sudah terdaftar di tenant yang sama.
-// excludeID digunakan untuk mengecualikan reseller tertentu (saat update).
+// excludeID digunakan untuk mengecualikan reseller tertentu (saat perbarui).
 func (r *ResellerRepo) PhoneExists(ctx context.Context, tenantID, phone, excludeID string) (bool, error) {
 	// Jika excludeID kosong, gunakan UUID nil agar tidak mengecualikan siapapun
 	exID := excludeID

@@ -1,5 +1,5 @@
-// map_search_handler.go menangani HTTP request untuk pencarian map node.
-// Validasi query minimal 2 karakter, return maksimal 20 hasil.
+// map_search_handler.go menangani HTTP permintaan untuk pencarian map node.
+// Validasi kueri minimal 2 karakter, kembalikan maksimal 20 hasil.
 package handler
 
 import (
@@ -9,18 +9,18 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// SearchHandler menangani HTTP request untuk pencarian di peta.
+// PencarianHandler menangani HTTP permintaan untuk pencarian di peta.
 type SearchHandler struct {
 	manager domain.MapNodeManager
 }
 
-// NewSearchHandler membuat instance baru SearchHandler.
+// NewPencarianHandler membuat instance baru PencarianHandler.
 func NewSearchHandler(manager domain.MapNodeManager) *SearchHandler {
 	return &SearchHandler{manager: manager}
 }
 
-// Search menangani GET /search.
-// Validasi query minimal 2 karakter, return maksimal 20 hasil pencarian.
+// Pencarian menangani GET /search.
+// Validasi kueri minimal 2 karakter, kembalikan maksimal 20 hasil pencarian.
 func (h *SearchHandler) Search(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {

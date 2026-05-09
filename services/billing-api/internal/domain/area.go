@@ -37,7 +37,7 @@ type UpdateAreaRequest struct {
 	CenterLng   *float64 `json:"center_lng" validate:"omitempty,min=-180,max=180"`
 }
 
-// --- Area Domain Error Variables ---
+// --- Area Variabel error domain ---
 
 var (
 	// ErrAreaNotFound dikembalikan saat area tidak ditemukan

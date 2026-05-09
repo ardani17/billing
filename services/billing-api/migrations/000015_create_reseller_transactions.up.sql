@@ -31,6 +31,6 @@ CREATE POLICY tenant_insert ON reseller_transactions
     FOR INSERT
     WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Composite indexes untuk performa query
+-- Composite indexes untuk performa kueri
 CREATE INDEX idx_reseller_tx_reseller ON reseller_transactions(tenant_id, reseller_id);
 CREATE INDEX idx_reseller_tx_reseller_created ON reseller_transactions(tenant_id, reseller_id, created_at);

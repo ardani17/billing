@@ -1,4 +1,4 @@
--- Query SQL untuk operasi CRUD tabel tenants.
+-- Kueri SQL untuk operasi CRUD tabel tenants.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
 
 -- name: GetTenant :one

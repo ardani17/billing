@@ -50,7 +50,7 @@ func (uc *InvoiceActionUsecase) BulkReminder(ctx context.Context, req domain.Bul
 			continue
 		}
 
-		// Publish event reminder
+		// Terbitkan event reminder
 		uc.publishEvent(inv.TenantID, "invoice.reminder", domain.InvoiceReminderPayload{
 			InvoiceID:     inv.ID,
 			TenantID:      inv.TenantID,
@@ -112,7 +112,7 @@ func (uc *InvoiceActionUsecase) BulkCancel(ctx context.Context, req domain.BulkC
 }
 
 // BulkPDF menghasilkan PDF untuk beberapa invoice sekaligus.
-// Placeholder — mengembalikan bytes kosong untuk saat ini.
+// Placeholder - mengembalikan bytes kosong untuk saat ini.
 func (uc *InvoiceActionUsecase) BulkPDF(ctx context.Context, req domain.BulkInvoiceIDsRequest) ([]byte, error) {
 	// Ambil semua invoice berdasarkan IDs untuk validasi
 	_, err := uc.invoiceRepo.GetByIDs(ctx, req.InvoiceIDs)
@@ -121,14 +121,14 @@ func (uc *InvoiceActionUsecase) BulkPDF(ctx context.Context, req domain.BulkInvo
 	}
 
 	// Placeholder: kembalikan bytes kosong
-	// Implementasi lengkap akan menggunakan maroto untuk generate PDF per invoice
+	// Implementasi lengkap akan menggunakan maroto untuk buat PDF per invoice
 	// dan mengemas ke dalam ZIP file.
 	return []byte{}, nil
 }
 
 // ExportCSV mengekspor daftar invoice ke format CSV.
 // Kolom: invoice_number, customer_name, customer_id_seq, period, due_date,
-// subtotal, tax, penalty, total, paid, status.
+// subtotal, tax, denda, total, paid, status.
 func (uc *InvoiceActionUsecase) ExportCSV(ctx context.Context, params domain.InvoiceListParams) ([]byte, error) {
 	// Ambil semua invoice sesuai filter (tanpa paginasi)
 	params.Page = 1

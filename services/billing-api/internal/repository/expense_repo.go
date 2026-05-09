@@ -98,7 +98,7 @@ func mapListExpensesRow(row ListExpensesRow) *domain.Expense {
 
 // --- Implementasi domain.ExpenseRepository ---
 
-// Create membuat pengeluaran baru dan mengembalikan pengeluaran yang dibuat.
+// Buat membuat pengeluaran baru dan mengembalikan pengeluaran yang dibuat.
 func (r *ExpenseRepo) Create(ctx context.Context, expense *domain.Expense) (*domain.Expense, error) {
 	row := r.pool.QueryRow(ctx, `
 		INSERT INTO expenses (
@@ -141,7 +141,7 @@ func (r *ExpenseRepo) GetByID(ctx context.Context, id string) (*domain.Expense, 
 	return expense, nil
 }
 
-// Update memperbarui data pengeluaran dan mengembalikan pengeluaran yang diperbarui.
+// Perbarui memperbarui data pengeluaran dan mengembalikan pengeluaran yang diperbarui.
 func (r *ExpenseRepo) Update(ctx context.Context, expense *domain.Expense) (*domain.Expense, error) {
 	row := r.pool.QueryRow(ctx, `
 		UPDATE expenses SET
@@ -175,7 +175,7 @@ func (r *ExpenseRepo) Update(ctx context.Context, expense *domain.Expense) (*dom
 	return updated, nil
 }
 
-// SoftDelete menghapus pengeluaran secara soft delete (set deleted_at).
+// SoftDelete menghapus pengeluaran secara hapus lunak (atur deleted_at).
 func (r *ExpenseRepo) SoftDelete(ctx context.Context, id string) error {
 	tag, err := r.pool.Exec(ctx, `UPDATE expenses SET deleted_at = NOW(), updated_at = NOW() WHERE id = $1::uuid AND deleted_at IS NULL`, id)
 	if err != nil {
@@ -254,7 +254,7 @@ func scanExpense(row expenseScanner) (*domain.Expense, error) {
 	return &expense, nil
 }
 
-// ListRecurring mengambil semua pengeluaran berulang yang aktif (untuk auto-create bulanan).
+// ListRecurring mengambil semua pengeluaran berulang yang aktif (untuk auto-buat bulanan).
 func (r *ExpenseRepo) ListRecurring(ctx context.Context) ([]*domain.Expense, error) {
 	rows, err := r.queries.ListRecurringExpenses(ctx)
 	if err != nil {

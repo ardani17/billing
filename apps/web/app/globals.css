@@ -2,7 +2,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Utility: sembunyikan scrollbar tapi tetap bisa scroll */
+/* Utility: sembunyikan scrollbar tapi tetap bisa scroll*/
 @utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;

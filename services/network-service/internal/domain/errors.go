@@ -4,7 +4,7 @@ import "errors"
 
 // --- Domain Errors ---
 // Semua error domain untuk network-service.
-// Digunakan oleh usecase, repository, adapter, dan handler layer.
+// Digunakan oleh usecase, repositori, adapter, dan handler layer.
 
 var (
 	// ErrRouterNotFound dikembalikan saat router tidak ditemukan atau milik tenant lain.
@@ -46,7 +46,7 @@ var (
 	// ErrInvalidEncryptionKey dikembalikan saat ENCRYPTION_KEY tidak valid.
 	ErrInvalidEncryptionKey = errors.New("ENCRYPTION_KEY harus 32 bytes")
 
-	// ErrRouterDeleted dikembalikan saat router sudah di-soft-delete.
+	// ErrRouterDeleted dikembalikan saat router sudah di-hapus lunak.
 	ErrRouterDeleted = errors.New("router sudah dihapus")
 
 	// --- PPPoE Domain Errors ---
@@ -86,7 +86,7 @@ var (
 	// ErrHotspotUserNotFound dikembalikan saat Hotspot user tidak ditemukan di RouterOS.
 	ErrHotspotUserNotFound = errors.New("hotspot user tidak ditemukan")
 
-	// ErrTerminalCommandDenied dikembalikan saat command terminal tidak termasuk allowlist read-only.
+	// ErrTerminalCommandDenied dikembalikan saat command terminal tidak termasuk allowlist hanya baca.
 	ErrTerminalCommandDenied = errors.New("perintah terminal ditolak oleh validator keamanan")
 
 	// ErrRouterBackupNotFound dikembalikan saat backup router tidak ditemukan.
@@ -143,7 +143,7 @@ var (
 	// ErrInvalidTunnelTransition dikembalikan saat transisi status tunnel tidak valid.
 	ErrInvalidTunnelTransition = errors.New("transisi status tunnel tidak valid")
 
-	// ErrTunnelImmutableField dikembalikan saat mencoba update field yang tidak boleh diubah.
+	// ErrTunnelImmutableField dikembalikan saat mencoba perbarui field yang tidak boleh diubah.
 	ErrTunnelImmutableField = errors.New("vpn_ip, protocol, dan key pairs tidak dapat diubah setelah dibuat")
 
 	// ErrVPNConnectionFailed dikembalikan saat test koneksi VPN gagal.
@@ -161,10 +161,10 @@ var (
 	// ErrAutoConfigFailed dikembalikan saat auto-configure gagal di router.
 	ErrAutoConfigFailed = errors.New("auto-configure vpn gagal, gunakan metode script manual")
 
-	// ErrKeyGenerationFailed dikembalikan saat generate key pair gagal.
+	// ErrKeyGenerationFailed dikembalikan saat buat key pair gagal.
 	ErrKeyGenerationFailed = errors.New("gagal generate key pair vpn")
 
-	// ErrVPNIPUpdateFailed dikembalikan saat update router host ke VPN IP gagal.
+	// ErrVPNIPUpdateFailed dikembalikan saat perbarui router host ke VPN IP gagal.
 	ErrVPNIPUpdateFailed = errors.New("gagal update router host ke vpn ip, koneksi via vpn tidak berhasil")
 
 	// ErrTunnelDeleteWarning dikembalikan sebagai warning saat router menggunakan VPN IP.
@@ -184,7 +184,7 @@ var (
 	// ErrOLTOffline dikembalikan saat operasi membutuhkan OLT online.
 	ErrOLTOffline = errors.New("olt sedang offline")
 
-	// ErrOLTDeleted dikembalikan saat OLT sudah di-soft-delete.
+	// ErrOLTDeleted dikembalikan saat OLT sudah di-hapus lunak.
 	ErrOLTDeleted = errors.New("olt sudah dihapus")
 
 	// ErrSNMPConnectionFailed dikembalikan saat koneksi SNMP ke OLT gagal.
@@ -264,6 +264,9 @@ var (
 
 	// ErrRebootFailed dikembalikan saat CLI command gagal saat reboot.
 	ErrRebootFailed = errors.New("reboot ont gagal")
+
+	// ErrOLTProvisioningWriteDisabled dikembalikan saat operasi write OLT dinonaktifkan oleh config.
+	ErrOLTProvisioningWriteDisabled = errors.New("operasi tulis provisioning olt dinonaktifkan")
 
 	// --- VLAN Errors ---
 

@@ -1,4 +1,4 @@
-// Package pool — Pool manager untuk mengelola connection pool per router.
+// Package pool - Pool manager untuk mengelola connection pool per router.
 // Menyediakan akses thread-safe ke pool koneksi menggunakan sync.RWMutex.
 package pool
 
@@ -37,11 +37,11 @@ func (m *poolManager) GetPool(routerID string, cfg domain.ConnectionConfig) doma
 		return p
 	}
 
-	// Pool belum ada — ambil write lock untuk membuat baru
+	// Pool belum ada - ambil write lock untuk membuat baru
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	// Double-check setelah upgrade lock (goroutine lain mungkin sudah buat)
+	// Double-cek setelah upgrade lock (goroutine lain mungkin sudah buat)
 	if p, ok = m.pools[routerID]; ok {
 		return p
 	}

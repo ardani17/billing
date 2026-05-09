@@ -57,7 +57,7 @@ func NewPaymentUsecase(
 }
 
 // List mengambil daftar pembayaran dengan filter dan paginasi.
-// Default: page=1, page_size=25.
+// Bawaan: page=1, page_size=25.
 func (uc *PaymentUsecase) List(ctx context.Context, params domain.PaymentListParams) (*domain.PaymentListResult, error) {
 	if params.Page <= 0 {
 		params.Page = 1
@@ -70,7 +70,7 @@ func (uc *PaymentUsecase) List(ctx context.Context, params domain.PaymentListPar
 
 // Summary mengambil ringkasan statistik pembayaran untuk dashboard.
 func (uc *PaymentUsecase) Summary(ctx context.Context, tenantID string, periodMonth, periodYear *int) (*domain.PaymentSummary, error) {
-	// Ambil timezone dari billing settings, default "Asia/Jakarta"
+	// Ambil timezone dari billing settings, bawaan "Asia/Jakarta"
 	timezone := "Asia/Jakarta"
 	settings, _ := uc.settingsRepo.GetByTenantID(ctx, tenantID)
 	if settings != nil && settings.Timezone != "" {
@@ -79,7 +79,7 @@ func (uc *PaymentUsecase) Summary(ctx context.Context, tenantID string, periodMo
 	return uc.paymentRepo.GetSummary(ctx, tenantID, timezone, periodMonth, periodYear)
 }
 
-// SearchCustomers mencari pelanggan untuk pembayaran cepat.
+// PencarianCustomers mencari pelanggan untuk pembayaran cepat.
 // Validasi: searchTerm minimal 2 karakter.
 func (uc *PaymentUsecase) SearchCustomers(ctx context.Context, tenantID, searchTerm string) ([]*domain.Customer, error) {
 	if len(searchTerm) < 2 {
@@ -165,8 +165,8 @@ func (uc *PaymentUsecase) publishPaymentEvent(tenantID, eventType string, payloa
 	}
 }
 
-// publishSyncPaymentLinkEvent mempublikasikan event ke asynq queue untuk sinkronisasi payment link.
-// Dipanggil setelah pembayaran manual dicatat atau di-void, agar payment link yang aktif
+// publishSyncPaymentLinkEvent mempublikasikan event ke asynq queue untuk sinkronisasi link pembayaran.
+// Dipanggil setelah pembayaran manual dicatat atau di-void, agar link pembayaran yang aktif
 // di-expire dan di-regenerate dengan jumlah terbaru.
 // Non-blocking: error hanya di-log, tidak menggagalkan operasi utama.
 func (uc *PaymentUsecase) publishSyncPaymentLinkEvent(tenantID, invoiceID, customerID string) {

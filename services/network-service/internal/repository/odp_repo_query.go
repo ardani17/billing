@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// odp_repo_query.go berisi method query ODPRepo: List, NameExists, GetByOLTAndPort.
+// odp_repo_kueri.go berisi method kueri ODPRepo: List, NameExists, GetByOLTAndPort.
 
 // List mengambil daftar ODP dengan paginasi dan filter (tenant-scoped via RLS).
 func (r *ODPRepo) List(ctx context.Context, params domain.ODPListParams) (*domain.ODPListResult, error) {
@@ -84,7 +84,7 @@ func (r *ODPRepo) List(ctx context.Context, params domain.ODPListParams) (*domai
 }
 
 // NameExists mengecek apakah nama ODP sudah ada di tenant.
-// excludeID digunakan untuk mengecualikan ODP tertentu (saat update).
+// excludeID digunakan untuk mengecualikan ODP tertentu (saat perbarui).
 func (r *ODPRepo) NameExists(ctx context.Context, tenantID, name, excludeID string) (bool, error) {
 	// Jika excludeID kosong, gunakan UUID nil agar tidak mengecualikan siapapun
 	exID := excludeID

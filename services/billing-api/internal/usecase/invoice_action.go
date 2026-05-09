@@ -54,8 +54,8 @@ func NewInvoiceActionUsecase(
 }
 
 // Cancel membatalkan invoice dengan verifikasi konfirmasi.
-// Flow: ambil invoice → verifikasi status → verifikasi konfirmasi →
-// kembalikan kredit jika ada → transisi ke batal → tulis audit log → publish event.
+// Alur: ambil invoice -> verifikasi status -> verifikasi konfirmasi ->
+// kembalikan kredit jika ada -> transisi ke batal -> tulis audit log -> terbitkan event.
 func (uc *InvoiceActionUsecase) Cancel(ctx context.Context, id string, req domain.CancelInvoiceRequest, actor domain.ActorInfo) (*domain.Invoice, error) {
 	// Ambil invoice
 	invoice, err := uc.invoiceRepo.GetByID(ctx, id)
@@ -92,7 +92,7 @@ func (uc *InvoiceActionUsecase) Cancel(ctx context.Context, id string, req domai
 	}
 	uc.writeAuditLog(ctx, invoice.TenantID, id, "invoice.cancelled", actor, metadata)
 
-	// Publish event invoice.cancelled
+	// Terbitkan event invoice.cancelled
 	uc.publishEvent(invoice.TenantID, "invoice.cancelled", domain.InvoiceCancelledPayload{
 		InvoiceID:     id,
 		TenantID:      invoice.TenantID,

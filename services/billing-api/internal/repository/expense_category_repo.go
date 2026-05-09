@@ -45,7 +45,7 @@ func mapExpenseCategoryRow(row ExpenseCategory) *domain.ExpenseCategory {
 
 // --- Implementasi domain.ExpenseCategoryRepository ---
 
-// Create membuat kategori pengeluaran baru dan mengembalikan kategori yang dibuat.
+// Buat membuat kategori pengeluaran baru dan mengembalikan kategori yang dibuat.
 func (r *ExpenseCategoryRepo) Create(ctx context.Context, category *domain.ExpenseCategory) (*domain.ExpenseCategory, error) {
 	row, err := r.queries.CreateExpenseCategory(ctx, CreateExpenseCategoryParams{
 		TenantID:  stringToUUID(category.TenantID),
@@ -70,7 +70,7 @@ func (r *ExpenseCategoryRepo) GetByID(ctx context.Context, id string) (*domain.E
 	return mapExpenseCategoryRow(row), nil
 }
 
-// Update memperbarui nama kategori dan mengembalikan kategori yang diperbarui.
+// Perbarui memperbarui nama kategori dan mengembalikan kategori yang diperbarui.
 func (r *ExpenseCategoryRepo) Update(ctx context.Context, category *domain.ExpenseCategory) (*domain.ExpenseCategory, error) {
 	row, err := r.queries.UpdateExpenseCategory(ctx, UpdateExpenseCategoryParams{
 		ID:   stringToUUID(category.ID),
@@ -85,7 +85,7 @@ func (r *ExpenseCategoryRepo) Update(ctx context.Context, category *domain.Expen
 	return mapExpenseCategoryRow(row), nil
 }
 
-// SoftDelete menghapus kategori secara soft delete (set deleted_at).
+// SoftDelete menghapus kategori secara hapus lunak (atur deleted_at).
 func (r *ExpenseCategoryRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeleteExpenseCategory(ctx, stringToUUID(id))
 	if err != nil {
@@ -129,7 +129,7 @@ func (r *ExpenseCategoryRepo) ExpenseCount(ctx context.Context, id string) (int,
 	return int(count), nil
 }
 
-// CreateDefaults membuat 7 kategori default untuk tenant baru.
+// CreateDefaults membuat 7 kategori bawaan untuk tenant baru.
 func (r *ExpenseCategoryRepo) CreateDefaults(ctx context.Context, tenantID string) error {
 	err := r.queries.CreateDefaultExpenseCategories(ctx, stringToUUID(tenantID))
 	if err != nil {

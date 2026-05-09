@@ -26,8 +26,8 @@ CREATE POLICY tenant_insert ON customers
     FOR INSERT
     WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Index pada tenant_id untuk performa query dan RLS filtering
+-- Index pada tenant_id untuk performa kueri dan RLS filtering
 CREATE INDEX idx_customers_tenant_id ON customers(tenant_id);
 
--- Index komposit untuk query pelanggan berdasarkan status per tenant
+-- Index komposit untuk kueri pelanggan berdasarkan status per tenant
 CREATE INDEX idx_customers_status ON customers(tenant_id, status);

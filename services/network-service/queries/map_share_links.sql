@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel map_share_links.
+-- Kueri SQL untuk operasi CRUD tabel map_share_links.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel map_share_links dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel map_share_links dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- GetMapShareLinkByToken tidak menggunakan RLS karena diakses secara publik via token.
 
 -- name: CreateMapShareLink :one

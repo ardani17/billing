@@ -28,7 +28,7 @@ func NewXenditAdapter(apiKey string) *XenditAdapter {
 	}
 }
 
-// Tipe request/response untuk Xendit Invoice API v2.
+// Tipe permintaan/respons untuk Xendit Invoice API v2.
 type xenditInvoiceRequest struct {
 	ExternalID      string         `json:"external_id"`
 	Amount          int64          `json:"amount"`
@@ -58,11 +58,11 @@ var xenditMethodMap = map[string]string{
 	"credit_card": "CREDIT_CARD",
 }
 
-// CreatePaymentLink membuat payment link via Xendit Invoice API v2 (POST /v2/invoices).
+// CreatePaymentLink membuat link pembayaran via Xendit Invoice API v2 (POST /v2/invoices).
 func (a *XenditAdapter) CreatePaymentLink(ctx context.Context, req CreateLinkRequest) (*domain.PaymentLinkResponse, error) {
 	durationSec := int(req.ExpiryDuration.Seconds())
 	if durationSec <= 0 {
-		durationSec = 7 * 24 * 3600 // default 7 hari
+		durationSec = 7 * 24 * 3600 // bawaan 7 hari
 	}
 
 	// Konversi metode pembayaran ke format Xendit
@@ -124,7 +124,7 @@ func (a *XenditAdapter) CreatePaymentLink(ctx context.Context, req CreateLinkReq
 	}, nil
 }
 
-// ExpirePaymentLink meng-expire payment link di Xendit (POST /invoices/{id}/expire!).
+// ExpirePaymentLink meng-expire link pembayaran di Xendit (POST /invoices/{id}/expire!).
 func (a *XenditAdapter) ExpirePaymentLink(ctx context.Context, externalID string) error {
 	url := fmt.Sprintf("%s/invoices/%s/expire!", a.baseURL, externalID)
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
@@ -180,7 +180,7 @@ func (a *XenditAdapter) TestConnection(ctx context.Context) (*domain.GatewayTest
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
 		return &domain.GatewayTestResult{
-			ErrorCode: "gateway_error",
+			ErrorCode:    "gateway_error",
 			ErrorMessage: fmt.Sprintf("status=%d body=%s", resp.StatusCode, string(body)),
 			LatencyMs:    latency,
 		}, nil

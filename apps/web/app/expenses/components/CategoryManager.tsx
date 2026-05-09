@@ -53,7 +53,7 @@ export function CategoryManager({ categories, onUpdate }: CategoryManagerProps) 
     <div className="rounded-xl border border-slate-200 bg-white p-5">
       <h3 className="mb-4 text-sm font-semibold text-slate-900">Kelola Kategori</h3>
 
-      {/* Tambah kategori */}
+      {/* Tambah kategori*/}
       <div className="mb-4 flex gap-2">
         <input
           type="text"
@@ -78,7 +78,7 @@ export function CategoryManager({ categories, onUpdate }: CategoryManagerProps) 
         <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
-      {/* Daftar kategori */}
+      {/* Daftar kategori*/}
       <div className="space-y-2">
         {categories.map((c) => (
           <div key={c.id} className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-2">

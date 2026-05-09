@@ -13,7 +13,6 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// testAdapter adalah mock adapter sederhana untuk testing pool.
 type testAdapter struct {
 	mu        sync.Mutex
 	connected bool
@@ -45,7 +44,7 @@ func (a *testAdapter) Ping(_ context.Context) error {
 	return nil
 }
 
-// defaultTestCfg mengembalikan ConnectionConfig default untuk testing.
+// defaultTestCfg mengembalikan ConnectionConfig bawaan untuk testing.
 func defaultTestCfg() domain.ConnectionConfig {
 	return domain.ConnectionConfig{
 		Host:           "127.0.0.1",
@@ -58,13 +57,12 @@ func defaultTestCfg() domain.ConnectionConfig {
 }
 
 // =============================================================================
-// Feature: mikrotik-router, Property 2: Pool capacity invariant
 // =============================================================================
 
 // TestProperty_PoolCapacityInvariant memverifikasi bahwa pool TIDAK PERNAH
 // memiliki lebih dari 5 koneksi aktif secara bersamaan.
 //
-// **Validates: Requirements 4.1, 4.6**
+// **Memvalidasi: Kebutuhan 4.1, 4.6**
 func TestProperty_PoolCapacityInvariant(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// Range kecil (1-8) agar test cepat
@@ -103,7 +101,7 @@ func TestProperty_PoolCapacityInvariant(t *testing.T) {
 					}
 				}
 
-				// Hold singkat tanpa sleep — cukup yield
+				// Hold singkat tanpa sleep - cukup yield
 				activeConns.Add(-1)
 				p.Put(conn)
 			}()
@@ -122,14 +120,13 @@ func TestProperty_PoolCapacityInvariant(t *testing.T) {
 }
 
 // =============================================================================
-// Feature: mikrotik-router, Property 3: Rate limiting enforcement
 // =============================================================================
 
 // TestProperty_RateLimitingEnforcement memverifikasi bahwa rate eksekusi
 // TIDAK melebihi 10 commands per detik. Menggunakan satu skenario deterministik
 // dengan 12 commands (2 di atas burst) untuk memastikan rate limiter bekerja.
 //
-// **Validates: Requirements 4.8**
+// **Memvalidasi: Kebutuhan 4.8**
 func TestProperty_RateLimitingEnforcement(t *testing.T) {
 	// 12 commands: 10 burst langsung, 2 harus menunggu token refill
 	n := 12
@@ -192,14 +189,13 @@ func TestProperty_RateLimitingEnforcement(t *testing.T) {
 }
 
 // =============================================================================
-// Feature: mikrotik-router, Property 14: Priority queue ordering
 // =============================================================================
 
 // TestProperty_PriorityQueueOrdering memverifikasi bahwa waiterHeap selalu
 // mengeluarkan elemen dengan prioritas tertinggi duluan, dan FIFO dalam
 // prioritas yang sama.
 //
-// **Validates: Requirements 4.10**
+// **Memvalidasi: Kebutuhan 4.10**
 func TestProperty_PriorityQueueOrdering(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		numHigh := rapid.IntRange(1, 5).Draw(t, "numHigh")

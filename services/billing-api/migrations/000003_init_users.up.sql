@@ -35,7 +35,7 @@ CREATE POLICY tenant_insert ON users
     FOR INSERT
     WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Index pada tenant_id untuk performa query dan RLS filtering
+-- Index pada tenant_id untuk performa kueri dan RLS filtering
 CREATE INDEX idx_users_tenant_id ON users(tenant_id);
 
 -- Index komposit untuk lookup user berdasarkan email per tenant
@@ -44,5 +44,5 @@ CREATE INDEX idx_users_tenant_email ON users(tenant_id, email);
 -- Index parsial untuk lookup user berdasarkan Google ID (hanya yang terisi)
 CREATE INDEX idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;
 
--- Index komposit untuk query user berdasarkan status per tenant
+-- Index komposit untuk kueri user berdasarkan status per tenant
 CREATE INDEX idx_users_status ON users(tenant_id, status);

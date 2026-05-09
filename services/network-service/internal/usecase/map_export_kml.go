@@ -13,7 +13,7 @@ import (
 )
 
 // =============================================================================
-// Struktur XML KML — representasi format Keyhole Markup Language
+// Struktur XML KML - representasi format Keyhole Markup Language
 // =============================================================================
 
 // kmlDocument adalah root element dokumen KML.
@@ -37,10 +37,10 @@ type kmlFolder struct {
 
 // kmlPlacemark merepresentasikan satu titik atau garis di peta KML.
 type kmlPlacemark struct {
-	Name        string       `xml:"name"`
-	Description string       `xml:"description,omitempty"`
-	Point       *kmlPoint    `xml:"Point,omitempty"`
-	LineString  *kmlLine     `xml:"LineString,omitempty"`
+	Name        string    `xml:"name"`
+	Description string    `xml:"description,omitempty"`
+	Point       *kmlPoint `xml:"Point,omitempty"`
+	LineString  *kmlLine  `xml:"LineString,omitempty"`
 }
 
 // kmlPoint berisi koordinat titik dalam format KML (lng,lat,altitude).
@@ -54,7 +54,7 @@ type kmlLine struct {
 }
 
 // =============================================================================
-// Export KML — generate file KML dari data node dan cable route
+// Export KML - buat file KML dari data node dan cable route
 // =============================================================================
 
 // exportKML menghasilkan file KML dari data node dan cable route.
@@ -173,7 +173,7 @@ func formatCableCoordinatesKML(raw json.RawMessage) string {
 }
 
 // =============================================================================
-// Export KMZ — package KML + ikon ke dalam arsip ZIP
+// Export KMZ - package KML + ikon ke dalam arsip ZIP
 // =============================================================================
 
 // exportKMZ menghasilkan file KMZ (KML terkompresi dalam ZIP).
@@ -183,7 +183,7 @@ func exportKMZ(
 	cables []*domain.CableRoute,
 	opts domain.ExportOptions,
 ) ([]byte, error) {
-	// Generate KML terlebih dahulu
+	// Buat KML terlebih dahulu
 	kmlData, err := exportKML(nodes, cables, opts)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate KML untuk KMZ: %w", err)

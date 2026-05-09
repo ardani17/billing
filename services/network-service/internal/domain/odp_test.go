@@ -8,7 +8,6 @@ import (
 	"pgregory.net/rapid"
 )
 
-// validSplitterTypes berisi semua tipe splitter yang valid beserta kapasitasnya.
 var validSplitterTypes = map[string]int{
 	SplitterType1x4:  4,
 	SplitterType1x8:  8,
@@ -16,7 +15,6 @@ var validSplitterTypes = map[string]int{
 	SplitterType1x32: 32,
 }
 
-// validSplitterTypeSlice berisi semua tipe splitter yang valid untuk sampling.
 var validSplitterTypeSlice = []string{
 	SplitterType1x4,
 	SplitterType1x8,
@@ -25,17 +23,14 @@ var validSplitterTypeSlice = []string{
 }
 
 // =============================================================================
-// Feature: olt-management, Property 5: Splitter Capacity Mapping
 // =============================================================================
 
 // TestProperty_SplitterCapacityValidTypes memverifikasi bahwa untuk sembarang
-// tipe splitter yang valid, SplitterCapacity mengembalikan kapasitas yang benar
 // sesuai rasio splitter.
 //
-// **Validates: Requirements 8.5**
+// **Memvalidasi: Kebutuhan 8.5**
 func TestProperty_SplitterCapacityValidTypes(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Pilih tipe splitter valid secara acak
 		splitterType := rapid.SampledFrom(validSplitterTypeSlice).Draw(t, "splitterType")
 
 		result := SplitterCapacity(splitterType)
@@ -51,15 +46,13 @@ func TestProperty_SplitterCapacityValidTypes(t *testing.T) {
 }
 
 // TestProperty_SplitterCapacityInvalidTypes memverifikasi bahwa untuk sembarang
-// string acak yang BUKAN tipe splitter valid, SplitterCapacity mengembalikan 0.
 //
-// **Validates: Requirements 8.5**
+// **Memvalidasi: Kebutuhan 8.5**
 func TestProperty_SplitterCapacityInvalidTypes(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate string acak
+		// Buat string acak
 		randomStr := rapid.String().Draw(t, "randomStr")
 
-		// Pastikan bukan salah satu tipe splitter valid
 		for _, valid := range validSplitterTypeSlice {
 			if randomStr == valid {
 				return // skip iterasi ini, kebetulan valid
@@ -77,18 +70,15 @@ func TestProperty_SplitterCapacityInvalidTypes(t *testing.T) {
 }
 
 // TestProperty_SplitterCapacityMatchesColonNumber memverifikasi bahwa untuk
-// sembarang tipe splitter valid, nilai kapasitas selalu sama dengan angka
-// setelah tanda titik dua dalam string tipe splitter (misal "1:32" → 32).
+// setelah tanda titik dua dalam string tipe splitter (misal "1:32" -> 32).
 //
-// **Validates: Requirements 8.5**
+// **Memvalidasi: Kebutuhan 8.5**
 func TestProperty_SplitterCapacityMatchesColonNumber(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Pilih tipe splitter valid secara acak
 		splitterType := rapid.SampledFrom(validSplitterTypeSlice).Draw(t, "splitterType")
 
 		capacity := SplitterCapacity(splitterType)
 
-		// Parse angka setelah titik dua
 		parts := strings.SplitN(splitterType, ":", 2)
 		if len(parts) != 2 {
 			t.Fatalf("format splitter type %q tidak mengandung titik dua", splitterType)
@@ -113,9 +103,8 @@ func TestProperty_SplitterCapacityMatchesColonNumber(t *testing.T) {
 // =============================================================================
 
 // TestSplitterCapacity_ValidTypes memverifikasi kapasitas untuk semua 4 tipe
-// splitter yang valid secara eksplisit.
 //
-// **Validates: Requirements 8.5**
+// **Memvalidasi: Kebutuhan 8.5**
 func TestSplitterCapacity_ValidTypes(t *testing.T) {
 	cases := []struct {
 		splitterType string
@@ -141,9 +130,8 @@ func TestSplitterCapacity_ValidTypes(t *testing.T) {
 }
 
 // TestSplitterCapacity_InvalidTypes memverifikasi bahwa tipe splitter tidak
-// valid mengembalikan 0.
 //
-// **Validates: Requirements 8.5**
+// **Memvalidasi: Kebutuhan 8.5**
 func TestSplitterCapacity_InvalidTypes(t *testing.T) {
 	invalidTypes := []struct {
 		name         string

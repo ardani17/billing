@@ -32,7 +32,7 @@ const (
 	SyncStatusError SyncStatus = "error"
 )
 
-// --- PPPoE User Entity ---
+// --- PPPoE User Entitas ---
 
 // PPPoEUser merepresentasikan user PPPoE yang dikelola ISPBoss di router.
 // Setiap tenant memiliki daftar PPPoE user sendiri yang diisolasi via RLS.

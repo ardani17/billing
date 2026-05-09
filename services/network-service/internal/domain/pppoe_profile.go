@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-// --- PPPoE Profile Entity ---
+// --- PPPoE Profile Entitas ---
 
 // PPPoEProfile merepresentasikan profil bandwidth PPPoE di router.
 // Setiap profil terkait dengan satu paket (package_id) dan berisi konfigurasi
@@ -27,7 +27,7 @@ type PPPoEProfile struct {
 	UpdatedAt              time.Time `json:"updated_at"`
 }
 
-// PackageProfilePayload membawa metadata paket dari billing-api untuk fallback
+// PackageProfilePayload membawa metadata paket dari billing-api untuk cadangan
 // saat tabel pppoe_profiles network-service belum punya mapping package_id.
 type PackageProfilePayload struct {
 	TenantID            string

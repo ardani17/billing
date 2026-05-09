@@ -85,9 +85,9 @@ func (uc *CustomerUsecase) customerImportColumns(ctx context.Context, tenantID s
 }
 
 // ImportCSV memvalidasi file dan mengirim job import ke queue.
-// Flow: validate file type → enqueue asynq job (customer.import) → return job_id.
+// Alur: validasi tipe file -> antrekan asynq job (customer.import) -> kembalikan job_id.
 func (uc *CustomerUsecase) ImportCSV(ctx context.Context, tenantID string, file []byte, filename string, actor ActorInfo) (string, error) {
-	// Validate file type
+	// Validasi tipe file
 	ext := strings.ToLower(filepath.Ext(filename))
 	if ext != ".csv" && ext != ".xlsx" && ext != ".xls" {
 		return "", fmt.Errorf("usecase: format file tidak didukung, gunakan CSV atau Excel (.csv, .xlsx)")
@@ -99,7 +99,7 @@ func (uc *CustomerUsecase) ImportCSV(ctx context.Context, tenantID string, file 
 
 	columns, _ := uc.customerImportColumns(ctx, tenantID)
 
-	// Encode file content for the job payload
+	// Encode file content untuk the job payload
 	payload := map[string]interface{}{
 		"filename":        filename,
 		"file_size":       len(file),
@@ -124,15 +124,15 @@ func (uc *CustomerUsecase) ImportCSV(ctx context.Context, tenantID string, file 
 		return "", fmt.Errorf("usecase: gagal enqueue import job: %w", err)
 	}
 
-	// Use the correlation ID as job_id
-	// Note: EnqueueTask auto-generates a correlation ID
-	// We return a generated job ID for tracking
+	// Gunakan the correlation ID as job_id
+	// Catatan: EnqueueTask otomatis membuat correlation ID
+	// We kembalikan a generated job ID untuk tracking
 	jobID := envelope.CorrelationID
 	if jobID == "" {
 		jobID = "import-" + tenantID
 	}
 
-	// Write audit log
+	// Tulis audit log
 	uc.writeAuditLog(ctx, tenantID, "", "customer.import_started", actor, map[string]interface{}{
 		"filename":  filename,
 		"file_size": len(file),

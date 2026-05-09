@@ -1,6 +1,6 @@
--- Query SQL untuk operasi tabel vpn_subnets.
+-- Kueri SQL untuk operasi tabel vpn_subnets.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel vpn_subnets dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel vpn_subnets dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Setiap tenant mendapat 1 subnet /24: 10.99.{tenant_seq}.0/24.
 
 -- name: GetVPNSubnetByTenantID :one

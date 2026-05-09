@@ -20,7 +20,7 @@ func NewOLTRepo(queries *Queries) *OLTRepo {
 	return &OLTRepo{queries: queries}
 }
 
-// --- Mapping sqlc Olt → domain.OLT ---
+// --- Mapping sqlc Olt -> domain.OLT ---
 
 // mapOLTRow memetakan Olt (sqlc model) ke domain.OLT.
 func mapOLTRow(row Olt) *domain.OLT {
@@ -61,7 +61,7 @@ func mapOLTRow(row Olt) *domain.OLT {
 
 // --- Implementasi CRUD domain.OLTRepository ---
 
-// Create membuat OLT baru dan mengembalikan OLT yang dibuat.
+// Buat membuat OLT baru dan mengembalikan OLT yang dibuat.
 func (r *OLTRepo) Create(ctx context.Context, olt *domain.OLT) (*domain.OLT, error) {
 	row, err := r.queries.CreateOLT(ctx, CreateOLTParams{
 		TenantID:                   stringToUUID(olt.TenantID),
@@ -107,7 +107,7 @@ func (r *OLTRepo) GetByID(ctx context.Context, id string) (*domain.OLT, error) {
 	return mapOLTRow(row), nil
 }
 
-// Update memperbarui data OLT dan mengembalikan OLT yang diperbarui.
+// Perbarui memperbarui data OLT dan mengembalikan OLT yang diperbarui.
 func (r *OLTRepo) Update(ctx context.Context, olt *domain.OLT) (*domain.OLT, error) {
 	row, err := r.queries.UpdateOLT(ctx, UpdateOLTParams{
 		ID:                         stringToUUID(olt.ID),
@@ -143,7 +143,7 @@ func (r *OLTRepo) Update(ctx context.Context, olt *domain.OLT) (*domain.OLT, err
 	return mapOLTRow(row), nil
 }
 
-// SoftDelete melakukan soft-delete OLT (set deleted_at).
+// SoftDelete melakukan hapus lunak OLT (atur deleted_at).
 func (r *OLTRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeleteOLT(ctx, stringToUUID(id))
 	if err != nil {
@@ -152,5 +152,5 @@ func (r *OLTRepo) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-// Compile-time check: OLTRepo mengimplementasikan domain.OLTRepository.
+// Compile-time cek: OLTRepo mengimplementasikan domain.OLTRepository.
 var _ domain.OLTRepository = (*OLTRepo)(nil)

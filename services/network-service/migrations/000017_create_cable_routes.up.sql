@@ -18,7 +18,7 @@ CREATE TABLE cable_routes (
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index untuk query berdasarkan node endpoints (exclude soft-deleted)
+-- Index untuk kueri berdasarkan node endpoints (exclude hapus lunak)
 CREATE INDEX idx_cable_routes_tenant_nodes
     ON cable_routes (tenant_id, from_node_id, to_node_id)
     WHERE deleted_at IS NULL;

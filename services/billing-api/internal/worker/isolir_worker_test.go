@@ -1,7 +1,6 @@
 // isolir_worker_test.go berisi unit test untuk IsolirWorker.
 // Fokus pada:
 // - Registrasi handler: memastikan 6 task type terdaftar di ServeMux
-// - Dispatch handler: memastikan setiap handler bisa dipanggil (error handling)
 package worker
 
 import (
@@ -19,7 +18,6 @@ import (
 )
 
 // =============================================================================
-// Helper
 // =============================================================================
 
 // newTestIsolirWorker membuat IsolirWorker dengan usecase minimal (semua repo nil).
@@ -57,7 +55,6 @@ func processTaskSafe(mux *asynq.ServeMux, task *asynq.Task) (handled bool) {
 }
 
 // callHandlerSafe memanggil handler function dan menangkap panic.
-// Mengembalikan error dari handler, atau nil jika panic terjadi.
 func callHandlerSafe(fn func(context.Context, *asynq.Task) error, task *asynq.Task) (err error, panicked bool) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -69,7 +66,7 @@ func callHandlerSafe(fn func(context.Context, *asynq.Task) error, task *asynq.Ta
 }
 
 // =============================================================================
-// Test: RegisterHandlers — memastikan 6 task type terdaftar
+// Tes: RegisterHandlers - memastikan 6 task type terdaftar
 // =============================================================================
 
 func TestIsolirWorker_RegisterHandlers_AllTaskTypes(t *testing.T) {
@@ -102,7 +99,6 @@ func TestIsolirWorker_RegisterHandlers_AllTaskTypes(t *testing.T) {
 }
 
 // =============================================================================
-// Test: Handler dispatch — event handlers dengan payload invalid
 // =============================================================================
 
 func TestIsolirWorker_HandlePaymentOnlineReceived_InvalidPayload(t *testing.T) {
@@ -136,7 +132,6 @@ func TestIsolirWorker_HandlePaymentVoidedReIsolir_InvalidPayload(t *testing.T) {
 }
 
 // =============================================================================
-// Test: Handler dispatch — event handlers dengan payload valid
 // Usecase akan gagal karena repo nil, tapi handler berhasil decode envelope.
 // =============================================================================
 
@@ -145,7 +140,6 @@ func TestIsolirWorker_HandlePaymentOnlineReceived_ValidEnvelope(t *testing.T) {
 	task := makeEnvelopeTask(domain.TaskPaymentOnlineReceived, "tenant-1", "cust-1")
 
 	err, panicked := callHandlerSafe(w.handlePaymentOnlineReceived, task)
-	// Handler berhasil decode envelope — error atau panic dari usecase expected
 	if err == nil && !panicked {
 		t.Log("handler returned nil — usecase mungkin skip karena kondisi tertentu")
 	}
@@ -172,7 +166,7 @@ func TestIsolirWorker_HandlePaymentVoidedReIsolir_ValidEnvelope(t *testing.T) {
 }
 
 // =============================================================================
-// Test: Handler dispatch — cron handlers
+// Tes: Handler dispatch - cron handlers
 // Usecase akan gagal karena repo nil, tapi handler dipanggil dengan benar.
 // =============================================================================
 

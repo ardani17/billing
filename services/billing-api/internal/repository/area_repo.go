@@ -23,7 +23,7 @@ func NewAreaRepo(queries *Queries) *AreaRepo {
 	}
 }
 
-// --- Helper functions untuk mapping sqlc row → domain.Area ---
+// --- Helper functions untuk mapping sqlc row -> domain.Area ---
 
 // mapAreaRow memetakan Area (sqlc model) ke domain.Area.
 func mapAreaRow(row Area) *domain.Area {
@@ -58,7 +58,7 @@ func mapListAreasRow(row ListAreasRow) *domain.Area {
 
 // --- Implementasi domain.AreaRepository ---
 
-// Create membuat area baru dan mengembalikan area yang dibuat.
+// Buat membuat area baru dan mengembalikan area yang dibuat.
 func (r *AreaRepo) Create(ctx context.Context, area *domain.Area) (*domain.Area, error) {
 	row, err := r.queries.CreateArea(ctx, CreateAreaParams{
 		TenantID:    stringToUUID(area.TenantID),
@@ -86,7 +86,7 @@ func (r *AreaRepo) GetByID(ctx context.Context, id string) (*domain.Area, error)
 	return mapAreaRow(row), nil
 }
 
-// Update memperbarui data area dan mengembalikan area yang diperbarui.
+// Perbarui memperbarui data area dan mengembalikan area yang diperbarui.
 func (r *AreaRepo) Update(ctx context.Context, area *domain.Area) (*domain.Area, error) {
 	row, err := r.queries.UpdateArea(ctx, UpdateAreaParams{
 		ID:          stringToUUID(area.ID),
@@ -105,7 +105,7 @@ func (r *AreaRepo) Update(ctx context.Context, area *domain.Area) (*domain.Area,
 	return mapAreaRow(row), nil
 }
 
-// Delete menghapus area berdasarkan ID.
+// Hapus menghapus area berdasarkan ID.
 func (r *AreaRepo) Delete(ctx context.Context, id string) error {
 	err := r.queries.DeleteArea(ctx, stringToUUID(id))
 	if err != nil {
@@ -129,7 +129,7 @@ func (r *AreaRepo) List(ctx context.Context, tenantID string) ([]*domain.Area, e
 }
 
 // NameExists mengecek apakah nama area sudah terdaftar di tenant yang sama.
-// excludeID digunakan untuk mengecualikan area tertentu (saat update).
+// excludeID digunakan untuk mengecualikan area tertentu (saat perbarui).
 func (r *AreaRepo) NameExists(ctx context.Context, tenantID, name, excludeID string) (bool, error) {
 	// Jika excludeID kosong, gunakan UUID nil agar tidak mengecualikan siapapun
 	exID := excludeID

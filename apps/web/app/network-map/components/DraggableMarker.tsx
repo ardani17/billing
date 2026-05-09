@@ -39,7 +39,7 @@ function draggableIcon(): L.DivIcon {
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Komponen
 // ---------------------------------------------------------------------------
 
 export default function DraggableMarker({

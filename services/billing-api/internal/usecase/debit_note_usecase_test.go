@@ -14,7 +14,6 @@ import (
 )
 
 // =============================================================================
-// Mock repositories khusus untuk DebitNoteUsecase tests
 // =============================================================================
 
 // mockDebitNoteRepo adalah implementasi in-memory dari domain.DebitNoteRepository.
@@ -56,7 +55,6 @@ func (m *mockDebitNoteRepo) ListByCustomer(_ context.Context, customerID string)
 }
 
 // =============================================================================
-// Helper untuk membuat DebitNoteUsecase dengan mock repos
 // =============================================================================
 
 type debitNoteUsecaseSetup struct {
@@ -90,7 +88,7 @@ func setupDebitNoteUsecase() *debitNoteUsecaseSetup {
 }
 
 // =============================================================================
-// Unit Tests — DebitNoteUsecase
+// Unit Tests - DebitNoteUsecase
 // =============================================================================
 
 // TestDebitNote_Create_Success menguji pembuatan debit note berhasil tanpa invoice.
@@ -163,7 +161,6 @@ func TestDebitNote_Create_WithInvoice(t *testing.T) {
 	}
 }
 
-// TestDebitNote_Create_CustomerNotFound menguji error saat pelanggan tidak ditemukan.
 func TestDebitNote_Create_CustomerNotFound(t *testing.T) {
 	s := setupDebitNoteUsecase()
 	ctx := context.Background()
@@ -182,7 +179,6 @@ func TestDebitNote_Create_CustomerNotFound(t *testing.T) {
 	}
 }
 
-// TestDebitNote_Create_InvalidDueDate menguji error saat format due_date tidak valid.
 func TestDebitNote_Create_InvalidDueDate(t *testing.T) {
 	s := setupDebitNoteUsecase()
 	ctx := context.Background()

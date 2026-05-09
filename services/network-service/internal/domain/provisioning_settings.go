@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-// --- Provisioning Settings Entity ---
+// --- Provisioning Settings Entitas ---
 
 // ProvisioningSettings merepresentasikan settings provisioning per tenant.
 // Setiap tenant memiliki satu record settings yang mengontrol perilaku
@@ -17,9 +17,9 @@ type ProvisioningSettings struct {
 	UpdatedAt                time.Time    `json:"updated_at"`
 }
 
-// DefaultProvisioningSettings mengembalikan settings default untuk tenant
+// DefaultProvisioningSettings mengembalikan settings bawaan untuk tenant
 // yang belum memiliki record di database.
-// Default: auto_provisioning=false, auto_port_migration=false, vlan_strategy="single".
+// Bawaan: auto_provisioning=false, auto_port_migration=false, vlan_strategy="single".
 func DefaultProvisioningSettings(tenantID string) *ProvisioningSettings {
 	now := time.Now()
 	return &ProvisioningSettings{

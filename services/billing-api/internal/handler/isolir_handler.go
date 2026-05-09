@@ -1,5 +1,5 @@
-// isolir_handler.go menangani HTTP request untuk modul isolir.
-// Termasuk: manual sync, pending syncs, summary, waive penalty, dan reactivate.
+// isolir_handler.go menangani HTTP permintaan untuk modul isolir.
+// Termasuk: manual sync, pending syncs, summary, waive denda, dan reactivate.
 package handler
 
 import (
@@ -14,7 +14,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// IsolirHandler menangani HTTP request untuk modul isolir.
+// IsolirHandler menangani HTTP permintaan untuk modul isolir.
 type IsolirHandler struct {
 	isolirUsecase *usecase.IsolirUsecase
 	logger        zerolog.Logger
@@ -26,7 +26,7 @@ func NewIsolirHandler(isolirUsecase *usecase.IsolirUsecase, logger zerolog.Logge
 }
 
 // ManualSync menangani POST /v1/isolir/sync/:customer_id.
-// Re-publish pending sync event untuk satu pelanggan dan reset retry_count.
+// Re-terbitkan pending sync event untuk satu pelanggan dan reset retry_count.
 func (h *IsolirHandler) ManualSync(c *fiber.Ctx) error {
 	customerID := c.Params("customer_id")
 	if _, err := uuid.Parse(customerID); err != nil {
@@ -49,7 +49,7 @@ func (h *IsolirHandler) ManualSync(c *fiber.Ctx) error {
 }
 
 // ManualSyncAll menangani POST /v1/isolir/sync-all.
-// Re-publish semua pending/failed sync untuk tenant dan kembalikan jumlahnya.
+// Re-terbitkan semua pending/failed sync untuk tenant dan kembalikan jumlahnya.
 func (h *IsolirHandler) ManualSyncAll(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -77,7 +77,7 @@ func (h *IsolirHandler) ListPendingSyncs(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant tidak teridentifikasi")
 	}
 
-	// Parse query params
+	// Parsing parameter kueri
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("page_size", "25"))
 
@@ -119,7 +119,7 @@ func (h *IsolirHandler) Summary(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, summary)
 }
 
-// WaivePenalty menangani POST /v1/invoices/:id/waive-penalty.
+// WaivePenalty menangani POST /v1/invoices/:id/waive-denda.
 // Menghapus denda dari invoice dan menghitung ulang total.
 func (h *IsolirHandler) WaivePenalty(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -157,14 +157,14 @@ func (h *IsolirHandler) Reactivate(c *fiber.Ctx) error {
 	})
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *IsolirHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
 	return domain.ActorInfo{ActorID: actorID, ActorName: actorName}
 }
 
-// mapIsolirError memetakan domain error ke HTTP error response.
+// mapIsolirError memetakan domain error ke HTTP error respons.
 func (h *IsolirHandler) mapIsolirError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrNoPendingSync):
@@ -181,7 +181,7 @@ func (h *IsolirHandler) mapIsolirError(c *fiber.Ctx, err error) error {
 	}
 }
 
-// mapReactivateError memetakan error reactivate ke HTTP response.
+// mapReactivateError memetakan error reactivate ke HTTP respons.
 // Untuk ErrOutstandingInvoicesExist, menyertakan jumlah dan total tagihan.
 func (h *IsolirHandler) mapReactivateError(c *fiber.Ctx, err error, customerID string) error {
 	switch {

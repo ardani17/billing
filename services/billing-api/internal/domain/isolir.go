@@ -6,7 +6,7 @@ import (
 )
 
 // =============================================================================
-// Sync Operation Type — tipe operasi sinkronisasi router
+// Sync Operation Type - tipe operasi sinkronisasi router
 // =============================================================================
 
 // SyncOperationType mendefinisikan tipe operasi sinkronisasi router.
@@ -19,7 +19,7 @@ const (
 )
 
 // =============================================================================
-// Sync Status — status operasi sinkronisasi
+// Sync Status - status operasi sinkronisasi
 // =============================================================================
 
 // SyncStatus mendefinisikan status operasi sinkronisasi.
@@ -33,7 +33,7 @@ const (
 )
 
 // =============================================================================
-// PendingSync Entity — operasi sinkronisasi router yang tertunda
+// PendingSync Entitas - operasi sinkronisasi router yang tertunda
 // =============================================================================
 
 // PendingSync merepresentasikan operasi sinkronisasi router yang tertunda.
@@ -51,13 +51,13 @@ type PendingSync struct {
 	Metadata      map[string]any    `json:"metadata,omitempty"`
 	CreatedAt     time.Time         `json:"created_at"`
 	UpdatedAt     time.Time         `json:"updated_at"`
-	// Field gabungan (dari query JOIN)
+	// Field gabungan (dari kueri JOIN)
 	CustomerName  string `json:"customer_name,omitempty"`
 	CustomerIDSeq string `json:"customer_id_seq,omitempty"`
 }
 
 // =============================================================================
-// PendingSyncListResult — hasil paginasi daftar pending sync
+// PendingSyncListResult - hasil paginasi daftar pending sync
 // =============================================================================
 
 // PendingSyncListResult merepresentasikan hasil paginasi daftar pending sync.
@@ -70,7 +70,7 @@ type PendingSyncListResult struct {
 }
 
 // =============================================================================
-// IsolirSummary — ringkasan statistik isolir untuk dashboard
+// IsolirSummary - ringkasan statistik isolir untuk dashboard
 // =============================================================================
 
 // IsolirSummary merepresentasikan ringkasan statistik isolir untuk dashboard.
@@ -82,17 +82,17 @@ type IsolirSummary struct {
 }
 
 // =============================================================================
-// CalculateNextRetryAt — menghitung waktu retry berikutnya
+// CalculateNextRetryAt - menghitung waktu retry berikutnya
 // =============================================================================
 
 // backoffDelays mendefinisikan delay untuk setiap retry.
 // retry 0 = immediate, retry 1 = +5m, retry 2 = +30m, retry 3 = +2h, retry 4 = +6h.
 var backoffDelays = []time.Duration{
-	0,               // retry 0: langsung
-	5 * time.Minute, // retry 1: 5 menit
+	0,                // retry 0: langsung
+	5 * time.Minute,  // retry 1: 5 menit
 	30 * time.Minute, // retry 2: 30 menit
-	2 * time.Hour,   // retry 3: 2 jam
-	6 * time.Hour,   // retry 4: 6 jam
+	2 * time.Hour,    // retry 3: 2 jam
+	6 * time.Hour,    // retry 4: 6 jam
 }
 
 // CalculateNextRetryAt menghitung waktu retry berikutnya berdasarkan retry_count.
@@ -106,7 +106,7 @@ func CalculateNextRetryAt(retryCount int, now time.Time) time.Time {
 }
 
 // =============================================================================
-// Helper — fungsi bantu untuk perhitungan tanggal dan timezone
+// Fungsi bantu - fungsi bantu untuk perhitungan tanggal dan timezone
 // =============================================================================
 
 // LocalDate membungkus time.Time untuk representasi tanggal lokal tenant.
@@ -115,7 +115,7 @@ type LocalDate struct {
 }
 
 // currentDateInTimezone mengembalikan tanggal saat ini di timezone tenant.
-// Fallback ke Asia/Jakarta jika timezone tidak valid.
+// Cadangan ke Asia/Jakarta jika timezone tidak valid.
 func currentDateInTimezone(tz string) time.Time {
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
@@ -125,7 +125,7 @@ func currentDateInTimezone(tz string) time.Time {
 }
 
 // CurrentDateInTimezone mengembalikan tanggal saat ini di timezone tenant (exported).
-// Fallback ke Asia/Jakarta jika timezone tidak valid.
+// Cadangan ke Asia/Jakarta jika timezone tidak valid.
 func CurrentDateInTimezone(tz string) LocalDate {
 	return LocalDate{Time: currentDateInTimezone(tz)}
 }
@@ -148,7 +148,7 @@ func DaysOverdue(dueDate time.Time, currentDate time.Time) int {
 }
 
 // =============================================================================
-// Domain Error Variables — error khusus domain isolir
+// Variabel error domain - error khusus domain isolir
 // =============================================================================
 
 var (

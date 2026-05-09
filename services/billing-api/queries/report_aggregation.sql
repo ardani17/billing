@@ -1,11 +1,11 @@
--- Query SQL untuk aggregasi laporan keuangan (financial reports).
+-- Kueri SQL untuk aggregasi laporan keuangan (financial reports).
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
 -- Semua query mendukung filter opsional area_id dan package_id via sqlc.narg.
--- Tabel dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: GetRevenueSummary :one
 -- Menghitung ringkasan pendapatan per sumber untuk periode tertentu.
--- Sumber: monthly (tagihan bulanan), installation (biaya pasang), penalty (denda),
+-- Sumber: bulanan (tagihan bulanan), installation (biaya pasang), denda (denda),
 -- voucher_sales (penjualan voucher), dan other (sisa item types).
 -- Filter opsional: area_id dan package_id.
 SELECT

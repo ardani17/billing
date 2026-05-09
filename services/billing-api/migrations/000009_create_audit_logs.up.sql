@@ -26,6 +26,6 @@ CREATE POLICY tenant_insert ON audit_logs
     FOR INSERT
     WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Composite indexes untuk performa query
+-- Composite indexes untuk performa kueri
 CREATE INDEX idx_audit_logs_entity ON audit_logs(tenant_id, entity_type, entity_id);
 CREATE INDEX idx_audit_logs_created ON audit_logs(tenant_id, created_at);

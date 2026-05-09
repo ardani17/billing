@@ -1,5 +1,5 @@
 -- Migration: create_mikrotik_command_audit_logs
--- Append-only audit trail for RouterOS changing commands.
+-- Append-only audit trail untuk RouterOS changing commands.
 
 CREATE TABLE mikrotik_command_audit_logs (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),

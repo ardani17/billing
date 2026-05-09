@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel vlans.
+-- Kueri SQL untuk operasi CRUD tabel vlans.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel vlans dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel vlans dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateVLAN :one
 INSERT INTO vlans (

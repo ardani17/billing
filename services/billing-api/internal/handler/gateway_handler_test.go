@@ -15,7 +15,6 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/gateway"
 )
 
-// validCreateConfigBody mengembalikan JSON body valid untuk CreateConfig.
 func validCreateConfigBody() []byte {
 	apiKey := "xnd_production_test_key_1234567890"
 	enc, _ := gateway.EncryptAESGCM(apiKey, testMasterKey)
@@ -29,7 +28,7 @@ func validCreateConfigBody() []byte {
 	return body
 }
 
-// --- Test CreateConfig ---
+// --- Tes CreateConfig ---
 
 func TestGatewayHandler_CreateConfig_Success(t *testing.T) {
 	setup := setupGatewayTestApp()
@@ -80,7 +79,7 @@ func TestGatewayHandler_CreateConfig_DuplicateProvider(t *testing.T) {
 	req1.Header.Set("Content-Type", "application/json")
 	setup.app.Test(req1, -1)
 
-	// Buat config kedua dengan provider sama → 409
+	// Buat config kedua dengan provider sama -> 409
 	req2 := httptest.NewRequest("POST", "/api/v1/settings/payment-gateways", bytes.NewReader(validCreateConfigBody()))
 	req2.Header.Set("Content-Type", "application/json")
 	resp, err := setup.app.Test(req2, -1)
@@ -98,7 +97,7 @@ func TestGatewayHandler_CreateConfig_DuplicateProvider(t *testing.T) {
 	}
 }
 
-// --- Test ListConfigs ---
+// --- Tes ListConfigs ---
 
 func TestGatewayHandler_ListConfigs_WithMaskedKeys(t *testing.T) {
 	setup := setupGatewayTestApp()
@@ -107,7 +106,6 @@ func TestGatewayHandler_ListConfigs_WithMaskedKeys(t *testing.T) {
 	req1.Header.Set("Content-Type", "application/json")
 	setup.app.Test(req1, -1)
 
-	// List configs
 	req := httptest.NewRequest("GET", "/api/v1/settings/payment-gateways", nil)
 	resp, err := setup.app.Test(req, -1)
 	if err != nil {
@@ -124,7 +122,7 @@ func TestGatewayHandler_ListConfigs_WithMaskedKeys(t *testing.T) {
 	}
 }
 
-// --- Test UpdateConfig ---
+// --- Tes UpdateConfig ---
 
 func TestGatewayHandler_UpdateConfig_Success(t *testing.T) {
 	setup := setupGatewayTestApp()
@@ -139,7 +137,6 @@ func TestGatewayHandler_UpdateConfig_Success(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Update config
 	updateBody, _ := json.Marshal(domain.UpdateGatewayConfigRequest{
 		EnabledMethods: []string{"va_bca", "qris", "ewallet_ovo"},
 	})

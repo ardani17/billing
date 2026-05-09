@@ -12,7 +12,6 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/gateway"
 )
 
-// TestUpdateConfig_PartialUpdate menguji update parsial config.
 func TestUpdateConfig_PartialUpdate(t *testing.T) {
 	s := setupGatewayUsecase()
 	ctx := context.Background()
@@ -29,7 +28,6 @@ func TestUpdateConfig_PartialUpdate(t *testing.T) {
 		t.Fatalf("CreateConfig gagal: %v", err)
 	}
 
-	// Update hanya enabled_methods
 	updateReq := domain.UpdateGatewayConfigRequest{
 		EnabledMethods: []string{"va_bca", "qris", "ewallet_ovo"},
 	}
@@ -53,7 +51,6 @@ func TestUpdateConfig_PartialUpdate(t *testing.T) {
 	}
 }
 
-// TestUpdateConfig_NewAPIKey menguji update API key baru.
 func TestUpdateConfig_NewAPIKey(t *testing.T) {
 	s := setupGatewayUsecase()
 	ctx := context.Background()
@@ -70,7 +67,6 @@ func TestUpdateConfig_NewAPIKey(t *testing.T) {
 		t.Fatalf("CreateConfig gagal: %v", err)
 	}
 
-	// Update API key
 	newKey := "xnd_production_new_key_67890"
 	updateReq := domain.UpdateGatewayConfigRequest{
 		APIKey: newKey,
@@ -90,7 +86,6 @@ func TestUpdateConfig_NewAPIKey(t *testing.T) {
 	}
 }
 
-// TestUpdateConfig_ExpiryDays menguji update payment_link_expiry_days.
 func TestUpdateConfig_ExpiryDays(t *testing.T) {
 	s := setupGatewayUsecase()
 	ctx := context.Background()
@@ -192,7 +187,6 @@ func TestListConfigs_MaskedKeys(t *testing.T) {
 		t.Fatalf("CreateConfig midtrans gagal: %v", err)
 	}
 
-	// List configs
 	configs, err := s.uc.ListConfigs(ctx, "tenant-1")
 	if err != nil {
 		t.Fatalf("ListConfigs gagal: %v", err)

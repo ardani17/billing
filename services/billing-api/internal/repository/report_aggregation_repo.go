@@ -13,9 +13,9 @@ import (
 // ReportAggregationRepo mengimplementasikan domain.ReportAggregationRepository
 // dengan membungkus semua aggregation sqlc queries dan merakit DTOs dari raw query results.
 // Dipecah ke beberapa file karena melebihi 200 baris:
-//   - report_aggregation_repo.go — struct, constructor, financial methods
-//   - report_aggregation_customer_repo.go — customer methods
-//   - report_aggregation_operational_repo.go — operational, dashboard, custom, forecast methods
+//   - report_aggregation_repo.go - struct, constructor, financial methods
+//   - report_aggregation_customer_repo.go - customer methods
+//   - report_aggregation_operational_repo.go - operational, dashboard, kustom, forecast methods
 type ReportAggregationRepo struct {
 	// queries adalah sqlc-generated Queries untuk aggregation queries.
 	queries *Queries
@@ -32,7 +32,7 @@ func NewReportAggregationRepo(queries *Queries, pool *pgxpool.Pool) *ReportAggre
 	}
 }
 
-// --- Helper konversi waktu ke pgtype ---
+// --- Fungsi bantu konversi waktu ke pgtype ---
 
 // timeToPgTimestamptz mengkonversi time.Time ke pgtype.Timestamptz.
 func timeToPgTimestamptz(t time.Time) pgtype.Timestamptz {
@@ -52,11 +52,11 @@ func timeToPgDate(t time.Time) pgtype.Date {
 // GetRevenueSummary mengambil ringkasan pendapatan per sumber untuk periode tertentu.
 func (r *ReportAggregationRepo) GetRevenueSummary(ctx context.Context, tenantID string, periodStart, periodEnd time.Time, areaID, packageID string) (*domain.RevenueSource, error) {
 	row, err := r.queries.GetRevenueSummary(ctx, GetRevenueSummaryParams{
-		TenantID:    stringToUUID(tenantID),
-		PurchasedAt: timeToPgTimestamptz(periodStart),
+		TenantID:      stringToUUID(tenantID),
+		PurchasedAt:   timeToPgTimestamptz(periodStart),
 		PurchasedAt_2: timeToPgTimestamptz(periodEnd),
-		AreaID:      stringToUUID(areaID),
-		PackageID:   stringToUUID(packageID),
+		AreaID:        stringToUUID(areaID),
+		PackageID:     stringToUUID(packageID),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("repository: gagal mengambil revenue summary: %w", err)

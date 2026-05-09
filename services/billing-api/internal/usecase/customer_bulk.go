@@ -11,7 +11,7 @@ import (
 )
 
 // BulkIsolir mentransisikan status beberapa pelanggan ke isolir.
-// Iterasi per customer ID → apply Isolir → collect successes/failures.
+// Iterasi per customer ID -> apply Isolir -> collect successes/failures.
 func (uc *CustomerUsecase) BulkIsolir(ctx context.Context, ids []string, actor ActorInfo) (*domain.BulkActionResult, error) {
 	result := &domain.BulkActionResult{
 		Total: len(ids),
@@ -34,7 +34,7 @@ func (uc *CustomerUsecase) BulkIsolir(ctx context.Context, ids []string, actor A
 }
 
 // BulkActivate mentransisikan status beberapa pelanggan ke aktif.
-// Iterasi per customer ID → apply Activate → collect successes/failures.
+// Iterasi per customer ID -> apply Activate -> collect successes/failures.
 func (uc *CustomerUsecase) BulkActivate(ctx context.Context, ids []string, actor ActorInfo) (*domain.BulkActionResult, error) {
 	result := &domain.BulkActionResult{
 		Total: len(ids),
@@ -57,7 +57,7 @@ func (uc *CustomerUsecase) BulkActivate(ctx context.Context, ids []string, actor
 }
 
 // BulkNotify mengirim notifikasi ke beberapa pelanggan.
-// Iterasi per customer ID → fetch customer → publish notification event → collect results.
+// Iterasi per customer ID -> ambil customer -> terbitkan notification event -> kumpulkan hasil.
 func (uc *CustomerUsecase) BulkNotify(ctx context.Context, ids []string, templateID string, actor ActorInfo) (*domain.BulkActionResult, error) {
 	result := &domain.BulkActionResult{
 		Total: len(ids),
@@ -83,7 +83,7 @@ func (uc *CustomerUsecase) BulkNotify(ctx context.Context, ids []string, templat
 			continue
 		}
 
-		// Publish notification event
+		// Terbitkan notification event
 		uc.publishEvent(customer.TenantID, "customer.notification", map[string]interface{}{
 			"customer_id": customer.ID,
 			"name":        customer.Name,
@@ -92,7 +92,7 @@ func (uc *CustomerUsecase) BulkNotify(ctx context.Context, ids []string, templat
 			"template_id": templateID,
 		})
 
-		// Write audit log
+		// Tulis audit log
 		uc.writeAuditLog(ctx, customer.TenantID, id, "customer.notified", actor, nil)
 
 		result.SuccessCount++
@@ -102,7 +102,7 @@ func (uc *CustomerUsecase) BulkNotify(ctx context.Context, ids []string, templat
 }
 
 // BulkChangePackage mengubah paket beberapa pelanggan.
-// Iterasi per customer ID → apply ChangePackage → collect successes/failures.
+// Iterasi per customer ID -> apply ChangePackage -> collect successes/failures.
 func (uc *CustomerUsecase) BulkChangePackage(ctx context.Context, ids []string, packageID string, actor ActorInfo) (*domain.BulkActionResult, error) {
 	result := &domain.BulkActionResult{
 		Total: len(ids),
@@ -125,13 +125,13 @@ func (uc *CustomerUsecase) BulkChangePackage(ctx context.Context, ids []string, 
 }
 
 // BulkEdit mengubah field tertentu pada beberapa pelanggan.
-// Iterasi per customer ID → update fields → write audit log → collect results.
+// Iterasi per customer ID -> perbarui field -> tulis audit log -> kumpulkan hasil.
 func (uc *CustomerUsecase) BulkEdit(ctx context.Context, ids []string, fields domain.BulkEditFields, actor ActorInfo) (*domain.BulkActionResult, error) {
 	result := &domain.BulkActionResult{
 		Total: len(ids),
 	}
 
-	// Build fields map for repository
+	// Bangun field map untuk repositori
 	fieldsMap := make(map[string]interface{})
 	if fields.AreaID != "" {
 		fieldsMap["area_id"] = fields.AreaID
@@ -144,7 +144,7 @@ func (uc *CustomerUsecase) BulkEdit(ctx context.Context, ids []string, fields do
 	}
 
 	if len(fieldsMap) == 0 {
-		// Nothing to update, all succeed trivially
+		// Tidak ada yang perlu diperbarui, semua dianggap berhasil.
 		result.SuccessCount = len(ids)
 		return result, nil
 	}
@@ -157,7 +157,7 @@ func (uc *CustomerUsecase) BulkEdit(ctx context.Context, ids []string, fields do
 	for _, br := range bulkResults {
 		if br.Success {
 			result.SuccessCount++
-			// Write audit log per customer
+			// Tulis audit log per customer
 			uc.writeAuditLog(ctx, "", br.ID, "customer.updated", actor, map[string]interface{}{
 				"bulk_edit": fieldsMap,
 			})
@@ -177,14 +177,14 @@ func (uc *CustomerUsecase) BulkEdit(ctx context.Context, ids []string, fields do
 	return result, nil
 }
 
-// BulkDelete menghapus beberapa pelanggan secara soft delete.
-// Iterasi per customer ID → soft delete → write audit log → publish event → collect results.
+// BulkDelete menghapus beberapa pelanggan secara hapus lunak.
+// Iterasi per customer ID -> hapus lunak -> tulis audit log -> terbitkan event -> kumpulkan hasil.
 func (uc *CustomerUsecase) BulkDelete(ctx context.Context, ids []string, actor ActorInfo) (*domain.BulkActionResult, error) {
 	result := &domain.BulkActionResult{
 		Total: len(ids),
 	}
 
-	// Fetch customers first for event publishing
+	// Ambil customers first untuk event publishing
 	customers, err := uc.customerRepo.GetByIDs(ctx, ids)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal fetch customers for bulk delete: %w", err)
@@ -210,10 +210,10 @@ func (uc *CustomerUsecase) BulkDelete(ctx context.Context, ids []string, actor A
 				tenantID = customer.TenantID
 			}
 
-			// Write audit log per customer
+			// Tulis audit log per customer
 			uc.writeAuditLog(ctx, tenantID, br.ID, "customer.deleted", actor, nil)
 
-			// Publish customer.terminated event
+			// Terbitkan customer.terminated event
 			if customer != nil {
 				uc.publishEvent(customer.TenantID, "customer.terminated", domain.CustomerTerminatedPayload{
 					CustomerID:       customer.ID,

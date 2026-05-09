@@ -1,7 +1,7 @@
--- Query SQL untuk aggregasi laporan operasional (operational reports).
+-- Kueri SQL untuk aggregasi laporan operasional (operational reports).
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
 -- Mencakup: aktivitas admin, top actions, dan dashboard data.
--- Tabel dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: GetAdminActivity :many
 -- Menghitung aktivitas per user dari audit_logs untuk periode tertentu.

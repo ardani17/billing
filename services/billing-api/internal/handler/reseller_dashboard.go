@@ -1,4 +1,4 @@
-// reseller_dashboard.go menangani HTTP request untuk dashboard reseller.
+// reseller_dashboard.go menangani HTTP permintaan untuk dashboard reseller.
 // Termasuk: summary, buy voucher, my vouchers, print, deposit history, transaction history.
 package handler
 
@@ -14,7 +14,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// ResellerDashboardHandler menangani HTTP request untuk dashboard reseller.
+// ResellerDashboardHandler menangani HTTP permintaan untuk dashboard reseller.
 type ResellerDashboardHandler struct {
 	resellerUsecase        *usecase.ResellerUsecase
 	packageUsecase         domain.PackageUsecase
@@ -242,7 +242,7 @@ func (h *ResellerDashboardHandler) Print(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal generate PDF voucher")
 	}
 
-	// Set header untuk response PDF
+	// Set header untuk respons PDF
 	c.Set("Content-Type", "application/pdf")
 	c.Set("Content-Disposition", "attachment; filename=my-vouchers.pdf")
 
@@ -318,7 +318,7 @@ func (h *ResellerDashboardHandler) TransactionHistory(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, result)
 }
 
-// mapDashboardError memetakan domain error ke HTTP error response untuk dashboard reseller.
+// mapDashboardError memetakan domain error ke HTTP error respons untuk dashboard reseller.
 func (h *ResellerDashboardHandler) mapDashboardError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrResellerNotFound):

@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel notification_templates.
+-- Kueri SQL untuk operasi CRUD tabel notification_templates.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel notification_templates dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel notification_templates dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Setiap tenant memiliki slug unik per template (UNIQUE pada tenant_id, slug).
 
 -- name: CreateTemplate :one
@@ -52,7 +52,7 @@ RETURNING *;
 
 -- name: SoftDeleteTemplate :exec
 -- Menonaktifkan template dengan mengatur is_active menjadi false.
--- Hanya template custom (is_default=false) yang boleh dihapus (validasi di layer repository).
+-- Hanya template kustom (is_default=false) yang boleh dihapus (validasi di layer repositori).
 UPDATE notification_templates
 SET is_active = false, updated_at = NOW()
 WHERE id = $1;
@@ -65,7 +65,7 @@ WHERE tenant_id = $1
 ORDER BY created_at ASC;
 
 -- name: BulkCreateTemplates :one
--- Membuat satu template notifikasi (dipanggil dalam loop oleh repository untuk bulk insert).
+-- Membuat satu template notifikasi (dipanggil dalam loop oleh repositori untuk bulk insert).
 INSERT INTO notification_templates (
     tenant_id, slug, name, category, event_type, channels,
     body_whatsapp, body_sms, body_email_subject, body_email_html,
@@ -78,7 +78,7 @@ INSERT INTO notification_templates (
 RETURNING *;
 
 -- name: SlugExists :one
--- Mengecek apakah slug sudah ada di tenant tertentu (exclude ID tertentu untuk keperluan update).
+-- Mengecek apakah slug sudah ada di tenant tertentu (exclude ID tertentu untuk keperluan perbarui).
 -- Mengembalikan true jika slug sudah dipakai oleh template lain yang masih aktif.
 SELECT EXISTS(
     SELECT 1

@@ -1,20 +1,20 @@
 package domain
 
 // =============================================================================
-// Comparison Report — laporan perbandingan antar periode
+// Laporan perbandingan - laporan perbandingan antar periode
 // =============================================================================
 
 // ComparisonType mendefinisikan tipe perbandingan.
 type ComparisonType string
 
 const (
-	// ComparisonMoM — perbandingan bulan ke bulan (Month over Month).
+	// ComparisonMoM - perbandingan bulan ke bulan (Month over Month).
 	ComparisonMoM ComparisonType = "mom"
-	// ComparisonYoY — perbandingan tahun ke tahun (Year over Year).
+	// ComparisonYoY - perbandingan tahun ke tahun (Year over Year).
 	ComparisonYoY ComparisonType = "yoy"
-	// ComparisonQoQ — perbandingan kuartal ke kuartal (Quarter over Quarter).
+	// ComparisonQoQ - perbandingan kuartal ke kuartal (Quarter over Quarter).
 	ComparisonQoQ ComparisonType = "qoq"
-	// ComparisonCustom — perbandingan periode kustom.
+	// ComparisonCustom - perbandingan periode kustom.
 	ComparisonCustom ComparisonType = "custom"
 )
 
@@ -30,15 +30,15 @@ type ComparisonMetric struct {
 
 // ComparisonReport berisi laporan perbandingan antar periode.
 type ComparisonReport struct {
-	ComparisonType ComparisonType   `json:"comparison_type"`
-	BasePeriod     string           `json:"base_period"`
-	ComparePeriod  string           `json:"compare_period"`
+	ComparisonType ComparisonType     `json:"comparison_type"`
+	BasePeriod     string             `json:"base_period"`
+	ComparePeriod  string             `json:"compare_period"`
 	Metrics        []ComparisonMetric `json:"metrics"`
-	Insights       []string         `json:"insights"`
+	Insights       []string           `json:"insights"`
 }
 
 // =============================================================================
-// Forecast Report — laporan proyeksi / forecasting
+// Laporan forecast - laporan proyeksi / forecasting
 // =============================================================================
 
 // ForecastMonth berisi proyeksi per bulan.
@@ -58,24 +58,24 @@ type ForecastReport struct {
 }
 
 // =============================================================================
-// Dashboard Widget — data untuk dashboard widget di halaman utama
+// Dashboard Widget - data untuk dashboard widget di halaman utama
 // =============================================================================
 
 // DashboardData berisi data untuk dashboard widget.
 type DashboardData struct {
-	TotalActiveCustomers int              `json:"total_active_customers"`
-	CustomersTrend       float64          `json:"customers_trend"`
-	MonthlyRevenue       int64            `json:"monthly_revenue"`
-	RevenueTarget        *int64           `json:"revenue_target,omitempty"`
-	RevenueProgress      *float64         `json:"revenue_progress,omitempty"`
-	TotalReceivables     int64            `json:"total_receivables"`
-	ReceivablesCount     int              `json:"receivables_count"`
-	RoutersOnline        int              `json:"routers_online"`
-	RoutersOffline       int              `json:"routers_offline"`
-	CollectionRate       float64          `json:"collection_rate"`
-	CollectionTarget     *float64         `json:"collection_target,omitempty"`
-	ChurnRate            float64          `json:"churn_rate"`
-	ChurnTarget          *float64         `json:"churn_target,omitempty"`
-	ARPU                 int64            `json:"arpu"`
-	ModuleInactive       map[string]bool  `json:"module_inactive,omitempty"`
+	TotalActiveCustomers int             `json:"total_active_customers"`
+	CustomersTrend       float64         `json:"customers_trend"`
+	MonthlyRevenue       int64           `json:"monthly_revenue"`
+	RevenueTarget        *int64          `json:"revenue_target,omitempty"`
+	RevenueProgress      *float64        `json:"revenue_progress,omitempty"`
+	TotalReceivables     int64           `json:"total_receivables"`
+	ReceivablesCount     int             `json:"receivables_count"`
+	RoutersOnline        int             `json:"routers_online"`
+	RoutersOffline       int             `json:"routers_offline"`
+	CollectionRate       float64         `json:"collection_rate"`
+	CollectionTarget     *float64        `json:"collection_target,omitempty"`
+	ChurnRate            float64         `json:"churn_rate"`
+	ChurnTarget          *float64        `json:"churn_target,omitempty"`
+	ARPU                 int64           `json:"arpu"`
+	ModuleInactive       map[string]bool `json:"module_inactive,omitempty"`
 }

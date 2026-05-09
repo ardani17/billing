@@ -35,7 +35,7 @@ func NewExpenseManager(
 	}
 }
 
-// Create membuat pengeluaran baru.
+// Buat membuat pengeluaran baru.
 func (em *ExpenseManager) Create(ctx context.Context, tenantID string, req domain.CreateExpenseRequest, actor domain.ActorInfo) (*domain.Expense, error) {
 	expenseDate, err := time.Parse("2006-01-02", req.ExpenseDate)
 	if err != nil {
@@ -82,7 +82,7 @@ func (em *ExpenseManager) GetByID(ctx context.Context, id string) (*domain.Expen
 	return expense, nil
 }
 
-// Update memperbarui data pengeluaran.
+// Perbarui memperbarui data pengeluaran.
 func (em *ExpenseManager) Update(ctx context.Context, id string, req domain.UpdateExpenseRequest, actor domain.ActorInfo) (*domain.Expense, error) {
 	existing, err := em.expenseRepo.GetByID(ctx, id)
 	if err != nil {
@@ -92,7 +92,7 @@ func (em *ExpenseManager) Update(ctx context.Context, id string, req domain.Upda
 		return nil, domain.ErrExpenseNotFound
 	}
 
-	// Terapkan perubahan dari request
+	// Terapkan perubahan dari permintaan
 	if req.CategoryID != "" {
 		existing.CategoryID = req.CategoryID
 	}
@@ -140,7 +140,7 @@ func (em *ExpenseManager) Update(ctx context.Context, id string, req domain.Upda
 	return updated, nil
 }
 
-// Delete menghapus pengeluaran secara soft delete.
+// Hapus menghapus pengeluaran secara hapus lunak.
 func (em *ExpenseManager) Delete(ctx context.Context, id string, actor domain.ActorInfo) error {
 	existing, err := em.expenseRepo.GetByID(ctx, id)
 	if err != nil {

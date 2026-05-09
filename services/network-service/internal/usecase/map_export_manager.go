@@ -15,7 +15,7 @@ import (
 // Jika total node + cable > threshold, export diproses secara async.
 const asyncExportThreshold = 500
 
-// Compile-time check: mapExportManager harus mengimplementasikan domain.MapExportManager.
+// Compile-time cek: mapExportManager harus mengimplementasikan domain.MapExportManager.
 var _ domain.MapExportManager = (*mapExportManager)(nil)
 
 // mapExportManager mengimplementasikan domain.MapExportManager.
@@ -28,7 +28,7 @@ type mapExportManager struct {
 	jobs map[string]*domain.ExportStatus
 }
 
-// NewMapExportManager membuat instance MapExportManager baru dengan dependensi repository.
+// NewMapExportManager membuat instance MapExportManager baru dengan dependensi repositori.
 func NewMapExportManager(
 	mapNodeRepo domain.MapNodeRepository,
 	cableRouteRepo domain.CableRouteRepository,
@@ -41,15 +41,15 @@ func NewMapExportManager(
 }
 
 // Export mengekspor data peta ke format yang diminta.
-// Jika dataset ≤500 items → sync generate file.
-// Jika dataset >500 items → return async job_id.
+// Jika dataset ≤500 items -> sync buat file.
+// Jika dataset >500 items -> kembalikan async job_id.
 func (m *mapExportManager) Export(ctx context.Context, tenantID string, req domain.ExportRequest) (*domain.ExportResult, error) {
 	// Validasi format export
 	if !domain.IsValidExportFormat(req.Format) {
 		return nil, domain.ErrUnsupportedFormat
 	}
 
-	// Query semua node dan cable route untuk tenant
+	// Kueri semua node dan cable route untuk tenant
 	nodes, err := m.queryAllNodes(ctx, tenantID, req.Layers)
 	if err != nil {
 		return nil, fmt.Errorf("gagal mengambil data node: %w", err)
@@ -75,7 +75,7 @@ func (m *mapExportManager) Export(ctx context.Context, tenantID string, req doma
 		}, nil
 	}
 
-	// Generate file secara sync
+	// Buat file secara sync
 	fileBytes, fileName, contentType, err := m.generateExport(req.Format, nodes, cables, req.Options)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate export: %w", err)
@@ -123,8 +123,8 @@ func (m *mapExportManager) generateExport(
 	}
 }
 
-// queryAllNodes mengambil semua node untuk tenant berdasarkan layer filter.
-// Jika layers mengandung node type spesifik, query per tipe lalu gabungkan.
+// kueriAllNodes mengambil semua node untuk tenant berdasarkan layer filter.
+// Jika layers mengandung node type spesifik, kueri per tipe lalu gabungkan.
 func (m *mapExportManager) queryAllNodes(ctx context.Context, tenantID string, layers []string) ([]*domain.MapNodeWithRef, error) {
 	// Kumpulkan node types yang diminta
 	var nodeTypes []string
@@ -159,8 +159,8 @@ func (m *mapExportManager) queryAllNodes(ctx context.Context, tenantID string, l
 	return allNodes, nil
 }
 
-// queryAllCables mengambil semua cable route untuk tenant berdasarkan layer filter.
-// Jika layers mengandung route type spesifik, query per tipe lalu gabungkan.
+// kueriAllCables mengambil semua cable route untuk tenant berdasarkan layer filter.
+// Jika layers mengandung route type spesifik, kueri per tipe lalu gabungkan.
 func (m *mapExportManager) queryAllCables(ctx context.Context, tenantID string, layers []string) ([]*domain.CableRoute, error) {
 	var routeTypes []string
 	for _, layer := range layers {

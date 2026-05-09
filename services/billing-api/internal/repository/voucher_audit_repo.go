@@ -22,7 +22,7 @@ func NewVoucherAuditRepo(queries *Queries) *VoucherAuditRepo {
 	}
 }
 
-// --- Helper function untuk mapping sqlc VoucherAuditLog → domain.VoucherAuditLog ---
+// --- Helper function untuk mapping sqlc VoucherAuditLog -> domain.VoucherAuditLog ---
 
 // mapVoucherAuditLogRow memetakan VoucherAuditLog (sqlc model) ke domain.VoucherAuditLog.
 func mapVoucherAuditLogRow(row VoucherAuditLog) *domain.VoucherAuditLog {
@@ -45,7 +45,7 @@ func mapVoucherAuditLogRow(row VoucherAuditLog) *domain.VoucherAuditLog {
 
 // --- Implementasi domain.VoucherAuditLogRepository ---
 
-// Create membuat satu entri audit log voucher.
+// Buat membuat satu entri audit log voucher.
 func (r *VoucherAuditRepo) Create(ctx context.Context, log *domain.VoucherAuditLog) error {
 	var metadataJSON []byte
 	if log.Metadata != nil {

@@ -1,5 +1,4 @@
 // area_usecase.go berisi business logic untuk manajemen area.
-// Mengimplementasikan Create, GetByID, Update, Delete, List pada AreaUsecase.
 package usecase
 
 import (
@@ -31,10 +30,10 @@ func NewAreaUsecase(
 	}
 }
 
-// Create membuat area baru.
-// Flow: validate → check name duplicate → create area.
+// Buat membuat area baru.
+// Alur: validasi -> cek name duplicate -> buat area.
 func (uc *AreaUsecase) Create(ctx context.Context, tenantID string, req domain.CreateAreaRequest, actor ActorInfo) (*domain.Area, error) {
-	// Check name duplicate
+	// Periksa name duplicate
 	exists, err := uc.areaRepo.NameExists(ctx, tenantID, req.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal cek nama area duplicate: %w", err)
@@ -43,7 +42,7 @@ func (uc *AreaUsecase) Create(ctx context.Context, tenantID string, req domain.C
 		return nil, domain.ErrAreaNameDuplicate
 	}
 
-	// Build area entity
+	// Bangun area entity
 	area := &domain.Area{
 		TenantID:    tenantID,
 		Name:        req.Name,
@@ -53,13 +52,13 @@ func (uc *AreaUsecase) Create(ctx context.Context, tenantID string, req domain.C
 		CenterLng:   req.CenterLng,
 	}
 
-	// Create area in database
+	// Buat area in database
 	created, err := uc.areaRepo.Create(ctx, area)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal membuat area: %w", err)
 	}
 
-	// Write audit log
+	// Tulis audit log
 	uc.writeAuditLog(ctx, tenantID, created.ID, "area.created", actor, nil)
 
 	return created, nil
@@ -74,16 +73,16 @@ func (uc *AreaUsecase) GetByID(ctx context.Context, id string) (*domain.Area, er
 	return area, nil
 }
 
-// Update memperbarui data area.
-// Flow: validate → check name duplicate (if name changed) → update area.
+// Perbarui memperbarui data area.
+// Alur: validasi -> cek name duplicate (jika name changed) -> perbarui area.
 func (uc *AreaUsecase) Update(ctx context.Context, id string, req domain.UpdateAreaRequest, actor ActorInfo) (*domain.Area, error) {
-	// Fetch existing area
+	// Ambil existing area
 	existing, err := uc.areaRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check name duplicate if name is being changed
+	// Periksa name duplicate jika name is being changed
 	if req.Name != "" && req.Name != existing.Name {
 		exists, err := uc.areaRepo.NameExists(ctx, existing.TenantID, req.Name, id)
 		if err != nil {
@@ -94,16 +93,16 @@ func (uc *AreaUsecase) Update(ctx context.Context, id string, req domain.UpdateA
 		}
 	}
 
-	// Apply updates
+	// Terapkan updates
 	updated := applyAreaUpdates(existing, req)
 
-	// Save to database
+	// Simpan to database
 	result, err := uc.areaRepo.Update(ctx, updated)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal memperbarui area: %w", err)
 	}
 
-	// Compute changes for audit log
+	// Compute changes untuk audit log
 	changes := computeAreaChanges(existing, result)
 	if len(changes) > 0 {
 		uc.writeAuditLog(ctx, existing.TenantID, id, "area.updated", actor, changes)
@@ -112,16 +111,15 @@ func (uc *AreaUsecase) Update(ctx context.Context, id string, req domain.UpdateA
 	return result, nil
 }
 
-// Delete menghapus area.
-// Flow: check customer count → if > 0 return ErrAreaHasCustomers → else delete.
+// Hapus menghapus area.
 func (uc *AreaUsecase) Delete(ctx context.Context, id string, actor ActorInfo) error {
-	// Fetch existing area to get tenant_id
+	// Ambil existing area to get tenant_id
 	area, err := uc.areaRepo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	// Check customer count
+	// Periksa jumlah pelanggan
 	count, err := uc.areaRepo.CustomerCount(ctx, id)
 	if err != nil {
 		return fmt.Errorf("usecase: gagal cek jumlah pelanggan area: %w", err)
@@ -130,12 +128,12 @@ func (uc *AreaUsecase) Delete(ctx context.Context, id string, actor ActorInfo) e
 		return fmt.Errorf("%w: %d pelanggan", domain.ErrAreaHasCustomers, count)
 	}
 
-	// Delete area
+	// Hapus area
 	if err := uc.areaRepo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("usecase: gagal menghapus area: %w", err)
 	}
 
-	// Write audit log
+	// Tulis audit log
 	uc.writeAuditLog(ctx, area.TenantID, id, "area.deleted", actor, nil)
 
 	return nil
@@ -146,7 +144,7 @@ func (uc *AreaUsecase) List(ctx context.Context, tenantID string) ([]*domain.Are
 	return uc.areaRepo.List(ctx, tenantID)
 }
 
-// --- Helper functions ---
+// --- Fungsi bantu functions ---
 
 // writeAuditLog menulis audit log entry untuk area operations.
 func (uc *AreaUsecase) writeAuditLog(ctx context.Context, tenantID, entityID, action string, actor ActorInfo, changes map[string]interface{}) {
@@ -205,7 +203,7 @@ func computeAreaChanges(old, new *domain.Area) map[string]interface{} {
 		changes["odp_id"] = map[string]interface{}{"old": old.ODPID, "new": new.ODPID}
 	}
 
-	// Compare pointers for lat/lng
+	// Compare pointers untuk lat/lng
 	oldLat := float64PtrValue(old.CenterLat)
 	newLat := float64PtrValue(new.CenterLat)
 	if oldLat != newLat {
@@ -221,7 +219,6 @@ func computeAreaChanges(old, new *domain.Area) map[string]interface{} {
 	return changes
 }
 
-// float64PtrValue returns the value of a *float64 or 0 if nil.
 func float64PtrValue(p *float64) float64 {
 	if p == nil {
 		return 0

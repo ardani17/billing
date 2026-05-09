@@ -517,7 +517,7 @@ export function ResellerPortalClient() {
           token,
         );
       } catch {
-        // Session already cleared locally; backend cleanup can fail if token expired.
+        // Sesi sudah dibersihkan secara lokal; pembersihan backend bisa gagal jika token kedaluwarsa.
       }
     }
   }

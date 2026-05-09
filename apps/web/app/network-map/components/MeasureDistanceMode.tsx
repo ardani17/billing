@@ -5,13 +5,13 @@
 // ---------------------------------------------------------------------------
 
 interface MeasureDistanceModeProps {
-  /** Two points selected on the map: [[lat1, lng1], [lat2, lng2]] */
+  /** Dua titik yang dipilih pada peta: [[lat1, lng1], [lat2, lng2]]*/
   points: [number, number][];
   onClear: () => void;
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Fungsi bantus
 // ---------------------------------------------------------------------------
 
 function haversineDistance(
@@ -36,7 +36,7 @@ function formatDistance(meters: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Component - Displays straight-line distance between 2 points
+// Komponen - Menampilkan jarak garis lurus antara 2 titik
 // ---------------------------------------------------------------------------
 
 export default function MeasureDistanceMode({

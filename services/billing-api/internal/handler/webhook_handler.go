@@ -1,4 +1,4 @@
-// webhook_handler.go menangani endpoint webhook publik dari payment gateway.
+// webhook_handler.go menangani endpoint webhook publik dari gateway pembayaran.
 // Endpoint ini TIDAK menggunakan auth middleware.
 // Keamanan via IP whitelist + verifikasi signature (async di webhook usecase).
 package handler
@@ -16,8 +16,8 @@ import (
 // TaskProcessWebhook adalah tipe task asynq untuk memproses webhook secara async.
 const TaskProcessWebhook = "gateway.process_webhook"
 
-// WebhookHandler menangani HTTP request webhook dari Xendit dan Midtrans.
-// Endpoint bersifat publik — keamanan via IP whitelist dan signature verification.
+// WebhookHandler menangani HTTP permintaan webhook dari Xendit dan Midtrans.
+// Endpoint bersifat publik - keamanan via IP whitelist dan signature verification.
 type WebhookHandler struct {
 	webhookLogRepo domain.WebhookLogRepository
 	queueClient    *asynq.Client
@@ -45,17 +45,17 @@ func NewWebhookHandler(
 
 // HandleXendit menangani POST /webhooks/xendit.
 // Menerima notifikasi pembayaran dari Xendit, log ke webhook_logs,
-// lalu enqueue task untuk pemrosesan async. Return 200 segera.
+// lalu antrekan task untuk pemrosesan async. Kembalikan 200 segera.
 func (h *WebhookHandler) HandleXendit(c *fiber.Ctx) error {
 	sourceIP := c.IP()
 
-	// Cek IP whitelist (skip jika whitelist kosong — untuk dev/testing)
+	// Cek IP whitelist (skip jika whitelist kosong - untuk dev/testing)
 	if !h.checkIPWhitelist(sourceIP, h.xenditIPs) {
 		h.logBlockedIP(c, domain.GatewayXendit, sourceIP)
 		return domain.ErrorResponse(c, fiber.StatusForbidden, "IP_NOT_WHITELISTED", "ip_not_whitelisted")
 	}
 
-	// Parse body sebagai JSON
+	// Parsing body sebagai JSON
 	var payload map[string]interface{}
 	if err := json.Unmarshal(c.Body(), &payload); err != nil {
 		h.logger.Warn().Err(err).Str("source_ip", sourceIP).Msg("gagal parse body webhook xendit")
@@ -98,17 +98,17 @@ func (h *WebhookHandler) HandleXendit(c *fiber.Ctx) error {
 
 // HandleMidtrans menangani POST /webhooks/midtrans.
 // Menerima notifikasi pembayaran dari Midtrans, log ke webhook_logs,
-// lalu enqueue task untuk pemrosesan async. Return 200 segera.
+// lalu antrekan task untuk pemrosesan async. Kembalikan 200 segera.
 func (h *WebhookHandler) HandleMidtrans(c *fiber.Ctx) error {
 	sourceIP := c.IP()
 
-	// Cek IP whitelist (skip jika whitelist kosong — untuk dev/testing)
+	// Cek IP whitelist (skip jika whitelist kosong - untuk dev/testing)
 	if !h.checkIPWhitelist(sourceIP, h.midtransIPs) {
 		h.logBlockedIP(c, domain.GatewayMidtrans, sourceIP)
 		return domain.ErrorResponse(c, fiber.StatusForbidden, "IP_NOT_WHITELISTED", "ip_not_whitelisted")
 	}
 
-	// Parse body sebagai JSON
+	// Parsing body sebagai JSON
 	var payload map[string]interface{}
 	if err := json.Unmarshal(c.Body(), &payload); err != nil {
 		h.logger.Warn().Err(err).Str("source_ip", sourceIP).Msg("gagal parse body webhook midtrans")

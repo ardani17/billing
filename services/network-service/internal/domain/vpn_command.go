@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// RouterOS VPN Command Parameter Structs — parameter untuk operasi VPN via
+// RouterOS VPN Command Parameter Structs - parameter untuk operasi VPN via
 // RouterOS API. Setiap struct merepresentasikan satu perintah RouterOS.
 // =============================================================================
 
@@ -35,7 +35,7 @@ type L2TPClientParams struct {
 	UseIPSec      string // "yes" atau "no"
 	IPSecSecret   string // IPSec pre-shared key
 	AllowFastPath string // "yes" (v7) atau kosong (v6)
-	Profile       string // profil enkripsi, e.g. "default-encryption"
+	Profile       string // profil enkripsi, e.g. "bawaan-encryption"
 }
 
 // IPSecProfileParams berisi parameter untuk /ip/ipsec/profile/add.
@@ -66,7 +66,7 @@ type PPTPClientParams struct {
 	ConnectTo string // alamat server VPN
 	User      string // PPTP username
 	Password  string // PPTP password
-	Profile   string // profil enkripsi, e.g. "default-encryption"
+	Profile   string // profil enkripsi, e.g. "bawaan-encryption"
 }
 
 // SSTPClientParams berisi parameter untuk /interface/sstp-client/add.
@@ -76,7 +76,7 @@ type SSTPClientParams struct {
 	ConnectTo         string // alamat server VPN
 	User              string // SSTP username
 	Password          string // SSTP password
-	Profile           string // profil enkripsi, e.g. "default-encryption"
+	Profile           string // profil enkripsi, e.g. "bawaan-encryption"
 	CertificateVerify string // "no" (self-signed) atau "yes"
 	TLSVersion        string // versi TLS, e.g. "only-1.2"
 }
@@ -94,7 +94,7 @@ type OpenVPNClientParams struct {
 	Certificate string // nama sertifikat (jika menggunakan cert auth)
 	Auth        string // algoritma autentikasi, e.g. "sha256"
 	Cipher      string // algoritma cipher, e.g. "aes-256-cbc"
-	Profile     string // profil enkripsi, e.g. "default-encryption"
+	Profile     string // profil enkripsi, e.g. "bawaan-encryption"
 }
 
 // IPAddressParams berisi parameter untuk /ip/address/add.

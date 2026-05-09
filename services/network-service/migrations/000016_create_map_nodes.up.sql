@@ -21,11 +21,11 @@ CREATE UNIQUE INDEX idx_map_nodes_tenant_type_ref
     ON map_nodes (tenant_id, node_type, reference_id)
     WHERE deleted_at IS NULL;
 
--- Index untuk query berdasarkan lokasi (bounding box)
+-- Index untuk kueri berdasarkan lokasi (bounding box)
 CREATE INDEX idx_map_nodes_tenant_location
     ON map_nodes (tenant_id, latitude, longitude);
 
--- Index untuk query berdasarkan tipe node
+-- Index untuk kueri berdasarkan tipe node
 CREATE INDEX idx_map_nodes_tenant_type
     ON map_nodes (tenant_id, node_type);
 

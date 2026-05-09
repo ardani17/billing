@@ -1,5 +1,5 @@
 // Package usecase berisi implementasi business logic untuk network-service.
-// File ini berisi operasi delete, restore, list, search untuk MapNodeManager.
+// File ini berisi operasi hapus, restore, list, search untuk MapNodeManager.
 package usecase
 
 import (
@@ -9,7 +9,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// DeleteNode melakukan soft-delete node dengan pencatatan riwayat.
+// DeleteNode melakukan hapus lunak node dengan pencatatan riwayat.
 func (m *mapNodeManager) DeleteNode(ctx context.Context, id string, performedBy string) error {
 	// Pastikan node ada
 	node, err := m.mapNodeRepo.GetByID(ctx, id)
@@ -61,7 +61,7 @@ func (m *mapNodeManager) ListNodes(ctx context.Context, params domain.MapNodeLis
 	return responses, nil
 }
 
-// Search melakukan pencarian full-text di node dan entitas referensi.
+// Pencarian melakukan pencarian full-text di node dan entitas referensi.
 // Mengembalikan maksimal 20 hasil pencarian.
 func (m *mapNodeManager) Search(ctx context.Context, tenantID, query string) ([]*domain.MapSearchResult, error) {
 	const maxSearchResults = 20

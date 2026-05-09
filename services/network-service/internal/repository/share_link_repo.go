@@ -20,7 +20,7 @@ func NewShareLinkRepo(db DBTX) *ShareLinkRepo {
 	return &ShareLinkRepo{db: db}
 }
 
-// scanShareLink memindai satu baris hasil query ke domain.MapShareLink.
+// scanShareLink memindai satu baris hasil kueri ke domain.MapShareLink.
 func scanShareLink(row pgx.Row) (*domain.MapShareLink, error) {
 	var s domain.MapShareLink
 	err := row.Scan(
@@ -34,7 +34,7 @@ func scanShareLink(row pgx.Row) (*domain.MapShareLink, error) {
 	return &s, nil
 }
 
-// Create membuat share link baru dan mengembalikan link yang dibuat.
+// Buat membuat share link baru dan mengembalikan link yang dibuat.
 func (r *ShareLinkRepo) Create(ctx context.Context, link *domain.MapShareLink) (*domain.MapShareLink, error) {
 	row := r.db.QueryRow(ctx,
 		`INSERT INTO map_share_links (tenant_id, token, visible_layers, expires_at, password_hash, created_by)
@@ -66,7 +66,7 @@ func (r *ShareLinkRepo) GetByToken(ctx context.Context, token string) (*domain.M
 	return result, nil
 }
 
-// Delete menghapus share link berdasarkan token.
+// Hapus menghapus share link berdasarkan token.
 func (r *ShareLinkRepo) Delete(ctx context.Context, token string) error {
 	_, err := r.db.Exec(ctx,
 		`DELETE FROM map_share_links WHERE token = $1`, token,
@@ -115,5 +115,5 @@ func (r *ShareLinkRepo) IncrementAccessCount(ctx context.Context, token string) 
 	return nil
 }
 
-// Compile-time check: ShareLinkRepo mengimplementasikan domain.ShareLinkRepository.
+// Compile-time cek: ShareLinkRepo mengimplementasikan domain.ShareLinkRepository.
 var _ domain.ShareLinkRepository = (*ShareLinkRepo)(nil)

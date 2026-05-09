@@ -1,5 +1,4 @@
-// payment_void_test.go berisi unit test untuk PaymentUsecase — void pembayaran.
-// Karena VoidPayment membutuhkan pool (transaksi DB), kita test path error
+// payment_void_test.go berisi unit test untuk PaymentUsecase - void pembayaran.
 // yang terjadi sebelum transaksi dimulai, serta test DeterminePostVoidStatus
 // secara langsung sebagai pure function.
 package usecase
@@ -13,25 +12,24 @@ import (
 )
 
 // =============================================================================
-// Test: VoidPayment — error paths sebelum transaksi
 // =============================================================================
 
 // TestPaymentUsecase_VoidPayment_NoPool menguji bahwa VoidPayment membutuhkan pool.
 // Karena pool.Begin pada nil pool panic, kita skip test ini.
 func TestPaymentUsecase_VoidPayment_NoPool(t *testing.T) {
 	// VoidPayment memanggil pool.Begin() di awal, yang panic pada nil pool.
-	// Test validasi void dilakukan melalui DeterminePostVoidStatus (pure function).
+	// Tes validasi void dilakukan melalui DeterminePostVoidStatus (pure function).
 	t.Skip("Skipped: VoidPayment membutuhkan pool yang tidak nil untuk transaksi DB")
 }
 
 // =============================================================================
-// Test: DeterminePostVoidStatus — pure function tests
+// Tes: DeterminePostVoidStatus - pure function tests
 // =============================================================================
 
 // TestVoidPayment_TimeLimitExceeded menguji DeterminePostVoidStatus tidak dipanggil
 // karena validasi waktu 24 jam dilakukan di usecase. Kita test pure function langsung.
 func TestVoidPayment_TimeLimitExceeded(t *testing.T) {
-	// Simulasi: payment dibuat 25 jam lalu → melebihi batas 24 jam
+	// Simulasi: payment dibuat 25 jam lalu -> melebihi batas 24 jam
 	createdAt := time.Now().Add(-25 * time.Hour)
 	now := time.Now()
 
@@ -62,7 +60,7 @@ func TestVoidPayment_AlreadyVoided(t *testing.T) {
 // Jika payment sebelumnya menghasilkan excess ke credit, void harus mengurangi credit.
 func TestVoidPayment_CreditBalanceRollback(t *testing.T) {
 	// Simulasi: invoice total=100000, paid=150000 (excess 50000 ke credit)
-	// Void payment 150000 → credit harus dikurangi 50000
+	// Void payment 150000 -> credit harus dikurangi 50000
 	invoice := &domain.Invoice{
 		TotalAmount: 100000,
 		PaidAmount:  150000, // sebelum void
@@ -84,7 +82,7 @@ func TestVoidPayment_CreditBalanceRollback(t *testing.T) {
 }
 
 // =============================================================================
-// Test: DeterminePostVoidStatus — status determination
+// Tes: DeterminePostVoidStatus - status determination
 // =============================================================================
 
 // TestDeterminePostVoidStatus_BelumBayar menguji status belum_bayar setelah void.
@@ -114,7 +112,7 @@ func TestDeterminePostVoidStatus_BayarSebagian(t *testing.T) {
 	now := time.Now()
 	dueDate := now.Add(-24 * time.Hour)
 
-	// paidAmount > 0 tapi < totalAmount → bayar_sebagian
+	// paidAmount > 0 tapi < totalAmount -> bayar_sebagian
 	status := domain.DeterminePostVoidStatus(50000, 100000, dueDate, now)
 	if status != domain.InvoiceStatusBayarSebagian {
 		t.Fatalf("expected bayar_sebagian, got %s", status)
@@ -124,7 +122,7 @@ func TestDeterminePostVoidStatus_BayarSebagian(t *testing.T) {
 // TestDeterminePostVoidStatus_TerlambatDueDateEqual menguji status saat dueDate == now.
 func TestDeterminePostVoidStatus_TerlambatDueDateEqual(t *testing.T) {
 	now := time.Now()
-	// dueDate sama dengan now → dueDate.After(now) == false → terlambat
+	// dueDate sama dengan now -> dueDate.After(now) == false -> terlambat
 	status := domain.DeterminePostVoidStatus(0, 100000, now, now)
 	if status != domain.InvoiceStatusTerlambat {
 		t.Fatalf("expected terlambat (dueDate == now), got %s", status)
@@ -136,7 +134,7 @@ func TestDeterminePostVoidStatus_Lunas(t *testing.T) {
 	now := time.Now()
 	dueDate := now.Add(24 * time.Hour)
 
-	// paidAmount >= totalAmount → lunas (fallback aman)
+	// paidAmount >= totalAmount -> lunas (fallback aman)
 	status := domain.DeterminePostVoidStatus(100000, 100000, dueDate, now)
 	if status != domain.InvoiceStatusLunas {
 		t.Fatalf("expected lunas (fallback), got %s", status)

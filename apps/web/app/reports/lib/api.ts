@@ -1,5 +1,5 @@
 // =============================================================================
-// API client functions — fetch untuk semua report endpoints
+// Fungsi client API - ambil untuk semua endpoint laporan
 // =============================================================================
 
 import type {
@@ -45,7 +45,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/billing";
 const REPORTS_BASE = `${API_BASE}/reports`;
 const EXPENSES_BASE = `${API_BASE}/expenses`;
 
-// --- Helper ---
+// --- Fungsi bantu ---
 
 function buildFilterParams(filter?: Partial<ReportFilter>): URLSearchParams {
   const params = new URLSearchParams();
@@ -136,7 +136,7 @@ export function fetchRevenueByAreaReport(filter?: Partial<ReportFilter>): Promis
 }
 
 // =============================================================================
-// Customer Reports
+// Laporan pelanggan
 // =============================================================================
 
 export function fetchCustomerGrowthReport(filter?: Partial<ReportFilter>): Promise<CustomerGrowthReport> {

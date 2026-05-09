@@ -1,5 +1,5 @@
-// kpi_handler.go menangani HTTP request untuk target KPI.
-// Termasuk: Get (ambil target KPI saat ini) dan Update (upsert target KPI).
+// kpi_handler.go menangani HTTP permintaan untuk target KPI.
+// Termasuk: Get (ambil target KPI saat ini) dan Perbarui (upsert target KPI).
 package handler
 
 import (
@@ -12,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// KPIHandler menangani HTTP request untuk target KPI.
+// KPIHandler menangani HTTP permintaan untuk target KPI.
 type KPIHandler struct {
 	kpiUsecase domain.KPITargetUsecase
 	validate   *validator.Validate
@@ -49,7 +49,7 @@ func (h *KPIHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, target)
 }
 
-// Update menangani PUT /v1/reports/kpi-targets.
+// Perbarui menangani PUT /v1/reports/kpi-targets.
 // Membuat atau memperbarui target KPI untuk tenant.
 func (h *KPIHandler) Update(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)

@@ -37,16 +37,16 @@ CREATE TABLE olts (
     updated_at                    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Unique constraint: nama OLT unik per tenant (exclude soft-deleted)
+-- Unique constraint: nama OLT unik per tenant (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_olts_tenant_name
     ON olts (tenant_id, name)
     WHERE deleted_at IS NULL;
 
--- Index untuk query per tenant
+-- Index untuk kueri per tenant
 CREATE INDEX idx_olts_tenant_id
     ON olts (tenant_id) WHERE deleted_at IS NULL;
 
--- Index untuk health checker (cross-tenant, by status)
+-- Index untuk pemeriksa kesehatan (cross-tenant, by status)
 CREATE INDEX idx_olts_status
     ON olts (status) WHERE deleted_at IS NULL;
 

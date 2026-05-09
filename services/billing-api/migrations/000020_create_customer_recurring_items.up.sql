@@ -30,6 +30,6 @@ CREATE POLICY tenant_insert ON customer_recurring_items
     FOR INSERT
     WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Composite index untuk performa query
+-- Composite index untuk performa kueri
 CREATE INDEX idx_customer_recurring_items_tenant_customer_active
     ON customer_recurring_items(tenant_id, customer_id, is_active);

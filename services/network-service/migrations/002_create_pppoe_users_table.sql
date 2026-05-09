@@ -20,12 +20,12 @@ CREATE TABLE pppoe_users (
     deleted_at        TIMESTAMPTZ
 );
 
--- Unique constraint: username unik per router (exclude soft-deleted)
+-- Unique constraint: username unik per router (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_pppoe_users_router_username
     ON pppoe_users (router_id, username)
     WHERE deleted_at IS NULL;
 
--- Index untuk query per tenant
+-- Index untuk kueri per tenant
 CREATE INDEX idx_pppoe_users_tenant_id
     ON pppoe_users (tenant_id) WHERE deleted_at IS NULL;
 

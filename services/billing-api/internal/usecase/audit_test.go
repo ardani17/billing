@@ -10,25 +10,19 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: auth-rbac, Property 19: Audit Log Completeness
-// **Validates: Requirements 17.1, 17.3**
+// **Memvalidasi: Kebutuhan 17.1, 17.3**
 //
-// For any auth event (login, logout, register, verify-email, forgot-password,
 // reset-password, change-password, user-created, user-deactivated, user-deleted,
-// impersonate-start, impersonate-stop), the audit log entry SHALL contain:
-// timestamp, user_id, tenant_id, ip_address, user_agent, and event result.
-// The audit log SHALL NOT contain passwords, tokens, or password hashes.
+// timestamp, user_id, tenant_id, ip_address, user_agent, dan event result.
 func TestProperty_AuditLogCompleteness(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Capture output zerolog ke buffer untuk parsing JSON
 		var buf bytes.Buffer
 		logger := zerolog.New(&buf).With().Timestamp().Logger()
 		auditLogger := NewAuditLogger(logger)
 
-		// Generate random event type dari daftar valid
 		eventType := rapid.SampledFrom(ValidAuditEvents).Draw(t, "eventType")
 
-		// Generate random field values
+		// Buat random field values
 		userID := rapid.StringMatching(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`).Draw(t, "userID")
 		tenantID := rapid.StringMatching(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`).Draw(t, "tenantID")
 		ipAddress := rapid.SampledFrom([]string{
@@ -46,7 +40,7 @@ func TestProperty_AuditLogCompleteness(t *testing.T) {
 		}).Draw(t, "userAgent")
 		result := rapid.SampledFrom([]string{"success", "failure"}).Draw(t, "result")
 
-		// Generate metadata yang mungkin mengandung data sensitif
+		// Buat metadata yang mungkin mengandung data sensitif
 		metadata := map[string]string{
 			"target_user_id": "some-user-id",
 		}
@@ -72,7 +66,6 @@ func TestProperty_AuditLogCompleteness(t *testing.T) {
 		buf.Reset()
 		auditLogger.LogEvent(eventType, userID, tenantID, ipAddress, userAgent, result, metadata)
 
-		// Parse output JSON
 		output := buf.String()
 		if output == "" {
 			t.Fatal("audit log output kosong")
@@ -83,7 +76,6 @@ func TestProperty_AuditLogCompleteness(t *testing.T) {
 			t.Fatalf("gagal parse JSON log: %v, output: %s", err, output)
 		}
 
-		// Property 1: Log entry HARUS mengandung semua field wajib
 		requiredFields := []string{
 			"time",       // timestamp dari zerolog
 			"user_id",    // ID user
@@ -110,7 +102,6 @@ func TestProperty_AuditLogCompleteness(t *testing.T) {
 			}
 		}
 
-		// Property 2: Nilai field harus sesuai dengan input
 		if got := logEntry["event_type"]; got != string(eventType) {
 			t.Errorf("event_type: got %v, want %v", got, string(eventType))
 		}
@@ -130,7 +121,6 @@ func TestProperty_AuditLogCompleteness(t *testing.T) {
 			t.Errorf("result: got %v, want %v", got, result)
 		}
 
-		// Property 3: Log entry TIDAK BOLEH mengandung data sensitif
 		sensitivePatterns := []string{
 			"password",
 			"token",
@@ -159,7 +149,6 @@ func TestProperty_AuditLogCompleteness(t *testing.T) {
 			}
 		}
 
-		// Pastikan value "sensitive-value-should-not-appear" tidak ada di output
 		if includeSensitive && strings.Contains(logJSON, "sensitive-value-should-not-appear") {
 			t.Error("log entry mengandung value sensitif yang seharusnya difilter")
 		}
@@ -239,7 +228,6 @@ func TestProperty_AuditLogNeverContainsSensitiveValues(t *testing.T) {
 	})
 }
 
-// TestAuditLogAllEventTypes memverifikasi bahwa semua event type yang valid
 // menghasilkan log entry yang benar.
 func TestAuditLogAllEventTypes(t *testing.T) {
 	for _, eventType := range ValidAuditEvents {

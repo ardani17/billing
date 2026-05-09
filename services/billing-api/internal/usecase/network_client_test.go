@@ -1,5 +1,4 @@
 // network_client_test.go berisi integration tests untuk NetworkServiceClient.
-// Test: successful HTTP call, timeout handling, fallback to cache, module_inactive response.
 package usecase
 
 import (
@@ -16,8 +15,6 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// --- Mock Redis client untuk network client tests ---
-
 // mockRedisClient mengimplementasikan operasi Redis minimal untuk testing.
 // Menyimpan data di memory map sebagai pengganti Redis.
 type mockRedisClient struct {
@@ -28,10 +25,9 @@ func newMockRedisClient() *mockRedisClient {
 	return &mockRedisClient{data: make(map[string][]byte)}
 }
 
-// --- Test: Successful HTTP call ---
+// --- Tes: Successful HTTP call ---
 
 func TestNetworkClient_GetUptimeReport_Success(t *testing.T) {
-	// Buat mock HTTP server yang mengembalikan uptime report
 	expectedReport := domain.UptimeReport{
 		Routers: []domain.RouterUptimeItem{
 			{
@@ -60,7 +56,7 @@ func TestNetworkClient_GetUptimeReport_Success(t *testing.T) {
 	defer server.Close()
 
 	logger := zerolog.New(io.Discard)
-	// Buat NetworkClient tanpa Redis (nil) — hanya test HTTP call
+	// Buat NetworkClient tanpa Redis (nil) - hanya test HTTP call
 	client := &NetworkClient{
 		baseURL:    server.URL,
 		httpClient: &http.Client{Timeout: 10 * time.Second},
@@ -133,10 +129,7 @@ func TestNetworkClient_GetTrafficReport_Success(t *testing.T) {
 	}
 }
 
-// --- Test: Module inactive response (server down, no cache) ---
-
 func TestNetworkClient_GetUptimeReport_ModuleInactive(t *testing.T) {
-	// Server yang mengembalikan error 500
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
@@ -146,7 +139,7 @@ func TestNetworkClient_GetUptimeReport_ModuleInactive(t *testing.T) {
 	client := &NetworkClient{
 		baseURL:    server.URL,
 		httpClient: &http.Client{Timeout: 10 * time.Second},
-		redis:      nil, // Tidak ada Redis → tidak ada cache fallback
+		redis:      nil, // Tidak ada Redis -> tidak ada cache fallback
 		logger:     logger,
 	}
 
@@ -167,7 +160,6 @@ func TestNetworkClient_GetUptimeReport_ModuleInactive(t *testing.T) {
 }
 
 func TestNetworkClient_GetTrafficReport_ModuleInactive(t *testing.T) {
-	// Server yang mengembalikan error
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
@@ -197,7 +189,7 @@ func TestNetworkClient_GetTrafficReport_ModuleInactive(t *testing.T) {
 	}
 }
 
-// --- Test: Timeout handling ---
+// --- Tes: Timeout handling ---
 
 func TestNetworkClient_GetUptimeReport_Timeout(t *testing.T) {
 	// Server yang delay lebih lama dari timeout
@@ -223,7 +215,6 @@ func TestNetworkClient_GetUptimeReport_Timeout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected graceful degradation, got error: %v", err)
 	}
-	// Tanpa cache, harus return module_inactive
 	if report == nil {
 		t.Fatal("expected report with module_inactive, got nil")
 	}
@@ -231,8 +222,6 @@ func TestNetworkClient_GetUptimeReport_Timeout(t *testing.T) {
 		t.Fatal("expected module_inactive=true on timeout")
 	}
 }
-
-// --- Test: Invalid JSON response ---
 
 func TestNetworkClient_GetUptimeReport_InvalidJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -257,7 +246,6 @@ func TestNetworkClient_GetUptimeReport_InvalidJSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected graceful degradation, got error: %v", err)
 	}
-	// Invalid JSON → fallback ke cache → tidak ada cache → module_inactive
 	if report == nil {
 		t.Fatal("expected report with module_inactive, got nil")
 	}
@@ -266,7 +254,7 @@ func TestNetworkClient_GetUptimeReport_InvalidJSON(t *testing.T) {
 	}
 }
 
-// --- Test: URL building ---
+// --- Tes: URL building ---
 
 func TestNetworkClient_BuildURL(t *testing.T) {
 	logger := zerolog.New(io.Discard)
@@ -291,7 +279,7 @@ func TestNetworkClient_BuildURL(t *testing.T) {
 	}
 }
 
-// --- Test: Server unreachable ---
+// --- Tes: Server unreachable ---
 
 func TestNetworkClient_GetUptimeReport_ServerUnreachable(t *testing.T) {
 	logger := zerolog.New(io.Discard)
@@ -318,7 +306,7 @@ func TestNetworkClient_GetUptimeReport_ServerUnreachable(t *testing.T) {
 	}
 }
 
-// --- Test: Signal Quality Report ---
+// --- Tes: Signal Quality Report ---
 
 func TestNetworkClient_GetSignalQualityReport_Success(t *testing.T) {
 	expectedReport := domain.SignalQualityReport{
@@ -360,7 +348,7 @@ func TestNetworkClient_GetSignalQualityReport_Success(t *testing.T) {
 	}
 }
 
-// --- Test: Capacity Report ---
+// --- Tes: Capacity Report ---
 
 func TestNetworkClient_GetCapacityReport_Success(t *testing.T) {
 	expectedReport := domain.CapacityReport{

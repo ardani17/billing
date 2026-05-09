@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel report_schedules.
+-- Kueri SQL untuk operasi CRUD tabel report_schedules.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel report_schedules dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel report_schedules dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateReportSchedule :one
 -- Membuat jadwal laporan baru dan mengembalikan semua kolom.
@@ -30,7 +30,7 @@ WHERE id = $1
 RETURNING *;
 
 -- name: DeactivateReportSchedule :exec
--- Menonaktifkan jadwal laporan (set is_active = false).
+-- Menonaktifkan jadwal laporan (atur is_active = false).
 UPDATE report_schedules SET
     is_active = false,
     updated_at = NOW()

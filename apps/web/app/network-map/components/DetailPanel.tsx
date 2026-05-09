@@ -290,7 +290,7 @@ export default function DetailPanel({
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
+      {/* Header*/}
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
         <div>
           <span className="text-xs font-medium uppercase text-gray-400">
@@ -309,7 +309,7 @@ export default function DetailPanel({
         </button>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs*/}
       <div className="flex border-b border-gray-200 px-4">
         <TabButton label="Info" active={activeTab === 'info'} onClick={() => setActiveTab('info')} />
         <TabButton label="Keterangan" active={activeTab === 'keterangan'} onClick={() => setActiveTab('keterangan')} />
@@ -317,7 +317,7 @@ export default function DetailPanel({
         <TabButton label="Riwayat" active={activeTab === 'riwayat'} onClick={() => setActiveTab('riwayat')} />
       </div>
 
-      {/* Tab content */}
+      {/* Tab content*/}
       <div className="flex-1 overflow-y-auto p-4">
         {activeTab === 'info' && (
           <>

@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// --- Request/Response DTOs ---
+// --- DTO permintaan/respons ---
 
 // RegisterRequest adalah payload untuk POST /v1/auth/register.
 type RegisterRequest struct {
@@ -149,11 +149,11 @@ type ImpersonateRequest struct {
 	Reason string `json:"reason" validate:"required,min=5"`
 }
 
-// --- API Response Types ---
+// --- Tipe respons API ---
 
 // APIResponse adalah format standar respons API.
 type APIResponse struct {
-	// Success menunjukkan apakah request berhasil
+	// Success menunjukkan apakah permintaan berhasil
 	Success bool `json:"success"`
 
 	// Data berisi data respons jika sukses
@@ -184,7 +184,7 @@ type FieldError struct {
 	Message string `json:"message"`
 }
 
-// --- Domain Error Variables ---
+// --- Variabel error domain ---
 
 // Daftar error domain untuk auth.
 var (
@@ -231,7 +231,7 @@ var (
 	ErrResendCooldown = errors.New("tunggu sebelum kirim ulang")
 )
 
-// --- Helper Functions ---
+// --- Fungsi bantu Functions ---
 
 // ErrorResponse mengembalikan respons error JSON dengan format standar.
 func ErrorResponse(c *fiber.Ctx, status int, code, message string, details ...FieldError) error {

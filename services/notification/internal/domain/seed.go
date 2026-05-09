@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// Default Templates — template bawaan yang di-seed saat tenant pertama kali
+// Bawaan Templates - template bawaan yang di-seed saat tenant pertama kali
 // mengaktifkan konfigurasi notifikasi. Semua template memiliki is_default=true
 // dan is_active=true, serta mendukung channel WhatsApp dan SMS.
 // =============================================================================
@@ -9,9 +9,9 @@ package domain
 // DefaultTemplates berisi daftar template bawaan untuk seeding.
 // Template ini akan dibuat otomatis saat tenant pertama kali menyimpan
 // konfigurasi notifikasi. Admin bisa mengedit isi template, tapi tidak
-// bisa menghapus template default.
+// bisa menghapus template bawaan.
 var DefaultTemplates = []NotificationTemplate{
-	// Template: invoice_new — notifikasi invoice baru dibuat
+	// Template: invoice_new - notifikasi invoice baru dibuat
 	{
 		Slug:      "invoice_new",
 		Name:      "Invoice Baru",
@@ -31,7 +31,7 @@ var DefaultTemplates = []NotificationTemplate{
 		IsDefault: true,
 	},
 
-	// Template: reminder_h1 — pengingat tagihan H-1 jatuh tempo
+	// Template: reminder_h1 - pengingat tagihan H-1 jatuh tempo
 	{
 		Slug:      "reminder_h1",
 		Name:      "Pengingat H-1 Jatuh Tempo",
@@ -51,7 +51,7 @@ var DefaultTemplates = []NotificationTemplate{
 		IsDefault: true,
 	},
 
-	// Template: payment_confirm — konfirmasi pembayaran diterima
+	// Template: payment_confirm - konfirmasi pembayaran diterima
 	{
 		Slug:      "payment_confirm",
 		Name:      "Konfirmasi Pembayaran",
@@ -71,7 +71,7 @@ var DefaultTemplates = []NotificationTemplate{
 		IsDefault: true,
 	},
 
-	// Template: isolir_notice — pemberitahuan layanan diisolir
+	// Template: isolir_notice - pemberitahuan layanan diisolir
 	{
 		Slug:      "isolir_notice",
 		Name:      "Pemberitahuan Isolir",
@@ -90,7 +90,7 @@ var DefaultTemplates = []NotificationTemplate{
 		IsDefault: true,
 	},
 
-	// Template: suspend_notice — pemberitahuan layanan disuspend
+	// Template: suspend_notice - pemberitahuan layanan disuspend
 	{
 		Slug:      "suspend_notice",
 		Name:      "Pemberitahuan Suspend",
@@ -107,7 +107,7 @@ var DefaultTemplates = []NotificationTemplate{
 		IsDefault: true,
 	},
 
-	// Template: unblock_notice — pemberitahuan layanan diaktifkan kembali (un-isolir)
+	// Template: unblock_notice - pemberitahuan layanan diaktifkan kembali (un-isolir)
 	{
 		Slug:      "unblock_notice",
 		Name:      "Pemberitahuan Un-Isolir",
@@ -124,7 +124,7 @@ var DefaultTemplates = []NotificationTemplate{
 		IsDefault: true,
 	},
 
-	// Template: reactivated_notice — pemberitahuan layanan direaktivasi
+	// Template: reactivated_notice - pemberitahuan layanan direaktivasi
 	{
 		Slug:      "reactivated_notice",
 		Name:      "Pemberitahuan Reaktivasi",

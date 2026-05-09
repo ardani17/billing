@@ -11,9 +11,9 @@ import (
 )
 
 // RecordPayment mencatat pembayaran terhadap invoice.
-// Flow: ambil invoice → verifikasi status → hitung denda jika terlambat →
-// buat catatan pembayaran → update paid_amount → tentukan status baru →
-// tangani kelebihan bayar → tulis audit log.
+// Alur: ambil invoice -> verifikasi status -> hitung denda jika terlambat ->
+// buat catatan pembayaran -> perbarui paid_amount -> tentukan status baru ->
+// tangani kelebihan bayar -> tulis audit log.
 func (uc *InvoiceActionUsecase) RecordPayment(ctx context.Context, invoiceID string, req domain.RecordPaymentRequest, actor domain.ActorInfo) (*domain.Invoice, error) {
 	// Ambil invoice
 	invoice, err := uc.invoiceRepo.GetByID(ctx, invoiceID)
@@ -62,7 +62,7 @@ func (uc *InvoiceActionUsecase) RecordPayment(ctx context.Context, invoiceID str
 		return invoice, nil
 	}
 
-	// Jika invoice terlambat dan penalty diaktifkan, hitung denda
+	// Jika invoice terlambat dan denda diaktifkan, hitung denda
 	if invoice.Status == domain.InvoiceStatusTerlambat {
 		settings, _ := uc.settingsRepo.GetByTenantID(ctx, invoice.TenantID)
 		if settings != nil && settings.PenaltyEnabled && invoice.PenaltyAmount == 0 {
@@ -103,7 +103,7 @@ func (uc *InvoiceActionUsecase) RecordPayment(ctx context.Context, invoiceID str
 		}
 	}
 
-	// Parse tanggal pembayaran
+	// Parsing tanggal pembayaran
 	paymentDate, err := time.Parse("2006-01-02", req.PaymentDate)
 	if err != nil {
 		return nil, fmt.Errorf("format payment_date tidak valid: %w", err)
@@ -133,7 +133,7 @@ func (uc *InvoiceActionUsecase) RecordPayment(ctx context.Context, invoiceID str
 	var excessAmount int64
 
 	if newPaidAmount >= invoice.TotalAmount {
-		// Lunas — kelebihan bayar menjadi kredit pelanggan
+		// Lunas - kelebihan bayar menjadi kredit pelanggan
 		newStatus = domain.InvoiceStatusLunas
 		excessAmount = newPaidAmount - invoice.TotalAmount
 		newPaidAmount = invoice.TotalAmount // cap paid_amount pada total_amount
@@ -144,13 +144,13 @@ func (uc *InvoiceActionUsecase) RecordPayment(ctx context.Context, invoiceID str
 		newStatus = invoice.Status
 	}
 
-	// Update paid_amount dengan optimistic locking
+	// Perbarui paid_amount dengan optimistic locking
 	updated, err := uc.invoiceRepo.UpdatePaidAmount(ctx, invoiceID, newPaidAmount, invoice.Version)
 	if err != nil {
 		return nil, fmt.Errorf("gagal memperbarui jumlah pembayaran: %w", err)
 	}
 
-	// Update status jika berubah
+	// Perbarui status jika berubah
 	if newStatus != invoice.Status {
 		updated, err = uc.invoiceRepo.UpdateStatus(ctx, invoiceID, newStatus, updated.Version)
 		if err != nil {

@@ -1,5 +1,5 @@
 // Package usecase berisi implementasi business logic untuk network-service.
-// File ini mendefinisikan ShareManager: manajemen share link peta read-only.
+// File ini mendefinisikan ShareManager: manajemen share link peta hanya baca.
 package usecase
 
 import (
@@ -17,18 +17,18 @@ import (
 // shareBaseURL adalah base URL untuk share link (dikonfigurasi saat deployment).
 const shareBaseURL = "/api/v1/network-map"
 
-// Compile-time check: shareManager harus mengimplementasikan domain.ShareManager.
+// Compile-time cek: shareManager harus mengimplementasikan domain.ShareManager.
 var _ domain.ShareManager = (*shareManager)(nil)
 
 // shareManager mengimplementasikan domain.ShareManager.
-// Mengelola pembuatan, validasi, dan penghapusan share link read-only.
+// Mengelola pembuatan, validasi, dan penghapusan share link hanya baca.
 type shareManager struct {
 	shareLinkRepo  domain.ShareLinkRepository
 	mapNodeRepo    domain.MapNodeRepository
 	cableRouteRepo domain.CableRouteRepository
 }
 
-// NewShareManager membuat instance ShareManager baru dengan dependensi repository.
+// NewShareManager membuat instance ShareManager baru dengan dependensi repositori.
 func NewShareManager(
 	shareLinkRepo domain.ShareLinkRepository,
 	mapNodeRepo domain.MapNodeRepository,
@@ -42,10 +42,10 @@ func NewShareManager(
 }
 
 // CreateShareLink membuat share link baru dengan opsi expiry dan password.
-// Token di-generate secara kriptografis aman (32 bytes hex).
+// Token di-buat secara kriptografis aman (32 bytes hex).
 // Password di-hash menggunakan bcrypt sebelum disimpan.
 func (m *shareManager) CreateShareLink(ctx context.Context, tenantID, createdBy string, req domain.CreateShareLinkRequest) (*domain.ShareLinkResponse, error) {
-	// Generate token unik
+	// Buat token unik
 	token, err := domain.GenerateShareToken()
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate token: %w", err)
@@ -119,13 +119,13 @@ func (m *shareManager) GetSharedMap(ctx context.Context, token, password string)
 		_ = err
 	}
 
-	// Query data peta berdasarkan visible_layers
+	// Kueri data peta berdasarkan visible_layers
 	nodes, cables, err := m.querySharedData(ctx, link.TenantID, link.VisibleLayers)
 	if err != nil {
 		return nil, fmt.Errorf("gagal mengambil data peta: %w", err)
 	}
 
-	// Konversi ke response
+	// Konversi ke respons
 	nodeResponses := make([]domain.MapNodeWithRefResponse, 0, len(nodes))
 	for _, n := range nodes {
 		nodeResponses = append(nodeResponses, *domain.ToMapNodeWithRefResponse(n))
@@ -166,23 +166,23 @@ func (m *shareManager) ListShareLinks(ctx context.Context, tenantID string) ([]*
 	return responses, nil
 }
 
-// querySharedData mengambil data node dan cable berdasarkan visible_layers.
+// kueriSharedData mengambil data node dan cable berdasarkan visible_layers.
 func (m *shareManager) querySharedData(
 	ctx context.Context,
 	tenantID string,
 	visibleLayers json.RawMessage,
 ) ([]*domain.MapNodeWithRef, []*domain.CableRoute, error) {
-	// Parse visible layers
+	// Parsing visible layers
 	var layers []string
 	if err := json.Unmarshal(visibleLayers, &layers); err != nil {
-		// Jika gagal parse, tampilkan semua layer
+		// Jika gagal parsing, tampilkan semua layer
 		layers = append(domain.ValidNodeTypes, domain.ValidRouteTypes...)
 	}
 
 	var allNodes []*domain.MapNodeWithRef
 	var allCables []*domain.CableRoute
 
-	// Query node berdasarkan layer yang visible
+	// Kueri node berdasarkan layer yang visible
 	for _, layer := range layers {
 		if domain.IsValidNodeType(layer) {
 			params := domain.MapNodeListParams{
@@ -201,7 +201,7 @@ func (m *shareManager) querySharedData(
 		}
 	}
 
-	// Query cable berdasarkan layer yang visible
+	// Kueri cable berdasarkan layer yang visible
 	for _, layer := range layers {
 		if domain.IsValidRouteType(layer) {
 			params := domain.CableRouteListParams{

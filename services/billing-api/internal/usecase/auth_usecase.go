@@ -1,7 +1,7 @@
 // Package usecase berisi business logic untuk billing-api.
 // AuthUsecase mengimplementasikan semua operasi autentikasi:
 // register, login, Google OAuth, verifikasi email, reset password,
-// refresh token, logout, dan change password.
+// refresh token, logout, dan ubah password.
 package usecase
 
 import (
@@ -83,8 +83,8 @@ func resendCooldownKey(email string) string {
 // --- Task 11.1: Register ---
 
 // Register mendaftarkan tenant baru beserta user tenant_admin.
-// Proses: validasi input → cek email unik global → buat tenant (dalam transaksi) →
-// hash password → buat user → generate token verifikasi email → enqueue email.
+// Proses: validasi input -> cek email unik global -> buat tenant (dalam transaksi) ->
+// hash password -> buat user -> buat token verifikasi email -> antrekan email.
 func (uc *AuthUsecase) Register(ctx context.Context, req domain.RegisterRequest) (*domain.RegisterResponse, error) {
 	// Validasi agree_terms harus true
 	if !req.AgreeTerms {
@@ -157,7 +157,7 @@ func (uc *AuthUsecase) Register(ctx context.Context, req domain.RegisterRequest)
 		return nil, fmt.Errorf("gagal commit transaksi: %w", err)
 	}
 
-	// Generate token verifikasi email
+	// Buat token verifikasi email
 	plainToken, tokenHash, err := GenerateSecureToken()
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate token verifikasi: %w", err)
@@ -185,8 +185,8 @@ func (uc *AuthUsecase) Register(ctx context.Context, req domain.RegisterRequest)
 // --- Task 11.2: Login ---
 
 // Login memverifikasi credential dan mengembalikan JWT + refresh token.
-// Proses: cek rate limiter → ambil user by email → verifikasi password →
-// cek email_verified → cek status → generate JWT → buat session → update last_login.
+// Proses: cek rate limiter -> ambil user by email -> verifikasi password ->
+// cek email_verified -> cek status -> buat JWT -> buat session -> perbarui last_login.
 func (uc *AuthUsecase) Login(ctx context.Context, req domain.LoginRequest, deviceInfo, ipAddress string) (*domain.LoginResponse, error) {
 	// Cek rate limiter sebelum proses login
 	allowed, remainingSec, err := uc.rateLimiter.Check(ctx, req.Email)
@@ -230,19 +230,19 @@ func (uc *AuthUsecase) Login(ctx context.Context, req domain.LoginRequest, devic
 		jwtExpiry = 7 * 24 * time.Hour // 7 hari jika remember_me
 	}
 
-	// Generate JWT token
+	// Buat JWT token
 	accessToken, err := uc.generateJWT(user, jwtExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate JWT: %w", err)
 	}
 
-	// Generate refresh token dan buat session
+	// Buat refresh token dan buat session
 	refreshToken, _, err := uc.createSession(ctx, user.ID, deviceInfo, ipAddress)
 	if err != nil {
 		return nil, fmt.Errorf("gagal membuat session: %w", err)
 	}
 
-	// Update last_login
+	// Perbarui last_login
 	if err := uc.userRepo.UpdateLastLogin(ctx, user.ID); err != nil {
 		log.Error().Err(err).Str("user_id", user.ID).Msg("gagal update last_login")
 	}
@@ -302,7 +302,7 @@ func (uc *AuthUsecase) verifyGoogleIDToken(ctx context.Context, idTokenStr strin
 	}
 
 	if name == "" {
-		name = email // Fallback ke email jika nama kosong
+		name = email // Cadangan ke email jika nama kosong
 	}
 
 	return &googleClaims{
@@ -328,7 +328,7 @@ func (uc *AuthUsecase) LoginWithGoogle(ctx context.Context, req domain.GoogleLog
 	}
 
 	if user != nil {
-		// Kasus 2: User existing dengan google_id → langsung login
+		// Kasus 2: User existing dengan google_id -> langsung login
 		return uc.loginExistingUser(ctx, user, deviceInfo, ipAddress)
 	}
 
@@ -339,14 +339,14 @@ func (uc *AuthUsecase) LoginWithGoogle(ctx context.Context, req domain.GoogleLog
 	}
 
 	if user != nil {
-		// Kasus 3: User existing tanpa google_id → link Google account lalu login
+		// Kasus 3: User existing tanpa google_id -> link Google account lalu login
 		if err := uc.userRepo.LinkGoogleID(ctx, user.ID, claims.GoogleID); err != nil {
 			return nil, fmt.Errorf("gagal menautkan Google ID: %w", err)
 		}
 		return uc.loginExistingUser(ctx, user, deviceInfo, ipAddress)
 	}
 
-	// Kasus 1: User baru → buat tenant + user baru
+	// Kasus 1: User baru -> buat tenant + user baru
 	return uc.registerGoogleUser(ctx, claims, deviceInfo, ipAddress)
 }
 
@@ -357,19 +357,19 @@ func (uc *AuthUsecase) loginExistingUser(ctx context.Context, user *domain.User,
 		return nil, domain.ErrAccountDisabled
 	}
 
-	// Generate JWT token
+	// Buat JWT token
 	accessToken, err := uc.generateJWT(user, uc.jwtExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate JWT: %w", err)
 	}
 
-	// Generate refresh token dan buat session
+	// Buat refresh token dan buat session
 	refreshToken, _, err := uc.createSession(ctx, user.ID, deviceInfo, ipAddress)
 	if err != nil {
 		return nil, fmt.Errorf("gagal membuat session: %w", err)
 	}
 
-	// Update last_login
+	// Perbarui last_login
 	if err := uc.userRepo.UpdateLastLogin(ctx, user.ID); err != nil {
 		log.Error().Err(err).Str("user_id", user.ID).Msg("gagal update last_login")
 	}
@@ -450,13 +450,13 @@ func (uc *AuthUsecase) registerGoogleUser(ctx context.Context, claims *googleCla
 		UpdatedAt:     userRow.UpdatedAt.Time,
 	}
 
-	// Generate JWT token
+	// Buat JWT token
 	accessToken, err := uc.generateJWT(user, uc.jwtExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate JWT: %w", err)
 	}
 
-	// Generate refresh token dan buat session
+	// Buat refresh token dan buat session
 	refreshToken, _, err := uc.createSession(ctx, userID, deviceInfo, ipAddress)
 	if err != nil {
 		return nil, fmt.Errorf("gagal membuat session: %w", err)
@@ -476,8 +476,8 @@ func (uc *AuthUsecase) registerGoogleUser(ctx context.Context, claims *googleCla
 // --- Task 11.4: Email Verification ---
 
 // VerifyEmail memverifikasi email dengan token.
-// Proses: hash token → lookup di email_verifications → cek expiry → cek used →
-// set email_verified=true → mark token used → generate JWT + refresh → buat session.
+// Proses: hash token -> lookup di email_verifications -> cek expiry -> cek used ->
+// atur email_verified=true -> mark token used -> buat JWT + refresh -> buat session.
 func (uc *AuthUsecase) VerifyEmail(ctx context.Context, token string, deviceInfo, ipAddress string) (*domain.LoginResponse, error) {
 	// Hash token untuk lookup di database
 	tokenHash := HashToken(token)
@@ -511,19 +511,19 @@ func (uc *AuthUsecase) VerifyEmail(ctx context.Context, token string, deviceInfo
 		return nil, fmt.Errorf("gagal mark token used: %w", err)
 	}
 
-	// Ambil data user untuk generate JWT
+	// Ambil data user untuk buat JWT
 	user, err := uc.userRepo.GetByID(ctx, verification.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("gagal mengambil user: %w", err)
 	}
 
-	// Generate JWT token
+	// Buat JWT token
 	accessToken, err := uc.generateJWT(user, uc.jwtExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate JWT: %w", err)
 	}
 
-	// Generate refresh token dan buat session
+	// Buat refresh token dan buat session
 	refreshToken, _, err := uc.createSession(ctx, user.ID, deviceInfo, ipAddress)
 	if err != nil {
 		return nil, fmt.Errorf("gagal membuat session: %w", err)
@@ -541,8 +541,8 @@ func (uc *AuthUsecase) VerifyEmail(ctx context.Context, token string, deviceInfo
 }
 
 // ResendVerification mengirim ulang email verifikasi.
-// Proses: cek cooldown (Redis 60s) → ambil user → invalidate token lama →
-// generate token baru → enqueue email.
+// Proses: cek cooldown (Redis 60s) -> ambil user -> invalidate token lama ->
+// buat token baru -> antrekan email.
 func (uc *AuthUsecase) ResendVerification(ctx context.Context, email string) error {
 	// Cek cooldown di Redis (60 detik antar resend)
 	cooldownKey := resendCooldownKey(email)
@@ -574,7 +574,7 @@ func (uc *AuthUsecase) ResendVerification(ctx context.Context, email string) err
 		return fmt.Errorf("gagal invalidate token lama: %w", err)
 	}
 
-	// Generate token verifikasi baru
+	// Buat token verifikasi baru
 	plainToken, tokenHash, err := GenerateSecureToken()
 	if err != nil {
 		return fmt.Errorf("gagal generate token: %w", err)
@@ -590,7 +590,7 @@ func (uc *AuthUsecase) ResendVerification(ctx context.Context, email string) err
 		return fmt.Errorf("gagal menyimpan token verifikasi: %w", err)
 	}
 
-	// Set cooldown di Redis (60 detik)
+	// Atur cooldown di Redis (60 detik)
 	if err := uc.redisClient.Set(ctx, cooldownKey, "1", 60*time.Second).Err(); err != nil {
 		log.Error().Err(err).Str("email", email).Msg("gagal set cooldown resend")
 	}
@@ -604,7 +604,7 @@ func (uc *AuthUsecase) ResendVerification(ctx context.Context, email string) err
 // --- Task 11.5: Forgot/Reset Password ---
 
 // ForgotPassword mengirim email reset password.
-// Selalu return nil (bahkan jika email tidak ditemukan) untuk mencegah email enumeration.
+// Selalu mengembalikan nil (bahkan jika email tidak ditemukan) untuk mencegah email enumeration.
 func (uc *AuthUsecase) ForgotPassword(ctx context.Context, email string) error {
 	// Ambil user berdasarkan email
 	user, err := uc.userRepo.GetByEmail(ctx, email)
@@ -620,7 +620,7 @@ func (uc *AuthUsecase) ForgotPassword(ctx context.Context, email string) error {
 		return fmt.Errorf("gagal invalidate token lama: %w", err)
 	}
 
-	// Generate token reset password baru
+	// Buat token reset password baru
 	plainToken, tokenHash, err := GenerateSecureToken()
 	if err != nil {
 		return fmt.Errorf("gagal generate token: %w", err)
@@ -643,9 +643,9 @@ func (uc *AuthUsecase) ForgotPassword(ctx context.Context, email string) error {
 }
 
 // ResetPassword mereset password dengan token.
-// Proses: hash token → lookup → cek expiry/used → hash password baru →
-// update password_hash → mark token used → invalidate semua session →
-// generate JWT + refresh baru → buat session.
+// Proses: hash token -> lookup -> cek expiry/used -> hash password baru ->
+// perbarui password_hash -> mark token used -> invalidate semua session ->
+// buat JWT + refresh baru -> buat session.
 func (uc *AuthUsecase) ResetPassword(ctx context.Context, req domain.ResetPasswordRequest, deviceInfo, ipAddress string) (*domain.LoginResponse, error) {
 	// Hash token untuk lookup di database
 	tokenHash := HashToken(req.Token)
@@ -675,7 +675,7 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, req domain.ResetPasswo
 		return nil, fmt.Errorf("gagal hash password: %w", err)
 	}
 
-	// Update password_hash di database
+	// Perbarui password_hash di database
 	if err := uc.userRepo.UpdatePasswordHash(ctx, resetToken.UserID, hashedPassword); err != nil {
 		return nil, fmt.Errorf("gagal update password: %w", err)
 	}
@@ -690,19 +690,19 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, req domain.ResetPasswo
 		log.Error().Err(err).Str("user_id", resetToken.UserID).Msg("gagal invalidate sessions")
 	}
 
-	// Ambil data user untuk generate JWT
+	// Ambil data user untuk buat JWT
 	user, err := uc.userRepo.GetByID(ctx, resetToken.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("gagal mengambil user: %w", err)
 	}
 
-	// Generate JWT token
+	// Buat JWT token
 	accessToken, err := uc.generateJWT(user, uc.jwtExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate JWT: %w", err)
 	}
 
-	// Generate refresh token dan buat session baru
+	// Buat refresh token dan buat session baru
 	refreshToken, _, err := uc.createSession(ctx, user.ID, deviceInfo, ipAddress)
 	if err != nil {
 		return nil, fmt.Errorf("gagal membuat session: %w", err)
@@ -719,16 +719,16 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, req domain.ResetPasswo
 	}, nil
 }
 
-// --- Task 11.6: Token Refresh, Logout, Get Current User, Change Password ---
+// --- Tugas 11.6: Refresh token, logout, ambil pengguna saat ini, ubah password ---
 
 // RefreshToken memperpanjang JWT dengan refresh token.
-// Proses: hash refresh token → lookup session → cek user aktif →
-// rotate token (hapus session lama, buat baru) → generate JWT baru.
+// Proses: hash refresh token -> lookup session -> cek user aktif ->
+// rotate token (hapus session lama, buat baru) -> buat JWT baru.
 func (uc *AuthUsecase) RefreshToken(ctx context.Context, refreshToken string, deviceInfo, ipAddress string) (*domain.TokenPair, error) {
 	// Hash refresh token untuk lookup di database
 	tokenHash := HashToken(refreshToken)
 
-	// Cari session berdasarkan token hash (query sudah filter expires_at > NOW())
+	// Cari session berdasarkan token hash (kueri sudah filter expires_at > NOW())
 	session, err := uc.sessionRepo.GetByTokenHash(ctx, tokenHash)
 	if err != nil {
 		if errors.Is(err, domain.ErrTokenNotFound) {
@@ -758,7 +758,7 @@ func (uc *AuthUsecase) RefreshToken(ctx context.Context, refreshToken string, de
 		return nil, fmt.Errorf("gagal membuat session baru: %w", err)
 	}
 
-	// Generate JWT baru
+	// Buat JWT baru
 	accessToken, err := uc.generateJWT(user, uc.jwtExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate JWT: %w", err)
@@ -793,7 +793,7 @@ func (uc *AuthUsecase) GetCurrentUser(ctx context.Context, userID string) (*doma
 }
 
 // ChangePassword mengubah password user yang sedang login.
-// Proses: verifikasi password lama → hash password baru → update → invalidate session lain.
+// Proses: verifikasi password lama -> hash password baru -> perbarui -> invalidate session lain.
 func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID string, req domain.ChangePasswordRequest, currentRefreshToken string) error {
 	// Ambil data user
 	user, err := uc.userRepo.GetByID(ctx, userID)
@@ -812,7 +812,7 @@ func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID string, req do
 		return fmt.Errorf("gagal hash password: %w", err)
 	}
 
-	// Update password_hash di database
+	// Perbarui password_hash di database
 	if err := uc.userRepo.UpdatePasswordHash(ctx, userID, hashedPassword); err != nil {
 		return fmt.Errorf("gagal update password: %w", err)
 	}
@@ -829,7 +829,7 @@ func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID string, req do
 		}
 	}
 
-	// Fallback: hapus semua session jika tidak bisa identifikasi session saat ini
+	// Cadangan: hapus semua session jika tidak bisa identifikasi session saat ini
 	if err := uc.sessionRepo.DeleteByUserID(ctx, userID); err != nil {
 		log.Error().Err(err).Str("user_id", userID).Msg("gagal invalidate semua session")
 	}
@@ -837,7 +837,7 @@ func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID string, req do
 	return nil
 }
 
-// --- Helper Methods ---
+// --- Fungsi bantu Methods ---
 
 // generateJWT membuat JWT token untuk user dengan expiry yang ditentukan.
 func (uc *AuthUsecase) generateJWT(user *domain.User, expiry time.Duration) (string, error) {
@@ -926,7 +926,7 @@ func (uc *AuthUsecase) enqueuePasswordResetEmail(tenantID, userID, email, name, 
 	}
 }
 
-// --- Type Conversion Helpers ---
+// --- Type Conversion Fungsi bantus ---
 
 // pgUUIDToString mengkonversi pgtype.UUID ke string format UUID.
 func pgUUIDToString(u pgtype.UUID) string {

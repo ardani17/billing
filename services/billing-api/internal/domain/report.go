@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// Report Filter — parameter filter global untuk semua laporan
+// Filter laporan - parameter filter global untuk semua laporan
 // =============================================================================
 
 // ReportFilter berisi parameter filter global untuk semua laporan.
@@ -18,7 +18,7 @@ type ReportFilter struct {
 }
 
 // =============================================================================
-// Revenue Report — laporan ringkasan pendapatan
+// Laporan pendapatan - laporan ringkasan pendapatan
 // =============================================================================
 
 // RevenueSource berisi breakdown pendapatan per sumber.
@@ -48,16 +48,16 @@ type MonthlyRevenueTrend struct {
 
 // RevenueReport berisi laporan ringkasan pendapatan.
 type RevenueReport struct {
-	Current     RevenueSource             `json:"current"`
-	Comparison  *RevenueSource            `json:"comparison,omitempty"`
-	Delta       map[string]RevenueDelta   `json:"delta,omitempty"`
-	Trend       []MonthlyRevenueTrend     `json:"trend"`
-	KPITarget   *int64                    `json:"kpi_target,omitempty"`
-	KPIProgress *float64                  `json:"kpi_progress,omitempty"`
+	Current     RevenueSource           `json:"current"`
+	Comparison  *RevenueSource          `json:"comparison,omitempty"`
+	Delta       map[string]RevenueDelta `json:"delta,omitempty"`
+	Trend       []MonthlyRevenueTrend   `json:"trend"`
+	KPITarget   *int64                  `json:"kpi_target,omitempty"`
+	KPIProgress *float64                `json:"kpi_progress,omitempty"`
 }
 
 // =============================================================================
-// Aging Report — laporan piutang / aging
+// Laporan aging - laporan piutang / aging
 // =============================================================================
 
 // AgingBucket berisi data per bucket umur piutang.
@@ -93,7 +93,7 @@ type AgingReport struct {
 }
 
 // =============================================================================
-// Payment Report — laporan distribusi pembayaran
+// Laporan pembayaran - laporan distribusi pembayaran
 // =============================================================================
 
 // PaymentMethodBreakdown berisi distribusi per metode pembayaran.
@@ -120,7 +120,7 @@ type PaymentReport struct {
 }
 
 // =============================================================================
-// Voucher Revenue Report — laporan pendapatan voucher
+// Voucher Laporan pendapatan - laporan pendapatan voucher
 // =============================================================================
 
 // VoucherByPackage berisi penjualan voucher per paket.
@@ -149,7 +149,7 @@ type VoucherRevenueReport struct {
 }
 
 // =============================================================================
-// Profit Loss Report — laporan laba rugi sederhana
+// Laporan laba rugi - laporan laba rugi sederhana
 // =============================================================================
 
 // ProfitLossLineItem berisi satu baris item laba rugi.

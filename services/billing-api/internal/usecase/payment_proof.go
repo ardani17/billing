@@ -17,7 +17,7 @@ const maxProofFileSize = 5 * 1024 * 1024
 
 // UploadProof mengunggah bukti transfer untuk pembayaran.
 // Validasi: payment ada, ukuran file <= 5MB, format JPEG/PNG/WebP.
-// Menyimpan file ke filesystem lokal dan update proof_image_url.
+// Menyimpan file ke filesystem lokal dan perbarui proof_image_url.
 func (uc *PaymentUsecase) UploadProof(ctx context.Context, paymentID string, fileData []byte, filename string) (string, error) {
 	tenantID := tenant.FromContext(ctx)
 
@@ -37,7 +37,7 @@ func (uc *PaymentUsecase) UploadProof(ctx context.Context, paymentID string, fil
 		return "", domain.ErrInvalidFileFormat
 	}
 
-	// Generate path penyimpanan: uploads/payments/{tenant_id}/{payment_id}/{filename}
+	// Buat path penyimpanan: uploads/payments/{tenant_id}/{payment_id}/{filename}
 	storagePath := filepath.Join("uploads", "payments", tenantID, paymentID, filename)
 
 	// Buat direktori jika belum ada
@@ -51,7 +51,7 @@ func (uc *PaymentUsecase) UploadProof(ctx context.Context, paymentID string, fil
 		return "", fmt.Errorf("gagal menyimpan file: %w", err)
 	}
 
-	// Update proof_image_url di database
+	// Perbarui proof_image_url di database
 	// Gunakan pool langsung karena VoidPayment sudah menggunakan paymentRepo.VoidPayment
 	_, err = uc.pool.Exec(ctx,
 		`UPDATE invoice_payments SET proof_image_url = $1 WHERE id = $2`,

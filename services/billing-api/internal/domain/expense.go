@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// Expense — entitas pengeluaran bisnis
+// Expense - entitas pengeluaran bisnis
 // =============================================================================
 
 // Expense merepresentasikan satu pengeluaran bisnis.
@@ -29,7 +29,7 @@ type Expense struct {
 }
 
 // =============================================================================
-// ExpenseCategory — kategori pengeluaran per tenant
+// ExpenseCategory - kategori pengeluaran per tenant
 // =============================================================================
 
 // ExpenseCategory merepresentasikan kategori pengeluaran per tenant.
@@ -44,7 +44,7 @@ type ExpenseCategory struct {
 	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
-// DefaultExpenseCategories berisi kategori default untuk tenant baru.
+// DefaultExpenseCategories berisi kategori bawaan untuk tenant baru.
 var DefaultExpenseCategories = []string{
 	"Bandwidth/Upstream",
 	"Gaji Karyawan",
@@ -56,7 +56,7 @@ var DefaultExpenseCategories = []string{
 }
 
 // =============================================================================
-// KPITarget — target KPI per tenant
+// KPITarget - target KPI per tenant
 // =============================================================================
 
 // KPITarget merepresentasikan target KPI per tenant.
@@ -77,18 +77,18 @@ type KPITarget struct {
 }
 
 // =============================================================================
-// ReportSchedule — jadwal laporan otomatis
+// ReportSchedule - jadwal laporan otomatis
 // =============================================================================
 
 // ScheduleType mendefinisikan tipe jadwal laporan.
 type ScheduleType string
 
 const (
-	// ScheduleDaily — jadwal harian.
+	// ScheduleDaily - jadwal harian.
 	ScheduleDaily ScheduleType = "daily"
-	// ScheduleWeekly — jadwal mingguan.
+	// ScheduleWeekly - jadwal mingguan.
 	ScheduleWeekly ScheduleType = "weekly"
-	// ScheduleMonthly — jadwal bulanan.
+	// ScheduleMonthly - jadwal bulanan.
 	ScheduleMonthly ScheduleType = "monthly"
 )
 
@@ -109,25 +109,25 @@ type ReportSchedule struct {
 
 // Recipient merepresentasikan penerima laporan.
 type Recipient struct {
-	Type    string `json:"type"`    // "email" atau "whatsapp"
+	Type    string `json:"type"` // "email" atau "whatsapp"
 	Address string `json:"address"`
 }
 
 // =============================================================================
-// ReportJob — job export laporan (async)
+// ReportJob - job export laporan (async)
 // =============================================================================
 
 // ReportJobStatus mendefinisikan status job export.
 type ReportJobStatus string
 
 const (
-	// JobPending — job menunggu diproses.
+	// JobPending - job menunggu diproses.
 	JobPending ReportJobStatus = "pending"
-	// JobProcessing — job sedang diproses.
+	// JobProcessing - job sedang diproses.
 	JobProcessing ReportJobStatus = "processing"
-	// JobCompleted — job selesai diproses.
+	// JobCompleted - job selesai diproses.
 	JobCompleted ReportJobStatus = "completed"
-	// JobFailed — job gagal diproses.
+	// JobFailed - job gagal diproses.
 	JobFailed ReportJobStatus = "failed"
 )
 
@@ -147,10 +147,10 @@ type ReportJob struct {
 }
 
 // =============================================================================
-// CustomReportTemplate — template laporan custom
+// CustomReportTemplate - template laporan kustom
 // =============================================================================
 
-// CustomReportTemplate merepresentasikan template laporan custom.
+// CustomReportTemplate merepresentasikan template laporan kustom.
 type CustomReportTemplate struct {
 	ID                 string    `json:"id"`
 	TenantID           string    `json:"tenant_id"`

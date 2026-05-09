@@ -64,7 +64,7 @@ var sensitiveKeys = []string{
 }
 
 // AuditLogger menyediakan structured audit logging untuk event autentikasi.
-// Menggunakan zerolog untuk output JSON terstruktur yang bisa di-query
+// Menggunakan zerolog untuk output JSON terstruktur yang bisa di-kueri
 // berdasarkan tenant_id, user_id, event_type, dan date range.
 type AuditLogger struct {
 	logger zerolog.Logger

@@ -20,7 +20,7 @@ type InvoicePaymentRepo struct {
 	// queries adalah sqlc-generated Queries untuk operasi invoice payments.
 	queries *Queries
 
-	// pool digunakan untuk dynamic list query (raw SQL dengan pgx).
+	// pool digunakan untuk dinamis list kueri (raw SQL dengan pgx).
 	pool *pgxpool.Pool
 }
 
@@ -32,7 +32,7 @@ func NewInvoicePaymentRepo(queries *Queries, pool *pgxpool.Pool) *InvoicePayment
 	}
 }
 
-// --- Helper function untuk mapping sqlc InvoicePayment → domain.InvoicePayment ---
+// --- Helper function untuk mapping sqlc InvoicePayment -> domain.InvoicePayment ---
 
 // mapInvoicePaymentRow memetakan InvoicePayment (sqlc model) ke domain.InvoicePayment.
 func mapInvoicePaymentRow(row InvoicePayment) *domain.InvoicePayment {
@@ -57,7 +57,7 @@ func mapInvoicePaymentRow(row InvoicePayment) *domain.InvoicePayment {
 
 // --- Implementasi domain.InvoicePaymentRepository ---
 
-// Create membuat catatan pembayaran baru dan mengembalikan pembayaran yang dibuat.
+// Buat membuat catatan pembayaran baru dan mengembalikan pembayaran yang dibuat.
 func (r *InvoicePaymentRepo) Create(ctx context.Context, payment *domain.InvoicePayment) (*domain.InvoicePayment, error) {
 	row, err := r.queries.CreateInvoicePayment(ctx, CreateInvoicePaymentParams{
 		TenantID:        stringToUUID(payment.TenantID),
@@ -131,12 +131,12 @@ func (r *InvoicePaymentRepo) GetByID(ctx context.Context, id string) (*domain.In
 	}, nil
 }
 
-// ListWithFilters mengambil daftar pembayaran dengan dynamic filtering, search, dan pagination.
+// ListWithFilters mengambil daftar pembayaran dengan dinamis filtering, search, dan paginasi.
 // Menggunakan raw SQL karena sqlc tidak mendukung dynamic WHERE clause.
-// Query melakukan JOIN ke tabel invoices dan customers untuk mendapatkan
+// Kueri melakukan JOIN ke tabel invoices dan customers untuk mendapatkan
 // invoice_number, customer_name, dan customer_id_seq.
 func (r *InvoicePaymentRepo) ListWithFilters(ctx context.Context, params domain.PaymentListParams) (*domain.PaymentListResult, error) {
-	// Default values
+	// Nilai bawaan
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -144,29 +144,29 @@ func (r *InvoicePaymentRepo) ListWithFilters(ctx context.Context, params domain.
 		params.PageSize = 25
 	}
 
-	// Build WHERE clauses
+	// Bangun klausa WHERE
 	var conditions []string
 	var args []interface{}
 	argIdx := 1
 
-	// Tenant filter (wajib)
+	// Filter tenant (wajib)
 	conditions = append(conditions, fmt.Sprintf("ip.tenant_id = $%d", argIdx))
 	args = append(args, stringToUUID(params.TenantID))
 	argIdx++
 
-	// Include voided filter — default hanya non-voided
+	// Include voided filter - bawaan hanya non-voided
 	if !params.IncludeVoided {
 		conditions = append(conditions, "ip.voided = false")
 	}
 
-	// Payment method filter
+	// Filter metode pembayaran
 	if params.PaymentMethod != "" {
 		conditions = append(conditions, fmt.Sprintf("ip.payment_method = $%d", argIdx))
 		args = append(args, params.PaymentMethod)
 		argIdx++
 	}
 
-	// Date from filter
+	// Filter tanggal mulai
 	if params.DateFrom != "" {
 		dateFrom, err := time.Parse("2006-01-02", params.DateFrom)
 		if err == nil {
@@ -176,7 +176,7 @@ func (r *InvoicePaymentRepo) ListWithFilters(ctx context.Context, params domain.
 		}
 	}
 
-	// Date to filter
+	// Filter tanggal akhir
 	if params.DateTo != "" {
 		dateTo, err := time.Parse("2006-01-02", params.DateTo)
 		if err == nil {
@@ -186,14 +186,13 @@ func (r *InvoicePaymentRepo) ListWithFilters(ctx context.Context, params domain.
 		}
 	}
 
-	// Recorded by filter
+	// Filter pencatat
 	if params.RecordedBy != "" {
 		conditions = append(conditions, fmt.Sprintf("ip.recorded_by_id = $%d", argIdx))
 		args = append(args, stringToUUID(params.RecordedBy))
 		argIdx++
 	}
 
-	// Search filter (case-insensitive ILIKE pada customer name, customer_id_seq, invoice_number)
 	if params.Search != "" {
 		searchPattern := "%" + params.Search + "%"
 		conditions = append(conditions, fmt.Sprintf(
@@ -206,7 +205,7 @@ func (r *InvoicePaymentRepo) ListWithFilters(ctx context.Context, params domain.
 
 	whereClause := "WHERE " + strings.Join(conditions, " AND ")
 
-	// Count total — menggunakan JOIN yang sama untuk filter yang benar
+	// Hitung total - menggunakan JOIN yang sama untuk filter yang benar
 	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM invoice_payments ip
 		JOIN invoices i ON i.id = ip.invoice_id
 		JOIN customers c ON c.id = i.customer_id
@@ -217,10 +216,10 @@ func (r *InvoicePaymentRepo) ListWithFilters(ctx context.Context, params domain.
 		return nil, fmt.Errorf("repository: gagal menghitung total payment: %w", err)
 	}
 
-	// Build pagination
+	// Bangun paginasi
 	offset := (params.Page - 1) * params.PageSize
 
-	// Build data query dengan JOIN ke invoices dan customers
+	// Bangun data kueri dengan JOIN ke invoices dan customers
 	dataQuery := fmt.Sprintf(`SELECT
 		ip.id, ip.invoice_id, i.invoice_number,
 		c.name AS customer_name, c.customer_id_seq,
@@ -316,7 +315,7 @@ func (r *InvoicePaymentRepo) ListWithFilters(ctx context.Context, params domain.
 // GetSummary mengambil statistik pembayaran agregat untuk tenant.
 // Memanggil sqlc queries untuk today, month, dan by_method lalu merakit PaymentSummary.
 func (r *InvoicePaymentRepo) GetSummary(ctx context.Context, tenantID string, timezone string, periodMonth, periodYear *int) (*domain.PaymentSummary, error) {
-	// Tentukan bulan dan tahun — default ke bulan/tahun saat ini
+	// Tentukan bulan dan tahun - bawaan ke bulan/tahun saat ini
 	now := time.Now()
 	month := int(now.Month())
 	year := now.Year()
@@ -327,12 +326,12 @@ func (r *InvoicePaymentRepo) GetSummary(ctx context.Context, tenantID string, ti
 		year = *periodYear
 	}
 
-	// Ambil ringkasan hari ini — timezone dikirim sebagai string ke AT TIME ZONE
+	// Ambil ringkasan hari ini - timezone dikirim sebagai string ke AT TIME ZONE
 	if timezone == "" {
 		timezone = "Asia/Jakarta"
 	}
-	// sqlc meng-generate parameter sebagai pgtype.Interval tapi SQL menggunakan
-	// AT TIME ZONE $1 yang menerima string, jadi gunakan raw query untuk today.
+	// sqlc meng-buat parameter sebagai pgtype.Interval tapi SQL menggunakan
+	// AT TIME ZONE $1 yang menerima string, jadi gunakan raw kueri untuk today.
 	var todayStat domain.PaymentSummaryStat
 	todayQuery := `SELECT COUNT(*)::bigint AS count, COALESCE(SUM(amount), 0)::bigint AS total_amount
 		FROM invoice_payments
@@ -343,9 +342,9 @@ func (r *InvoicePaymentRepo) GetSummary(ctx context.Context, tenantID string, ti
 		return nil, fmt.Errorf("repository: gagal mengambil payment summary today: %w", err)
 	}
 
-	// Ambil ringkasan bulan ini — sqlc meng-generate parameter sebagai pgtype.Date
+	// Ambil ringkasan bulan ini - sqlc meng-buat parameter sebagai pgtype.Date
 	// tapi SQL menggunakan EXTRACT(MONTH/YEAR) yang membandingkan dengan integer,
-	// jadi gunakan raw query untuk konsistensi.
+	// jadi gunakan raw kueri untuk konsistensi.
 	var monthStat domain.PaymentSummaryStat
 	monthQuery := `SELECT COUNT(*)::bigint AS count, COALESCE(SUM(amount), 0)::bigint AS total_amount
 		FROM invoice_payments
@@ -397,7 +396,7 @@ func (r *InvoicePaymentRepo) GetSummary(ctx context.Context, tenantID string, ti
 }
 
 // FindDuplicate mengecek potensi duplikasi pembayaran dalam 24 jam terakhir.
-// Duplikat didefinisikan sebagai pembayaran dengan customer_id, amount, payment_method,
+// Duplikat didefinisikan sebagai pembayaran dengan customer_id, nominal, payment_method,
 // dan payment_date yang sama, belum di-void.
 func (r *InvoicePaymentRepo) FindDuplicate(ctx context.Context, customerID string, amount int64, method string, paymentDate time.Time) (bool, error) {
 	exists, err := r.queries.FindDuplicatePayment(ctx, FindDuplicatePaymentParams{

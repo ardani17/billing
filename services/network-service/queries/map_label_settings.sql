@@ -1,6 +1,6 @@
--- Query SQL untuk operasi pada tabel map_label_settings.
+-- Kueri SQL untuk operasi pada tabel map_label_settings.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel map_label_settings dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel map_label_settings dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Setiap tenant memiliki satu record settings (UNIQUE tenant_id).
 
 -- name: GetMapLabelSettingsByTenantID :one

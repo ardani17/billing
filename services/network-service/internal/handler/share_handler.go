@@ -1,4 +1,4 @@
-// share_handler.go menangani HTTP request untuk share link peta.
+// share_handler.go menangani HTTP permintaan untuk share link peta.
 // Termasuk: buat share link, list, akses publik (tanpa auth), dan hapus.
 package handler
 
@@ -12,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// ShareHandler menangani HTTP request untuk operasi share link.
+// ShareHandler menangani HTTP permintaan untuk operasi share link.
 type ShareHandler struct {
 	manager  domain.ShareManager
 	validate *validator.Validate
@@ -27,7 +27,7 @@ func NewShareHandler(manager domain.ShareManager) *ShareHandler {
 }
 
 // CreateShareLink menangani POST /share.
-// Parse body, validasi, buat share link baru dengan opsi expiry dan password.
+// Parsing body, validasi, buat share link baru dengan opsi expiry dan password.
 func (h *ShareHandler) CreateShareLink(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -68,15 +68,15 @@ func (h *ShareHandler) ListShareLinks(c *fiber.Ctx) error {
 }
 
 // GetSharedMap menangani GET /share/:token.
-// Endpoint publik (tanpa auth) — akses peta read-only via share token.
-// Menerima password opsional via query param atau header.
+// Endpoint publik (tanpa auth) - akses peta hanya baca via share token.
+// Menerima password opsional via kueri param atau header.
 func (h *ShareHandler) GetSharedMap(c *fiber.Ctx) error {
 	token := c.Params("token")
 	if token == "" {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "token wajib diisi")
 	}
 
-	// Password bisa dikirim via query param atau header X-Share-Password
+	// Password bisa dikirim via kueri param atau header X-Share-Password
 	password := c.Query("password")
 	if password == "" {
 		password = c.Get("X-Share-Password")
@@ -105,7 +105,7 @@ func (h *ShareHandler) DeleteShareLink(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-// mapError memetakan domain error share link ke HTTP error response.
+// mapError memetakan domain error share link ke HTTP error respons.
 func (h *ShareHandler) mapError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrShareLinkNotFound):

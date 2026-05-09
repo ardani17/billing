@@ -7,32 +7,27 @@ import (
 	"pgregory.net/rapid"
 )
 
-// allSignalLevels berisi semua signal level yang valid.
 var allSignalLevels = []SignalLevel{SignalNormal, SignalWarning, SignalWeak, SignalCritical}
 
 // =============================================================================
-// Feature: olt-management, Property 2: Signal Level Classification
 // =============================================================================
 
 // TestProperty_SignalLevelExhaustive memverifikasi bahwa untuk sembarang
 // float64 rx_power dalam dBm, ClassifySignal selalu mengembalikan tepat satu
-// dari 4 signal level yang valid. Tidak ada input yang menghasilkan level
-// di luar set yang didefinisikan (exhaustive).
+// di luar atur yang didefinisikan (exhaustive).
 //
-// **Validates: Requirements 2.8, 10.2**
+// **Memvalidasi: Kebutuhan 2.8, 10.2**
 func TestProperty_SignalLevelExhaustive(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate float64 acak termasuk nilai ekstrem
+		// Buat float64 acak termasuk nilai ekstrem
 		rxPower := rapid.Float64().Draw(t, "rxPower")
 
-		// Skip NaN karena bukan nilai dBm yang valid
 		if math.IsNaN(rxPower) {
 			return
 		}
 
 		result := ClassifySignal(rxPower)
 
-		// Pastikan hasil adalah salah satu dari 4 level yang valid
 		valid := false
 		for _, level := range allSignalLevels {
 			if result == level {
@@ -58,10 +53,10 @@ func TestProperty_SignalLevelExhaustive(t *testing.T) {
 //   - Weak:     >= -30 dBm dan < -27 dBm
 //   - Critical: < -30 dBm
 //
-// **Validates: Requirements 2.8, 10.2**
+// **Memvalidasi: Kebutuhan 2.8, 10.2**
 func TestProperty_SignalLevelMatchesThresholds(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate float64 dalam rentang realistis dBm (-80 sampai +10)
+		// Buat float64 dalam rentang realistis dBm (-80 sampai +10)
 		rxPower := rapid.Float64Range(-80.0, 10.0).Draw(t, "rxPower")
 
 		result := ClassifySignal(rxPower)
@@ -93,7 +88,7 @@ func TestProperty_SignalLevelMatchesThresholds(t *testing.T) {
 // Juga menguji nilai sedikit di atas dan di bawah setiap batas menggunakan
 // math.Nextafter untuk mendapatkan float64 terdekat yang benar-benar berbeda.
 //
-// **Validates: Requirements 2.8, 10.2**
+// **Memvalidasi: Kebutuhan 2.8, 10.2**
 func TestProperty_SignalLevelBoundaryValues(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// Pilih salah satu threshold secara acak
@@ -109,9 +104,9 @@ func TestProperty_SignalLevelBoundaryValues(t *testing.T) {
 		// bisa tetap sama dengan threshold jika epsilon terlalu kecil.
 		justBelow := math.Nextafter(threshold, math.Inf(-1))
 
-		// Test tepat di batas (inklusif ke level atas)
+		// Tes tepat di batas (inklusif ke level atas)
 		atBoundary := ClassifySignal(threshold)
-		// Test float64 terdekat di bawah batas
+		// Tes float64 terdekat di bawah batas
 		belowBoundary := ClassifySignal(justBelow)
 
 		switch threshold {
@@ -155,7 +150,7 @@ func TestProperty_SignalLevelBoundaryValues(t *testing.T) {
 // TestSignalLevel_KnownValues memverifikasi klasifikasi signal untuk
 // nilai-nilai dBm yang sudah diketahui secara eksplisit.
 //
-// **Validates: Requirements 2.8, 10.2**
+// **Memvalidasi: Kebutuhan 2.8, 10.2**
 func TestSignalLevel_KnownValues(t *testing.T) {
 	cases := []struct {
 		name     string

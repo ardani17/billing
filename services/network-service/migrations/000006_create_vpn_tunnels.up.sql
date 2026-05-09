@@ -1,7 +1,7 @@
 -- Migration: create_vpn_tunnels
 -- Tabel konfigurasi VPN tunnel per tenant.
 -- Mendukung protokol: WireGuard, L2TP/IPSec, PPTP, SSTP, OpenVPN.
--- Soft-delete via kolom deleted_at.
+-- Soft-hapus via kolom deleted_at.
 
 CREATE TABLE vpn_tunnels (
     id                           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -17,7 +17,7 @@ CREATE TABLE vpn_tunnels (
     pre_shared_key_encrypted     TEXT,                   -- encrypted, nullable (WireGuard PSK / IPSec PSK)
     l2tp_username                VARCHAR(100),           -- L2TP/PPTP/SSTP username
     l2tp_password_encrypted      TEXT,                   -- encrypted L2TP/PPTP/SSTP password
-    status                       VARCHAR(20) NOT NULL DEFAULT 'pending',  -- connected, disconnected, pending, error
+    status                       VARCHAR(20) NOT NULL DEFAULT 'pending',
     listen_port                  INTEGER NOT NULL DEFAULT 51820,
     allowed_addresses            TEXT NOT NULL DEFAULT '10.99.0.0/16',
     persistent_keepalive         INTEGER NOT NULL DEFAULT 25,
@@ -32,17 +32,17 @@ CREATE TABLE vpn_tunnels (
     deleted_at                   TIMESTAMPTZ
 );
 
--- Unique constraint: tunnel_name unik per tenant (exclude soft-deleted)
+-- Unique constraint: tunnel_name unik per tenant (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_vpn_tunnels_tenant_name
     ON vpn_tunnels (tenant_id, tunnel_name)
     WHERE deleted_at IS NULL;
 
--- Unique constraint: vpn_ip unik per tenant (exclude soft-deleted)
+-- Unique constraint: vpn_ip unik per tenant (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_vpn_tunnels_tenant_vpn_ip
     ON vpn_tunnels (tenant_id, vpn_ip)
     WHERE deleted_at IS NULL;
 
--- Index untuk query per tenant
+-- Index untuk kueri per tenant
 CREATE INDEX idx_vpn_tunnels_tenant_id
     ON vpn_tunnels (tenant_id) WHERE deleted_at IS NULL;
 

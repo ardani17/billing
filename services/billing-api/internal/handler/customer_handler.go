@@ -1,5 +1,4 @@
-// customer_handler.go menangani HTTP request untuk manajemen pelanggan.
-// Termasuk: list, get, create, update, delete, dan stats.
+// customer_handler.go menangani HTTP permintaan untuk manajemen pelanggan.
 package handler
 
 import (
@@ -15,7 +14,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// CustomerHandler menangani HTTP request untuk manajemen pelanggan.
+// CustomerHandler menangani HTTP permintaan untuk manajemen pelanggan.
 type CustomerHandler struct {
 	customerUsecase *usecase.CustomerUsecase
 	validate        *validator.Validate
@@ -34,7 +33,7 @@ func NewCustomerHandler(customerUsecase *usecase.CustomerUsecase, logger zerolog
 }
 
 // List menangani GET /v1/customers.
-// Mengembalikan daftar pelanggan dengan paginasi, filter, dan sorting.
+// Mengembalikan daftar pelanggan dengan paginasi, filter, dan pengurutan.
 func (h *CustomerHandler) List(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -94,7 +93,7 @@ func (h *CustomerHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, detail)
 }
 
-// Create menangani POST /v1/customers.
+// Buat menangani POST /v1/customers.
 // Membuat pelanggan baru dengan status pending.
 func (h *CustomerHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -125,7 +124,7 @@ func (h *CustomerHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, customer)
 }
 
-// Update menangani PUT /v1/customers/:id.
+// Perbarui menangani PUT /v1/customers/:id.
 // Memperbarui data pelanggan.
 func (h *CustomerHandler) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -156,8 +155,8 @@ func (h *CustomerHandler) Update(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, customer)
 }
 
-// Delete menangani DELETE /v1/customers/:id.
-// Soft delete pelanggan dengan konfirmasi nama.
+// Hapus menangani DELETE /v1/customers/:id.
+// Soft hapus pelanggan dengan konfirmasi nama.
 func (h *CustomerHandler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -198,7 +197,6 @@ func (h *CustomerHandler) Stats(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal mengambil statistik pelanggan")
 	}
 
-	// Convert map[CustomerStatus]int64 to map[string]int64 for JSON
 	result := make(map[string]int64)
 	for status, count := range stats {
 		result[string(status)] = count
@@ -207,7 +205,7 @@ func (h *CustomerHandler) Stats(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, result)
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *CustomerHandler) extractActor(c *fiber.Ctx) usecase.ActorInfo {
 	userID, _ := c.Locals("user_id").(string)
 	userName, _ := c.Locals("user_name").(string)
@@ -217,7 +215,7 @@ func (h *CustomerHandler) extractActor(c *fiber.Ctx) usecase.ActorInfo {
 	}
 }
 
-// mapCustomerError memetakan domain error ke HTTP error response.
+// mapCustomerError memetakan domain error ke HTTP error respons.
 func (h *CustomerHandler) mapCustomerError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrCustomerNotFound):

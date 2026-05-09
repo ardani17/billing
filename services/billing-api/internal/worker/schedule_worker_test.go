@@ -1,5 +1,5 @@
 // schedule_worker_test.go berisi integration tests untuk ScheduleWorker.
-// Test: payload parsing, scheduled report processing, cleanup jobs.
+// Tes: payload parsing, scheduled report processing, cleanup jobs.
 package worker
 
 import (
@@ -12,8 +12,6 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
-
-// --- Mock ReportScheduleRepository untuk schedule worker tests ---
 
 // mockScheduleRepo mengimplementasikan domain.ReportScheduleRepository untuk testing.
 type mockScheduleRepo struct {
@@ -81,7 +79,7 @@ func (m *mockScheduleRepo) ListDue(_ context.Context, scheduleType domain.Schedu
 	return result, nil
 }
 
-// --- Test: Scheduled report payload parsing ---
+// --- Tes: Scheduled report payload parsing ---
 
 func TestScheduleWorker_HandleScheduledReport_InvalidPayload(t *testing.T) {
 	scheduleRepo := newMockScheduleRepo()
@@ -142,7 +140,7 @@ func TestScheduleWorker_ScheduledPayloadParsing(t *testing.T) {
 	}
 }
 
-// --- Test: Cleanup report jobs ---
+// --- Tes: Pembersihan report jobs ---
 
 func TestScheduleWorker_HandleCleanupReportJobs(t *testing.T) {
 	scheduleRepo := newMockScheduleRepo()
@@ -164,7 +162,7 @@ func TestScheduleWorker_HandleCleanupReportJobs(t *testing.T) {
 	}
 }
 
-// --- Test: Task type constants ---
+// --- Tes: Task type constants ---
 
 func TestScheduleWorker_TaskTypeConstants(t *testing.T) {
 	if TaskScheduledReport != "report.scheduled" {
@@ -177,8 +175,6 @@ func TestScheduleWorker_TaskTypeConstants(t *testing.T) {
 		t.Fatalf("expected 'report.cleanup_files', got %s", TaskCleanupScheduledFiles)
 	}
 }
-
-// --- Test: ListDue returns correct schedules ---
 
 func TestScheduleWorker_ListDue_FiltersByType(t *testing.T) {
 	scheduleRepo := newMockScheduleRepo()

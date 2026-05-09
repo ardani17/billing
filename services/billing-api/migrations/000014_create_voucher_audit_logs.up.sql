@@ -1,5 +1,5 @@
 -- Migrasi: membuat tabel voucher_audit_logs untuk menyimpan catatan lifecycle voucher.
--- Tabel ini bersifat append-only — hanya INSERT dan SELECT yang diizinkan.
+-- Tabel ini bersifat append-only - hanya INSERT dan SELECT yang diizinkan.
 -- Setiap log dimiliki oleh satu tenant dan dilindungi oleh RLS.
 
 CREATE TABLE voucher_audit_logs (
@@ -16,7 +16,7 @@ CREATE TABLE voucher_audit_logs (
 -- Aktifkan RLS pada tabel voucher_audit_logs
 ALTER TABLE voucher_audit_logs ENABLE ROW LEVEL SECURITY;
 
--- Policy: isolasi data per tenant (SELECT only — append-only table)
+-- Policy: isolasi data per tenant (SELECT only - append-only table)
 CREATE POLICY tenant_isolation ON voucher_audit_logs
     FOR SELECT
     USING (tenant_id = current_setting('app.tenant_id')::uuid);
@@ -26,6 +26,6 @@ CREATE POLICY tenant_insert ON voucher_audit_logs
     FOR INSERT
     WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Composite indexes untuk performa query
+-- Composite indexes untuk performa kueri
 CREATE INDEX idx_voucher_audit_logs_tenant_voucher ON voucher_audit_logs(tenant_id, voucher_id);
 CREATE INDEX idx_voucher_audit_logs_tenant_created ON voucher_audit_logs(tenant_id, created_at);

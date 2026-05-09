@@ -44,7 +44,7 @@ func TestTrafficStore_Store(t *testing.T) {
 		t.Fatalf("Store gagal: %v", err)
 	}
 
-	// Verifikasi data tersimpan di sorted set
+	// Verifikasi data tersimpan di sorted atur
 	key := trafficKey("olt-1", 0)
 	count, err := client.ZCard(ctx, key).Result()
 	if err != nil {
@@ -176,7 +176,7 @@ func TestTrafficStore_Query_Empty(t *testing.T) {
 	}
 }
 
-// TestTrafficStore_TTL memverifikasi bahwa TTL 7 hari di-set pada key setelah Store.
+// TestTrafficStore_TTL memverifikasi bahwa TTL 7 hari di-atur pada key setelah Store.
 func TestTrafficStore_TTL(t *testing.T) {
 	mr, store, client := setupTrafficTest(t)
 	defer mr.Close()
@@ -197,7 +197,7 @@ func TestTrafficStore_TTL(t *testing.T) {
 		t.Fatalf("Store gagal: %v", err)
 	}
 
-	// Verifikasi TTL di-set pada key
+	// Verifikasi TTL di-atur pada key
 	key := trafficKey("olt-ttl", 0)
 	ttl := mr.TTL(key)
 	if ttl == 0 {

@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// ONT Request DTOs — payload dari HTTP request untuk operasi ONT
+// ONT DTO permintaan - payload dari HTTP permintaan untuk operasi ONT
 // =============================================================================
 
 // ProvisionONTRequest adalah payload untuk POST /api/v1/olt/provisioning/ont.
@@ -21,11 +21,11 @@ type ProvisionONTRequest struct {
 }
 
 // ONTListParams berisi parameter untuk list ONT dengan paginasi dan filter.
-// TenantID diisi dari context auth middleware, bukan dari request body.
+// TenantID diisi dari context auth middleware, bukan dari permintaan body.
 type ONTListParams struct {
 	TenantID          string // diisi dari auth context
-	Page              int    // halaman saat ini (default 1)
-	PageSize          int    // jumlah item per halaman (default 20)
+	Page              int    // halaman saat ini (bawaan 1)
+	PageSize          int    // jumlah item per halaman (bawaan 20)
 	OLTID             string // filter per OLT (opsional)
 	Status            string // filter per status (opsional)
 	ProvisioningState string // filter per provisioning_state (opsional)
@@ -34,10 +34,10 @@ type ONTListParams struct {
 }
 
 // =============================================================================
-// ONT Response DTOs — format respons untuk operasi ONT
+// ONT Respons DTOs - format respons untuk operasi ONT
 // =============================================================================
 
-// ONTResponse adalah respons untuk operasi ONT (create/update/list).
+// ONTResponse adalah respons untuk operasi ONT (buat/perbarui/list).
 // Menyertakan nama relasi (OLT, ODP, VLAN, service profile) untuk kemudahan UI.
 type ONTResponse struct {
 	ID                   string            `json:"id"`

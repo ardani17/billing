@@ -20,7 +20,7 @@ func NewVPNSubnetRepo(queries *Queries) *VPNSubnetRepo {
 	return &VPNSubnetRepo{queries: queries}
 }
 
-// --- Mapping sqlc VpnSubnet → domain.VPNSubnet ---
+// --- Mapping sqlc VpnSubnet -> domain.VPNSubnet ---
 
 // mapVPNSubnetRow memetakan VpnSubnet (sqlc model) ke domain.VPNSubnet.
 func mapVPNSubnetRow(row VpnSubnet) *domain.VPNSubnet {
@@ -49,7 +49,7 @@ func (r *VPNSubnetRepo) GetByTenantID(ctx context.Context, tenantID string) (*do
 	return mapVPNSubnetRow(row), nil
 }
 
-// Create membuat subnet allocation baru untuk tenant.
+// Buat membuat subnet allocation baru untuk tenant.
 func (r *VPNSubnetRepo) Create(ctx context.Context, subnet *domain.VPNSubnet) (*domain.VPNSubnet, error) {
 	row, err := r.queries.CreateVPNSubnet(ctx, CreateVPNSubnetParams{
 		TenantID:        stringToUUID(subnet.TenantID),

@@ -19,7 +19,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// Compile-time check: mapImportManager harus mengimplementasikan domain.MapImportManager.
+// Compile-time cek: mapImportManager harus mengimplementasikan domain.MapImportManager.
 var _ domain.MapImportManager = (*mapImportManager)(nil)
 
 // mapImportManager mengimplementasikan domain.MapImportManager.
@@ -37,7 +37,7 @@ type importPreviewData struct {
 	items    []domain.ImportPreviewItem
 }
 
-// NewMapImportManager membuat instance MapImportManager baru dengan dependensi repository.
+// NewMapImportManager membuat instance MapImportManager baru dengan dependensi repositori.
 func NewMapImportManager(
 	mapNodeRepo domain.MapNodeRepository,
 	cableRouteRepo domain.CableRouteRepository,
@@ -49,7 +49,7 @@ func NewMapImportManager(
 	}
 }
 
-// Preview mem-parse file import dan mengembalikan preview item yang terdeteksi.
+// Preview mem-parsing file import dan mengembalikan preview item yang terdeteksi.
 // Mendukung format KML, KMZ, dan GeoJSON berdasarkan ekstensi file.
 func (m *mapImportManager) Preview(_ context.Context, tenantID string, file multipart.File, filename string) (*domain.ImportPreview, error) {
 	// Baca seluruh file ke memory
@@ -170,7 +170,7 @@ func (m *mapImportManager) GetImportStatus(_ context.Context, jobID string) (*do
 }
 
 // =============================================================================
-// Parser KML — parse file KML menjadi ImportPreviewItem
+// Parser KML - parsing file KML menjadi ImportPreviewItem
 // =============================================================================
 
 // kmlImportDoc adalah struktur untuk parsing KML import.
@@ -208,7 +208,7 @@ type kmlImportLine struct {
 	Coordinates string `xml:"coordinates"`
 }
 
-// parseKMLImport mem-parse data KML menjadi daftar ImportPreviewItem.
+// parseKMLImport mem-parsing data KML menjadi daftar ImportPreviewItem.
 func parseKMLImport(data []byte) ([]domain.ImportPreviewItem, error) {
 	var doc kmlImportDoc
 	if err := xml.Unmarshal(data, &doc); err != nil {
@@ -217,12 +217,12 @@ func parseKMLImport(data []byte) ([]domain.ImportPreviewItem, error) {
 
 	var items []domain.ImportPreviewItem
 
-	// Parse placemark di dalam folder terlebih dahulu
+	// Parsing placemark di dalam folder terlebih dahulu
 	for _, folder := range doc.Document.Folders {
 		items = append(items, extractPlacemarks(folder.Placemarks)...)
 	}
 
-	// Parse placemark di root document
+	// Parsing placemark di root document
 	items = append(items, extractPlacemarks(doc.Document.Placemarks)...)
 
 	return items, nil
@@ -250,7 +250,7 @@ func extractPlacemarks(placemarks []kmlImportPlacemark) []domain.ImportPreviewIt
 	return items
 }
 
-// parseKMLCoordinate mem-parse string koordinat KML "lng,lat,alt" menjadi lat, lng.
+// parseKMLCoordinate mem-parsing string koordinat KML "lng,lat,alt" menjadi lat, lng.
 func parseKMLCoordinate(coordStr string) (float64, float64) {
 	coordStr = strings.TrimSpace(coordStr)
 	var lng, lat, alt float64
@@ -259,10 +259,10 @@ func parseKMLCoordinate(coordStr string) (float64, float64) {
 }
 
 // =============================================================================
-// Parser KMZ — extract KML dari arsip ZIP
+// Parser KMZ - extract KML dari arsip ZIP
 // =============================================================================
 
-// parseKMZImport mem-parse data KMZ (ZIP berisi KML) menjadi ImportPreviewItem.
+// parseKMZImport mem-parsing data KMZ (ZIP berisi KML) menjadi ImportPreviewItem.
 func parseKMZImport(data []byte) ([]domain.ImportPreviewItem, error) {
 	reader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
@@ -291,10 +291,10 @@ func parseKMZImport(data []byte) ([]domain.ImportPreviewItem, error) {
 }
 
 // =============================================================================
-// Parser GeoJSON — parse file GeoJSON menjadi ImportPreviewItem
+// Parser GeoJSON - parsing file GeoJSON menjadi ImportPreviewItem
 // =============================================================================
 
-// parseGeoJSONImport mem-parse data GeoJSON menjadi daftar ImportPreviewItem.
+// parseGeoJSONImport mem-parsing data GeoJSON menjadi daftar ImportPreviewItem.
 func parseGeoJSONImport(data []byte) ([]domain.ImportPreviewItem, error) {
 	var collection geoJSONCollection
 	if err := json.Unmarshal(data, &collection); err != nil {

@@ -22,7 +22,7 @@ func NewODPRepo(queries *Queries) *ODPRepo {
 	return &ODPRepo{queries: queries}
 }
 
-// --- Helper functions untuk konversi pgtype.Numeric ↔ float64 ---
+// --- Fungsi bantu functions untuk konversi pgtype.Numeric ↔ float64 ---
 
 // numericToFloat64Ptr mengkonversi pgtype.Numeric ke *float64.
 // Mengembalikan nil jika Numeric tidak valid.
@@ -48,7 +48,7 @@ func float64PtrToNumeric(f *float64) pgtype.Numeric {
 	return n
 }
 
-// --- Mapping sqlc Odp → domain.ODP ---
+// --- Mapping sqlc Odp -> domain.ODP ---
 
 // mapODPRow memetakan Odp (sqlc model) ke domain.ODP.
 func mapODPRow(row Odp) *domain.ODP {
@@ -73,7 +73,7 @@ func mapODPRow(row Odp) *domain.ODP {
 
 // --- Implementasi CRUD domain.ODPRepository ---
 
-// Create membuat ODP baru dan mengembalikan ODP yang dibuat.
+// Buat membuat ODP baru dan mengembalikan ODP yang dibuat.
 func (r *ODPRepo) Create(ctx context.Context, odp *domain.ODP) (*domain.ODP, error) {
 	row, err := r.queries.CreateODP(ctx, CreateODPParams{
 		TenantID:     stringToUUID(odp.TenantID),
@@ -106,7 +106,7 @@ func (r *ODPRepo) GetByID(ctx context.Context, id string) (*domain.ODP, error) {
 	return mapODPRow(row), nil
 }
 
-// Update memperbarui data ODP dan mengembalikan ODP yang diperbarui.
+// Perbarui memperbarui data ODP dan mengembalikan ODP yang diperbarui.
 func (r *ODPRepo) Update(ctx context.Context, odp *domain.ODP) (*domain.ODP, error) {
 	row, err := r.queries.UpdateODP(ctx, UpdateODPParams{
 		ID:        stringToUUID(odp.ID),
@@ -125,7 +125,7 @@ func (r *ODPRepo) Update(ctx context.Context, odp *domain.ODP) (*domain.ODP, err
 	return mapODPRow(row), nil
 }
 
-// SoftDelete melakukan soft-delete ODP (set deleted_at).
+// SoftDelete melakukan hapus lunak ODP (atur deleted_at).
 func (r *ODPRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeleteODP(ctx, stringToUUID(id))
 	if err != nil {
@@ -134,5 +134,5 @@ func (r *ODPRepo) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-// Compile-time check: ODPRepo mengimplementasikan domain.ODPRepository.
+// Compile-time cek: ODPRepo mengimplementasikan domain.ODPRepository.
 var _ domain.ODPRepository = (*ODPRepo)(nil)

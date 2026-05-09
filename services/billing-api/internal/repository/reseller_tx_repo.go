@@ -22,7 +22,7 @@ func NewResellerTxRepo(queries *Queries) *ResellerTxRepo {
 	}
 }
 
-// --- Helper function untuk mapping sqlc ResellerTransaction → domain.ResellerTransaction ---
+// --- Helper function untuk mapping sqlc ResellerTransaction -> domain.ResellerTransaction ---
 
 // mapResellerTxRow memetakan ResellerTransaction (sqlc model) ke domain.ResellerTransaction.
 func mapResellerTxRow(row ResellerTransaction) *domain.ResellerTransaction {
@@ -42,7 +42,7 @@ func mapResellerTxRow(row ResellerTransaction) *domain.ResellerTransaction {
 
 // --- Implementasi domain.ResellerTransactionRepository ---
 
-// Create membuat satu transaksi reseller dan mengembalikan transaksi yang dibuat.
+// Buat membuat satu transaksi reseller dan mengembalikan transaksi yang dibuat.
 func (r *ResellerTxRepo) Create(ctx context.Context, tx *domain.ResellerTransaction) (*domain.ResellerTransaction, error) {
 	row, err := r.queries.CreateResellerTransaction(ctx, CreateResellerTransactionParams{
 		TenantID:      stringToUUID(tx.TenantID),
@@ -63,7 +63,7 @@ func (r *ResellerTxRepo) Create(ctx context.Context, tx *domain.ResellerTransact
 // ListByReseller mengambil daftar transaksi reseller dengan paginasi.
 // Mengembalikan hasil beserta metadata paginasi (total, page, page_size, total_pages).
 func (r *ResellerTxRepo) ListByReseller(ctx context.Context, params domain.ResellerTxListParams) (*domain.ResellerTxListResult, error) {
-	// Default values
+	// Nilai bawaan
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -71,7 +71,7 @@ func (r *ResellerTxRepo) ListByReseller(ctx context.Context, params domain.Resel
 		params.PageSize = 25
 	}
 
-	// Hitung total transaksi untuk pagination metadata
+	// Hitung total transaksi untuk paginasi metadata
 	total, err := r.queries.CountResellerTransactions(ctx, CountResellerTransactionsParams{
 		TenantID:   stringToUUID(params.TenantID),
 		ResellerID: stringToUUID(params.ResellerID),
@@ -80,7 +80,7 @@ func (r *ResellerTxRepo) ListByReseller(ctx context.Context, params domain.Resel
 		return nil, fmt.Errorf("repository: gagal menghitung total transaksi reseller: %w", err)
 	}
 
-	// Hitung offset untuk pagination
+	// Hitung offset untuk paginasi
 	offset := (params.Page - 1) * params.PageSize
 
 	// Ambil data transaksi
@@ -120,7 +120,7 @@ func (r *ResellerTxRepo) ListByReseller(ctx context.Context, params domain.Resel
 // ListDepositsByReseller mengambil daftar deposit reseller dengan paginasi.
 // Hanya mengembalikan transaksi dengan type='deposit'.
 func (r *ResellerTxRepo) ListDepositsByReseller(ctx context.Context, params domain.ResellerTxListParams) (*domain.ResellerTxListResult, error) {
-	// Default values
+	// Nilai bawaan
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -128,7 +128,7 @@ func (r *ResellerTxRepo) ListDepositsByReseller(ctx context.Context, params doma
 		params.PageSize = 25
 	}
 
-	// Hitung total deposit untuk pagination metadata
+	// Hitung total deposit untuk paginasi metadata
 	total, err := r.queries.CountResellerDeposits(ctx, CountResellerDepositsParams{
 		TenantID:   stringToUUID(params.TenantID),
 		ResellerID: stringToUUID(params.ResellerID),
@@ -137,7 +137,7 @@ func (r *ResellerTxRepo) ListDepositsByReseller(ctx context.Context, params doma
 		return nil, fmt.Errorf("repository: gagal menghitung total deposit reseller: %w", err)
 	}
 
-	// Hitung offset untuk pagination
+	// Hitung offset untuk paginasi
 	offset := (params.Page - 1) * params.PageSize
 
 	// Ambil data deposit

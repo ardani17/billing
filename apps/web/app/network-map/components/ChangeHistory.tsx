@@ -12,7 +12,7 @@ interface ChangeHistoryProps {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Fungsi bantus
 // ---------------------------------------------------------------------------
 
 const ACTION_LABELS: Record<string, string> = {
@@ -57,7 +57,7 @@ function formatCoordinateValue(value: unknown): string {
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Komponen
 // ---------------------------------------------------------------------------
 
 export default function ChangeHistory({ history }: ChangeHistoryProps) {
@@ -76,17 +76,17 @@ export default function ChangeHistory({ history }: ChangeHistoryProps) {
       </p>
 
       <div className="relative">
-        {/* Timeline line */}
+        {/* Timeline line*/}
         <div className="absolute left-4 top-0 h-full w-px bg-gray-200" />
 
         {history.map((entry, idx) => (
           <div key={entry.id} className="relative flex gap-3 pb-4">
-            {/* Timeline dot */}
+            {/* Timeline dot*/}
             <div className="relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white text-sm shadow-sm ring-1 ring-gray-200">
               {ACTION_ICONS[entry.action] ?? '•'}
             </div>
 
-            {/* Content */}
+            {/* Content*/}
             <div className="flex-1 pt-0.5">
               <p className="text-sm font-medium text-gray-900">
                 {ACTION_LABELS[entry.action] ?? entry.action}
@@ -95,7 +95,7 @@ export default function ChangeHistory({ history }: ChangeHistoryProps) {
                 {entry.performed_by} · {formatDate(entry.created_at)}
               </p>
 
-              {/* Show changed values for location_moved */}
+              {/* Show changed values untuk location_moved*/}
               {entry.action === 'location_moved' && entry.new_value && (
                 <div className="mt-1 rounded bg-gray-50 px-2 py-1 text-xs text-gray-600">
                   Koordinat baru:{' '}
@@ -108,7 +108,7 @@ export default function ChangeHistory({ history }: ChangeHistoryProps) {
                 </div>
               )}
 
-              {/* Show changed fields for custom_fields_updated */}
+              {/* Show changed fields untuk custom_fields_updated*/}
               {entry.action === 'custom_fields_updated' && entry.new_value && (
                 <div className="mt-1 rounded bg-gray-50 px-2 py-1 text-xs text-gray-600">
                   {Object.keys(entry.new_value).join(', ')} diperbarui

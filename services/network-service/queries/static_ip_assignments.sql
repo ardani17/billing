@@ -1,4 +1,4 @@
--- Query SQL untuk static IP assignments.
+-- Kueri SQL untuk static IP assignments.
 
 -- name: CreateStaticIPAssignment :one
 INSERT INTO static_ip_assignments (

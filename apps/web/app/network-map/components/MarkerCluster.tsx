@@ -7,10 +7,9 @@ import 'leaflet.markercluster';
 import type { MapNodeWithRef } from '../lib/api';
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Fungsi bantus
 // ---------------------------------------------------------------------------
 
-/** Determine cluster icon color based on the statuses of child ONT markers. */
 function clusterColor(
   statuses: string[],
 ): 'green' | 'yellow' | 'red' {
@@ -58,9 +57,8 @@ function createClusterIcon(cluster: L.MarkerCluster): L.DivIcon {
   });
 }
 
-/** Create a small circle marker icon for an ONT node. */
 function ontMarkerIcon(status?: string): L.DivIcon {
-  let bg = '#9ca3af'; // gray — pending
+  let bg = '#9ca3af'; // gray - pending
   if (status === 'online') bg = '#22c55e';
   else if (status === 'weak') bg = '#eab308';
   else if (status === 'offline' || status === 'los') bg = '#ef4444';
@@ -81,7 +79,7 @@ function ontMarkerIcon(status?: string): L.DivIcon {
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Komponen
 // ---------------------------------------------------------------------------
 
 interface MarkerClusterProps {
@@ -91,10 +89,9 @@ interface MarkerClusterProps {
 
 /**
  * MarkerCluster renders ONT nodes using Leaflet.markercluster.
- * Clusters are colored based on the aggregate status of contained markers:
  *   green  — all online
- *   yellow — some weak signal
- *   red    — some offline / LOS
+ *   yellow — sebagian sinyal lemah
+ *   red    — sebagian offline / LOS
  */
 export default function MarkerCluster({
   nodes,
@@ -114,7 +111,6 @@ export default function MarkerCluster({
     for (const node of nodes) {
       const marker = L.marker([node.latitude, node.longitude], {
         icon: ontMarkerIcon(node.status),
-        // Attach status so the cluster icon function can read it
         status: node.status,
       } as L.MarkerOptions & { status?: string });
 

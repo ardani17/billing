@@ -23,7 +23,7 @@ func NewBillingSettingsRepo(queries *Queries) *BillingSettingsRepo {
 	}
 }
 
-// --- Helper function untuk mapping sqlc BillingSetting → domain.BillingSettings ---
+// --- Helper function untuk mapping sqlc BillingSetting -> domain.BillingSettings ---
 
 // mapBillingSettingRow memetakan BillingSetting (sqlc model) ke domain.BillingSettings.
 func mapBillingSettingRow(row BillingSetting) *domain.BillingSettings {
@@ -116,7 +116,7 @@ func (r *BillingSettingsRepo) Upsert(ctx context.Context, settings *domain.Billi
 	return mapBillingSettingRow(row), nil
 }
 
-// ListAll mengambil semua billing settings (untuk cron job lintas tenant).
+// ListAll mengambil semua billing settings (untuk job cron lintas tenant).
 func (r *BillingSettingsRepo) ListAll(ctx context.Context) ([]*domain.BillingSettings, error) {
 	rows, err := r.queries.ListAllBillingSettings(ctx)
 	if err != nil {

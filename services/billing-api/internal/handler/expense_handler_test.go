@@ -1,5 +1,4 @@
 // expense_handler_test.go berisi integration tests untuk expense endpoints.
-// Test: CRUD operations, soft delete, category constraint, category name duplicate.
 package handler
 
 import (
@@ -17,8 +16,6 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
-
-// --- Mock ExpenseUsecase untuk expense handler tests ---
 
 // mockExpenseUsecase mengimplementasikan domain.ExpenseUsecase untuk testing.
 type mockExpenseUsecase struct {
@@ -167,8 +164,6 @@ func (m *mockExpenseUsecase) DeleteCategory(_ context.Context, id string) error 
 	return nil
 }
 
-// --- Setup helper ---
-
 func setupExpenseTestApp(mock *mockExpenseUsecase) *fiber.App {
 	logger := zerolog.New(io.Discard)
 	handler := NewExpenseHandler(mock, logger)
@@ -197,7 +192,7 @@ func setupExpenseTestApp(mock *mockExpenseUsecase) *fiber.App {
 	return app
 }
 
-// --- Test: Expense CRUD ---
+// --- Tes: Expense CRUD ---
 
 func TestExpenseHandler_Create_Success(t *testing.T) {
 	mock := newMockExpenseUsecase()
@@ -321,7 +316,6 @@ func TestExpenseHandler_Delete_Success(t *testing.T) {
 		t.Fatalf("expected 204, got %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	// Verifikasi soft delete
 	if mock.expenses["00000000-0000-0000-0000-000000000010"].DeletedAt == nil {
 		t.Fatal("expected expense to be soft deleted")
 	}
@@ -423,7 +417,7 @@ func TestExpenseHandler_List_MissingPeriod(t *testing.T) {
 	}
 }
 
-// --- Test: Category CRUD ---
+// --- Tes: Category CRUD ---
 
 func TestExpenseHandler_CreateCategory_Success(t *testing.T) {
 	mock := newMockExpenseUsecase()

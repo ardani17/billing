@@ -17,11 +17,11 @@ CREATE TABLE olt_alarms (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index untuk query alarm aktif per OLT
+-- Index untuk kueri alarm aktif per OLT
 CREATE INDEX idx_olt_alarms_olt_active
     ON olt_alarms (olt_id, status) WHERE status = 'active';
 
--- Index untuk query per tenant
+-- Index untuk kueri per tenant
 CREATE INDEX idx_olt_alarms_tenant
     ON olt_alarms (tenant_id, created_at DESC);
 

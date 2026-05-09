@@ -3,7 +3,7 @@ package domain
 import "context"
 
 // =============================================================================
-// WhatsAppProvider — interface adapter untuk pengiriman pesan WhatsApp
+// WhatsAppProvider - interface adapter untuk pengiriman pesan WhatsApp
 // =============================================================================
 
 // WhatsAppProvider mendefinisikan interface untuk provider WhatsApp.
@@ -14,7 +14,7 @@ type WhatsAppProvider interface {
 }
 
 // =============================================================================
-// SMSProvider — interface adapter untuk pengiriman pesan SMS
+// SMSProvider - interface adapter untuk pengiriman pesan SMS
 // =============================================================================
 
 // SMSProvider mendefinisikan interface untuk provider SMS.
@@ -25,7 +25,7 @@ type SMSProvider interface {
 }
 
 // =============================================================================
-// EmailProvider — interface adapter untuk pengiriman pesan Email
+// EmailProvider - interface adapter untuk pengiriman pesan Email
 // =============================================================================
 
 // EmailProvider mendefinisikan interface untuk provider Email.
@@ -36,7 +36,7 @@ type EmailProvider interface {
 }
 
 // =============================================================================
-// Pesan — struct data pesan per channel
+// Pesan - struct data pesan per channel
 // =============================================================================
 
 // WhatsAppMessage berisi data pesan WhatsApp yang akan dikirim via provider.
@@ -60,7 +60,7 @@ type EmailMessage struct {
 }
 
 // =============================================================================
-// SendResult — hasil pengiriman dari provider
+// SendResult - hasil pengiriman dari provider
 // =============================================================================
 
 // SendResult berisi hasil pengiriman dari provider adapter.

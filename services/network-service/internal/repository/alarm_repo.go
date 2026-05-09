@@ -20,7 +20,7 @@ func NewAlarmRepo(queries *Queries) *AlarmRepo {
 	return &AlarmRepo{queries: queries}
 }
 
-// --- Mapping sqlc OltAlarm → domain.OLTAlarmRecord ---
+// --- Mapping sqlc OltAlarm -> domain.OLTAlarmRecord ---
 // Menggunakan helper int4ToIntPtr dan intPtrToInt4 dari vpn_tunnel_repo.go.
 
 // mapAlarmRow memetakan OltAlarm (sqlc model) ke domain.OLTAlarmRecord.
@@ -43,7 +43,7 @@ func mapAlarmRow(row OltAlarm) *domain.OLTAlarmRecord {
 
 // --- Implementasi domain.AlarmRepository ---
 
-// Create menyimpan alarm baru dan mengembalikan alarm yang dibuat.
+// Buat menyimpan alarm baru dan mengembalikan alarm yang dibuat.
 func (r *AlarmRepo) Create(ctx context.Context, alarm *domain.OLTAlarmRecord) (*domain.OLTAlarmRecord, error) {
 	row, err := r.queries.CreateOLTAlarm(ctx, CreateOLTAlarmParams{
 		TenantID:     stringToUUID(alarm.TenantID),
@@ -150,5 +150,5 @@ func (r *AlarmRepo) PurgeOlderThan(ctx context.Context, before time.Time) (int64
 	return count, nil
 }
 
-// Compile-time check: AlarmRepo mengimplementasikan domain.AlarmRepository.
+// Compile-time cek: AlarmRepo mengimplementasikan domain.AlarmRepository.
 var _ domain.AlarmRepository = (*AlarmRepo)(nil)

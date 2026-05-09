@@ -1,4 +1,4 @@
-// Package main adalah entry point untuk service billing-api.
+// Paket main adalah titik masuk untuk service billing-api.
 // Menginisialisasi konfigurasi, logger, koneksi database, Redis,
 // dan menjalankan HTTP server menggunakan Fiber.
 //
@@ -88,7 +88,7 @@ func main() {
 	// --- Instantiate sqlc Queries ---
 	queries := repository.New(dbPool)
 
-	// --- Instantiate repositories ---
+	// --- Inisialisasi repositori ---
 	userRepo := repository.NewUserRepo(queries, dbPool)
 	sessionRepo := repository.NewSessionRepo(queries)
 	resellerSessionRepo := repository.NewResellerSessionRepo(dbPool)
@@ -102,7 +102,7 @@ func main() {
 	voucherAuditLogRepo := repository.NewVoucherAuditRepo(queries)
 	resellerTxRepo := repository.NewResellerTxRepo(queries)
 
-	// --- Instantiate invoice-related repositories ---
+	// --- Inisialisasi repositori terkait invoice ---
 	invoiceRepo := repository.NewInvoiceRepo(queries, dbPool)
 	invoiceItemRepo := repository.NewInvoiceItemRepo(queries)
 	invoicePaymentRepo := repository.NewInvoicePaymentRepo(queries, dbPool)
@@ -114,10 +114,10 @@ func main() {
 	debitNoteRepo := repository.NewDebitNoteRepo(dbPool)
 	receiptSequenceRepo := repository.NewReceiptSequenceRepo(queries)
 
-	// --- Instantiate pending sync repository ---
+	// --- Inisialisasi repositori pending sync ---
 	pendingSyncRepo := repository.NewPendingSyncRepo(queries)
 
-	// --- Instantiate reporting repositories ---
+	// --- Inisialisasi repositori laporan ---
 	expenseRepo := repository.NewExpenseRepo(queries, dbPool)
 	expenseCategoryRepo := repository.NewExpenseCategoryRepo(queries, dbPool)
 	kpiTargetRepo := repository.NewKPITargetRepo(queries, dbPool)
@@ -129,12 +129,12 @@ func main() {
 	inventoryRepo := repository.NewInventoryRepo(dbPool)
 	cashflowRepo := repository.NewCashflowRepo(dbPool)
 
-	// --- Instantiate gateway-related repositories ---
+	// --- Inisialisasi repositori terkait gateway ---
 	gatewayConfigRepo := repository.NewGatewayConfigRepo(queries, dbPool)
 	paymentLinkRepo := repository.NewPaymentLinkRepo(queries, dbPool)
 	webhookLogRepo := repository.NewWebhookLogRepo(queries)
 
-	// --- Instantiate rate limiter ---
+	// --- Inisialisasi rate limiter ---
 	rateLimiter := middleware.NewLoginRateLimiter(
 		redisClient,
 		cfg.LoginMaxAttempts,
@@ -148,7 +148,7 @@ func main() {
 		cfg.LoginLockDuration,
 	)
 
-	// --- Instantiate usecases ---
+	// --- Inisialisasi usecase ---
 	authUsecase := usecase.NewAuthUsecase(usecase.AuthUsecaseConfig{
 		UserRepo:         userRepo,
 		SessionRepo:      sessionRepo,
@@ -184,7 +184,7 @@ func main() {
 	areaUsecase := usecase.NewAreaUsecase(areaRepo, auditLogRepo, appLogger)
 	packageUsecase := usecase.NewPackageUsecase(packageRepo, auditLogRepo, queueClient, appLogger)
 
-	// --- Instantiate reseller & voucher usecases ---
+	// --- Inisialisasi usecase reseller dan voucher ---
 	resellerUsecase := usecase.NewResellerUsecase(resellerRepo, auditLogRepo, queueClient, appLogger)
 	resellerActionUsecase := usecase.NewResellerActionUsecase(
 		resellerRepo, voucherRepo, voucherAuditLogRepo, resellerTxRepo,
@@ -209,7 +209,7 @@ func main() {
 	)
 	voucherPrintUsecase := usecase.NewVoucherPrintUsecase(voucherRepo, packageRepo, appLogger)
 
-	// --- Instantiate invoice-related usecases ---
+	// --- Inisialisasi usecase terkait invoice ---
 	invoiceUsecase := usecase.NewInvoiceUsecase(
 		invoiceRepo, invoiceItemRepo, invoicePaymentRepo, invoiceAuditLogRepo,
 		invoiceSequenceRepo, billingSettingsRepo, customerRepo, packageRepo,
@@ -235,23 +235,23 @@ func main() {
 		queueClient, appLogger,
 	)
 
-	// --- Instantiate payment usecase ---
+	// --- Inisialisasi usecase pembayaran ---
 	paymentUsecase := usecase.NewPaymentUsecase(
 		invoiceRepo, invoiceItemRepo, invoicePaymentRepo, invoiceAuditLogRepo,
 		receiptSequenceRepo, billingSettingsRepo, customerRepo,
 		dbPool, queueClient, appLogger,
 	)
 
-	// --- Parse master key untuk enkripsi gateway (opsional, log warning jika belum diisi) ---
+	// --- Parsing master key untuk enkripsi gateway (opsional, log warning jika belum diisi) ---
 	masterKeyBytes, mkErr := cfg.MasterKeyBytes()
 	if mkErr != nil {
 		appLogger.Warn().Err(mkErr).Msg("GATEWAY_MASTER_KEY belum diisi, fitur payment gateway dinonaktifkan")
 	}
 
-	// Parse webhook IPs dari konfigurasi
+	// Parsing IP webhook dari konfigurasi
 	xenditIPs, midtransIPs := cfg.ParseWebhookIPs()
 
-	// --- Instantiate gateway usecases ---
+	// --- Inisialisasi usecase gateway ---
 	gatewayUsecase := usecase.NewGatewayUsecase(
 		gatewayConfigRepo, paymentLinkRepo, invoiceRepo, customerRepo,
 		billingSettingsRepo, dbPool, queueClient, masterKeyBytes, appLogger,
@@ -262,7 +262,7 @@ func main() {
 		dbPool, queueClient, masterKeyBytes, appLogger,
 	)
 
-	// --- Instantiate isolir usecase ---
+	// --- Inisialisasi usecase isolir ---
 	isolirUsecase := usecase.NewIsolirUsecase(
 		customerRepo, invoiceRepo, invoiceItemRepo, pendingSyncRepo,
 		billingSettingsRepo, invoiceAuditLogRepo,
@@ -270,10 +270,10 @@ func main() {
 	)
 	isolirUsecase.SetTenantModuleRepository(tenantModuleRepo)
 
-	// --- Instantiate network client untuk cross-service calls ---
+	// --- Inisialisasi client jaringan untuk panggilan antar-service ---
 	networkClient := usecase.NewNetworkClient(cfg.NetworkServiceURL, redisClient, appLogger)
 
-	// --- Instantiate reporting usecases ---
+	// --- Inisialisasi usecase laporan ---
 	expenseManager := usecase.NewExpenseManager(expenseRepo, expenseCategoryRepo, auditLogRepo, appLogger)
 	scheduleManager := usecase.NewScheduleManager(reportScheduleRepo, reportJobRepo, appLogger)
 	forecastEngine := usecase.NewForecastEngine(reportAggregationRepo, kpiTargetRepo, appLogger)
@@ -295,7 +295,7 @@ func main() {
 	reportManager.SetExportManager(reportJobRepo, queueClient)
 	reportManager.SetDashboardCache(dashboardCache)
 
-	// --- Instantiate handlers ---
+	// --- Inisialisasi handler ---
 	healthHandler := handler.NewHealthHandler(cfg.AppName, dbPool, redisClient)
 	authHandler := handler.NewAuthHandler(authUsecase, appLogger)
 	userHandler := handler.NewUserHandler(userManagementUsecase, appLogger)
@@ -305,7 +305,7 @@ func main() {
 	areaHandler := handler.NewAreaHandler(areaUsecase, appLogger)
 	packageHandler := handler.NewPackageHandler(packageUsecase, appLogger)
 
-	// --- Instantiate reseller & voucher handlers ---
+	// --- Inisialisasi handler reseller dan voucher ---
 	resellerHandler := handler.NewResellerHandler(resellerUsecase, appLogger)
 	resellerActionHandler := handler.NewResellerActionHandler(resellerActionUsecase, appLogger)
 	voucherHandler := handler.NewVoucherHandler(voucherUsecase, voucherActionUsecase, appLogger)
@@ -316,7 +316,7 @@ func main() {
 		voucherPrintUsecase, resellerTxRepo, appLogger,
 	)
 
-	// --- Instantiate invoice-related handlers ---
+	// --- Inisialisasi handler terkait invoice ---
 	invoiceHandler := handler.NewInvoiceHandler(invoiceUsecase, appLogger)
 	invoiceHandler.SetCronUsecase(invoiceCronUsecase)
 	invoiceActionHandler := handler.NewInvoiceActionHandler(invoiceActionUsecase, appLogger)
@@ -324,18 +324,18 @@ func main() {
 	creditNoteHandler := handler.NewCreditNoteHandler(creditNoteUsecase, appLogger)
 	debitNoteHandler := handler.NewDebitNoteHandler(debitNoteUsecase, appLogger)
 
-	// --- Instantiate payment handler ---
+	// --- Inisialisasi handler pembayaran ---
 	paymentHandler := handler.NewPaymentHandler(paymentUsecase, appLogger)
 
-	// --- Instantiate gateway handlers ---
+	// --- Inisialisasi handler gateway ---
 	gatewayHandler := handler.NewGatewayHandler(gatewayUsecase, webhookLogRepo, paymentLinkRepo, appLogger)
 	billingSettingsHandler := handler.NewBillingSettingsHandler(billingSettingsUsecase, appLogger)
 	webhookHandler := handler.NewWebhookHandler(webhookLogRepo, queueClient, xenditIPs, midtransIPs, appLogger)
 
-	// --- Instantiate isolir handler ---
+	// --- Inisialisasi handler isolir ---
 	isolirHandler := handler.NewIsolirHandler(isolirUsecase, appLogger)
 
-	// --- Instantiate reporting handlers ---
+	// --- Inisialisasi handler laporan ---
 	reportHandler := handler.NewReportHandler(reportManager, appLogger)
 	expenseHandler := handler.NewExpenseHandler(expenseManager, appLogger)
 	exportHandler := handler.NewExportHandler(reportManager, appLogger)
@@ -492,38 +492,38 @@ func main() {
 
 	appLogger.Info().Msg("asynq worker berjalan")
 
-	// Buat asynq scheduler untuk cron job expiry voucher (setiap hari jam 00:00)
+	// Buat asynq scheduler untuk job cron expiry voucher (setiap hari jam 00:00)
 	scheduler := asynq.NewScheduler(redisOpt, nil)
 
-	// Daftarkan cron job expiry voucher — dijalankan setiap hari tengah malam
+	// Daftarkan job cron expiry voucher - dijalankan setiap hari tengah malam
 	expiryTask := asynq.NewTask(worker.TaskExpiryCron, nil)
 	_, err = scheduler.Register("0 0 * * *", expiryTask)
 	if err != nil {
 		appLogger.Error().Err(err).Msg("gagal mendaftarkan cron expiry voucher")
 	}
 
-	// Daftarkan cron job invoice generate — dijalankan setiap hari jam 00:01
+	// Daftarkan job cron invoice buat - dijalankan setiap hari jam 00:01
 	invoiceGenerateTask := asynq.NewTask(worker.TaskInvoiceGenerateCron, nil)
 	_, err = scheduler.Register("1 0 * * *", invoiceGenerateTask)
 	if err != nil {
 		appLogger.Error().Err(err).Msg("gagal mendaftarkan cron invoice generate")
 	}
 
-	// Daftarkan cron job invoice overdue — dijalankan setiap hari jam 00:05
+	// Daftarkan job cron invoice terlambat - dijalankan setiap hari jam 00:05
 	invoiceOverdueTask := asynq.NewTask(worker.TaskInvoiceOverdueCron, nil)
 	_, err = scheduler.Register("5 0 * * *", invoiceOverdueTask)
 	if err != nil {
 		appLogger.Error().Err(err).Msg("gagal mendaftarkan cron invoice overdue")
 	}
 
-	// Daftarkan cron job expire payment links — dijalankan setiap jam
+	// Daftarkan job cron expire link pembayarans - dijalankan setiap jam
 	expireLinksTask := asynq.NewTask(worker.TaskExpirePaymentLinks, nil)
 	_, err = scheduler.Register("0 * * * *", expireLinksTask)
 	if err != nil {
-		appLogger.Error().Err(err).Msg("gagal mendaftarkan cron expire payment links")
+		appLogger.Error().Err(err).Msg("gagal mendaftarkan cron expire payment link")
 	}
 
-	// Daftarkan cron job cleanup webhook logs — dijalankan setiap hari jam 02:00
+	// Daftarkan job cron cleanup webhook logs - dijalankan setiap hari jam 02:00
 	cleanupWebhookTask := asynq.NewTask(worker.TaskCleanupWebhookLogs, nil)
 	_, err = scheduler.Register("0 2 * * *", cleanupWebhookTask)
 	if err != nil {
@@ -531,14 +531,14 @@ func main() {
 	}
 
 	if cfg.IsolirAutomationEnabled {
-		// Daftarkan cron job auto-isolir — dijalankan setiap hari jam 01:00
+		// Daftarkan job cron auto-isolir - dijalankan setiap hari jam 01:00
 		autoIsolirTask := asynq.NewTask(domain.TaskAutoIsolirCron, nil)
 		_, err = scheduler.Register("0 1 * * *", autoIsolirTask)
 		if err != nil {
 			appLogger.Error().Err(err).Msg("gagal mendaftarkan cron auto-isolir")
 		}
 
-		// Daftarkan cron job suspend — dijalankan setiap hari jam 02:00
+		// Daftarkan job cron suspend - dijalankan setiap hari jam 02:00
 		suspendTask := asynq.NewTask(domain.TaskSuspendCron, nil)
 		_, err = scheduler.Register("0 2 * * *", suspendTask)
 		if err != nil {
@@ -549,7 +549,7 @@ func main() {
 	}
 
 	if cfg.IsolirPeriodicSyncEnabled {
-		// Daftarkan cron job periodic sync — dijalankan setiap 15 menit
+		// Daftarkan job cron periodic sync - dijalankan setiap 15 menit
 		periodicSyncTask := asynq.NewTask(domain.TaskPeriodicSync, nil)
 		_, err = scheduler.Register("*/15 * * * *", periodicSyncTask)
 		if err != nil {
@@ -559,7 +559,7 @@ func main() {
 		appLogger.Info().Msg("cron periodic sync isolir nonaktif; retry sync jaringan berjalan manual/event")
 	}
 
-	// Daftarkan cron job jadwal laporan harian — dijalankan setiap hari jam 07:00
+	// Daftarkan job cron jadwal laporan harian - dijalankan setiap hari jam 07:00
 	dailySchedulePayload, _ := json.Marshal(map[string]string{"schedule_type": "daily"})
 	dailyScheduleTask := asynq.NewTask(worker.TaskScheduledReport, dailySchedulePayload)
 	_, err = scheduler.Register("0 7 * * *", dailyScheduleTask)
@@ -567,7 +567,7 @@ func main() {
 		appLogger.Error().Err(err).Msg("gagal mendaftarkan cron jadwal laporan harian")
 	}
 
-	// Daftarkan cron job jadwal laporan mingguan — dijalankan setiap Senin jam 07:00
+	// Daftarkan job cron jadwal laporan mingguan - dijalankan setiap Senin jam 07:00
 	weeklySchedulePayload, _ := json.Marshal(map[string]string{"schedule_type": "weekly"})
 	weeklyScheduleTask := asynq.NewTask(worker.TaskScheduledReport, weeklySchedulePayload)
 	_, err = scheduler.Register("0 7 * * 1", weeklyScheduleTask)
@@ -575,7 +575,7 @@ func main() {
 		appLogger.Error().Err(err).Msg("gagal mendaftarkan cron jadwal laporan mingguan")
 	}
 
-	// Daftarkan cron job jadwal laporan bulanan — dijalankan tanggal 1 setiap bulan jam 07:00
+	// Daftarkan job cron jadwal laporan bulanan - dijalankan tanggal 1 setiap bulan jam 07:00
 	monthlySchedulePayload, _ := json.Marshal(map[string]string{"schedule_type": "monthly"})
 	monthlyScheduleTask := asynq.NewTask(worker.TaskScheduledReport, monthlySchedulePayload)
 	_, err = scheduler.Register("0 7 1 * *", monthlyScheduleTask)
@@ -583,14 +583,14 @@ func main() {
 		appLogger.Error().Err(err).Msg("gagal mendaftarkan cron jadwal laporan bulanan")
 	}
 
-	// Daftarkan cron job pengeluaran berulang — dijalankan setiap hari jam 00:10
+	// Daftarkan job cron pengeluaran berulang - dijalankan setiap hari jam 00:10
 	recurringExpenseTask := asynq.NewTask(worker.TaskRecurringExpense, nil)
 	_, err = scheduler.Register("10 0 * * *", recurringExpenseTask)
 	if err != nil {
 		appLogger.Error().Err(err).Msg("gagal mendaftarkan cron pengeluaran berulang")
 	}
 
-	// Daftarkan cron job cleanup report jobs lama — dijalankan setiap hari jam 03:00
+	// Daftarkan job cron cleanup job laporan lama - dijalankan setiap hari jam 03:00
 	cleanupJobsTask := asynq.NewTask(worker.TaskCleanupReportJobs, nil)
 	_, err = scheduler.Register("0 3 * * *", cleanupJobsTask)
 	if err != nil {

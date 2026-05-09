@@ -1,5 +1,5 @@
 -- Migration: create_router_backups
--- Manual on-demand MikroTik export backup metadata and content.
+-- Manual on-demand MikroTik export backup metadata dan content.
 
 CREATE TABLE router_backups (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -8,8 +8,6 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// --- Mock repositories for area usecase tests ---
-
 type mockAreaRepo struct {
 	areas          map[string]*domain.Area
 	customerCounts map[string]int
@@ -125,13 +123,11 @@ func TestAreaUsecase_Create_DuplicateName(t *testing.T) {
 		Name: "Area Sukamaju",
 	}
 
-	// Create first area
 	_, err := uc.Create(ctx, "test-tenant", req, actor)
 	if err != nil {
 		t.Fatalf("first create failed: %v", err)
 	}
 
-	// Create second area with same name
 	_, err = uc.Create(ctx, "test-tenant", req, actor)
 	if err != domain.ErrAreaNameDuplicate {
 		t.Fatalf("expected ErrAreaNameDuplicate, got %v", err)
@@ -152,13 +148,11 @@ func TestAreaUsecase_Create_SameNameDifferentTenant(t *testing.T) {
 		Name: "Area Sukamaju",
 	}
 
-	// Create area for tenant A
 	_, err := uc.Create(ctx, "tenant-a", req, actor)
 	if err != nil {
 		t.Fatalf("create for tenant A failed: %v", err)
 	}
 
-	// Create area with same name for tenant B should succeed
 	_, err = uc.Create(ctx, "tenant-b", req, actor)
 	if err != nil {
 		t.Fatalf("create for tenant B should succeed, got: %v", err)
@@ -240,7 +234,6 @@ func TestAreaUsecase_Update_DuplicateName(t *testing.T) {
 	ctx := context.Background()
 	actor := ActorInfo{ID: "actor-1", Name: "Test Actor"}
 
-	// Create two areas
 	_, err := uc.Create(ctx, "test-tenant", domain.CreateAreaRequest{Name: "Area A"}, actor)
 	if err != nil {
 		t.Fatalf("create A failed: %v", err)
@@ -251,7 +244,6 @@ func TestAreaUsecase_Update_DuplicateName(t *testing.T) {
 		t.Fatalf("create B failed: %v", err)
 	}
 
-	// Try to rename B to A's name
 	_, err = uc.Update(ctx, createdB.ID, domain.UpdateAreaRequest{Name: "Area A"}, actor)
 	if err != domain.ErrAreaNameDuplicate {
 		t.Fatalf("expected ErrAreaNameDuplicate, got %v", err)
@@ -278,7 +270,6 @@ func TestAreaUsecase_Delete_Success(t *testing.T) {
 		t.Fatalf("delete failed: %v", err)
 	}
 
-	// Verify it's deleted
 	_, err = uc.GetByID(ctx, created.ID)
 	if err != domain.ErrAreaNotFound {
 		t.Fatalf("expected ErrAreaNotFound after delete, got %v", err)
@@ -300,7 +291,6 @@ func TestAreaUsecase_Delete_HasCustomers(t *testing.T) {
 		t.Fatalf("create failed: %v", err)
 	}
 
-	// Set customer count for this area
 	areaRepo.customerCounts[created.ID] = 3
 
 	err = uc.Delete(ctx, created.ID, actor)
@@ -308,7 +298,6 @@ func TestAreaUsecase_Delete_HasCustomers(t *testing.T) {
 		t.Fatal("expected error when deleting area with customers")
 	}
 
-	// Should contain ErrAreaHasCustomers
 	if !contains(err.Error(), domain.ErrAreaHasCustomers.Error()) {
 		t.Fatalf("expected error to contain %q, got %q", domain.ErrAreaHasCustomers.Error(), err.Error())
 	}
@@ -340,12 +329,10 @@ func TestAreaUsecase_List_Success(t *testing.T) {
 	ctx := context.Background()
 	actor := ActorInfo{ID: "actor-1", Name: "Test Actor"}
 
-	// Create areas for different tenants
 	_, _ = uc.Create(ctx, "tenant-a", domain.CreateAreaRequest{Name: "Area A1"}, actor)
 	_, _ = uc.Create(ctx, "tenant-a", domain.CreateAreaRequest{Name: "Area A2"}, actor)
 	_, _ = uc.Create(ctx, "tenant-b", domain.CreateAreaRequest{Name: "Area B1"}, actor)
 
-	// List for tenant A
 	areas, err := uc.List(ctx, "tenant-a")
 	if err != nil {
 		t.Fatalf("list failed: %v", err)
@@ -356,7 +343,6 @@ func TestAreaUsecase_List_Success(t *testing.T) {
 	}
 }
 
-// contains checks if a string contains a substring.
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsSubstr(s, substr))
 }

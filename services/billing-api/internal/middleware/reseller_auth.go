@@ -56,16 +56,16 @@ func ResellerAuth(jwtSecret string) fiber.Handler {
 
 // ResellerLoginRateLimiterMiddleware membuat Fiber middleware wrapper untuk LoginRateLimiter
 // yang digunakan pada endpoint login reseller.
-// Middleware ini memeriksa rate limit berdasarkan nomor telepon dari request body.
+// Middleware ini memeriksa rate limit berdasarkan nomor telepon dari permintaan body.
 // Jika nomor telepon terkunci, mengembalikan HTTP 429 dengan sisa waktu lock.
 func ResellerLoginRateLimiterMiddleware(rateLimiter *LoginRateLimiter) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Parse phone dari request body tanpa mengkonsumsi body
+		// Parsing phone dari permintaan body tanpa mengkonsumsi body
 		var body struct {
 			Phone string `json:"phone"`
 		}
 		if err := c.BodyParser(&body); err != nil || body.Phone == "" {
-			// Jika tidak bisa parse phone, lanjutkan ke handler (handler akan validasi)
+			// Jika tidak bisa parsing phone, lanjutkan ke handler (handler akan validasi)
 			return c.Next()
 		}
 

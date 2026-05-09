@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 interface UseReportDataOptions<T> {
-  /** Fungsi fetch yang mengembalikan data */
+  /** Fungsi fetch yang mengembalikan data*/
   fetcher: () => Promise<T>;
-  /** Aktifkan fetch otomatis saat mount */
+  /** Aktifkan fetch otomatis saat mount*/
   enabled?: boolean;
 }
 
@@ -17,7 +17,7 @@ interface UseReportDataResult<T> {
 }
 
 /**
- * Generic hook untuk fetch report data dengan loading, error, dan refetch.
+ * Hook generik untuk mengambil data laporan dengan loading, error, dan refetch.
  * Mendukung caching sederhana dan abort pada unmount.
  */
 export function useReportData<T>({

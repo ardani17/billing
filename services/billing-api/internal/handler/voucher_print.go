@@ -1,4 +1,4 @@
-// voucher_print.go menangani HTTP request untuk generate PDF voucher.
+// voucher_print.go menangani HTTP permintaan untuk buat PDF voucher.
 // Termasuk: bulk print voucher ke format PDF.
 package handler
 
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// VoucherPrintHandler menangani HTTP request untuk PDF generation voucher.
+// VoucherPrintHandler menangani HTTP permintaan untuk PDF generation voucher.
 type VoucherPrintHandler struct {
 	voucherPrintUsecase *usecase.VoucherPrintUsecase
 	validate            *validator.Validate
@@ -51,7 +51,7 @@ func (h *VoucherPrintHandler) BulkPrint(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	}
 
-	// Ambil informasi tenant dari JWT locals (di-set oleh auth middleware)
+	// Ambil informasi tenant dari JWT locals (di-atur oleh auth middleware)
 	tenantName, _ := c.Locals("tenant_name").(string)
 	tenantPhone, _ := c.Locals("tenant_phone").(string)
 
@@ -64,7 +64,7 @@ func (h *VoucherPrintHandler) BulkPrint(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal generate PDF voucher")
 	}
 
-	// Set header untuk response PDF
+	// Set header untuk respons PDF
 	c.Set("Content-Type", "application/pdf")
 	c.Set("Content-Disposition", "attachment; filename=vouchers.pdf")
 

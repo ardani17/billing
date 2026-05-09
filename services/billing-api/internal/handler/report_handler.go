@@ -1,4 +1,4 @@
-// report_handler.go menangani HTTP request untuk laporan.
+// report_handler.go menangani HTTP permintaan untuk laporan.
 // Berisi ReportHandler struct, constructor, helper parseFilter, dan mapReportError.
 // Method-method laporan dipecah ke file terpisah per kategori.
 package handler
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// ReportHandler menangani HTTP request untuk semua laporan.
+// ReportHandler menangani HTTP permintaan untuk semua laporan.
 type ReportHandler struct {
 	reportUsecase domain.ReportUsecase
 	logger        zerolog.Logger
@@ -27,7 +27,7 @@ func NewReportHandler(reportUsecase domain.ReportUsecase, logger zerolog.Logger)
 	}
 }
 
-// parseFilter mengambil parameter filter dari query string.
+// parseFilter mengambil parameter filter dari kueri string.
 // Mengembalikan ReportFilter dan error jika format tanggal tidak valid.
 func (h *ReportHandler) parseFilter(c *fiber.Ctx) (domain.ReportFilter, error) {
 	var filter domain.ReportFilter
@@ -77,7 +77,7 @@ func (h *ReportHandler) parseFilter(c *fiber.Ctx) (domain.ReportFilter, error) {
 	return filter, nil
 }
 
-// mapReportError memetakan domain error ke HTTP error response untuk laporan.
+// mapReportError memetakan domain error ke HTTP error respons untuk laporan.
 func (h *ReportHandler) mapReportError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrInvalidReportType):

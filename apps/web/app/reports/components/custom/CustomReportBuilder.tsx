@@ -91,7 +91,7 @@ export function CustomReportBuilder({ onPreviewData }: CustomReportBuilderProps)
       <h3 className="mb-4 text-lg font-semibold text-slate-900">Laporan Kustom</h3>
 
       <div className="space-y-4">
-        {/* Nama */}
+        {/* Nama*/}
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-700">Nama Laporan</label>
           <input
@@ -104,7 +104,7 @@ export function CustomReportBuilder({ onPreviewData }: CustomReportBuilderProps)
           />
         </div>
 
-        {/* Metrik (max 3) */}
+        {/* Metrik (max 3)*/}
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">
             Metrik (maks. 3)
@@ -135,7 +135,7 @@ export function CustomReportBuilder({ onPreviewData }: CustomReportBuilderProps)
           </div>
         </div>
 
-        {/* Group By */}
+        {/* Kelompokkan berdasarkan*/}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Group By</label>
@@ -166,7 +166,7 @@ export function CustomReportBuilder({ onPreviewData }: CustomReportBuilderProps)
           </div>
         </div>
 
-        {/* Periode */}
+        {/* Periode*/}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Dari</label>
@@ -190,7 +190,7 @@ export function CustomReportBuilder({ onPreviewData }: CustomReportBuilderProps)
           </div>
         </div>
 
-        {/* Display type */}
+        {/* Display type*/}
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">Tampilan</label>
           <div className="flex flex-wrap gap-2">
@@ -216,7 +216,7 @@ export function CustomReportBuilder({ onPreviewData }: CustomReportBuilderProps)
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
 
-        {/* Actions */}
+        {/* Actions*/}
         <div className="flex flex-wrap gap-3 pt-2">
           <button
             type="button"

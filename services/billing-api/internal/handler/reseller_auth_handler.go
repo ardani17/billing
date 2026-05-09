@@ -1,4 +1,4 @@
-// reseller_auth_handler.go menangani HTTP request untuk autentikasi reseller.
+// reseller_auth_handler.go menangani HTTP permintaan untuk autentikasi reseller.
 // Termasuk: login, logout, refresh token.
 // Reseller menggunakan phone+password, terpisah dari admin auth.
 package handler
@@ -14,7 +14,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// ResellerAuthHandler menangani HTTP request untuk autentikasi reseller.
+// ResellerAuthHandler menangani HTTP permintaan untuk autentikasi reseller.
 type ResellerAuthHandler struct {
 	resellerAuthUsecase *usecase.ResellerAuthUsecase
 	validate            *validator.Validate
@@ -22,7 +22,7 @@ type ResellerAuthHandler struct {
 }
 
 // NewResellerAuthHandler membuat instance baru ResellerAuthHandler.
-// Mendaftarkan custom validator phone_id untuk format telepon Indonesia.
+// Mendaftarkan kustom validator phone_id untuk format telepon Indonesia.
 func NewResellerAuthHandler(
 	resellerAuthUsecase *usecase.ResellerAuthUsecase,
 	logger zerolog.Logger,
@@ -115,7 +115,7 @@ func (h *ResellerAuthHandler) Refresh(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, resp)
 }
 
-// mapResellerAuthError memetakan domain error ke HTTP error response untuk auth reseller.
+// mapResellerAuthError memetakan domain error ke HTTP error respons untuk auth reseller.
 func (h *ResellerAuthHandler) mapResellerAuthError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrResellerInvalidCredentials):

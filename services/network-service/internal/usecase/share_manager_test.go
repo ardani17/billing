@@ -1,5 +1,3 @@
-// share_manager_test.go — unit test dan property test untuk ShareManager.
-// Menggunakan mock in-memory repository dan pgregory.net/rapid untuk PBT.
 // Semua komentar dalam Bahasa Indonesia.
 package usecase
 
@@ -18,7 +16,6 @@ import (
 )
 
 // =============================================================================
-// Mock Repository: ShareLinkRepository — in-memory untuk testing
 // =============================================================================
 
 // mockShareLinkRepo adalah implementasi in-memory dari domain.ShareLinkRepository.
@@ -83,10 +80,8 @@ func (r *mockShareLinkRepo) IncrementAccessCount(_ context.Context, token string
 }
 
 // =============================================================================
-// Helper: membuat ShareManager dengan mock dependencies
 // =============================================================================
 
-// newTestShareManager membuat instance ShareManager dengan mock repository.
 func newTestShareManager() (domain.ShareManager, *mockShareLinkRepo, *mockMapNodeRepo, *mockCableRouteRepo) {
 	shareRepo := newMockShareLinkRepo()
 	nodeRepo := newMockMapNodeRepo()
@@ -96,7 +91,7 @@ func newTestShareManager() (domain.ShareManager, *mockShareLinkRepo, *mockMapNod
 }
 
 // =============================================================================
-// Unit Test 1: TestCreateShareLink — buat share link baru
+// Unit Tes 1: TestCreateShareLink - buat share link baru
 // =============================================================================
 
 // TestCreateShareLink memverifikasi bahwa CreateShareLink menghasilkan
@@ -118,7 +113,6 @@ func TestCreateShareLink(t *testing.T) {
 		t.Fatalf("CreateShareLink gagal: %v", err)
 	}
 
-	// Verifikasi response
 	if resp.Token == "" {
 		t.Error("Token seharusnya tidak kosong")
 	}
@@ -137,11 +131,9 @@ func TestCreateShareLink(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 2: TestGetSharedMap_Success — akses share link valid
 // =============================================================================
 
 // TestGetSharedMap_Success memverifikasi bahwa GetSharedMap mengembalikan
-// data peta yang benar untuk share link yang valid.
 func TestGetSharedMap_Success(t *testing.T) {
 	mgr, _, nodeRepo, _ := newTestShareManager()
 	ctx := context.Background()
@@ -171,7 +163,7 @@ func TestGetSharedMap_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 3: TestGetSharedMap_Expired — akses link yang sudah expired
+// Unit Tes 3: TestGetSharedMap_Expired - akses link yang sudah expired
 // =============================================================================
 
 // TestGetSharedMap_Expired memverifikasi bahwa GetSharedMap mengembalikan
@@ -208,7 +200,7 @@ func TestGetSharedMap_Expired(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 4: TestGetSharedMap_WrongPassword — password salah
+// Unit Tes 4: TestGetSharedMap_WrongPassword - password salah
 // =============================================================================
 
 // TestGetSharedMap_WrongPassword memverifikasi bahwa GetSharedMap mengembalikan
@@ -243,7 +235,7 @@ func TestGetSharedMap_WrongPassword(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 5: TestDeleteShareLink — hapus share link
+// Unit Tes 5: TestDeleteShareLink - hapus share link
 // =============================================================================
 
 // TestDeleteShareLink memverifikasi bahwa DeleteShareLink menghapus link
@@ -274,7 +266,7 @@ func TestDeleteShareLink(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 6: TestListShareLinks — daftar share link per tenant
+// Unit Tes 6: TestListShareLinks - daftar share link per tenant
 // =============================================================================
 
 // TestListShareLinks memverifikasi bahwa ListShareLinks mengembalikan
@@ -301,7 +293,6 @@ func TestListShareLinks(t *testing.T) {
 		t.Fatalf("CreateShareLink gagal: %v", err)
 	}
 
-	// List untuk tenant-list
 	links, err := mgr.ListShareLinks(ctx, "tenant-list")
 	if err != nil {
 		t.Fatalf("ListShareLinks gagal: %v", err)
@@ -313,14 +304,13 @@ func TestListShareLinks(t *testing.T) {
 }
 
 // =============================================================================
-// Property Test 12: Share Link Expiry Enforcement
 // =============================================================================
 
 // TestPropertyShareLinkExpiryEnforcement memverifikasi bahwa share link
 // dengan expires_at di masa lalu selalu ditolak, dan link tanpa expiry
 // atau dengan expiry di masa depan selalu diterima.
 //
-// **Validates: Requirements 9.3**
+// **Memvalidasi: Kebutuhan 9.3**
 func TestPropertyShareLinkExpiryEnforcement(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		shareRepo := newMockShareLinkRepo()
@@ -329,7 +319,7 @@ func TestPropertyShareLinkExpiryEnforcement(t *testing.T) {
 		mgr := NewShareManager(shareRepo, nodeRepo, cableRepo)
 		ctx := context.Background()
 
-		// Generate parameter share link
+		// Buat parameter share link
 		hasExpiry := rapid.Bool().Draw(t, "hasExpiry")
 		layers, _ := json.Marshal([]string{"olt", "odp"})
 
@@ -370,7 +360,6 @@ func TestPropertyShareLinkExpiryEnforcement(t *testing.T) {
 				t.Fatalf("link expired seharusnya ditolak dengan ErrShareLinkExpired, got: %v", err)
 			}
 		} else {
-			// Properti: link valid (tidak expired) harus diterima
 			if err == domain.ErrShareLinkExpired {
 				t.Fatalf("link valid seharusnya tidak ditolak karena expiry")
 			}
@@ -379,7 +368,7 @@ func TestPropertyShareLinkExpiryEnforcement(t *testing.T) {
 }
 
 // =============================================================================
-// Variabel yang tidak digunakan — suppress compiler warning
+// Variabel yang tidak digunakan - suppress compiler warning
 // =============================================================================
 
 // Pastikan bcrypt diimpor (digunakan oleh share_manager.go).

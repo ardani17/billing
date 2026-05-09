@@ -28,5 +28,5 @@ CREATE POLICY tenant_insert ON areas
 -- Unique constraint: nama area unik per tenant
 ALTER TABLE areas ADD CONSTRAINT uq_areas_tenant_name UNIQUE (tenant_id, name);
 
--- Index pada tenant_id untuk performa query
+-- Index pada tenant_id untuk performa kueri
 CREATE INDEX idx_areas_tenant_id ON areas(tenant_id);

@@ -1,5 +1,4 @@
-// schedule_handler_test.go berisi integration tests untuk schedule endpoints.
-// Test: CRUD schedule operations, validation, error handling.
+// schedule_handler_test.go berisi integration tests untuk jadwal endpoints.
 package handler
 
 import (
@@ -17,8 +16,6 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
-
-// --- Mock ScheduleUsecase untuk schedule handler tests ---
 
 // mockScheduleUsecase mengimplementasikan domain.ScheduleUsecase untuk testing.
 type mockScheduleUsecase struct {
@@ -92,8 +89,6 @@ func (m *mockScheduleUsecase) List(_ context.Context, tenantID string) ([]*domai
 	return result, nil
 }
 
-// --- Setup helper ---
-
 func setupScheduleTestApp(mock *mockScheduleUsecase) *fiber.App {
 	logger := zerolog.New(io.Discard)
 	handler := NewScheduleHandler(mock, logger)
@@ -116,7 +111,7 @@ func setupScheduleTestApp(mock *mockScheduleUsecase) *fiber.App {
 	return app
 }
 
-// --- Test: Schedule CRUD ---
+// --- Tes: Schedule CRUD ---
 
 func TestScheduleHandler_Create_Success(t *testing.T) {
 	mock := newMockScheduleUsecase()
@@ -170,7 +165,6 @@ func TestScheduleHandler_Create_ValidationError(t *testing.T) {
 	mock := newMockScheduleUsecase()
 	app := setupScheduleTestApp(mock)
 
-	// schedule_type tidak valid
 	body, _ := json.Marshal(map[string]interface{}{
 		"report_type":   "revenue",
 		"schedule_type": "invalid_type",
@@ -291,7 +285,7 @@ func TestScheduleHandler_Unauthorized(t *testing.T) {
 	handler := NewScheduleHandler(mock, logger)
 
 	app := fiber.New()
-	// Tanpa middleware set tenant_id
+	// Tanpa middleware atur tenant_id
 	app.Get("/api/v1/reports/schedules", handler.List)
 
 	req := httptest.NewRequest("GET", "/api/v1/reports/schedules", nil)

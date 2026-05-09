@@ -1,8 +1,7 @@
--- Query SQL untuk operasi CRUD tabel map_nodes.
+-- Kueri SQL untuk operasi CRUD tabel map_nodes.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel map_nodes dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted
--- kecuali query yang secara eksplisit menangani trashed nodes.
+-- Tabel map_nodes dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
+-- kecuali kueri yang secara eksplisit menangani trashed nodes.
 
 -- name: CreateMapNode :one
 INSERT INTO map_nodes (
@@ -70,7 +69,7 @@ SELECT id, tenant_id, node_type, reference_id,
 FROM map_nodes
 WHERE tenant_id = $1 AND node_type = $2 AND reference_id = $3 AND deleted_at IS NULL;
 
--- name: SearchMapNodes :many
+-- name: PencarianMapNodes :many
 SELECT mn.id, mn.tenant_id, mn.node_type, mn.reference_id,
     mn.latitude, mn.longitude, mn.custom_fields,
     mn.created_at, mn.updated_at,

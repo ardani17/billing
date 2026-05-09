@@ -18,8 +18,8 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/repository"
 )
 
-// DefaultVoucherExpiryDays adalah default masa berlaku voucher setelah pembelian (dalam hari).
-// Dapat dikonfigurasi per tenant, namun saat ini menggunakan nilai default 90 hari.
+// DefaultVoucherExpiryDays adalah bawaan masa berlaku voucher setelah pembelian (dalam hari).
+// Dapat dikonfigurasi per tenant, namun saat ini menggunakan nilai bawaan 90 hari.
 const DefaultVoucherExpiryDays = 90
 
 // VoucherPurchaseUsecase mengimplementasikan business logic untuk pembelian voucher oleh reseller.
@@ -61,14 +61,14 @@ func NewVoucherPurchaseUsecase(
 }
 
 // Buy melakukan pembelian voucher oleh reseller secara atomik.
-// Flow: BEGIN TX → GetForUpdate(resellerID) (row lock) → verifikasi status aktif →
-// cek batas pembelian harian → ambil paket (verifikasi type=voucher, is_active=true) →
-// hitung totalCost = quantity × reseller_price → verifikasi saldo cukup →
-// ambil voucher tersedia berdasarkan paket → untuk setiap voucher: AssignToReseller
-// (set sell_price_snapshot, reseller_price_snapshot, purchased_at, expires_at) →
-// tulis voucher audit log (voucher.sold, actor=reseller) →
-// UpdateBalance(balance - totalCost) → buat reseller_transaction (type=purchase) →
-// COMMIT → publish event voucher.purchased → kembalikan BuyVoucherResult.
+// Alur: BEGIN TX -> GetForUpdate(resellerID) (row lock) -> verifikasi status aktif ->
+// cek batas pembelian harian -> ambil paket (verifikasi type=voucher, is_active=true) ->
+// hitung totalCost = quantity × reseller_price -> verifikasi saldo cukup ->
+// ambil voucher tersedia berdasarkan paket -> untuk setiap voucher: AssignToReseller
+// (atur sell_price_snapshot, reseller_price_snapshot, purchased_at, expires_at) ->
+// tulis voucher audit log (voucher.sold, actor=reseller) ->
+// UpdateBalance(balance - totalCost) -> buat reseller_transaction (type=purchase) ->
+// COMMIT -> terbitkan event voucher.purchased -> kembalikan BuyVoucherResult.
 func (uc *VoucherPurchaseUsecase) Buy(ctx context.Context, resellerID string, req domain.BuyVoucherRequest) (*domain.BuyVoucherResult, error) {
 	// Mulai database transaction
 	tx, err := uc.pool.Begin(ctx)
@@ -145,7 +145,7 @@ func (uc *VoucherPurchaseUsecase) Buy(ctx context.Context, resellerID string, re
 		return nil, fmt.Errorf("%w: diminta %d, tersedia %d", domain.ErrVoucherStockInsufficient, req.Quantity, len(availableVouchers))
 	}
 
-	// Hitung tanggal kedaluwarsa voucher (default 90 hari dari sekarang)
+	// Hitung tanggal kedaluwarsa voucher (bawaan 90 hari dari sekarang)
 	now := time.Now()
 	expiresAt := now.AddDate(0, 0, DefaultVoucherExpiryDays)
 
@@ -176,7 +176,7 @@ func (uc *VoucherPurchaseUsecase) Buy(ctx context.Context, resellerID string, re
 		}
 	}
 
-	// Hitung saldo baru dan update balance reseller
+	// Hitung saldo baru dan perbarui balance reseller
 	balanceBefore := reseller.Balance
 	balanceAfter := balanceBefore - totalCost
 
@@ -203,7 +203,7 @@ func (uc *VoucherPurchaseUsecase) Buy(ctx context.Context, resellerID string, re
 		return nil, fmt.Errorf("usecase: gagal commit transaksi pembelian voucher: %w", err)
 	}
 
-	// Publish event voucher.purchased (di luar transaksi, tidak boleh gagalkan operasi utama)
+	// Terbitkan event voucher.purchased (di luar transaksi, tidak boleh gagalkan operasi utama)
 	uc.publishEvent(reseller.TenantID, "voucher.purchased", domain.VoucherPurchasedPayload{
 		TenantID:   reseller.TenantID,
 		ResellerID: resellerID,
@@ -219,7 +219,7 @@ func (uc *VoucherPurchaseUsecase) Buy(ctx context.Context, resellerID string, re
 	}, nil
 }
 
-// --- Helper methods ---
+// --- Fungsi bantu methods ---
 
 // publishEvent mempublikasikan event ke Redis queue.
 // Tidak mengembalikan error agar operasi utama tidak gagal.

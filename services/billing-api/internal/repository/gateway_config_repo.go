@@ -29,11 +29,11 @@ func NewGatewayConfigRepo(queries *Queries, pool *pgxpool.Pool) *GatewayConfigRe
 	}
 }
 
-// --- Helper: mapping sqlc PaymentGatewayConfig → domain.GatewayConfig ---
+// --- Helper: mapping sqlc PaymentGatewayConfig -> domain.GatewayConfig ---
 
 // mapGatewayConfigRow memetakan PaymentGatewayConfig (sqlc model) ke domain.GatewayConfig.
-// Konversi: pgtype.UUID → string, pgtype.Timestamptz → time.Time,
-// []byte (JSONB) → []string, int32 → int.
+// Konversi: pgtype.UUID -> string, pgtype.Timestamptz -> time.Time,
+// []byte (JSONB) -> []string, int32 -> int.
 func mapGatewayConfigRow(row PaymentGatewayConfig) (*domain.GatewayConfig, error) {
 	// Konversi enabled_methods dari JSONB ([]byte) ke []string
 	var methods []string
@@ -59,7 +59,7 @@ func mapGatewayConfigRow(row PaymentGatewayConfig) (*domain.GatewayConfig, error
 
 // --- Implementasi domain.GatewayConfigRepository ---
 
-// Create membuat konfigurasi gateway baru dan mengembalikan konfigurasi yang dibuat.
+// Buat membuat konfigurasi gateway baru dan mengembalikan konfigurasi yang dibuat.
 func (r *GatewayConfigRepo) Create(ctx context.Context, config *domain.GatewayConfig) (*domain.GatewayConfig, error) {
 	// Konversi enabled_methods dari []string ke []byte (JSONB)
 	methodsJSON, err := json.Marshal(config.EnabledMethods)
@@ -93,7 +93,7 @@ func (r *GatewayConfigRepo) GetByID(ctx context.Context, id string) (*domain.Gat
 	return mapGatewayConfigRow(row)
 }
 
-// Update memperbarui konfigurasi gateway dan mengembalikan konfigurasi yang diperbarui.
+// Perbarui memperbarui konfigurasi gateway dan mengembalikan konfigurasi yang diperbarui.
 func (r *GatewayConfigRepo) Update(ctx context.Context, config *domain.GatewayConfig) (*domain.GatewayConfig, error) {
 	// Konversi enabled_methods dari []string ke []byte (JSONB)
 	methodsJSON, err := json.Marshal(config.EnabledMethods)
@@ -117,7 +117,7 @@ func (r *GatewayConfigRepo) Update(ctx context.Context, config *domain.GatewayCo
 	return mapGatewayConfigRow(row)
 }
 
-// Deactivate menonaktifkan konfigurasi gateway (soft delete, set is_active=false).
+// Deactivate menonaktifkan konfigurasi gateway (hapus lunak, atur is_active=false).
 func (r *GatewayConfigRepo) Deactivate(ctx context.Context, id string) error {
 	err := r.queries.DeactivateGatewayConfig(ctx, stringToUUID(id))
 	if err != nil {

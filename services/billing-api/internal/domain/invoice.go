@@ -8,7 +8,7 @@ import (
 )
 
 // =============================================================================
-// Invoice Status State Machine
+// Invoice Status Mesin status
 // =============================================================================
 
 // InvoiceStatus mendefinisikan status invoice dalam sistem.
@@ -30,8 +30,8 @@ var ValidInvoiceTransitions = map[InvoiceStatus][]InvoiceStatus{
 	InvoiceStatusTerlambat:     {InvoiceStatusLunas, InvoiceStatusBayarSebagian, InvoiceStatusBatal},
 	InvoiceStatusBayarSebagian: {InvoiceStatusLunas, InvoiceStatusBatal},
 	InvoiceStatusProrate:       {InvoiceStatusLunas, InvoiceStatusBayarSebagian, InvoiceStatusBatal},
-	InvoiceStatusLunas:         {}, // terminal state
-	InvoiceStatusBatal:         {}, // terminal state
+	InvoiceStatusLunas:         {}, // status akhir
+	InvoiceStatusBatal:         {}, // status akhir
 }
 
 // CanInvoiceTransition memeriksa apakah transisi dari current ke target valid.
@@ -78,7 +78,7 @@ func AllowedInvoiceTargets(current InvoiceStatus) []InvoiceStatus {
 }
 
 // =============================================================================
-// Invoice Item Type — tipe item dalam invoice
+// Invoice Item Type - tipe item dalam invoice
 // =============================================================================
 
 // InvoiceItemType mendefinisikan tipe item invoice.
@@ -98,7 +98,7 @@ const (
 )
 
 // =============================================================================
-// Penalty Type — tipe denda keterlambatan
+// Penalty Type - tipe denda keterlambatan
 // =============================================================================
 
 // PenaltyType mendefinisikan tipe denda keterlambatan.
@@ -111,7 +111,7 @@ const (
 )
 
 // =============================================================================
-// Invoice Entity
+// Invoice Entitas
 // =============================================================================
 
 // Invoice merepresentasikan invoice pelanggan ISP.
@@ -137,7 +137,7 @@ type Invoice struct {
 	Version        int           `json:"version"`
 	CreatedAt      time.Time     `json:"created_at"`
 	UpdatedAt      time.Time     `json:"updated_at"`
-	// Field gabungan (dari query JOIN)
+	// Field gabungan (dari kueri JOIN)
 	CustomerName    string `json:"customer_name,omitempty"`
 	CustomerIDSeq   string `json:"customer_id_seq,omitempty"`
 	CustomerPhone   string `json:"customer_phone,omitempty"`
@@ -146,7 +146,7 @@ type Invoice struct {
 }
 
 // =============================================================================
-// InvoiceItem Entity — satu baris item dalam invoice
+// InvoiceItem Entitas - satu baris item dalam invoice
 // =============================================================================
 
 // InvoiceItem merepresentasikan satu baris item dalam invoice.
@@ -165,7 +165,7 @@ type InvoiceItem struct {
 }
 
 // =============================================================================
-// InvoicePayment Entity — catatan pembayaran terhadap invoice
+// InvoicePayment Entitas - catatan pembayaran terhadap invoice
 // =============================================================================
 
 // InvoicePayment merepresentasikan catatan pembayaran terhadap invoice.
@@ -191,7 +191,7 @@ type InvoicePayment struct {
 }
 
 // =============================================================================
-// InvoiceAuditLog Entity — catatan lifecycle invoice (append-only)
+// InvoiceAuditLog Entitas - catatan lifecycle invoice (append-only)
 // =============================================================================
 
 // InvoiceAuditLog merepresentasikan catatan lifecycle invoice (append-only).
@@ -207,12 +207,12 @@ type InvoiceAuditLog struct {
 }
 
 // =============================================================================
-// CalculateLateFee — menghitung denda keterlambatan
+// CalculateLateFee - menghitung denda keterlambatan
 // =============================================================================
 
 // CalculateLateFee menghitung denda keterlambatan berdasarkan konfigurasi billing.
 // Mengembalikan jumlah denda yang sudah di-cap oleh penalty_max_amount (jika > 0).
-// Jika penalty tidak diaktifkan, mengembalikan 0.
+// Jika denda tidak diaktifkan, mengembalikan 0.
 func CalculateLateFee(settings *BillingSettings, subtotal int64, daysOverdue int) int64 {
 	if settings == nil || !settings.PenaltyEnabled {
 		return 0
@@ -240,7 +240,7 @@ func CalculateLateFee(settings *BillingSettings, subtotal int64, daysOverdue int
 }
 
 // =============================================================================
-// Domain Error Variables — error khusus domain invoice
+// Variabel error domain - error khusus domain invoice
 // =============================================================================
 
 var (
@@ -268,7 +268,7 @@ var (
 	// ErrDebitNoteNotFound dikembalikan saat debit note tidak ditemukan
 	ErrDebitNoteNotFound = errors.New("debit note tidak ditemukan")
 
-	// ErrRecurringItemNotFound dikembalikan saat recurring item tidak ditemukan
+	// ErrRecurringItemNotFound dikembalikan saat item berulang tidak ditemukan
 	ErrRecurringItemNotFound = errors.New("recurring item tidak ditemukan")
 
 	// ErrBillingSettingsNotFound dikembalikan saat billing settings tidak ditemukan untuk tenant

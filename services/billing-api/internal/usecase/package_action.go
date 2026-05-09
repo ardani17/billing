@@ -1,4 +1,4 @@
-// package_action.go berisi business logic untuk aksi paket: activate, deactivate, duplicate.
+// package_action.go berisi business logic untuk aksi paket: aktifkan, deactivate, duplicate.
 // Mengimplementasikan Activate, Deactivate, Duplicate pada packageUsecase.
 package usecase
 
@@ -10,7 +10,7 @@ import (
 )
 
 // Activate mengaktifkan paket yang sedang nonaktif.
-// Flow: fetch → cek sudah aktif → update is_active=true → audit log.
+// Alur: ambil -> cek sudah aktif -> perbarui is_active=true -> audit log.
 func (uc *packageUsecase) Activate(ctx context.Context, id string, actor domain.ActorInfo) (*domain.Package, error) {
 	pkg, err := uc.packageRepo.GetByID(ctx, id)
 	if err != nil {
@@ -22,7 +22,7 @@ func (uc *packageUsecase) Activate(ctx context.Context, id string, actor domain.
 		return nil, domain.ErrPackageAlreadyActive
 	}
 
-	// Update status aktif
+	// Perbarui status aktif
 	updated, err := uc.packageRepo.UpdateIsActive(ctx, id, true)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal mengaktifkan paket: %w", err)
@@ -37,7 +37,7 @@ func (uc *packageUsecase) Activate(ctx context.Context, id string, actor domain.
 }
 
 // Deactivate menonaktifkan paket yang sedang aktif.
-// Flow: fetch → cek sudah nonaktif → update is_active=false → audit log.
+// Alur: ambil -> cek sudah nonaktif -> perbarui is_active=false -> audit log.
 func (uc *packageUsecase) Deactivate(ctx context.Context, id string, actor domain.ActorInfo) (*domain.Package, error) {
 	pkg, err := uc.packageRepo.GetByID(ctx, id)
 	if err != nil {
@@ -49,7 +49,7 @@ func (uc *packageUsecase) Deactivate(ctx context.Context, id string, actor domai
 		return nil, domain.ErrPackageAlreadyInactive
 	}
 
-	// Update status nonaktif
+	// Perbarui status nonaktif
 	updated, err := uc.packageRepo.UpdateIsActive(ctx, id, false)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal menonaktifkan paket: %w", err)
@@ -64,21 +64,21 @@ func (uc *packageUsecase) Deactivate(ctx context.Context, id string, actor domai
 }
 
 // Duplicate menduplikasi paket yang sudah ada dengan nama unik.
-// Flow: fetch source → list nama by prefix → generate nama duplikat → create → audit log.
+// Alur: ambil sumber -> list nama by prefix -> buat nama duplikat -> buat -> audit log.
 func (uc *packageUsecase) Duplicate(ctx context.Context, id string, actor domain.ActorInfo) (*domain.Package, error) {
-	// Fetch paket sumber
+	// Ambil paket sumber
 	source, err := uc.packageRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	// Ambil daftar nama yang sudah ada dengan prefix yang sama untuk collision check
+	// Ambil daftar nama yang sudah ada dengan prefix yang sama untuk collision cek
 	existingNames, err := uc.packageRepo.ListNamesByPrefix(ctx, source.TenantID, source.Name)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal mengambil nama paket by prefix: %w", err)
 	}
 
-	// Generate nama duplikat yang unik
+	// Buat nama duplikat yang unik
 	newName := domain.GenerateDuplicateName(source.Name, existingNames)
 
 	// Buat paket baru dengan field yang disalin dari sumber

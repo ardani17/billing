@@ -1,5 +1,4 @@
-// payment_handler.go menangani HTTP request untuk modul pembayaran manual.
-// Termasuk: list, summary, quick payment, multi-invoice, pay-all, receipt,
+// payment_handler.go menangani HTTP permintaan untuk modul pembayaran manual.
 // void, bulk import, dan bukti transfer.
 package handler
 
@@ -16,7 +15,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// PaymentHandler menangani HTTP request untuk modul pembayaran manual.
+// PaymentHandler menangani HTTP permintaan untuk modul pembayaran manual.
 type PaymentHandler struct {
 	paymentUsecase *usecase.PaymentUsecase
 	validate       *validator.Validate
@@ -101,7 +100,7 @@ func (h *PaymentHandler) Summary(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, summary)
 }
 
-// SearchCustomers menangani GET /v1/payments/quick/customers.
+// PencarianCustomers menangani GET /v1/payments/quick/customers.
 // Mencari pelanggan berdasarkan nama, ID, atau telepon untuk pembayaran cepat.
 func (h *PaymentHandler) SearchCustomers(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -314,7 +313,7 @@ func (h *PaymentHandler) GetProof(c *fiber.Ctx) error {
 	return c.Send(data)
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *PaymentHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -324,7 +323,7 @@ func (h *PaymentHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapPaymentError memetakan domain error ke HTTP error response.
+// mapPaymentError memetakan domain error ke HTTP error respons.
 func (h *PaymentHandler) mapPaymentError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrPaymentNotFound):

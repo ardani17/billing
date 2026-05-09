@@ -6,7 +6,7 @@ import (
 )
 
 // =============================================================================
-// Konstanta Haversine — parameter untuk kalkulasi jarak geospasial
+// Konstanta Haversine - parameter untuk kalkulasi jarak geospasial
 // =============================================================================
 
 const (
@@ -16,7 +16,7 @@ const (
 )
 
 // =============================================================================
-// Haversine — menghitung jarak antara dua koordinat GPS dalam meter
+// Haversine - menghitung jarak antara dua koordinat GPS dalam meter
 // =============================================================================
 
 // Haversine menghitung jarak antara dua koordinat GPS dalam meter
@@ -26,7 +26,7 @@ const (
 // Parameter lat2, lng2 adalah koordinat titik kedua (derajat).
 // Mengembalikan jarak dalam meter.
 //
-// Fungsi pure — tidak ada side effect, cocok untuk property-based testing.
+// Fungsi pure - tidak ada side effect, cocok untuk property-based testing.
 func Haversine(lat1, lng1, lat2, lng2 float64) float64 {
 	// Konversi derajat ke radian
 	lat1Rad := degreesToRadians(lat1)
@@ -49,7 +49,7 @@ func Haversine(lat1, lng1, lat2, lng2 float64) float64 {
 }
 
 // =============================================================================
-// CalculateRouteDistance — menghitung total jarak polyline dari array koordinat
+// CalculateRouteDistance - menghitung total jarak polyline dari array koordinat
 // =============================================================================
 
 // CalculateRouteDistance menghitung total jarak polyline dari array koordinat.
@@ -58,7 +58,7 @@ func Haversine(lat1, lng1, lat2, lng2 float64) float64 {
 //
 // Format koordinat: [][2]float64 dimana [0] = latitude, [1] = longitude.
 //
-// Fungsi pure — tidak ada side effect, cocok untuk property-based testing.
+// Fungsi pure - tidak ada side effect, cocok untuk property-based testing.
 func CalculateRouteDistance(coordinates [][2]float64) float64 {
 	if len(coordinates) < 2 {
 		return 0
@@ -76,7 +76,7 @@ func CalculateRouteDistance(coordinates [][2]float64) float64 {
 }
 
 // =============================================================================
-// ValidateCoordinate — validasi koordinat GPS dalam range yang valid
+// ValidateCoordinate - validasi koordinat GPS dalam range yang valid
 // =============================================================================
 
 // ValidateCoordinate memvalidasi apakah koordinat GPS berada dalam range yang valid.
@@ -93,7 +93,7 @@ func ValidateCoordinate(lat, lng float64) error {
 }
 
 // =============================================================================
-// Helper internal — konversi derajat ke radian
+// Fungsi bantu internal - konversi derajat ke radian
 // =============================================================================
 
 // degreesToRadians mengkonversi sudut dari derajat ke radian.

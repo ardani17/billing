@@ -23,7 +23,7 @@ type ResellerAuthUsecaseConfig struct {
 	RateLimiter  *middleware.LoginRateLimiter
 	JWTSecret    string
 	JWTExpiry    time.Duration
-	// SessionExpiry adalah durasi session reseller (default 24 jam).
+	// SessionExpiry adalah durasi session reseller (bawaan 24 jam).
 	SessionExpiry time.Duration
 }
 
@@ -42,7 +42,7 @@ type ResellerAuthUsecase struct {
 func NewResellerAuthUsecase(cfg ResellerAuthUsecaseConfig, logger zerolog.Logger) *ResellerAuthUsecase {
 	sessionExpiry := cfg.SessionExpiry
 	if sessionExpiry == 0 {
-		sessionExpiry = 24 * time.Hour // default 24 jam untuk reseller
+		sessionExpiry = 24 * time.Hour // bawaan 24 jam untuk reseller
 	}
 
 	return &ResellerAuthUsecase{
@@ -57,9 +57,9 @@ func NewResellerAuthUsecase(cfg ResellerAuthUsecaseConfig, logger zerolog.Logger
 }
 
 // Login memverifikasi credential reseller dan mengembalikan JWT + refresh token.
-// Flow: cek rate limiter (phone-based) → ambil reseller by phone → verifikasi status aktif →
-// verifikasi password → buat session (24h expiry) → generate JWT dengan claims reseller →
-// update last_login → reset rate limiter → kembalikan tokens + reseller.
+// Alur: cek rate limiter (phone-based) -> ambil reseller by phone -> verifikasi status aktif ->
+// verifikasi password -> buat session (24h expiry) -> buat JWT dengan claims reseller ->
+// perbarui last_login -> reset rate limiter -> kembalikan tokens + reseller.
 func (uc *ResellerAuthUsecase) Login(ctx context.Context, req domain.ResellerLoginRequest) (*domain.ResellerLoginResponse, error) {
 	// Cek rate limiter sebelum proses login (menggunakan phone sebagai key)
 	allowed, remainingSec, err := uc.rateLimiter.Check(ctx, req.Phone)
@@ -95,7 +95,7 @@ func (uc *ResellerAuthUsecase) Login(ctx context.Context, req domain.ResellerLog
 		return nil, domain.ErrResellerInvalidCredentials
 	}
 
-	// Generate JWT token dengan claims reseller
+	// Buat JWT token dengan claims reseller
 	accessToken, err := uc.generateResellerJWT(reseller)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate JWT: %w", err)
@@ -107,7 +107,7 @@ func (uc *ResellerAuthUsecase) Login(ctx context.Context, req domain.ResellerLog
 		return nil, fmt.Errorf("gagal membuat session: %w", err)
 	}
 
-	// Update last_login pada reseller
+	// Perbarui last_login pada reseller
 	if err := uc.resellerRepo.UpdateLastLogin(ctx, reseller.ID); err != nil {
 		uc.logger.Error().Err(err).Str("reseller_id", reseller.ID).Msg("gagal update last_login reseller")
 	}
@@ -135,13 +135,13 @@ func (uc *ResellerAuthUsecase) Logout(ctx context.Context, refreshToken string) 
 }
 
 // RefreshToken memperpanjang JWT reseller dengan refresh token.
-// Flow: hash refresh token → lookup session → verifikasi belum expired →
-// rotate token (hapus session lama, buat baru) → generate JWT baru.
+// Alur: hash refresh token -> lookup session -> verifikasi belum expired ->
+// rotate token (hapus session lama, buat baru) -> buat JWT baru.
 func (uc *ResellerAuthUsecase) RefreshToken(ctx context.Context, refreshToken string) (*domain.TokenPair, error) {
 	// Hash refresh token untuk lookup di database
 	tokenHash := HashToken(refreshToken)
 
-	// Cari session berdasarkan token hash (query sudah filter expires_at > NOW())
+	// Cari session berdasarkan token hash (kueri sudah filter expires_at > NOW())
 	session, err := uc.sessionRepo.GetByTokenHash(ctx, tokenHash)
 	if err != nil {
 		if errors.Is(err, domain.ErrTokenNotFound) {
@@ -179,7 +179,7 @@ func (uc *ResellerAuthUsecase) RefreshToken(ctx context.Context, refreshToken st
 		return nil, fmt.Errorf("gagal membuat session baru: %w", err)
 	}
 
-	// Generate JWT baru
+	// Buat JWT baru
 	accessToken, err := uc.generateResellerJWT(reseller)
 	if err != nil {
 		return nil, fmt.Errorf("gagal generate JWT: %w", err)
@@ -192,7 +192,7 @@ func (uc *ResellerAuthUsecase) RefreshToken(ctx context.Context, refreshToken st
 	}, nil
 }
 
-// --- Helper Methods ---
+// --- Fungsi bantu Methods ---
 
 // generateResellerJWT membuat JWT token untuk reseller dengan claims khusus reseller.
 // Claims: reseller_id (sebagai UserID), tenant_id, name (tidak digunakan di claims standar),
@@ -216,7 +216,7 @@ func (uc *ResellerAuthUsecase) generateResellerJWT(reseller *domain.Reseller) (s
 }
 
 // createResellerSession membuat session baru untuk reseller dengan refresh token.
-// Session expiry diset ke 24 jam (konfigurasi default reseller).
+// Session expiry diset ke 24 jam (konfigurasi bawaan reseller).
 // Mengembalikan plaintext refresh token dan session yang dibuat.
 func (uc *ResellerAuthUsecase) createResellerSession(ctx context.Context, resellerID string) (string, *domain.Session, error) {
 	plainToken, tokenHash, err := GenerateSecureToken()

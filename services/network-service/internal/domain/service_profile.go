@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-// --- Service Profile Entity ---
+// --- Service Profile Entitas ---
 
 // ServiceProfile merepresentasikan mapping antara paket ISPBoss dan OLT profile.
 // Digunakan saat provisioning untuk menentukan line profile dan service profile

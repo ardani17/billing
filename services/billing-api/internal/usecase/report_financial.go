@@ -42,7 +42,7 @@ func (rm *ReportManager) buildProfitLoss(ctx context.Context, tenantID string, p
 		return nil, err
 	}
 
-	// Bangun revenue line items
+	// Bangun revenue line item
 	revenueItems := []domain.ProfitLossLineItem{
 		{Label: "Tagihan Bulanan", Amount: revenue.MonthlySubscription},
 		{Label: "Penjualan Voucher", Amount: revenue.VoucherSales},

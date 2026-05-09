@@ -82,7 +82,7 @@ func mapLogRow(row NotificationLog) (*domain.NotificationLog, error) {
 	}, nil
 }
 
-// Create membuat catatan log notifikasi baru dan mengembalikan log yang dibuat.
+// Buat membuat catatan log notifikasi baru dan mengembalikan log yang dibuat.
 func (r *LogRepo) Create(ctx context.Context, log *domain.NotificationLog) (*domain.NotificationLog, error) {
 	metaJSON, err := marshalMetadata(log.Metadata)
 	if err != nil {
@@ -117,7 +117,7 @@ func (r *LogRepo) GetByID(ctx context.Context, id string) (*domain.NotificationL
 	return mapLogRow(row)
 }
 
-// Update memperbarui status, retry_count, error_message, sent_at, dan metadata.
+// Perbarui memperbarui status, retry_count, error_message, sent_at, dan metadata.
 func (r *LogRepo) Update(ctx context.Context, log *domain.NotificationLog) error {
 	metaJSON, err := marshalMetadata(log.Metadata)
 	if err != nil {
@@ -130,7 +130,7 @@ func (r *LogRepo) Update(ctx context.Context, log *domain.NotificationLog) error
 	})
 }
 
-// List mengambil daftar log notifikasi dengan filter dan pagination.
+// List mengambil daftar log notifikasi dengan filter dan paginasi.
 // Menggunakan ListLogs + CountLogs, lalu menghitung total_pages.
 func (r *LogRepo) List(ctx context.Context, params domain.LogListParams) (*domain.LogListResult, error) {
 	offset := int32((params.Page - 1) * params.PageSize)

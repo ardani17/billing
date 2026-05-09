@@ -1,4 +1,4 @@
-// forecast_handler.go menangani HTTP request untuk proyeksi/forecasting.
+// forecast_handler.go menangani HTTP permintaan untuk proyeksi/forecasting.
 // Termasuk: Forecast (proyeksi 3 bulan ke depan berdasarkan data historis).
 package handler
 
@@ -11,7 +11,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// ForecastHandler menangani HTTP request untuk proyeksi bisnis.
+// ForecastHandler menangani HTTP permintaan untuk proyeksi bisnis.
 type ForecastHandler struct {
 	forecastUsecase domain.ForecastUsecase
 	logger          zerolog.Logger
@@ -36,7 +36,7 @@ func (h *ForecastHandler) Forecast(c *fiber.Ctx) error {
 	report, err := h.forecastUsecase.GetForecastReport(c.Context(), tenantID)
 	if err != nil {
 		if errors.Is(err, domain.ErrInsufficientData) {
-			// Data belum cukup, kembalikan response dengan flag insufficient_data
+			// Data belum cukup, kembalikan respons dengan flag insufficient_data
 			return domain.SuccessResponse(c, fiber.StatusOK, &domain.ForecastReport{
 				InsufficientData: true,
 				Disclaimer:       "Data historis belum cukup untuk proyeksi. Minimal 3 bulan data diperlukan.",

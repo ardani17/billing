@@ -1,5 +1,4 @@
-// area_handler.go menangani HTTP request untuk manajemen area.
-// Termasuk: list, get, create, update, dan delete.
+// area_handler.go menangani HTTP permintaan untuk manajemen area.
 package handler
 
 import (
@@ -13,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// AreaHandler menangani HTTP request untuk manajemen area.
+// AreaHandler menangani HTTP permintaan untuk manajemen area.
 type AreaHandler struct {
 	areaUsecase *usecase.AreaUsecase
 	validate    *validator.Validate
@@ -62,7 +61,7 @@ func (h *AreaHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, area)
 }
 
-// Create menangani POST /v1/areas.
+// Buat menangani POST /v1/areas.
 // Membuat area baru.
 func (h *AreaHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -93,7 +92,7 @@ func (h *AreaHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, area)
 }
 
-// Update menangani PUT /v1/areas/:id.
+// Perbarui menangani PUT /v1/areas/:id.
 // Memperbarui data area.
 func (h *AreaHandler) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -124,7 +123,7 @@ func (h *AreaHandler) Update(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, area)
 }
 
-// Delete menangani DELETE /v1/areas/:id.
+// Hapus menangani DELETE /v1/areas/:id.
 // Menghapus area jika tidak ada pelanggan yang terkait.
 func (h *AreaHandler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -154,7 +153,7 @@ func (h *AreaHandler) extractActor(c *fiber.Ctx) usecase.ActorInfo {
 	}
 }
 
-// mapAreaError memetakan domain error ke HTTP error response untuk area.
+// mapAreaError memetakan domain error ke HTTP error respons untuk area.
 func (h *AreaHandler) mapAreaError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrAreaNotFound):

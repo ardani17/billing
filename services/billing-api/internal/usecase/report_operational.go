@@ -10,7 +10,7 @@ import (
 )
 
 // GetActivityReport mengambil laporan aktivitas admin/user.
-// Data diambil dari audit_logs melalui aggregation repository.
+// Data diambil dari audit_logs melalui aggregation repositori.
 func (rm *ReportManager) GetActivityReport(ctx context.Context, tenantID string, filter domain.ReportFilter) (*domain.ActivityReport, error) {
 	report, err := rm.aggregationRepo.GetAdminActivity(ctx, tenantID, filter.PeriodStart, filter.PeriodEnd)
 	if err != nil {
@@ -22,7 +22,7 @@ func (rm *ReportManager) GetActivityReport(ctx context.Context, tenantID string,
 
 // GetNotificationReport mengambil laporan statistik notifikasi.
 // Data didelegasikan ke NetworkServiceClient (notification-service).
-// Graceful degradation: jika service down → module_inactive.
+// Graceful degradation: jika service down -> module_inactive.
 func (rm *ReportManager) GetNotificationReport(ctx context.Context, tenantID string, filter domain.ReportFilter) (*domain.NotificationReport, error) {
 	report, err := rm.networkClient.GetNotificationReport(ctx, tenantID, filter.PeriodStart, filter.PeriodEnd)
 	if err != nil {
@@ -34,7 +34,7 @@ func (rm *ReportManager) GetNotificationReport(ctx context.Context, tenantID str
 
 // GetSyncReport mengambil laporan status sync MikroTik dan OLT.
 // Data didelegasikan ke NetworkServiceClient (network-service).
-// Graceful degradation: jika service down → module_inactive.
+// Graceful degradation: jika service down -> module_inactive.
 func (rm *ReportManager) GetSyncReport(ctx context.Context, tenantID string, filter domain.ReportFilter) (*domain.SyncReport, error) {
 	report, err := rm.networkClient.GetSyncReport(ctx, tenantID, filter.PeriodStart, filter.PeriodEnd)
 	if err != nil {

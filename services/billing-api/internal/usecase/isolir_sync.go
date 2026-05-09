@@ -10,7 +10,7 @@ import (
 )
 
 // ProcessPeriodicSync memproses pending_syncs yang siap di-retry secara periodik.
-// Mengambil batch 50 record, re-publish event, dan update retry info.
+// Mengambil batch 50 record, re-terbitkan event, dan perbarui retry info.
 func (uc *IsolirUsecase) ProcessPeriodicSync(ctx context.Context) error {
 	syncs, err := uc.pendingSyncRepo.FindPendingForRetry(ctx, 50)
 	if err != nil {
@@ -25,7 +25,7 @@ func (uc *IsolirUsecase) ProcessPeriodicSync(ctx context.Context) error {
 	return nil
 }
 
-// processSingleSync memproses satu record pending_sync: re-publish event dan update retry.
+// processSingleSync memproses satu record pending_sync: re-terbitkan event dan perbarui retry.
 func (uc *IsolirUsecase) processSingleSync(ctx context.Context, ps *domain.PendingSync) error {
 	// Ambil data customer untuk membangun payload event
 	cust, err := uc.customerRepo.GetByID(ctx, ps.CustomerID)
@@ -33,7 +33,7 @@ func (uc *IsolirUsecase) processSingleSync(ctx context.Context, ps *domain.Pendi
 		return fmt.Errorf("gagal mengambil customer %s: %w", ps.CustomerID, err)
 	}
 
-	// Re-publish event sesuai operation_type
+	// Re-terbitkan event sesuai operation_type
 	uc.publishSyncEvent(ctx, ps, cust)
 
 	// Increment retry_count
@@ -44,7 +44,7 @@ func (uc *IsolirUsecase) processSingleSync(ctx context.Context, ps *domain.Pendi
 		if err := uc.pendingSyncRepo.MarkFailed(ctx, ps.ID, "max retries tercapai"); err != nil {
 			return fmt.Errorf("gagal mark failed pending_sync %s: %w", ps.ID, err)
 		}
-		// Publish notifikasi pending_sync_failed
+		// Terbitkan notifikasi pending_sync_failed
 		uc.publishEvent(ps.TenantID, domain.TaskNotifPendingSyncFailed, ps)
 		return nil
 	}
@@ -87,7 +87,7 @@ func (uc *IsolirUsecase) publishSyncEvent(ctx context.Context, ps *domain.Pendin
 }
 
 // ManualSync memproses manual sync untuk satu pelanggan oleh admin.
-// Mereset retry_count dan re-publish event untuk semua pending_sync pelanggan.
+// Mereset retry_count dan re-terbitkan event untuk semua pending_sync pelanggan.
 func (uc *IsolirUsecase) ManualSync(ctx context.Context, customerID, actorID string) error {
 	// Cari pending_syncs untuk customer
 	syncs, err := uc.pendingSyncRepo.FindByCustomer(ctx, customerID)
@@ -109,7 +109,7 @@ func (uc *IsolirUsecase) ManualSync(ctx context.Context, customerID, actorID str
 		return fmt.Errorf("gagal mengambil customer: %w", err)
 	}
 
-	// Re-publish event untuk setiap pending_sync
+	// Re-terbitkan event untuk setiap pending_sync
 	for _, ps := range syncs {
 		uc.publishSyncEvent(ctx, ps, cust)
 	}

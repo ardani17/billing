@@ -1,4 +1,4 @@
-// payment_bulk_test.go berisi unit test untuk PaymentUsecase — bulk import CSV.
+// payment_bulk_test.go berisi unit test untuk PaymentUsecase - bulk import CSV.
 package usecase
 
 import (
@@ -11,7 +11,6 @@ import (
 )
 
 // =============================================================================
-// Helper — generate CSV content
 // =============================================================================
 
 // generateCSVHeader mengembalikan header CSV standar.
@@ -19,7 +18,6 @@ func generateCSVHeader() string {
 	return "customer_id_seq,amount,payment_method,payment_date,reference_number,notes"
 }
 
-// generateCSVRows menghasilkan N baris CSV valid.
 func generateCSVRows(n int) string {
 	var sb strings.Builder
 	sb.WriteString(generateCSVHeader() + "\n")
@@ -30,11 +28,8 @@ func generateCSVRows(n int) string {
 }
 
 // =============================================================================
-// Test: BulkImport — CSV valid
 // =============================================================================
 
-// TestPaymentUsecase_BulkImport_ValidCSV menguji import CSV valid.
-// Karena customer tidak ditemukan di mock, semua baris akan gagal dengan alasan "tidak ditemukan".
 func TestPaymentUsecase_BulkImport_ValidCSV(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
@@ -52,7 +47,6 @@ func TestPaymentUsecase_BulkImport_ValidCSV(t *testing.T) {
 		t.Fatalf("expected 2 total rows, got %d", result.TotalRows)
 	}
 
-	// Semua gagal karena customer tidak ditemukan di mock
 	if result.FailureCount != 2 {
 		t.Fatalf("expected 2 failures (customer not found), got %d", result.FailureCount)
 	}
@@ -67,15 +61,14 @@ func TestPaymentUsecase_BulkImport_ValidCSVWithCustomer(t *testing.T) {
 }
 
 // =============================================================================
-// Test: BulkImport — melebihi 500 baris
+// Tes: BulkImport - melebihi 500 baris
 // =============================================================================
 
-// TestPaymentUsecase_BulkImport_ExceedsMaxRows menguji error saat CSV > 500 baris.
 func TestPaymentUsecase_BulkImport_ExceedsMaxRows(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
 
-	// Generate 501 baris
+	// Buat 501 baris
 	csvContent := generateCSVRows(501)
 
 	_, err := s.uc.BulkImport(ctx, []byte(csvContent), domain.ActorInfo{ActorID: "user-1", ActorName: "Admin"})
@@ -92,7 +85,7 @@ func TestPaymentUsecase_BulkImport_Exactly500Rows(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
 
-	// Generate tepat 500 baris
+	// Buat tepat 500 baris
 	csvContent := generateCSVRows(500)
 
 	result, err := s.uc.BulkImport(ctx, []byte(csvContent), domain.ActorInfo{ActorID: "user-1", ActorName: "Admin"})
@@ -106,19 +99,17 @@ func TestPaymentUsecase_BulkImport_Exactly500Rows(t *testing.T) {
 }
 
 // =============================================================================
-// Test: BulkImport — validasi error per baris
 // =============================================================================
 
-// TestPaymentUsecase_BulkImport_ValidationErrors menguji error validasi per baris.
 func TestPaymentUsecase_BulkImport_ValidationErrors(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
 
 	csvContent := generateCSVHeader() + "\n" +
-		"PLG-001,-100,tunai,2024-06-15,,\n" + // amount negatif
+		"PLG-001,-100,tunai,2024-06-15,,\n" + // nominal negatif
 		"PLG-002,100000,bitcoin,2024-06-15,,\n" + // method tidak valid
 		"PLG-003,100000,tunai,15-06-2024,,\n" + // format tanggal salah
-		"PLG-004,abc,tunai,2024-06-15,,\n" // amount bukan angka
+		"PLG-004,abc,tunai,2024-06-15,,\n" // nominal bukan angka
 
 	result, err := s.uc.BulkImport(ctx, []byte(csvContent), domain.ActorInfo{ActorID: "user-1", ActorName: "Admin"})
 	if err != nil {
@@ -134,7 +125,6 @@ func TestPaymentUsecase_BulkImport_ValidationErrors(t *testing.T) {
 		t.Fatalf("expected 4 failures, got %d", result.FailureCount)
 	}
 
-	// Verifikasi alasan error per baris
 	for _, r := range result.Results {
 		if r.Status != "failed" {
 			t.Fatalf("row %d: expected status failed, got %s", r.Row, r.Status)
@@ -145,13 +135,10 @@ func TestPaymentUsecase_BulkImport_ValidationErrors(t *testing.T) {
 	}
 }
 
-// TestPaymentUsecase_BulkImport_TooFewColumns menguji error saat kolom kurang dari 4.
-// CSV reader Go menolak baris dengan jumlah kolom berbeda dari header → error parse.
 func TestPaymentUsecase_BulkImport_TooFewColumns(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
 
-	// Baris dengan 3 kolom sementara header punya 6 → CSV reader error
 	csvContent := generateCSVHeader() + "\n" +
 		"PLG-001,100000,tunai\n"
 
@@ -160,14 +147,13 @@ func TestPaymentUsecase_BulkImport_TooFewColumns(t *testing.T) {
 		t.Fatal("expected error dari CSV reader, got nil")
 	}
 
-	// CSV reader mengembalikan error "wrong number of fields"
 	if !strings.Contains(err.Error(), "wrong number of fields") && !strings.Contains(err.Error(), "gagal membaca baris CSV") {
 		t.Fatalf("expected CSV parse error, got: %v", err)
 	}
 }
 
 // =============================================================================
-// Test: BulkImport — duplikasi terdeteksi (skip)
+// Tes: BulkImport - duplikasi terdeteksi (skip)
 // =============================================================================
 
 // TestPaymentUsecase_BulkImport_DuplicateDetection menguji deteksi duplikasi.
@@ -175,7 +161,6 @@ func TestPaymentUsecase_BulkImport_DuplicateDetection(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
 
-	// Setup: mock SearchForPayment mengembalikan customer yang cocok
 	// dan FindDuplicate mengembalikan true (duplikat terdeteksi)
 	s.customerRepo.searchResult = []*domain.Customer{
 		{ID: "cust-1", CustomerIDSeq: "PLG-001", Name: "Ahmad", Status: domain.CustomerStatusAktif},
@@ -200,7 +185,7 @@ func TestPaymentUsecase_BulkImport_DuplicateDetection(t *testing.T) {
 }
 
 // =============================================================================
-// Test: BulkImport — CSV kosong (hanya header)
+// Tes: BulkImport - CSV kosong (hanya header)
 // =============================================================================
 
 // TestPaymentUsecase_BulkImport_EmptyCSV menguji import CSV kosong (hanya header).

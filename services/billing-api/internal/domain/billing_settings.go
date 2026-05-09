@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// BillingSettings Entity — konfigurasi billing per tenant
+// BillingSettings Entitas - konfigurasi billing per tenant
 // =============================================================================
 
 // BillingSettings merepresentasikan konfigurasi billing per tenant.

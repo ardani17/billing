@@ -1,5 +1,4 @@
-// recurring_item_handler.go menangani HTTP request untuk recurring items pelanggan.
-// Termasuk: list, create, update, dan delete (nested di bawah /v1/customers/:id).
+// recurring_item_handler.go menangani HTTP permintaan untuk item berulangs pelanggan.
 package handler
 
 import (
@@ -13,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// RecurringItemHandler menangani HTTP request untuk recurring items pelanggan.
+// RecurringItemHandler menangani HTTP permintaan untuk item berulangs pelanggan.
 type RecurringItemHandler struct {
 	recurringItemUsecase *usecase.RecurringItemUsecase
 	validate             *validator.Validate
@@ -29,8 +28,8 @@ func NewRecurringItemHandler(recurringItemUsecase *usecase.RecurringItemUsecase,
 	}
 }
 
-// List menangani GET /v1/customers/:id/recurring-items.
-// Mengembalikan daftar recurring items untuk pelanggan tertentu.
+// List menangani GET /v1/customers/:id/berulang-items.
+// Mengembalikan daftar item berulangs untuk pelanggan tertentu.
 func (h *RecurringItemHandler) List(c *fiber.Ctx) error {
 	customerID := c.Params("id")
 	if customerID == "" {
@@ -45,8 +44,8 @@ func (h *RecurringItemHandler) List(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, items)
 }
 
-// Create menangani POST /v1/customers/:id/recurring-items.
-// Membuat recurring item baru untuk pelanggan.
+// Buat menangani POST /v1/customers/:id/berulang-items.
+// Membuat item berulang baru untuk pelanggan.
 func (h *RecurringItemHandler) Create(c *fiber.Ctx) error {
 	customerID := c.Params("id")
 	if customerID == "" {
@@ -76,8 +75,8 @@ func (h *RecurringItemHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, item)
 }
 
-// Update menangani PUT /v1/customers/:id/recurring-items/:item_id.
-// Memperbarui recurring item yang ada.
+// Perbarui menangani PUT /v1/customers/:id/berulang-items/:item_id.
+// Memperbarui item berulang yang ada.
 func (h *RecurringItemHandler) Update(c *fiber.Ctx) error {
 	customerID := c.Params("id")
 	if customerID == "" {
@@ -112,8 +111,8 @@ func (h *RecurringItemHandler) Update(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, item)
 }
 
-// Delete menangani DELETE /v1/customers/:id/recurring-items/:item_id.
-// Menonaktifkan recurring item (soft delete).
+// Hapus menangani DELETE /v1/customers/:id/berulang-items/:item_id.
+// Menonaktifkan item berulang (hapus lunak).
 func (h *RecurringItemHandler) Delete(c *fiber.Ctx) error {
 	customerID := c.Params("id")
 	if customerID == "" {
@@ -137,7 +136,7 @@ func (h *RecurringItemHandler) Delete(c *fiber.Ctx) error {
 	})
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *RecurringItemHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -147,7 +146,7 @@ func (h *RecurringItemHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapRecurringItemError memetakan domain error ke HTTP error response untuk recurring items.
+// mapRecurringItemError memetakan domain error ke HTTP error respons untuk item berulangs.
 func (h *RecurringItemHandler) mapRecurringItemError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrRecurringItemNotFound):

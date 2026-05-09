@@ -1,5 +1,5 @@
 // voucher_usecase.go berisi business logic untuk manajemen voucher (admin).
-// Mengimplementasikan Generate, List, GetByID pada VoucherUsecase.
+// Mengimplementasikan Buat, List, GetByID pada VoucherUsecase.
 package usecase
 
 import (
@@ -42,12 +42,12 @@ func NewVoucherUsecase(
 	}
 }
 
-// Generate menghasilkan batch voucher baru untuk paket tertentu.
-// Flow: validasi paket ada dan type=voucher → jika quantity ≤ 500: generate kode
-// via GenerateVoucherCodes → BulkCreate voucher dengan status tersedia →
-// tulis voucher audit logs (voucher.generated) → publish event voucher.batch_generated →
+// Buat menghasilkan batch voucher baru untuk paket tertentu.
+// Alur: validasi paket ada dan type=voucher -> jika quantity ≤ 500: buat kode
+// via GenerateVoucherCodes -> BulkCreate voucher dengan status tersedia ->
+// tulis voucher audit logs (voucher.generated) -> terbitkan event voucher.batch_generated ->
 // kembalikan hasil dengan voucher.
-// Jika quantity > 500: enqueue job voucher.async_generate → kembalikan hasil dengan job_id.
+// Jika quantity > 500: antrekan job voucher.async_generate -> kembalikan hasil dengan job_id.
 func (uc *VoucherUsecase) Generate(ctx context.Context, tenantID string, req domain.GenerateVoucherRequest, actor domain.ActorInfo) (*domain.GenerateVoucherResult, error) {
 	// Validasi paket ada dan bertipe voucher
 	pkg, err := uc.packageRepo.GetByID(ctx, req.PackageID)
@@ -58,19 +58,19 @@ func (uc *VoucherUsecase) Generate(ctx context.Context, tenantID string, req dom
 		return nil, domain.ErrInvalidPackageType
 	}
 
-	// Jika quantity > 500, enqueue job async
+	// Jika quantity > 500, antrekan job async
 	if req.Quantity > 500 {
 		return uc.enqueueAsyncGenerate(tenantID, req, actor)
 	}
 
-	// Generate kode voucher secara sinkron
+	// Buat kode voucher secara sinkron
 	return uc.generateSync(ctx, tenantID, req, actor)
 }
 
 // generateSync menghasilkan voucher secara sinkron (quantity ≤ 500).
-// Flow: generate kode → buat voucher di database → tulis audit log → publish event.
+// Alur: buat kode -> buat voucher di database -> tulis audit log -> terbitkan event.
 func (uc *VoucherUsecase) generateSync(ctx context.Context, tenantID string, req domain.GenerateVoucherRequest, actor domain.ActorInfo) (*domain.GenerateVoucherResult, error) {
-	// Generate kode voucher unik menggunakan crypto/rand
+	// Buat kode voucher unik menggunakan crypto/rand
 	codeFormat := domain.CodeFormat(req.CodeFormat)
 	existingCodes := make(map[string]struct{})
 	codes, failed := domain.GenerateVoucherCodes(codeFormat, req.CodeLength, req.Prefix, req.Quantity, existingCodes, 3)
@@ -118,7 +118,7 @@ func (uc *VoucherUsecase) generateSync(ctx context.Context, tenantID string, req
 		}
 	}
 
-	// Publish event voucher.batch_generated
+	// Terbitkan event voucher.batch_generated
 	uc.publishEvent(tenantID, "voucher.batch_generated", domain.VoucherBatchGeneratedPayload{
 		TenantID:    tenantID,
 		PackageID:   req.PackageID,
@@ -134,8 +134,8 @@ func (uc *VoucherUsecase) generateSync(ctx context.Context, tenantID string, req
 	}, nil
 }
 
-// enqueueAsyncGenerate mengirim job generate voucher ke queue untuk diproses secara async.
-// Digunakan saat quantity > 500 agar HTTP response tetap cepat.
+// enqueueAsyncGenerate mengirim job buat voucher ke queue untuk diproses secara async.
+// Digunakan saat quantity > 500 agar HTTP respons tetap cepat.
 func (uc *VoucherUsecase) enqueueAsyncGenerate(tenantID string, req domain.GenerateVoucherRequest, actor domain.ActorInfo) (*domain.GenerateVoucherResult, error) {
 	// Bangun payload job async
 	payload := map[string]interface{}{
@@ -178,10 +178,10 @@ func (uc *VoucherUsecase) enqueueAsyncGenerate(tenantID string, req domain.Gener
 	}, nil
 }
 
-// List mengambil daftar voucher dengan paginasi, filter, dan sorting.
-// Menerapkan default: page=1, page_size=25.
+// List mengambil daftar voucher dengan paginasi, filter, dan pengurutan.
+// Menerapkan bawaan: page=1, page_size=25.
 func (uc *VoucherUsecase) List(ctx context.Context, params domain.VoucherListParams) (*domain.VoucherListResult, error) {
-	// Terapkan default paginasi
+	// Terapkan bawaan paginasi
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -193,7 +193,7 @@ func (uc *VoucherUsecase) List(ctx context.Context, params domain.VoucherListPar
 }
 
 // GetByID mengambil detail voucher berdasarkan ID, termasuk audit logs.
-// Flow: fetch voucher → fetch voucher audit logs → kembalikan VoucherDetail.
+// Alur: ambil voucher -> ambil voucher audit logs -> kembalikan VoucherDetail.
 func (uc *VoucherUsecase) GetByID(ctx context.Context, id string) (*domain.VoucherDetail, error) {
 	// Ambil voucher berdasarkan ID
 	voucher, err := uc.voucherRepo.GetByID(ctx, id)
@@ -205,7 +205,7 @@ func (uc *VoucherUsecase) GetByID(ctx context.Context, id string) (*domain.Vouch
 	auditLogs, err := uc.voucherAuditLog.ListByVoucher(ctx, id)
 	if err != nil {
 		uc.logger.Error().Err(err).Str("voucher_id", id).Msg("gagal mengambil voucher audit logs")
-		// Jangan gagalkan request, skip audit logs saja
+		// Jangan gagalkan permintaan, skip audit logs saja
 	}
 
 	return &domain.VoucherDetail{
@@ -272,9 +272,9 @@ func (uc *VoucherUsecase) Activate(ctx context.Context, tenantID string, req dom
 }
 
 // ListByReseller mengambil daftar voucher milik reseller tertentu dengan paginasi.
-// Menerapkan default: page=1, page_size=25.
+// Menerapkan bawaan: page=1, page_size=25.
 func (uc *VoucherUsecase) ListByReseller(ctx context.Context, params domain.ResellerVoucherListParams) (*domain.VoucherListResult, error) {
-	// Terapkan default paginasi
+	// Terapkan bawaan paginasi
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -346,7 +346,7 @@ func (uc *VoucherUsecase) VerifyOwnership(ctx context.Context, voucherIDs []stri
 	return nil
 }
 
-// --- Helper methods ---
+// --- Fungsi bantu methods ---
 
 // publishEvent mempublikasikan event ke Redis queue.
 // Tidak mengembalikan error agar operasi utama tidak gagal.

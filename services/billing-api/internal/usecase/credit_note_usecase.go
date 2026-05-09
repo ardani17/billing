@@ -47,9 +47,9 @@ func NewCreditNoteUsecase(
 	}
 }
 
-// Create membuat credit note baru.
-// Flow: validasi invoice ada → generate nomor credit note → buat credit note →
-// jika apply_to_credit: tambah saldo kredit pelanggan → tulis audit log.
+// Buat membuat credit note baru.
+// Alur: validasi invoice ada -> buat nomor credit note -> buat credit note ->
+// jika apply_to_credit: tambah saldo kredit pelanggan -> tulis audit log.
 func (uc *CreditNoteUsecase) Create(
 	ctx context.Context,
 	tenantID string,
@@ -62,7 +62,7 @@ func (uc *CreditNoteUsecase) Create(
 		return nil, domain.ErrInvoiceNotFound
 	}
 
-	// Generate nomor credit note via sequence atomik
+	// Buat nomor credit note via sequence atomik
 	now := time.Now()
 	seq, err := uc.sequenceRepo.NextSequence(ctx, tenantID, now.Year(), int(now.Month()))
 	if err != nil {
@@ -70,7 +70,7 @@ func (uc *CreditNoteUsecase) Create(
 	}
 	creditNoteNumber := domain.FormatCreditNoteNumber(now.Year(), int(now.Month()), seq)
 
-	// Tentukan apakah apply_to_credit (default: true)
+	// Tentukan apakah apply_to_credit (bawaan: true)
 	applyToCredit := true
 	if req.ApplyToCredit != nil {
 		applyToCredit = *req.ApplyToCredit

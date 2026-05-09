@@ -23,25 +23,25 @@ CREATE TABLE onts (
     updated_at             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Unique: serial number unik per tenant (exclude soft-deleted)
+-- Unique: serial number unik per tenant (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_onts_tenant_sn
     ON onts (tenant_id, serial_number)
     WHERE deleted_at IS NULL;
 
--- Unique: posisi ONT unik per OLT port (exclude soft-deleted)
+-- Unique: posisi ONT unik per OLT port (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_onts_olt_port_index
     ON onts (olt_id, pon_port_index, ont_index)
     WHERE deleted_at IS NULL;
 
--- Index untuk query per OLT dan status
+-- Index untuk kueri per OLT dan status
 CREATE INDEX idx_onts_olt_status
     ON onts (olt_id, status) WHERE deleted_at IS NULL;
 
--- Index untuk query per customer
+-- Index untuk kueri per customer
 CREATE INDEX idx_onts_customer
     ON onts (customer_id) WHERE deleted_at IS NULL AND customer_id IS NOT NULL;
 
--- Index untuk query per tenant
+-- Index untuk kueri per tenant
 CREATE INDEX idx_onts_tenant
     ON onts (tenant_id) WHERE deleted_at IS NULL;
 

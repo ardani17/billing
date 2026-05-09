@@ -12,12 +12,11 @@ type PaperSize = 'a3' | 'a4';
 interface ExportMapDialogProps {
   open: boolean;
   onClose: () => void;
-  /** Reference to the map container element for screenshot capture */
   mapContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Komponen
 // ---------------------------------------------------------------------------
 
 export default function ExportMapDialog({
@@ -58,7 +57,7 @@ export default function ExportMapDialog({
           Export Peta
         </h2>
 
-        {/* Format selection */}
+        {/* Format selection*/}
         <div className="mb-4">
           <label className="mb-1 block text-sm font-medium text-gray-700">
             Format
@@ -79,7 +78,7 @@ export default function ExportMapDialog({
           </div>
         </div>
 
-        {/* PDF options */}
+        {/* PDF options*/}
         {format === 'pdf' && (
           <div className="mb-4 space-y-3">
             <div>
@@ -112,7 +111,7 @@ export default function ExportMapDialog({
 
         {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
 
-        {/* Actions */}
+        {/* Actions*/}
         <div className="flex gap-2">
           <button
             onClick={handleExport}
@@ -183,7 +182,7 @@ async function exportPNG(
     scale: 2, // Higher resolution
   });
 
-  // Download the image
+  // Unduh gambar
   const link = document.createElement('a');
   link.download = `peta-jaringan-${new Date().toISOString().slice(0, 10)}.png`;
   link.href = canvas.toDataURL('image/png');
@@ -207,14 +206,14 @@ async function exportPDF(
   const html2canvas = html2canvasModule.default;
   const { jsPDF } = jsPDFModule;
 
-  // Capture map as image
+  // Tangkap peta sebagai gambar
   const canvas = await html2canvas(container, {
     useCORS: true,
     allowTaint: true,
     scale: 2,
   });
 
-  // Create PDF
+  // Buat PDF
   const orientation = 'landscape';
   const pdf = new jsPDF({
     orientation,
@@ -243,12 +242,12 @@ async function exportPDF(
     22,
   );
 
-  // Map image
+  // Gambar peta
   const imgData = canvas.toDataURL('image/png');
   const mapMargin = 10;
   const mapTop = 28;
   const mapWidth = pageWidth - mapMargin * 2;
-  const mapHeight = pageHeight - mapTop - 30; // Leave room for legend
+  const mapHeight = pageHeight - mapTop - 30; // Leave room untuk legend
 
   pdf.addImage(imgData, 'PNG', mapMargin, mapTop, mapWidth, mapHeight);
 
@@ -272,6 +271,6 @@ async function exportPDF(
     legendX += 30;
   }
 
-  // Download
+  // Unduh
   pdf.save(`peta-jaringan-${new Date().toISOString().slice(0, 10)}.pdf`);
 }

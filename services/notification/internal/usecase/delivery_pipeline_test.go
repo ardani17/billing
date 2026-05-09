@@ -41,7 +41,7 @@ func genEnabledConfigs(t *rapid.T, label string) []*domain.NotificationConfig {
 	return cfgs
 }
 
-// channelSet mengembalikan set dari slice channel.
+// channelSet mengembalikan atur dari slice channel.
 func channelSet(chs []domain.Channel) map[domain.Channel]bool {
 	s := make(map[domain.Channel]bool)
 	for _, ch := range chs {
@@ -50,7 +50,7 @@ func channelSet(chs []domain.Channel) map[domain.Channel]bool {
 	return s
 }
 
-// enabledSet mengembalikan set channel yang di-enable dari daftar config.
+// enabledSet mengembalikan atur channel yang di-enable dari daftar config.
 func enabledSet(cfgs []*domain.NotificationConfig) map[domain.Channel]bool {
 	s := make(map[domain.Channel]bool)
 	for _, c := range cfgs {
@@ -61,8 +61,7 @@ func enabledSet(cfgs []*domain.NotificationConfig) map[domain.Channel]bool {
 	return s
 }
 
-// Feature: notification-service, Property 12: Channel selection respects priority order
-// **Validates: Requirements 7.4**
+// **Memvalidasi: Kebutuhan 7.4**
 //
 // Untuk setiap daftar prioritas channel tenant dan konfigurasi channel template,
 // channel yang dipilih (elemen pertama dari hasil pickChannels) HARUS merupakan
@@ -78,7 +77,6 @@ func TestProperty_ChannelSelectionRespectsPriorityOrder(t *testing.T) {
 		var pipeline DeliveryPipeline
 		result := pipeline.pickChannels(prio, tmplCh, cfgs)
 
-		// Hitung expected secara manual: iterasi prioritas, ambil yang ada di template DAN enabled
 		tmplSet := channelSet(tmplCh)
 		enSet := enabledSet(cfgs)
 

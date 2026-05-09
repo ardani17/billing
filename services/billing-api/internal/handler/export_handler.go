@@ -1,4 +1,4 @@
-// export_handler.go menangani HTTP request untuk export laporan.
+// export_handler.go menangani HTTP permintaan untuk export laporan.
 // Termasuk: RequestExport (async PDF/XLSX, sync CSV) dan Status.
 package handler
 
@@ -12,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// ExportHandler menangani HTTP request untuk export laporan.
+// ExportHandler menangani HTTP permintaan untuk export laporan.
 type ExportHandler struct {
 	reportUsecase domain.ReportUsecase
 	validate      *validator.Validate
@@ -84,7 +84,7 @@ func (h *ExportHandler) Status(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, job)
 }
 
-// mapExportError memetakan domain error ke HTTP error response untuk export.
+// mapExportError memetakan domain error ke HTTP error respons untuk export.
 func (h *ExportHandler) mapExportError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrInvalidReportType):

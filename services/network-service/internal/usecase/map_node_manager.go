@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// Compile-time check: mapNodeManager harus mengimplementasikan domain.MapNodeManager.
+// Compile-time cek: mapNodeManager harus mengimplementasikan domain.MapNodeManager.
 var _ domain.MapNodeManager = (*mapNodeManager)(nil)
 
 // mapNodeManager mengimplementasikan domain.MapNodeManager.
@@ -25,7 +25,7 @@ type mapNodeManager struct {
 	labelSettingsRepo domain.LabelSettingsRepository
 }
 
-// NewMapNodeManager membuat instance MapNodeManager baru dengan dependensi repository.
+// NewMapNodeManager membuat instance MapNodeManager baru dengan dependensi repositori.
 func NewMapNodeManager(
 	mapNodeRepo domain.MapNodeRepository,
 	nodePhotoRepo domain.NodePhotoRepository,
@@ -105,13 +105,13 @@ func (m *mapNodeManager) GetNode(ctx context.Context, id string) (*domain.MapNod
 		history = []*domain.MapChangeHistory{}
 	}
 
-	// Konversi foto ke response
+	// Konversi foto ke respons
 	photoResponses := make([]domain.NodePhotoResponse, 0, len(photos))
 	for _, p := range photos {
 		photoResponses = append(photoResponses, *domain.ToNodePhotoResponse(p))
 	}
 
-	// Konversi riwayat ke response
+	// Konversi riwayat ke respons
 	historyResponses := make([]domain.MapChangeHistoryResponse, 0, len(history))
 	for _, h := range history {
 		historyResponses = append(historyResponses, *domain.ToMapChangeHistoryResponse(h))
@@ -131,7 +131,7 @@ func (m *mapNodeManager) GetNode(ctx context.Context, id string) (*domain.MapNod
 	}, nil
 }
 
-// UpdateNode memperbarui lokasi dan/atau custom fields node dengan pencatatan riwayat.
+// UpdateNode memperbarui lokasi dan/atau kustom field node dengan pencatatan riwayat.
 func (m *mapNodeManager) UpdateNode(ctx context.Context, id string, req domain.UpdateMapNodeRequest) (*domain.MapNodeResponse, error) {
 	existing, err := m.mapNodeRepo.GetByID(ctx, id)
 	if err != nil {
@@ -161,7 +161,7 @@ func (m *mapNodeManager) UpdateNode(ctx context.Context, id string, req domain.U
 	locationChanged := newLat != oldLat || newLng != oldLng
 	customFieldsChanged := req.CustomFields != nil
 
-	// Update field
+	// Perbarui field
 	existing.Latitude = newLat
 	existing.Longitude = newLng
 	if req.CustomFields != nil {

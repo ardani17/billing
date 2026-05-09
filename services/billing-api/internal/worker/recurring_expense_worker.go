@@ -1,5 +1,5 @@
 // recurring_expense_worker.go berisi asynq worker untuk pengeluaran berulang.
-// RecurringExpenseWorker menangani task expense.recurring — query pengeluaran
+// RecurringExpenseWorker menangani task expense.berulang - kueri pengeluaran
 // berulang yang jatuh pada hari ini dan membuat record pengeluaran baru.
 package worker
 
@@ -17,12 +17,12 @@ import (
 
 // Konstanta tipe task yang diproses oleh RecurringExpenseWorker.
 const (
-	// TaskRecurringExpense adalah tipe task cron untuk auto-create pengeluaran berulang.
+	// TaskRecurringExpense adalah tipe task cron untuk auto-buat pengeluaran berulang.
 	TaskRecurringExpense = "expense.recurring"
 )
 
 // RecurringExpenseWorker menangani task asynq untuk pengeluaran berulang.
-// Mendaftarkan handler untuk task expense.recurring.
+// Mendaftarkan handler untuk task expense.berulang.
 type RecurringExpenseWorker struct {
 	expenseRepo domain.ExpenseRepository
 	logger      zerolog.Logger
@@ -45,8 +45,8 @@ func (w *RecurringExpenseWorker) RegisterHandlers(mux *asynq.ServeMux) {
 }
 
 // handleRecurringExpense memproses task cron pengeluaran berulang.
-// Alur: query semua expense dengan is_recurring=true → filter yang recurring_day
-// sama dengan hari ini → buat record pengeluaran baru untuk masing-masing.
+// Alur: kueri semua expense dengan is_recurring=true -> filter yang recurring_day
+// sama dengan hari ini -> buat record pengeluaran baru untuk masing-masing.
 func (w *RecurringExpenseWorker) handleRecurringExpense(ctx context.Context, task *asynq.Task) error {
 	w.logger.Info().Msg("memulai cron pengeluaran berulang")
 
@@ -68,7 +68,7 @@ func (w *RecurringExpenseWorker) handleRecurringExpense(ctx context.Context, tas
 			continue
 		}
 
-		// Buat record pengeluaran baru berdasarkan template recurring
+		// Buat record pengeluaran baru berdasarkan template berulang
 		newExpense := &domain.Expense{
 			ID:          uuid.New().String(),
 			TenantID:    expense.TenantID,
@@ -76,7 +76,7 @@ func (w *RecurringExpenseWorker) handleRecurringExpense(ctx context.Context, tas
 			Amount:      expense.Amount,
 			Description: expense.Description,
 			ExpenseDate: today,
-			IsRecurring: false, // Record baru bukan recurring
+			IsRecurring: false, // Record baru bukan berulang
 			CreatedByID: expense.CreatedByID,
 		}
 

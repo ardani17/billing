@@ -13,7 +13,7 @@ interface CustomFieldsEditorProps {
   onSaved?: () => void;
 }
 
-/** Predefined custom field definitions. */
+/** Predefined kustom field definitions.*/
 const FIELD_DEFS = [
   { key: 'ip_pool', label: 'IP Pool', placeholder: '192.168.1.0/24' },
   { key: 'vlan', label: 'VLAN', placeholder: '100' },
@@ -24,7 +24,7 @@ const FIELD_DEFS = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// Component
+// Komponen
 // ---------------------------------------------------------------------------
 
 export default function CustomFieldsEditor({
@@ -53,7 +53,7 @@ export default function CustomFieldsEditor({
     setError(null);
     setSuccess(false);
     try {
-      // Build custom_fields payload — only include non-empty values
+      // Bangun payload custom_fields - hanya sertakan nilai yang tidak kosong
       const payload: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(fields)) {
         if (value.trim()) {

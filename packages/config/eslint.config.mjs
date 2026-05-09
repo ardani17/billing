@@ -6,7 +6,7 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 import nextPlugin from "@next/eslint-plugin-next";
 import prettierConfig from "eslint-config-prettier";
 
-/** @type {import("eslint").Linter.Config[]} */
+/** @type {import("eslint").Linter.Config[]}*/
 export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,

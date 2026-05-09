@@ -7,7 +7,7 @@ import (
 )
 
 // =============================================================================
-// Konstanta Geocoding Cache — konfigurasi TTL dan presisi koordinat
+// Konstanta Geocoding Cache - konfigurasi TTL dan presisi koordinat
 // =============================================================================
 
 // CacheTTLDays adalah durasi cache hasil reverse geocoding dalam hari.
@@ -20,12 +20,12 @@ const CacheTTLDays = 30
 const coordinatePrecision = 5
 
 // =============================================================================
-// GeocodingCache Entity — cache hasil reverse geocoding per koordinat
+// GeocodingCache Entitas - cache hasil reverse geocoding per koordinat
 // =============================================================================
 
 // GeocodingCache merepresentasikan cache hasil reverse geocoding.
 // Koordinat dibulatkan ke 5 desimal sebagai cache key untuk mengurangi
-// request ke provider eksternal (Nominatim/Google Geocoding).
+// permintaan ke provider eksternal (Nominatim/Google Geocoding).
 // Data diisolasi per tenant via RLS di PostgreSQL.
 type GeocodingCache struct {
 	ID        string          `json:"id"`
@@ -39,7 +39,7 @@ type GeocodingCache struct {
 }
 
 // =============================================================================
-// Helper Functions — utilitas untuk geocoding cache
+// Fungsi bantu Functions - utilitas untuk geocoding cache
 // =============================================================================
 
 // RoundCoordinate membulatkan koordinat ke 5 desimal.

@@ -3,9 +3,9 @@
 import { ChartBarHorizontal } from "@phosphor-icons/react";
 
 interface EmptyStateProps {
-  /** Pesan utama */
+  /** Pesan utama*/
   message?: string;
-  /** Deskripsi tambahan */
+  /** Deskripsi tambahan*/
   description?: string;
 }
 

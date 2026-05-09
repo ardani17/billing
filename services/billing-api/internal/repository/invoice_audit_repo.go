@@ -22,7 +22,7 @@ func NewInvoiceAuditLogRepo(queries *Queries) *InvoiceAuditLogRepo {
 	}
 }
 
-// --- Helper function untuk mapping sqlc InvoiceAuditLog → domain.InvoiceAuditLog ---
+// --- Helper function untuk mapping sqlc InvoiceAuditLog -> domain.InvoiceAuditLog ---
 
 // mapInvoiceAuditLogRow memetakan InvoiceAuditLog (sqlc model) ke domain.InvoiceAuditLog.
 func mapInvoiceAuditLogRow(row InvoiceAuditLog) *domain.InvoiceAuditLog {
@@ -49,7 +49,7 @@ func mapInvoiceAuditLogRow(row InvoiceAuditLog) *domain.InvoiceAuditLog {
 
 // --- Implementasi domain.InvoiceAuditLogRepository ---
 
-// Create membuat satu entri audit log invoice.
+// Buat membuat satu entri audit log invoice.
 func (r *InvoiceAuditLogRepo) Create(ctx context.Context, log *domain.InvoiceAuditLog) error {
 	// Serialisasi metadata ke JSON
 	var metadata []byte

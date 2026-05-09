@@ -3,7 +3,6 @@
 // - Jumlah event type yang terdaftar (13 event)
 // - Registrasi handler ke asynq.ServeMux tanpa panic
 // - Verifikasi event type spesifik ada di daftar
-// - Penanganan payload invalid (skip, bukan error)
 package worker
 
 import (
@@ -16,7 +15,6 @@ import (
 )
 
 // =============================================================================
-// Helper
 // =============================================================================
 
 // newTestEventConsumer membuat EventConsumer dengan pipeline nil untuk pengujian.
@@ -27,7 +25,6 @@ func newTestEventConsumer() *EventConsumer {
 }
 
 // processTaskSafe memanggil mux.ProcessTask dan menangkap panic jika terjadi.
-// Mengembalikan error dari handler dan flag apakah handler terdaftar.
 func processTaskSafe(mux *asynq.ServeMux, task *asynq.Task) (handled bool) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -39,8 +36,8 @@ func processTaskSafe(mux *asynq.ServeMux, task *asynq.Task) (handled bool) {
 }
 
 // =============================================================================
-// Test: allEventTypes harus berisi tepat 13 event type
-// Validates: Requirements 4.1
+// Tes: allEventTypes harus berisi tepat 13 event type
+// Memvalidasi: Kebutuhan 4.1
 // =============================================================================
 
 func TestAllEventTypes_Count(t *testing.T) {
@@ -51,8 +48,8 @@ func TestAllEventTypes_Count(t *testing.T) {
 }
 
 // =============================================================================
-// Test: allEventTypes harus berisi event type spesifik sesuai requirement
-// Validates: Requirements 4.1
+// Tes: allEventTypes harus berisi event type spesifik sesuai requirement
+// Memvalidasi: Kebutuhan 4.1
 // =============================================================================
 
 func TestAllEventTypes_Contains(t *testing.T) {
@@ -85,8 +82,8 @@ func TestAllEventTypes_Contains(t *testing.T) {
 }
 
 // =============================================================================
-// Test: RegisterHandlers tidak panic dan semua event type terdaftar di ServeMux
-// Validates: Requirements 4.1, 4.2
+// Tes: RegisterHandlers tidak panic dan semua event type terdaftar di ServeMux
+// Memvalidasi: Kebutuhan 4.1, 4.2
 // =============================================================================
 
 func TestEventConsumer_RegisterHandlers_NoPanic(t *testing.T) {
@@ -108,8 +105,7 @@ func TestEventConsumer_RegisterHandlers_NoPanic(t *testing.T) {
 }
 
 // =============================================================================
-// Test: handleEvent dengan payload invalid di-skip (return nil, bukan error)
-// Validates: Requirements 4.3, 4.4
+// Memvalidasi: Kebutuhan 4.3, 4.4
 // =============================================================================
 
 func TestEventConsumer_HandleEvent_InvalidPayload(t *testing.T) {
@@ -117,10 +113,8 @@ func TestEventConsumer_HandleEvent_InvalidPayload(t *testing.T) {
 	mux := asynq.NewServeMux()
 	ec.RegisterHandlers(mux)
 
-	// Buat task dengan payload JSON yang tidak valid
 	task := asynq.NewTask(EventInvoiceCreated, []byte("ini bukan json"))
 
-	// ProcessTask harus return nil (skip, tidak retry) karena payload invalid
 	err := mux.ProcessTask(context.Background(), task)
 	if err != nil {
 		t.Fatalf("expected nil error for invalid payload (skip), got: %v", err)

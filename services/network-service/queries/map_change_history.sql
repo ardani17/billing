@@ -1,6 +1,6 @@
--- Query SQL untuk operasi pada tabel map_change_history.
+-- Kueri SQL untuk operasi pada tabel map_change_history.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel map_change_history dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel map_change_history dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Tabel ini bersifat append-only: hanya INSERT dan SELECT, tidak ada UPDATE atau DELETE.
 
 -- name: CreateMapChangeHistory :one

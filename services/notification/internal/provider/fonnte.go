@@ -14,10 +14,10 @@ import (
 )
 
 // =============================================================================
-// FonnteAdapter — adapter untuk pengiriman pesan WhatsApp via Fonnte API
+// FonnteAdapter - adapter untuk pengiriman pesan WhatsApp via Fonnte API
 // =============================================================================
 
-// fonnteDefaultURL adalah URL default endpoint Fonnte untuk pengiriman pesan.
+// fonnteDefaultURL adalah URL bawaan endpoint Fonnte untuk pengiriman pesan.
 const fonnteDefaultURL = "https://api.fonnte.com/send"
 
 // FonnteAdapter mengimplementasikan domain.WhatsAppProvider menggunakan Fonnte HTTP API.
@@ -39,7 +39,7 @@ func NewFonnteAdapter(apiToken string, timeout time.Duration) *FonnteAdapter {
 	}
 }
 
-// fonnteResponse merepresentasikan struktur response JSON dari Fonnte API.
+// fonnteResponse merepresentasikan struktur respons JSON dari Fonnte API.
 type fonnteResponse struct {
 	Status bool   `json:"status"`
 	ID     string `json:"id"`
@@ -54,7 +54,7 @@ func (a *FonnteAdapter) Send(ctx context.Context, req domain.WhatsAppMessage) (d
 	formData.Set("target", req.Recipient)
 	formData.Set("message", req.Body)
 
-	// Buat HTTP request dengan context untuk mendukung timeout dan cancellation
+	// Buat HTTP permintaan dengan context untuk mendukung timeout dan cancellation
 	httpReq, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
@@ -72,7 +72,7 @@ func (a *FonnteAdapter) Send(ctx context.Context, req domain.WhatsAppMessage) (d
 	httpReq.Header.Set("Authorization", a.apiToken)
 	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	// Kirim request ke Fonnte API
+	// Kirim permintaan ke Fonnte API
 	resp, err := a.httpClient.Do(httpReq)
 	if err != nil {
 		return domain.SendResult{
@@ -82,7 +82,7 @@ func (a *FonnteAdapter) Send(ctx context.Context, req domain.WhatsAppMessage) (d
 	}
 	defer resp.Body.Close()
 
-	// Baca response body
+	// Baca respons body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return domain.SendResult{
@@ -100,7 +100,7 @@ func (a *FonnteAdapter) Send(ctx context.Context, req domain.WhatsAppMessage) (d
 		}, fmt.Errorf("fonnte API error: %s", detail)
 	}
 
-	// Parse response JSON dari Fonnte
+	// Parsing respons JSON dari Fonnte
 	var fonnteResp fonnteResponse
 	if err := json.Unmarshal(body, &fonnteResp); err != nil {
 		detail := fmt.Sprintf("gagal parse response JSON: %v", err)
@@ -110,7 +110,7 @@ func (a *FonnteAdapter) Send(ctx context.Context, req domain.WhatsAppMessage) (d
 		}, fmt.Errorf("gagal parse response fonnte: %w", err)
 	}
 
-	// Evaluasi status dari response Fonnte
+	// Evaluasi status dari respons Fonnte
 	if !fonnteResp.Status {
 		return domain.SendResult{
 			MessageID:   fonnteResp.ID,

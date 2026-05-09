@@ -1,7 +1,7 @@
--- Query SQL untuk operasi CRUD tabel invoices.
+-- Kueri SQL untuk operasi CRUD tabel invoices.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel invoices dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Query List dibangun secara dinamis di repository (sama seperti customer/package) — tidak di sqlc.
+-- Tabel invoices dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
+-- Query List dibangun secara dinamis di repositori (sama seperti customer/package) - tidak di sqlc.
 
 -- name: CreateInvoice :one
 -- Membuat invoice baru dan mengembalikan semua kolom.
@@ -33,7 +33,7 @@ LEFT JOIN packages p ON p.id = c.package_id
 WHERE i.id = $1;
 
 -- name: UpdateInvoice :one
--- Memperbarui data invoice (due_date, subtotal, tax, penalty, discount, credit, total, notes)
+-- Memperbarui data invoice (due_date, subtotal, tax, denda, discount, credit, total, notes)
 -- dan increment version untuk optimistic locking.
 UPDATE invoices SET
     due_date = $2,
@@ -70,7 +70,7 @@ WHERE id = $1 AND version = $3
 RETURNING *;
 
 -- name: ExistsForPeriod :one
--- Mengecek apakah invoice sudah ada untuk customer dan periode tertentu (idempotency check).
+-- Mengecek apakah invoice sudah ada untuk customer dan periode tertentu (idempotency cek).
 SELECT EXISTS(
     SELECT 1 FROM invoices
     WHERE customer_id = $1 AND period_month = $2 AND period_year = $3
@@ -93,7 +93,7 @@ SELECT EXISTS(
 
 -- name: FindOverdueInvoices :many
 -- Mengambil semua invoice yang sudah melewati jatuh tempo dan masih berstatus belum_bayar.
--- Digunakan oleh cron job untuk update status ke terlambat.
+-- Digunakan oleh job cron untuk perbarui status ke terlambat.
 SELECT *
 FROM invoices
 WHERE status = 'belum_bayar' AND due_date < $1;

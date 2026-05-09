@@ -1,4 +1,4 @@
-// Package tenant menyediakan middleware Fiber dan helper untuk mengelola
+// Paket tenant menyediakan middleware Fiber dan helper untuk mengelola
 // konteks tenant dalam sistem multi-tenant ISPBoss.
 // Mengekstrak tenant_id dari JWT token dan menyimpannya di context.
 package tenant
@@ -80,7 +80,7 @@ func SetForTest(ctx context.Context, tenantID string) context.Context {
 }
 
 // MustFromContext mengambil tenant_id dari Go context.
-// Panic jika tenant_id tidak ditemukan — hanya untuk penggunaan internal
+// Panic jika tenant_id tidak ditemukan - hanya untuk penggunaan internal
 // di mana tenant_id dijamin sudah ada (setelah melewati middleware).
 func MustFromContext(ctx context.Context) string {
 	val := FromContext(ctx)

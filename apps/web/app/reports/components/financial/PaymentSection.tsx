@@ -27,7 +27,7 @@ export function PaymentSection({ filter }: Props) {
     <section className="space-y-4">
       <h2 className="text-lg font-semibold text-slate-900">Distribusi Pembayaran</h2>
 
-      {/* Metode pembayaran */}
+      {/* Metode pembayaran*/}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {methods.map((m) => (
           <MetricCard
@@ -43,7 +43,7 @@ export function PaymentSection({ filter }: Props) {
         />
       </div>
 
-      {/* Tabel metode */}
+      {/* Tabel metode*/}
       {methods.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <h3 className="mb-3 text-sm font-medium text-slate-700">Rincian Metode Pembayaran</h3>
@@ -72,7 +72,7 @@ export function PaymentSection({ filter }: Props) {
         </div>
       )}
 
-      {/* Chart pembayaran harian */}
+      {/* Chart pembayaran harian*/}
       {daily_payments.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <h3 className="mb-4 text-sm font-medium text-slate-700">Pembayaran Harian</h3>

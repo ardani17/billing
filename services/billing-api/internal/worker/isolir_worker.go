@@ -1,11 +1,11 @@
 // isolir_worker.go berisi asynq worker untuk task isolir, un-isolir, suspend, dan sync.
 // IsolirWorker menangani enam jenis task:
-// 1. isolir.auto_isolir_cron — cron harian auto-isolir pelanggan dengan invoice terlambat
-// 2. isolir.suspend_cron — cron harian suspend pelanggan yang melewati batas toleransi
-// 3. isolir.periodic_sync — periodic sync pending_syncs setiap 15 menit
-// 4. payment.online.received — buka isolir setelah pembayaran online diterima
-// 5. payment.recorded — buka isolir setelah pembayaran manual dicatat
-// 6. payment.voided.re_isolir — re-isolir setelah pembayaran di-void
+// 1. isolir.auto_isolir_cron - cron harian auto-isolir pelanggan dengan invoice terlambat
+// 2. isolir.suspend_cron - cron harian suspend pelanggan yang melewati batas toleransi
+// 3. isolir.periodic_sync - periodic sync pending_syncs setiap 15 menit
+// 4. payment.online.received - buka isolir setelah pembayaran online diterima
+// 5. payment.recorded - buka isolir setelah pembayaran manual dicatat
+// 6. payment.voided.re_isolir - re-isolir setelah pembayaran di-void
 package worker
 
 import (

@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-/** Konfigurasi satu bar dalam chart */
+/** Konfigurasi satu bar dalam chart*/
 export interface BarConfig {
   dataKey: string;
   name: string;
@@ -20,22 +20,22 @@ export interface BarConfig {
 }
 
 interface BarChartProps {
-  /** Data array untuk chart */
+  /** Data array untuk chart*/
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: readonly any[];
-  /** Key untuk sumbu X */
+  /** Key untuk sumbu X*/
   xKey: string;
-  /** Konfigurasi bar(s) */
+  /** Konfigurasi bar(s)*/
   bars: BarConfig[];
-  /** Tinggi chart dalam pixel */
+  /** Tinggi chart dalam pixel*/
   height?: number;
-  /** Formatter untuk tooltip value */
+  /** Formatter untuk tooltip value*/
   valueFormatter?: (value: number) => string;
-  /** Formatter untuk label sumbu X */
+  /** Formatter untuk label sumbu X*/
   xFormatter?: (value: string) => string;
-  /** Tampilkan grid */
+  /** Tampilkan grid*/
   showGrid?: boolean;
-  /** Tampilkan legend */
+  /** Tampilkan legend*/
   showLegend?: boolean;
 }
 

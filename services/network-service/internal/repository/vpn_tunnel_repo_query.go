@@ -7,7 +7,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// --- Implementasi query dan health methods domain.VPNTunnelRepository ---
+// --- Implementasi kueri dan health methods domain.VPNTunnelRepository ---
 
 // List mengambil daftar VPN tunnel dengan paginasi dan filter.
 func (r *VPNTunnelRepo) List(ctx context.Context, params domain.VPNTunnelListParams) (*domain.VPNTunnelListResult, error) {
@@ -113,7 +113,7 @@ func (r *VPNTunnelRepo) VPNIPExists(ctx context.Context, tenantID, vpnIP string)
 	return exists, nil
 }
 
-// UpdateStatus memperbarui status tunnel dan field terkait health check.
+// UpdateStatus memperbarui status tunnel dan field terkait health cek.
 func (r *VPNTunnelRepo) UpdateStatus(ctx context.Context, id string, params domain.TunnelHealthUpdate) error {
 	status := ""
 	if params.Status != nil {

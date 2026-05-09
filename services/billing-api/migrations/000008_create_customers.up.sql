@@ -56,7 +56,7 @@ ALTER TABLE customers ADD CONSTRAINT uq_customers_tenant_phone
 ALTER TABLE customers ADD CONSTRAINT uq_customers_tenant_id_seq
     UNIQUE (tenant_id, customer_id_seq);
 
--- Composite indexes untuk performa query
+-- Composite indexes untuk performa kueri
 CREATE INDEX idx_customers_tenant_status ON customers(tenant_id, status);
 CREATE INDEX idx_customers_tenant_id_seq ON customers(tenant_id, customer_id_seq);
 CREATE INDEX idx_customers_tenant_phone ON customers(tenant_id, phone);
@@ -64,6 +64,6 @@ CREATE INDEX idx_customers_tenant_area ON customers(tenant_id, area_id);
 CREATE INDEX idx_customers_tenant_package ON customers(tenant_id, package_id);
 CREATE INDEX idx_customers_tenant_due_date ON customers(tenant_id, due_date);
 
--- Partial index: exclude soft-deleted dari query umum
+-- Partial index: exclude hapus lunak dari kueri umum
 CREATE INDEX idx_customers_active ON customers(tenant_id)
     WHERE deleted_at IS NULL;

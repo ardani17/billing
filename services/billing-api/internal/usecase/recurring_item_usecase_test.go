@@ -1,5 +1,4 @@
 // recurring_item_usecase_test.go berisi unit test untuk RecurringItemUsecase.
-// Menguji CRUD operations, soft delete, dan validasi.
 package usecase
 
 import (
@@ -13,7 +12,6 @@ import (
 )
 
 // =============================================================================
-// Helper untuk membuat RecurringItemUsecase dengan mock repos
 // =============================================================================
 
 type recurringUsecaseSetup struct {
@@ -37,10 +35,10 @@ func setupRecurringUsecase() *recurringUsecaseSetup {
 }
 
 // =============================================================================
-// Unit Tests — RecurringItemUsecase
+// Unit Tests - RecurringItemUsecase
 // =============================================================================
 
-// TestRecurringItem_Create_Success menguji pembuatan recurring item berhasil.
+// TestRecurringItem_Create_Success menguji pembuatan item berulang berhasil.
 func TestRecurringItem_Create_Success(t *testing.T) {
 	s := setupRecurringUsecase()
 	ctx := context.Background()
@@ -71,7 +69,6 @@ func TestRecurringItem_Create_Success(t *testing.T) {
 	}
 }
 
-// TestRecurringItem_Create_CustomerNotFound menguji error saat pelanggan tidak ditemukan.
 func TestRecurringItem_Create_CustomerNotFound(t *testing.T) {
 	s := setupRecurringUsecase()
 	ctx := context.Background()
@@ -88,7 +85,6 @@ func TestRecurringItem_Create_CustomerNotFound(t *testing.T) {
 	}
 }
 
-// TestRecurringItem_Create_InvalidStartDate menguji error saat format start_date tidak valid.
 func TestRecurringItem_Create_InvalidStartDate(t *testing.T) {
 	s := setupRecurringUsecase()
 	ctx := context.Background()
@@ -109,7 +105,6 @@ func TestRecurringItem_Create_InvalidStartDate(t *testing.T) {
 	}
 }
 
-// TestRecurringItem_List_Success menguji list recurring items berhasil.
 func TestRecurringItem_List_Success(t *testing.T) {
 	s := setupRecurringUsecase()
 	ctx := context.Background()
@@ -128,7 +123,6 @@ func TestRecurringItem_List_Success(t *testing.T) {
 	}
 }
 
-// TestRecurringItem_Update_Success menguji update recurring item berhasil.
 func TestRecurringItem_Update_Success(t *testing.T) {
 	s := setupRecurringUsecase()
 	ctx := context.Background()
@@ -155,7 +149,6 @@ func TestRecurringItem_Update_Success(t *testing.T) {
 	}
 }
 
-// TestRecurringItem_Update_NotFound menguji error saat item tidak ditemukan.
 func TestRecurringItem_Update_NotFound(t *testing.T) {
 	s := setupRecurringUsecase()
 	ctx := context.Background()
@@ -167,7 +160,6 @@ func TestRecurringItem_Update_NotFound(t *testing.T) {
 	}
 }
 
-// TestRecurringItem_Update_WrongCustomer menguji error saat item bukan milik pelanggan.
 func TestRecurringItem_Update_WrongCustomer(t *testing.T) {
 	s := setupRecurringUsecase()
 	ctx := context.Background()
@@ -183,7 +175,6 @@ func TestRecurringItem_Update_WrongCustomer(t *testing.T) {
 	}
 }
 
-// TestRecurringItem_Delete_Success menguji soft delete (deactivate) berhasil.
 func TestRecurringItem_Delete_Success(t *testing.T) {
 	s := setupRecurringUsecase()
 	ctx := context.Background()
@@ -198,7 +189,6 @@ func TestRecurringItem_Delete_Success(t *testing.T) {
 	}
 }
 
-// TestRecurringItem_Delete_NotFound menguji error saat item tidak ditemukan.
 func TestRecurringItem_Delete_NotFound(t *testing.T) {
 	s := setupRecurringUsecase()
 	ctx := context.Background()

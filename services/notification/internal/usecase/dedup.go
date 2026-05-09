@@ -8,7 +8,7 @@ import (
 )
 
 // =============================================================================
-// DedupChecker — pengecekan duplikasi notifikasi
+// DedupChecker - pengecekan duplikasi notifikasi
 // =============================================================================
 
 // DedupChecker bertanggung jawab untuk mengecek apakah notifikasi sudah pernah

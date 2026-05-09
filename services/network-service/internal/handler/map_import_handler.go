@@ -1,6 +1,6 @@
-// map_import_handler.go menangani HTTP request untuk import peta.
+// map_import_handler.go menangani HTTP permintaan untuk import peta.
 // Mendukung format KML, KMZ, dan GeoJSON.
-// Alur: Preview (parse file) → Execute (apply mapping).
+// Alur: Preview (parsing file) -> Execute (apply mapping).
 package handler
 
 import (
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// ImportHandler menangani HTTP request untuk import peta.
+// ImportHandler menangani HTTP permintaan untuk import peta.
 type ImportHandler struct {
 	manager  domain.MapImportManager
 	validate *validator.Validate
@@ -28,7 +28,7 @@ func NewImportHandler(manager domain.MapImportManager) *ImportHandler {
 }
 
 // Preview menangani POST /import.
-// Menerima file via multipart form, parse, dan return preview item.
+// Menerima file via multipart form, parsing, dan kembalikan preview item.
 func (h *ImportHandler) Preview(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -55,7 +55,7 @@ func (h *ImportHandler) Preview(c *fiber.Ctx) error {
 }
 
 // Execute menangani POST /import/execute.
-// Parse body mapping, validasi, lalu eksekusi import.
+// Parsing body mapping, validasi, lalu eksekusi import.
 func (h *ImportHandler) Execute(c *fiber.Ctx) error {
 	var req domain.ImportMapping
 	if err := c.BodyParser(&req); err != nil {
@@ -90,7 +90,7 @@ func (h *ImportHandler) GetImportStatus(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, status)
 }
 
-// mapError memetakan domain error import ke HTTP error response.
+// mapError memetakan domain error import ke HTTP error respons.
 func (h *ImportHandler) mapError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrUnsupportedFormat):

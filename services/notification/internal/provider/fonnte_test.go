@@ -12,10 +12,8 @@ import (
 )
 
 // =============================================================================
-// Test FonnteAdapter — integration test dengan mock HTTP server
 // =============================================================================
 
-// newTestFonnteAdapter membuat FonnteAdapter yang mengarah ke mock server URL.
 func newTestFonnteAdapter(serverURL, apiToken string) *FonnteAdapter {
 	adapter := NewFonnteAdapter(apiToken, 5*time.Second)
 	adapter.baseURL = serverURL
@@ -47,7 +45,6 @@ func TestFonnteAdapter_Send_Success(t *testing.T) {
 			t.Errorf("expected message 'Halo, ini pesan test', got '%s'", r.FormValue("message"))
 		}
 
-		// Kirim response sukses
 		resp := fonnteResponse{Status: true, ID: "msg-001", Detail: "sent"}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
@@ -74,7 +71,6 @@ func TestFonnteAdapter_Send_Success(t *testing.T) {
 	}
 }
 
-// TestFonnteAdapter_Send_APIFailure menguji response gagal dari Fonnte (status: false).
 func TestFonnteAdapter_Send_APIFailure(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := fonnteResponse{Status: false, ID: "", Detail: "nomor tidak valid"}
@@ -89,7 +85,6 @@ func TestFonnteAdapter_Send_APIFailure(t *testing.T) {
 		Body:      "Test",
 	})
 
-	// API failure bukan transport error, jadi err harus nil
 	if err != nil {
 		t.Fatalf("expected no error (API failure bukan transport error), got: %v", err)
 	}
@@ -123,7 +118,6 @@ func TestFonnteAdapter_Send_HTTPError(t *testing.T) {
 	}
 }
 
-// TestFonnteAdapter_Send_InvalidJSON menguji penanganan response JSON tidak valid.
 func TestFonnteAdapter_Send_InvalidJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

@@ -20,7 +20,7 @@ func NewServiceProfileRepo(queries *Queries) *ServiceProfileRepo {
 	return &ServiceProfileRepo{queries: queries}
 }
 
-// --- Mapping sqlc ServiceProfile → domain.ServiceProfile ---
+// --- Mapping sqlc ServiceProfile -> domain.ServiceProfile ---
 
 // mapServiceProfileRow memetakan ServiceProfile (sqlc model) ke domain.ServiceProfile.
 func mapServiceProfileRow(row ServiceProfile) *domain.ServiceProfile {
@@ -41,7 +41,7 @@ func mapServiceProfileRow(row ServiceProfile) *domain.ServiceProfile {
 
 // --- Implementasi CRUD domain.ServiceProfileRepository ---
 
-// Create membuat service profile baru dan mengembalikan profile yang dibuat.
+// Buat membuat service profile baru dan mengembalikan profile yang dibuat.
 func (r *ServiceProfileRepo) Create(ctx context.Context, profile *domain.ServiceProfile) (*domain.ServiceProfile, error) {
 	row, err := r.queries.CreateServiceProfile(ctx, CreateServiceProfileParams{
 		TenantID:         stringToUUID(profile.TenantID),
@@ -70,7 +70,7 @@ func (r *ServiceProfileRepo) GetByID(ctx context.Context, id string) (*domain.Se
 	return mapServiceProfileRow(row), nil
 }
 
-// Update memperbarui data service profile dan mengembalikan profile yang diperbarui.
+// Perbarui memperbarui data service profile dan mengembalikan profile yang diperbarui.
 func (r *ServiceProfileRepo) Update(ctx context.Context, profile *domain.ServiceProfile) (*domain.ServiceProfile, error) {
 	row, err := r.queries.UpdateServiceProfile(ctx, UpdateServiceProfileParams{
 		ID:               stringToUUID(profile.ID),
@@ -89,7 +89,7 @@ func (r *ServiceProfileRepo) Update(ctx context.Context, profile *domain.Service
 	return mapServiceProfileRow(row), nil
 }
 
-// SoftDelete melakukan soft-delete service profile (set deleted_at).
+// SoftDelete melakukan hapus lunak service profile (atur deleted_at).
 func (r *ServiceProfileRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeleteServiceProfile(ctx, stringToUUID(id))
 	if err != nil {
@@ -194,5 +194,5 @@ func (r *ServiceProfileRepo) CountActiveONTs(ctx context.Context, profileID stri
 	return count, nil
 }
 
-// Compile-time check: ServiceProfileRepo mengimplementasikan domain.ServiceProfileRepository.
+// Compile-time cek: ServiceProfileRepo mengimplementasikan domain.ServiceProfileRepository.
 var _ domain.ServiceProfileRepository = (*ServiceProfileRepo)(nil)

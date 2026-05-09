@@ -7,10 +7,8 @@ import (
 	"pgregory.net/rapid"
 )
 
-// allStatuses berisi semua status router yang valid.
 var allStatuses = []RouterStatus{StatusOnline, StatusOffline, StatusMaintenance}
 
-// validTransitionPairs berisi semua pasangan transisi status yang valid.
 // Sesuai dengan ValidRouterTransitions di constants.go.
 var validTransitionPairs = map[[2]RouterStatus]bool{
 	{StatusOffline, StatusOnline}:      true,
@@ -22,18 +20,13 @@ var validTransitionPairs = map[[2]RouterStatus]bool{
 }
 
 // =============================================================================
-// Feature: mikrotik-router, Property 1: Status transition correctness
 // =============================================================================
 
 // TestProperty_StatusTransitionCorrectness memverifikasi bahwa untuk sembarang
-// pasangan RouterStatus (current, target), CanTransitionRouter mengembalikan
-// true jika dan hanya jika pasangan tersebut ada di set transisi valid.
-// Transisi yang tidak valid harus ditolak.
 //
-// **Validates: Requirements 2.3, 2.4**
+// **Memvalidasi: Kebutuhan 2.3, 2.4**
 func TestProperty_StatusTransitionCorrectness(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Pilih status asal dan tujuan secara acak dari semua status valid
 		current := rapid.SampledFrom(allStatuses).Draw(t, "current")
 		target := rapid.SampledFrom(allStatuses).Draw(t, "target")
 
@@ -61,20 +54,17 @@ func TestProperty_StatusTransitionCorrectness(t *testing.T) {
 // TestProperty_StatusTransitionInvalidStatusRejected memverifikasi bahwa
 // status yang tidak dikenal selalu ditolak oleh CanTransitionRouter.
 //
-// **Validates: Requirements 2.3, 2.4**
+// **Memvalidasi: Kebutuhan 2.3, 2.4**
 func TestProperty_StatusTransitionInvalidStatusRejected(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate string acak sebagai status tidak valid
 		invalidStatus := RouterStatus(rapid.String().Draw(t, "invalidStatus"))
 
-		// Pastikan bukan salah satu status valid
 		for _, s := range allStatuses {
 			if invalidStatus == s {
 				return // skip iterasi ini, status kebetulan valid
 			}
 		}
 
-		// Transisi dari status tidak valid harus selalu ditolak
 		validTarget := rapid.SampledFrom(allStatuses).Draw(t, "target")
 		if CanTransitionRouter(invalidStatus, validTarget) {
 			t.Errorf(
@@ -83,7 +73,6 @@ func TestProperty_StatusTransitionInvalidStatusRejected(t *testing.T) {
 			)
 		}
 
-		// Transisi ke status tidak valid juga harus ditolak
 		validCurrent := rapid.SampledFrom(allStatuses).Draw(t, "current")
 		if CanTransitionRouter(validCurrent, invalidStatus) {
 			t.Errorf(
@@ -95,15 +84,13 @@ func TestProperty_StatusTransitionInvalidStatusRejected(t *testing.T) {
 }
 
 // TestProperty_StatusTransitionAllowedTargetsConsistency memverifikasi bahwa
-// daftar target yang diizinkan di ValidRouterTransitions konsisten dengan
 // hasil CanTransitionRouter.
 //
-// **Validates: Requirements 2.3, 2.4**
+// **Memvalidasi: Kebutuhan 2.3, 2.4**
 func TestProperty_StatusTransitionAllowedTargetsConsistency(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		current := rapid.SampledFrom(allStatuses).Draw(t, "current")
 
-		// Ambil daftar target yang diizinkan dari map
 		allowedTargets := ValidRouterTransitions[current]
 
 		// Untuk setiap status, cek konsistensi
@@ -128,7 +115,6 @@ func TestProperty_StatusTransitionAllowedTargetsConsistency(t *testing.T) {
 }
 
 // =============================================================================
-// Feature: mikrotik-router, Property 4: Reboot confirmation validation
 // =============================================================================
 
 // validateRebootConfirmation mensimulasikan logika validasi reboot.
@@ -148,12 +134,12 @@ func validateRebootConfirmation(routerName, confirmation string) error {
 // diizinkan jika string konfirmasi sama persis (case-sensitive) dengan nama
 // router. Semua string lain harus ditolak.
 //
-// **Validates: Requirements 5.8, 5.9**
+// **Memvalidasi: Kebutuhan 5.8, 5.9**
 func TestProperty_RebootConfirmationValidation(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate nama router acak
+		// Buat nama router acak
 		routerName := rapid.String().Draw(t, "routerName")
-		// Generate string konfirmasi acak
+		// Buat string konfirmasi acak
 		confirmation := rapid.String().Draw(t, "confirmation")
 
 		err := validateRebootConfirmation(routerName, confirmation)
@@ -181,10 +167,10 @@ func TestProperty_RebootConfirmationValidation(t *testing.T) {
 // TestProperty_RebootConfirmationExactMatch memverifikasi bahwa konfirmasi
 // yang sama persis dengan nama router selalu diterima.
 //
-// **Validates: Requirements 5.8, 5.9**
+// **Memvalidasi: Kebutuhan 5.8, 5.9**
 func TestProperty_RebootConfirmationExactMatch(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate nama router acak
+		// Buat nama router acak
 		routerName := rapid.String().Draw(t, "routerName")
 
 		// Konfirmasi yang sama persis harus selalu diterima
@@ -199,22 +185,20 @@ func TestProperty_RebootConfirmationExactMatch(t *testing.T) {
 }
 
 // =============================================================================
-// Feature: mikrotik-router, Property 8: Status summary invariant
 // =============================================================================
 
 // TestProperty_StatusSummaryInvariant memverifikasi bahwa untuk sembarang
 // distribusi status router, total_routers selalu sama dengan
-// online_count + offline_count + maintenance_count.
 //
-// **Validates: Requirements 7.1**
+// **Memvalidasi: Kebutuhan 7.1**
 func TestProperty_StatusSummaryInvariant(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate jumlah router per status secara acak
+		// Buat jumlah router per status secara acak
 		onlineCount := int64(rapid.IntRange(0, 100).Draw(t, "onlineCount"))
 		offlineCount := int64(rapid.IntRange(0, 100).Draw(t, "offlineCount"))
 		maintenanceCount := int64(rapid.IntRange(0, 100).Draw(t, "maintenanceCount"))
 
-		// Buat StatusSummary dari distribusi yang di-generate
+		// Buat StatusSummary dari distribusi yang di-buat
 		summary := StatusSummary{
 			TotalRouters:     onlineCount + offlineCount + maintenanceCount,
 			OnlineCount:      onlineCount,
@@ -251,13 +235,13 @@ func TestProperty_StatusSummaryInvariant(t *testing.T) {
 // Mensimulasikan skenario nyata: buat daftar router dengan status acak,
 // hitung summary, dan verifikasi invariant.
 //
-// **Validates: Requirements 7.1**
+// **Memvalidasi: Kebutuhan 7.1**
 func TestProperty_StatusSummaryFromRouterList(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate jumlah router acak (0-100)
+		// Buat jumlah router acak (0-100)
 		numRouters := rapid.IntRange(0, 100).Draw(t, "numRouters")
 
-		// Hitung jumlah per status dari daftar router yang di-generate
+		// Hitung jumlah per status dari daftar router yang di-buat
 		var onlineCount, offlineCount, maintenanceCount int64
 		for i := 0; i < numRouters; i++ {
 			status := rapid.SampledFrom(allStatuses).Draw(t, fmt.Sprintf("status_%d", i))
@@ -287,7 +271,7 @@ func TestProperty_StatusSummaryFromRouterList(t *testing.T) {
 			)
 		}
 
-		// Invariant 2: total harus sama dengan jumlah router yang di-generate
+		// Invariant 2: total harus sama dengan jumlah router yang di-buat
 		if summary.TotalRouters != int64(numRouters) {
 			t.Errorf(
 				"TotalRouters=%d tidak sama dengan jumlah router yang di-generate=%d",

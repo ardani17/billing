@@ -9,7 +9,7 @@ import (
 )
 
 // ProcessLateFee menghitung dan menambahkan denda keterlambatan ke invoice.
-// Dipanggil saat invoice transisi ke terlambat oleh overdue cron.
+// Dipanggil saat invoice transisi ke terlambat oleh terlambat cron.
 func (uc *IsolirUsecase) ProcessLateFee(ctx context.Context, tenantID string,
 	invoice *domain.Invoice, settings *domain.BillingSettings, daysOverdue int) error {
 	// Cek apakah fitur denda aktif
@@ -45,7 +45,7 @@ func (uc *IsolirUsecase) ProcessLateFee(ctx context.Context, tenantID string,
 		return fmt.Errorf("gagal memperbarui total invoice: %w", err)
 	}
 
-	// Publish event invoice.penalty_added untuk sinkronisasi payment link
+	// Terbitkan event invoice.penalty_added untuk sinkronisasi link pembayaran
 	uc.publishEvent(tenantID, domain.TaskInvoicePenaltyAdded, domain.PenaltyAddedPayload{
 		InvoiceID:     invoice.ID,
 		TenantID:      tenantID,
@@ -58,15 +58,15 @@ func (uc *IsolirUsecase) ProcessLateFee(ctx context.Context, tenantID string,
 	// Tulis audit log
 	uc.writeAuditLog(ctx, tenantID, invoice.ID, "invoice.penalty_added",
 		map[string]interface{}{
-			"fee_amount":       fee,
+			"fee_amount":         fee,
 			"calculation_method": string(settings.PenaltyType),
-			"days_overdue":     daysOverdue,
+			"days_overdue":       daysOverdue,
 		})
 	return nil
 }
 
 // WaivePenalty menghapus denda dari invoice dan menghitung ulang total.
-// Dipanggil oleh admin melalui endpoint POST /v1/invoices/:id/waive-penalty.
+// Dipanggil oleh admin melalui endpoint POST /v1/invoices/:id/waive-denda.
 func (uc *IsolirUsecase) WaivePenalty(ctx context.Context, invoiceID, actorID, actorName string) error {
 	// Ambil invoice berdasarkan ID
 	invoice, err := uc.invoiceRepo.GetByID(ctx, invoiceID)
@@ -74,7 +74,7 @@ func (uc *IsolirUsecase) WaivePenalty(ctx context.Context, invoiceID, actorID, a
 		return fmt.Errorf("%w", domain.ErrInvoiceNotFound)
 	}
 
-	// Validasi status invoice — tidak bisa edit jika sudah lunas atau batal
+	// Validasi status invoice - tidak bisa edit jika sudah lunas atau batal
 	if invoice.Status == domain.InvoiceStatusLunas || invoice.Status == domain.InvoiceStatusBatal {
 		return domain.ErrInvoiceNotEditable
 	}
@@ -109,14 +109,14 @@ func (uc *IsolirUsecase) WaivePenalty(ctx context.Context, invoiceID, actorID, a
 		}
 	}
 
-	// Hitung ulang total: set penalty_amount ke 0, recalculate total_amount
+	// Hitung ulang total: atur penalty_amount ke 0, recalculate total_amount
 	invoice.TotalAmount -= invoice.PenaltyAmount
 	invoice.PenaltyAmount = 0
 	if _, err := uc.invoiceRepo.Update(ctx, invoice); err != nil {
 		return fmt.Errorf("gagal memperbarui total invoice: %w", err)
 	}
 
-	// Publish event invoice.penalty_added (amount 0) untuk sinkronisasi payment link
+	// Terbitkan event invoice.penalty_added (nominal 0) untuk sinkronisasi link pembayaran
 	uc.publishEvent(invoice.TenantID, domain.TaskInvoicePenaltyAdded, domain.PenaltyAddedPayload{
 		InvoiceID:     invoice.ID,
 		TenantID:      invoice.TenantID,

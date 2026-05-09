@@ -1,4 +1,4 @@
-// Package main adalah entry point untuk service notification.
+// Paket main adalah titik masuk untuk service notification.
 // Menginisialisasi konfigurasi, logger, koneksi database, Redis,
 // dan menjalankan HTTP server menggunakan Fiber serta asynq worker.
 package main
@@ -81,7 +81,7 @@ func main() {
 	// --- Instantiate sqlc Queries ---
 	queries := repository.New(dbPool)
 
-	// --- Instantiate repositories ---
+	// --- Inisialisasi repositori ---
 	configRepo := repository.NewConfigRepo(queries)
 	templateRepo := repository.NewTemplateRepo(queries)
 	logRepo := repository.NewLogRepo(queries)
@@ -89,7 +89,7 @@ func main() {
 
 	// --- Instantiate provider adapters ---
 	// Credential diambil dari database saat runtime, bukan dari env vars.
-	// Inisialisasi dengan string kosong — delivery pipeline menggunakan config dari DB.
+	// Inisialisasi dengan string kosong - delivery pipeline menggunakan config dari DB.
 	fonnteAdapter := provider.NewFonnteAdapter("", cfg.FonnteTimeout)
 	zenzivaAdapter := provider.NewZenzivaAdapter("", "", cfg.ZenzivaTimeout)
 	smtpAdapter := provider.NewSMTPAdapter("", 0, "", "", "", "")
@@ -107,7 +107,7 @@ func main() {
 		appLogger,
 	)
 
-	// --- Instantiate handlers ---
+	// --- Inisialisasi handler ---
 	healthHandler := handler.NewHealthHandler(cfg.AppName, dbPool, redisClient)
 	logHandler := handler.NewLogHandler(logRepo)
 	configHandler := handler.NewConfigHandler(configRepo, templateRepo)

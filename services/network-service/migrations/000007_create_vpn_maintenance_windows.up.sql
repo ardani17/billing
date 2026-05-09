@@ -12,6 +12,6 @@ CREATE TABLE vpn_maintenance_windows (
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index untuk query upcoming maintenance
+-- Index untuk kueri upcoming maintenance
 CREATE INDEX idx_vpn_maintenance_scheduled
     ON vpn_maintenance_windows (scheduled_start);

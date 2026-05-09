@@ -20,7 +20,7 @@ func NewMapNodeRepo(db DBTX) *MapNodeRepo {
 	return &MapNodeRepo{db: db}
 }
 
-// scanMapNode memindai satu baris hasil query ke domain.MapNode.
+// scanMapNode memindai satu baris hasil kueri ke domain.MapNode.
 func scanMapNode(row pgx.Row) (*domain.MapNode, error) {
 	var n domain.MapNode
 	err := row.Scan(
@@ -34,7 +34,7 @@ func scanMapNode(row pgx.Row) (*domain.MapNode, error) {
 	return &n, nil
 }
 
-// Create membuat map node baru dan mengembalikan node yang dibuat.
+// Buat membuat map node baru dan mengembalikan node yang dibuat.
 func (r *MapNodeRepo) Create(ctx context.Context, node *domain.MapNode) (*domain.MapNode, error) {
 	row := r.db.QueryRow(ctx,
 		`INSERT INTO map_nodes (tenant_id, node_type, reference_id, latitude, longitude, custom_fields)
@@ -68,7 +68,7 @@ func (r *MapNodeRepo) GetByID(ctx context.Context, id string) (*domain.MapNode, 
 	return result, nil
 }
 
-// Update memperbarui data map node dan mengembalikan node yang diperbarui.
+// Perbarui memperbarui data map node dan mengembalikan node yang diperbarui.
 func (r *MapNodeRepo) Update(ctx context.Context, node *domain.MapNode) (*domain.MapNode, error) {
 	row := r.db.QueryRow(ctx,
 		`UPDATE map_nodes SET latitude = $2, longitude = $3, custom_fields = $4, updated_at = NOW()
@@ -87,7 +87,7 @@ func (r *MapNodeRepo) Update(ctx context.Context, node *domain.MapNode) (*domain
 	return result, nil
 }
 
-// SoftDelete melakukan soft-delete map node (set deleted_at).
+// SoftDelete melakukan hapus lunak map node (atur deleted_at).
 func (r *MapNodeRepo) SoftDelete(ctx context.Context, id string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE map_nodes SET deleted_at = NOW(), updated_at = NOW()
@@ -99,7 +99,7 @@ func (r *MapNodeRepo) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-// Restore mengembalikan map node yang sudah di-soft-delete (clear deleted_at).
+// Restore mengembalikan map node yang sudah di-hapus lunak (clear deleted_at).
 func (r *MapNodeRepo) Restore(ctx context.Context, id string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE map_nodes SET deleted_at = NULL, updated_at = NOW()
@@ -112,7 +112,7 @@ func (r *MapNodeRepo) Restore(ctx context.Context, id string) error {
 }
 
 // GetByReference mengambil map node berdasarkan tenant_id, node_type, dan reference_id.
-// Digunakan untuk cek duplikasi sebelum create.
+// Digunakan untuk cek duplikasi sebelum buat.
 func (r *MapNodeRepo) GetByReference(ctx context.Context, tenantID, nodeType, referenceID string) (*domain.MapNode, error) {
 	row := r.db.QueryRow(ctx,
 		`SELECT id, tenant_id, node_type, reference_id, latitude, longitude,
@@ -140,5 +140,5 @@ func nilIfEmpty(s string) interface{} {
 	return s
 }
 
-// Compile-time check: MapNodeRepo mengimplementasikan domain.MapNodeRepository.
+// Compile-time cek: MapNodeRepo mengimplementasikan domain.MapNodeRepository.
 var _ domain.MapNodeRepository = (*MapNodeRepo)(nil)

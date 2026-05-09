@@ -1,7 +1,7 @@
 "use client";
 
 interface ModuleInactiveProps {
-  /** Nama modul yang belum aktif (contoh: "MikroTik", "OLT") */
+  /** Nama modul yang belum aktif (contoh: "MikroTik", "OLT")*/
   moduleName: string;
 }
 

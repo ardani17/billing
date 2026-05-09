@@ -1,5 +1,5 @@
 // =============================================================================
-// Formatters — helper functions untuk format angka, mata uang, dan tanggal
+// Formatters - helper functions untuk format angka, mata uang, dan tanggal
 // =============================================================================
 
 /**

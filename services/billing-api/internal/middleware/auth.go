@@ -1,5 +1,5 @@
 // Package middleware berisi Fiber middleware untuk billing-api.
-// Termasuk autentikasi JWT, konteks tenant, dan logging request.
+// Termasuk autentikasi JWT, konteks tenant, dan logging permintaan.
 package middleware
 
 import (

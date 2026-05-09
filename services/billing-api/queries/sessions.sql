@@ -1,4 +1,4 @@
--- Query SQL untuk operasi CRUD tabel sessions.
+-- Kueri SQL untuk operasi CRUD tabel sessions.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
 -- Setiap login dari device berbeda membuat record session baru.
 

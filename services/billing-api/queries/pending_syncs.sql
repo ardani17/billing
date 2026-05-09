@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel pending_syncs.
+-- Kueri SQL untuk operasi CRUD tabel pending_syncs.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel pending_syncs dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel pending_syncs dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Digunakan oleh modul isolir untuk melacak operasi sinkronisasi router yang tertunda.
 
 -- name: CreatePendingSync :one

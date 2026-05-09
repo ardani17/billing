@@ -12,7 +12,7 @@ import (
 )
 
 // =============================================================================
-// CreditNoteRepo — implementasi domain.CreditNoteRepository
+// CreditNoteRepo - implementasi domain.CreditNoteRepository
 // =============================================================================
 
 // CreditNoteRepo mengimplementasikan domain.CreditNoteRepository menggunakan raw SQL
@@ -29,7 +29,7 @@ func NewCreditNoteRepo(pool *pgxpool.Pool) *CreditNoteRepo {
 	}
 }
 
-// Create membuat credit note baru dan mengembalikan credit note yang dibuat.
+// Buat membuat credit note baru dan mengembalikan credit note yang dibuat.
 func (r *CreditNoteRepo) Create(ctx context.Context, cn *domain.CreditNote) (*domain.CreditNote, error) {
 	query := `INSERT INTO credit_notes (
 		tenant_id, credit_note_number, invoice_id, amount, reason,
@@ -202,7 +202,7 @@ func (r *CreditNoteRepo) scanCreditNoteFromRows(rows pgx.Rows) (*domain.CreditNo
 }
 
 // =============================================================================
-// DebitNoteRepo — implementasi domain.DebitNoteRepository
+// DebitNoteRepo - implementasi domain.DebitNoteRepository
 // =============================================================================
 
 // DebitNoteRepo mengimplementasikan domain.DebitNoteRepository menggunakan raw SQL
@@ -219,7 +219,7 @@ func NewDebitNoteRepo(pool *pgxpool.Pool) *DebitNoteRepo {
 	}
 }
 
-// Create membuat debit note baru beserta items dan mengembalikan debit note yang dibuat.
+// Buat membuat debit note baru beserta items dan mengembalikan debit note yang dibuat.
 // Operasi ini menggunakan transaksi untuk memastikan konsistensi antara debit_notes dan debit_note_items.
 func (r *DebitNoteRepo) Create(ctx context.Context, dn *domain.DebitNote) (*domain.DebitNote, error) {
 	tx, err := r.pool.Begin(ctx)
@@ -313,7 +313,7 @@ func (r *DebitNoteRepo) Create(ctx context.Context, dn *domain.DebitNote) (*doma
 		return nil, fmt.Errorf("repository: gagal commit transaksi debit note: %w", err)
 	}
 
-	// Konversi invoice_id opsional untuk response
+	// Konversi invoice_id opsional untuk respons
 	var resultInvoiceID *string
 	if invoiceID.Valid {
 		s := uuidToString(invoiceID)

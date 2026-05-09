@@ -20,11 +20,11 @@ import (
 // nominatimBaseURL adalah URL dasar untuk Nominatim reverse geocoding API.
 const nominatimBaseURL = "https://nominatim.openstreetmap.org/reverse"
 
-// nominatimUserAgent adalah User-Agent yang digunakan untuk request ke Nominatim.
+// nominatimUserAgent adalah User-Agent yang digunakan untuk permintaan ke Nominatim.
 // Nominatim memerlukan User-Agent yang valid sesuai kebijakan penggunaan.
 const nominatimUserAgent = "ISPBoss/1.0"
 
-// Compile-time check: geocodingManager harus mengimplementasikan domain.GeocodingManager.
+// Compile-time cek: geocodingManager harus mengimplementasikan domain.GeocodingManager.
 var _ domain.GeocodingManager = (*geocodingManager)(nil)
 
 // HTTPClient mendefinisikan interface untuk HTTP client (untuk testing).
@@ -55,7 +55,7 @@ func NewGeocodingManager(
 }
 
 // ReverseGeocode mengkonversi koordinat GPS menjadi alamat lengkap.
-// Langkah: round koordinat → cek cache → jika miss, panggil Nominatim → simpan cache.
+// Langkah: round koordinat -> cek cache -> jika miss, panggil Nominatim -> simpan cache.
 // Jika provider gagal, mengembalikan koordinat tanpa alamat (graceful degradation).
 func (m *geocodingManager) ReverseGeocode(ctx context.Context, tenantID string, lat, lng float64) (*domain.GeocodingResult, error) {
 	// Validasi koordinat
@@ -74,11 +74,11 @@ func (m *geocodingManager) ReverseGeocode(ctx context.Context, tenantID string, 
 	}
 
 	if cached != nil {
-		// Cache hit — kembalikan hasil dari cache
+		// Cache hit - kembalikan hasil dari cache
 		return buildResultFromCache(cached, lat, lng), nil
 	}
 
-	// Cache miss — panggil provider Nominatim
+	// Cache miss - panggil provider Nominatim
 	result, rawJSON, err := m.callNominatim(lat, lng)
 	if err != nil {
 		log.Warn().Err(err).
@@ -132,9 +132,9 @@ type nominatimAddress struct {
 }
 
 // callNominatim memanggil Nominatim reverse geocoding API.
-// Mengembalikan GeocodingResult, raw JSON response, dan error.
+// Mengembalikan GeocodingResult, raw JSON respons, dan error.
 func (m *geocodingManager) callNominatim(lat, lng float64) (*domain.GeocodingResult, json.RawMessage, error) {
-	// Bangun URL request
+	// Bangun URL permintaan
 	params := url.Values{}
 	params.Set("format", "json")
 	params.Set("lat", fmt.Sprintf("%.6f", lat))
@@ -197,7 +197,7 @@ func buildResultFromCache(cache *domain.GeocodingCache, lat, lng float64) *domai
 		Longitude: lng,
 	}
 
-	// Parse raw JSON untuk detail alamat jika tersedia
+	// Parsing raw JSON untuk detail alamat jika tersedia
 	if cache.RawJSON != nil {
 		var nomResp nominatimResponse
 		if err := json.Unmarshal(cache.RawJSON, &nomResp); err == nil {

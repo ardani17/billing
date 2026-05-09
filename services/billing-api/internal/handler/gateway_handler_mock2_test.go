@@ -1,4 +1,3 @@
-// gateway_handler_mock2_test.go berisi mock PaymentLinkRepo, WebhookLogRepo, dan repo lainnya.
 package handler
 
 import (
@@ -8,8 +7,6 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
-
-// --- Mock: PaymentLinkRepository ---
 
 type mockPaymentLinkRepo struct {
 	links    map[string]*domain.PaymentLink
@@ -116,8 +113,6 @@ func (m *mockPaymentLinkRepo) ExpireByID(_ context.Context, id string) error {
 	l.Status = domain.PaymentLinkExpired
 	return nil
 }
-
-// --- Mock: WebhookLogRepository ---
 
 type mockWebhookLogRepo struct {
 	logs map[string]*domain.WebhookLog

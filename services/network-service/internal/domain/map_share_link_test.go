@@ -18,7 +18,6 @@ func TestGenerateShareToken_PanjangDanFormat(t *testing.T) {
 		t.Errorf("panjang token = %d, expected %d", len(token), expectedLen)
 	}
 
-	// Token harus valid hex string
 	_, err = hex.DecodeString(token)
 	if err != nil {
 		t.Errorf("token bukan valid hex: %v", err)

@@ -6,7 +6,7 @@ import (
 )
 
 // =============================================================================
-// NotificationConfig — konfigurasi provider notifikasi per tenant per channel
+// NotificationConfig - konfigurasi provider notifikasi per tenant per channel
 // =============================================================================
 
 // NotificationConfig merepresentasikan konfigurasi provider notifikasi per tenant per channel.
@@ -56,7 +56,7 @@ type EmailCredentials struct {
 }
 
 // =============================================================================
-// NotificationTemplate — template notifikasi per tenant
+// NotificationTemplate - template notifikasi per tenant
 // =============================================================================
 
 // NotificationTemplate merepresentasikan template notifikasi per tenant.
@@ -80,7 +80,7 @@ type NotificationTemplate struct {
 }
 
 // =============================================================================
-// NotificationLog — catatan pengiriman notifikasi
+// NotificationLog - catatan pengiriman notifikasi
 // =============================================================================
 
 // NotificationLog merepresentasikan catatan pengiriman notifikasi.
@@ -104,16 +104,16 @@ type NotificationLog struct {
 	CreatedAt    time.Time              `json:"created_at"`
 	UpdatedAt    time.Time              `json:"updated_at"`
 
-	// Field JOIN (opsional, dari query)
+	// Field JOIN (opsional, dari kueri)
 	CustomerName string `json:"customer_name,omitempty"`
 	TemplateName string `json:"template_name,omitempty"`
 }
 
 // =============================================================================
-// LogListParams & LogListResult — parameter dan hasil pagination log
+// LogListParams & LogListResult - parameter dan hasil paginasi log
 // =============================================================================
 
-// LogListParams berisi parameter untuk query daftar log notifikasi.
+// LogListParams berisi parameter untuk kueri daftar log notifikasi.
 type LogListParams struct {
 	TenantID   string     `json:"tenant_id"`
 	Channel    Channel    `json:"channel,omitempty"`
@@ -126,7 +126,7 @@ type LogListParams struct {
 	PageSize   int        `json:"page_size"`
 }
 
-// LogListResult berisi hasil query daftar log notifikasi dengan metadata pagination.
+// LogListResult berisi hasil kueri daftar log notifikasi dengan metadata paginasi.
 type LogListResult struct {
 	Data       []*NotificationLog `json:"data"`
 	Total      int64              `json:"total"`

@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel service_profiles.
+-- Kueri SQL untuk operasi CRUD tabel service_profiles.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel service_profiles dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel service_profiles dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateServiceProfile :one
 INSERT INTO service_profiles (

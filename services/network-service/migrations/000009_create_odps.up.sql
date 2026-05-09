@@ -20,12 +20,12 @@ CREATE TABLE odps (
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Unique constraint: nama ODP unik per tenant (exclude soft-deleted)
+-- Unique constraint: nama ODP unik per tenant (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_odps_tenant_name
     ON odps (tenant_id, name)
     WHERE deleted_at IS NULL;
 
--- Index untuk query per OLT dan port
+-- Index untuk kueri per OLT dan port
 CREATE INDEX idx_odps_olt_port
     ON odps (olt_id, pon_port_index) WHERE deleted_at IS NULL;
 

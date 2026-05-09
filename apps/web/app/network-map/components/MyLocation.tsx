@@ -9,13 +9,13 @@ import * as L from 'leaflet';
 // ---------------------------------------------------------------------------
 
 interface MyLocationProps {
-  /** Target node coordinates for distance calculation */
+  /** Target node coordinates untuk distance calculation*/
   targetLat?: number;
   targetLng?: number;
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Fungsi bantus
 // ---------------------------------------------------------------------------
 
 function haversineDistance(
@@ -39,7 +39,6 @@ function formatDistance(meters: number): string {
   return `${Math.round(meters)} m`;
 }
 
-/** Create a pulsing blue marker icon for user location. */
 function userLocationIcon(): L.DivIcon {
   return L.divIcon({
     html: `<div style="position:relative">
@@ -93,7 +92,7 @@ function openWaze(lat: number, lng: number) {
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Komponen
 // ---------------------------------------------------------------------------
 
 export default function MyLocation({ targetLat, targetLng }: MyLocationProps) {
@@ -103,7 +102,7 @@ export default function MyLocation({ targetLat, targetLng }: MyLocationProps) {
   const [locating, setLocating] = useState(false);
   const markerRef = useRef<L.Marker | null>(null);
 
-  // Clean up marker on unmount
+  // Clean up marker saat komponen dilepas
   useEffect(() => {
     return () => {
       if (markerRef.current) {
@@ -112,7 +111,7 @@ export default function MyLocation({ targetLat, targetLng }: MyLocationProps) {
     };
   }, [map]);
 
-  // Update marker when position changes
+  // Perbarui marker saat posisi berubah
   useEffect(() => {
     if (!userPos) return;
 
@@ -164,7 +163,7 @@ export default function MyLocation({ targetLat, targetLng }: MyLocationProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Locate button */}
+      {/* Locate button*/}
       <button
         onClick={handleLocate}
         disabled={locating}
@@ -175,14 +174,14 @@ export default function MyLocation({ targetLat, targetLng }: MyLocationProps) {
         <span className="hidden md:inline">Lokasi Saya</span>
       </button>
 
-      {/* Distance indicator */}
+      {/* Distance indicator*/}
       {distance != null && (
         <div className="rounded-lg bg-white px-3 py-1.5 text-xs text-gray-600 shadow">
           Jarak: {formatDistance(distance)}
         </div>
       )}
 
-      {/* Navigation buttons */}
+      {/* Navigation buttons*/}
       {userPos && targetLat != null && targetLng != null && (
         <div className="flex gap-1">
           <button
@@ -200,7 +199,7 @@ export default function MyLocation({ targetLat, targetLng }: MyLocationProps) {
         </div>
       )}
 
-      {/* Error message */}
+      {/* Error message*/}
       {error && (
         <p className="rounded bg-red-50 px-2 py-1 text-xs text-red-600">
           {error}

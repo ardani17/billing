@@ -13,7 +13,7 @@ import (
 )
 
 // =============================================================================
-// ConfigRepo — implementasi domain.ConfigRepository menggunakan sqlc Queries
+// ConfigRepo - implementasi domain.ConfigRepository menggunakan sqlc Queries
 // =============================================================================
 
 // ConfigRepo mengimplementasikan domain.ConfigRepository dengan membungkus
@@ -27,7 +27,7 @@ func NewConfigRepo(queries *Queries) *ConfigRepo {
 	return &ConfigRepo{queries: queries}
 }
 
-// --- Helper: konversi pgtype.UUID ↔ string ---
+// --- Fungsi bantu: konversi pgtype.UUID ↔ string ---
 
 // parseUUID mengkonversi string UUID ke pgtype.UUID.
 func parseUUID(s string) pgtype.UUID {
@@ -46,7 +46,7 @@ func uuidToString(u pgtype.UUID) string {
 		u.Bytes[0:4], u.Bytes[4:6], u.Bytes[6:8], u.Bytes[8:10], u.Bytes[10:16])
 }
 
-// --- Helper: konversi pgtype.Timestamptz ↔ time.Time ---
+// --- Fungsi bantu: konversi pgtype.Timestamptz ↔ time.Time ---
 
 // timestamptzToTime mengkonversi pgtype.Timestamptz ke time.Time.
 // Mengembalikan zero time jika tidak valid (NULL).
@@ -57,10 +57,10 @@ func timestamptzToTime(t pgtype.Timestamptz) time.Time {
 	return t.Time
 }
 
-// --- Helper: mapping sqlc NotificationConfig → domain.NotificationConfig ---
+// --- Helper: mapping sqlc NotificationConfig -> domain.NotificationConfig ---
 
 // mapConfigRow memetakan NotificationConfig (sqlc model) ke domain.NotificationConfig.
-// Konversi: pgtype.UUID → string, []byte → json.RawMessage/ConfigSettings, int32 → int.
+// Konversi: pgtype.UUID -> string, []byte -> json.RawMessage/ConfigSettings, int32 -> int.
 func mapConfigRow(row NotificationConfig) (*domain.NotificationConfig, error) {
 	// Unmarshal settings dari JSONB ke domain.ConfigSettings
 	var settings domain.ConfigSettings

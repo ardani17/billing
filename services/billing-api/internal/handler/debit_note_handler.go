@@ -1,5 +1,5 @@
-// debit_note_handler.go menangani HTTP request untuk debit notes.
-// Termasuk: create debit note.
+// debit_note_handler.go menangani HTTP permintaan untuk debit notes.
+// Termasuk: buat debit note.
 package handler
 
 import (
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// DebitNoteHandler menangani HTTP request untuk debit notes.
+// DebitNoteHandler menangani HTTP permintaan untuk debit notes.
 type DebitNoteHandler struct {
 	debitNoteUsecase *usecase.DebitNoteUsecase
 	validate         *validator.Validate
@@ -29,7 +29,7 @@ func NewDebitNoteHandler(debitNoteUsecase *usecase.DebitNoteUsecase, logger zero
 	}
 }
 
-// Create menangani POST /v1/debit-notes.
+// Buat menangani POST /v1/debit-notes.
 // Membuat debit note baru untuk tagihan tambahan.
 func (h *DebitNoteHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -60,7 +60,7 @@ func (h *DebitNoteHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, dn)
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *DebitNoteHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -70,7 +70,7 @@ func (h *DebitNoteHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapDebitNoteError memetakan domain error ke HTTP error response untuk debit notes.
+// mapDebitNoteError memetakan domain error ke HTTP error respons untuk debit notes.
 func (h *DebitNoteHandler) mapDebitNoteError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrCustomerNotFound):

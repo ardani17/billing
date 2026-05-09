@@ -34,7 +34,7 @@ export function SyncSection({ filter }: Props) {
 
       <MetricCard label="Sync Success Rate" value={formatPercentage(data.sync_success_rate)} />
 
-      {/* MikroTik sync */}
+      {/* MikroTik sync*/}
       {mikrotikInactive ? (
         <ModuleInactive moduleName="MikroTik" />
       ) : data.mikrotik_sync && data.mikrotik_sync.length > 0 ? (
@@ -67,7 +67,7 @@ export function SyncSection({ filter }: Props) {
         </div>
       ) : null}
 
-      {/* OLT sync */}
+      {/* OLT sync*/}
       {oltInactive ? (
         <ModuleInactive moduleName="OLT" />
       ) : data.olt_sync && data.olt_sync.length > 0 ? (

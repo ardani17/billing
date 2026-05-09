@@ -10,7 +10,7 @@ import (
 	"github.com/ispboss/ispboss/services/notification/internal/domain"
 )
 
-// LogHandler menangani HTTP request untuk notification logs.
+// LogHandler menangani HTTP permintaan untuk notification logs.
 // Menyediakan endpoint untuk melihat daftar log dan detail log.
 type LogHandler struct {
 	logRepo domain.LogRepository
@@ -22,16 +22,15 @@ func NewLogHandler(logRepo domain.LogRepository) *LogHandler {
 }
 
 // List menangani GET /api/v1/notifications/logs.
-// Mengembalikan daftar log notifikasi dengan filter dan pagination.
-// Query params: channel, status, customer_id, template_id, date_from, date_to, page, page_size.
+// Mengembalikan daftar log notifikasi dengan filter dan paginasi.
 func (h *LogHandler) List(c *fiber.Ctx) error {
-	// Ambil tenant_id dari Fiber locals (di-set oleh auth middleware)
+	// Ambil tenant_id dari Fiber locals (di-atur oleh auth middleware)
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant_id tidak ditemukan")
 	}
 
-	// Parse query parameter filter
+	// Parsing kueri parameter filter
 	params := domain.LogListParams{
 		TenantID:   tenantID,
 		Channel:    domain.Channel(c.Query("channel")),
@@ -40,7 +39,7 @@ func (h *LogHandler) List(c *fiber.Ctx) error {
 		TemplateID: c.Query("template_id"),
 	}
 
-	// Parse date_from (format ISO date: 2006-01-02)
+	// Parsing date_from (format ISO date: 2006-01-02)
 	if df := c.Query("date_from"); df != "" {
 		t, err := time.Parse("2006-01-02", df)
 		if err == nil {
@@ -48,7 +47,7 @@ func (h *LogHandler) List(c *fiber.Ctx) error {
 		}
 	}
 
-	// Parse date_to (format ISO date: 2006-01-02)
+	// Parsing date_to (format ISO date: 2006-01-02)
 	if dt := c.Query("date_to"); dt != "" {
 		t, err := time.Parse("2006-01-02", dt)
 		if err == nil {
@@ -56,27 +55,27 @@ func (h *LogHandler) List(c *fiber.Ctx) error {
 		}
 	}
 
-	// Parse page (default 1)
+	// Parsing page (bawaan 1)
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 	params.Page = page
 
-	// Parse page_size dan normalisasi (valid: 10, 25, 50; default: 25)
+	// Parsing page_size dan normalisasi (valid: 10, 25, 50; bawaan: 25)
 	pageSize, err := strconv.Atoi(c.Query("page_size", "25"))
 	if err != nil {
 		pageSize = 25
 	}
 	params.PageSize = domain.NormalizePageSize(pageSize)
 
-	// Panggil repository untuk mengambil data log
+	// Panggil repositori untuk mengambil data log
 	result, err := h.logRepo.List(c.UserContext(), params)
 	if err != nil {
 		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal mengambil data log")
 	}
 
-	// Kembalikan respons dengan metadata pagination
+	// Kembalikan respons dengan metadata paginasi
 	return domain.PaginatedResponse(
 		c,
 		fiber.StatusOK,
@@ -91,7 +90,7 @@ func (h *LogHandler) List(c *fiber.Ctx) error {
 // GetByID menangani GET /api/v1/notifications/logs/:id.
 // Mengembalikan detail satu log notifikasi berdasarkan ID.
 func (h *LogHandler) GetByID(c *fiber.Ctx) error {
-	// Ambil tenant_id dari Fiber locals (di-set oleh auth middleware)
+	// Ambil tenant_id dari Fiber locals (di-atur oleh auth middleware)
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant_id tidak ditemukan")
@@ -103,7 +102,7 @@ func (h *LogHandler) GetByID(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "id log tidak boleh kosong")
 	}
 
-	// Panggil repository untuk mengambil log berdasarkan ID
+	// Panggil repositori untuk mengambil log berdasarkan ID
 	log, err := h.logRepo.GetByID(c.UserContext(), logID)
 	if err != nil {
 		if errors.Is(err, domain.ErrLogNotFound) {

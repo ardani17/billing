@@ -1,4 +1,4 @@
-// Package pool — Connection pool per router MikroTik.
+// Package pool - Connection pool per router MikroTik.
 // Mengelola koneksi TCP ke satu router dengan lazy connect, priority queue,
 // rate limiting, idle timeout, max lifetime, dan health ping.
 package pool
@@ -14,14 +14,14 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// Konstanta konfigurasi pool default.
+// Konstanta konfigurasi pool bawaan.
 const (
-	maxConns       = 5                // Maksimum koneksi per pool
-	idleTimeout    = 5 * time.Minute  // Timeout koneksi idle
-	maxLifetime    = 1 * time.Hour    // Lifetime maksimum koneksi
-	healthInterval = 30 * time.Second // Interval health ping pada idle connections
-	rateLimit      = 10               // Maksimum commands per detik
-	warmUpThreshold = 10              // Threshold antrian untuk warm-up
+	maxConns        = 5                // Maksimum koneksi per pool
+	idleTimeout     = 5 * time.Minute  // Timeout koneksi idle
+	maxLifetime     = 1 * time.Hour    // Lifetime maksimum koneksi
+	healthInterval  = 30 * time.Second // Interval health ping pada idle connections
+	rateLimit       = 10               // Maksimum commands per detik
+	warmUpThreshold = 10               // Threshold antrian untuk warm-up
 )
 
 // AdapterFactory adalah fungsi factory untuk membuat instance RouterOSAdapter baru.
@@ -37,13 +37,13 @@ type poolConn struct {
 // waiter merepresentasikan goroutine yang menunggu koneksi dari pool.
 type waiter struct {
 	priority domain.CommandPriority
-	seq      uint64       // Nomor urut untuk FIFO dalam prioritas yang sama
+	seq      uint64        // Nomor urut untuk FIFO dalam prioritas yang sama
 	ch       chan struct{} // Channel untuk notifikasi saat koneksi tersedia
-	index    int          // Index di heap (dikelola oleh container/heap)
+	index    int           // Index di heap (dikelola oleh container/heap)
 }
 
 // =============================================================================
-// Priority Queue — implementasi container/heap untuk waiter
+// Priority Antrean - implementasi container/heap untuk waiter
 // =============================================================================
 
 // waiterHeap mengimplementasikan heap.Interface untuk priority queue waiter.
@@ -84,7 +84,7 @@ func (h *waiterHeap) Pop() any {
 }
 
 // =============================================================================
-// connPool — implementasi ConnPool interface
+// connPool - implementasi ConnPool interface
 // =============================================================================
 
 // connPool mengelola pool koneksi TCP ke satu router MikroTik.
@@ -112,7 +112,7 @@ type connPool struct {
 	stopOnce sync.Once
 	stopCh   chan struct{}
 
-	// Map adapter → poolConn untuk tracking saat Put
+	// Map adapter -> poolConn untuk tracking saat Put
 	connMap map[domain.RouterOSAdapter]*poolConn
 }
 
@@ -169,7 +169,7 @@ func (p *connPool) Get(ctx context.Context, priority domain.CommandPriority) (do
 		return p.createConn(ctx)
 	}
 
-	// Pool penuh — masuk ke priority queue dan tunggu
+	// Pool penuh - masuk ke priority queue dan tunggu
 	w := &waiter{
 		priority: priority,
 		seq:      p.seq,
@@ -349,14 +349,14 @@ func (p *connPool) WarmUp(ctx context.Context) error {
 }
 
 // =============================================================================
-// Helper methods (internal)
+// Fungsi bantu methods (internal)
 // =============================================================================
 
 // getIdleConn mengambil koneksi idle yang masih valid (belum expired).
 // Harus dipanggil dengan p.mu sudah di-lock.
 func (p *connPool) getIdleConn() *poolConn {
 	for len(p.idle) > 0 {
-		// Ambil dari belakang (LIFO — koneksi terbaru lebih mungkin sehat)
+		// Ambil dari belakang (LIFO - koneksi terbaru lebih mungkin sehat)
 		pc := p.idle[len(p.idle)-1]
 		p.idle = p.idle[:len(p.idle)-1]
 
@@ -429,7 +429,7 @@ func (p *connPool) removeWaiter(w *waiter) {
 
 // maintenance menjalankan goroutine periodik untuk:
 // 1. Health ping pada idle connections setiap 30 detik
-// 2. Cleanup koneksi yang melebihi idle timeout atau max lifetime
+// 2. Pembersihan koneksi yang melebihi idle timeout atau max lifetime
 func (p *connPool) maintenance() {
 	ticker := time.NewTicker(healthInterval)
 	defer ticker.Stop()

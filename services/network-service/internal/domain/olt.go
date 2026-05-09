@@ -96,47 +96,47 @@ const (
 	CLIProtocolTelnet CLIProtocol = "telnet"
 )
 
-// --- OLT Entity ---
+// --- OLT Entitas ---
 
 // OLT merepresentasikan perangkat OLT yang terdaftar per tenant.
 // Setiap tenant memiliki daftar OLT sendiri yang diisolasi via RLS.
 type OLT struct {
-	ID                        string      `json:"id"`
-	TenantID                  string      `json:"tenant_id"`
-	Name                      string      `json:"name"`
-	Host                      string      `json:"host"`
-	SNMPVersion               SNMPVersion `json:"snmp_version"`
-	SNMPPort                  int         `json:"snmp_port"`
-	SNMPCommunityEncrypted    string      `json:"-"`
-	SNMPUsername              string      `json:"snmp_username,omitempty"`
-	SNMPAuthProtocol          string      `json:"snmp_auth_protocol,omitempty"`
-	SNMPAuthPasswordEncrypted string      `json:"-"`
-	SNMPPrivProtocol          string      `json:"snmp_priv_protocol,omitempty"`
-	SNMPPrivPasswordEncrypted string      `json:"-"`
-	CLIProtocol               CLIProtocol `json:"cli_protocol"`
-	CLIPort                   int         `json:"cli_port"`
-	CLIUsername               string      `json:"cli_username"`
-	CLIPasswordEncrypted      string      `json:"-"`
-	CLIEnablePasswordEncrypted string     `json:"-"`
-	Brand                     OLTBrand    `json:"brand,omitempty"`
-	Model                     string      `json:"model,omitempty"`
-	FirmwareVersion           string      `json:"firmware_version,omitempty"`
-	PONPortCount              int         `json:"pon_port_count"`
-	TotalONTCount             int         `json:"total_ont_count"`
-	Status                    OLTStatus   `json:"status"`
-	HealthCheckIntervalSec    int         `json:"health_check_interval_sec"`
-	LastOnlineAt              *time.Time  `json:"last_online_at,omitempty"`
-	LastCheckedAt             *time.Time  `json:"last_checked_at,omitempty"`
-	FailureCount              int         `json:"failure_count"`
-	Notes                     string      `json:"notes,omitempty"`
-	DeletedAt                 *time.Time  `json:"deleted_at,omitempty"`
-	CreatedAt                 time.Time   `json:"created_at"`
-	UpdatedAt                 time.Time   `json:"updated_at"`
+	ID                         string      `json:"id"`
+	TenantID                   string      `json:"tenant_id"`
+	Name                       string      `json:"name"`
+	Host                       string      `json:"host"`
+	SNMPVersion                SNMPVersion `json:"snmp_version"`
+	SNMPPort                   int         `json:"snmp_port"`
+	SNMPCommunityEncrypted     string      `json:"-"`
+	SNMPUsername               string      `json:"snmp_username,omitempty"`
+	SNMPAuthProtocol           string      `json:"snmp_auth_protocol,omitempty"`
+	SNMPAuthPasswordEncrypted  string      `json:"-"`
+	SNMPPrivProtocol           string      `json:"snmp_priv_protocol,omitempty"`
+	SNMPPrivPasswordEncrypted  string      `json:"-"`
+	CLIProtocol                CLIProtocol `json:"cli_protocol"`
+	CLIPort                    int         `json:"cli_port"`
+	CLIUsername                string      `json:"cli_username"`
+	CLIPasswordEncrypted       string      `json:"-"`
+	CLIEnablePasswordEncrypted string      `json:"-"`
+	Brand                      OLTBrand    `json:"brand,omitempty"`
+	Model                      string      `json:"model,omitempty"`
+	FirmwareVersion            string      `json:"firmware_version,omitempty"`
+	PONPortCount               int         `json:"pon_port_count"`
+	TotalONTCount              int         `json:"total_ont_count"`
+	Status                     OLTStatus   `json:"status"`
+	HealthCheckIntervalSec     int         `json:"health_check_interval_sec"`
+	LastOnlineAt               *time.Time  `json:"last_online_at,omitempty"`
+	LastCheckedAt              *time.Time  `json:"last_checked_at,omitempty"`
+	FailureCount               int         `json:"failure_count"`
+	Notes                      string      `json:"notes,omitempty"`
+	DeletedAt                  *time.Time  `json:"deleted_at,omitempty"`
+	CreatedAt                  time.Time   `json:"created_at"`
+	UpdatedAt                  time.Time   `json:"updated_at"`
 }
 
-// --- OLT Health Check Update ---
+// --- OLT Health Periksa Perbarui ---
 
-// OLTHealthCheckUpdate berisi field yang diupdate saat health check OLT selesai.
+// OLTHealthCheckUpdate berisi field yang diupdate saat health cek OLT selesai.
 type OLTHealthCheckUpdate struct {
 	LastCheckedAt *time.Time
 	LastOnlineAt  *time.Time

@@ -1,6 +1,6 @@
-// auth_handler.go menangani HTTP request untuk endpoint autentikasi.
+// auth_handler.go menangani HTTP permintaan untuk endpoint autentikasi.
 // Termasuk: register, login, Google OAuth, verifikasi email, reset password,
-// refresh token, logout, get current user, dan change password.
+// refresh token, logout, ambil pengguna saat ini, dan ubah password.
 package handler
 
 import (
@@ -15,7 +15,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// AuthHandler menangani HTTP request untuk endpoint autentikasi.
+// AuthHandler menangani HTTP permintaan untuk endpoint autentikasi.
 type AuthHandler struct {
 	authUsecase *usecase.AuthUsecase
 	validate    *validator.Validate
@@ -107,7 +107,7 @@ func (h *AuthHandler) LoginWithGoogle(c *fiber.Ctx) error {
 	}
 
 	// Tentukan status code berdasarkan apakah user baru dibuat
-	// Jika user baru (Google register), return 201; jika login, return 200
+	// Jika user baru (Google register), kembalikan 201; jika login, kembalikan 200
 	return domain.SuccessResponse(c, fiber.StatusOK, resp)
 }
 
@@ -169,7 +169,7 @@ func (h *AuthHandler) ResendVerification(c *fiber.Ctx) error {
 }
 
 // ForgotPassword menangani POST /v1/auth/forgot-password.
-// Mengirim email reset password (selalu return 200 untuk mencegah email enumeration).
+// Mengirim email reset password (selalu kembalikan 200 untuk mencegah email enumeration).
 func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 	var body struct {
 		Email string `json:"email" validate:"required,email"`
@@ -189,7 +189,7 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 	err := h.authUsecase.ForgotPassword(c.Context(), body.Email)
 	if err != nil {
 		h.logger.Error().Err(err).Str("email", body.Email).Msg("gagal proses forgot password")
-		// Tetap return 200 untuk mencegah email enumeration
+		// Tetap kembalikan 200 untuk mencegah email enumeration
 	}
 
 	return domain.SuccessResponse(c, fiber.StatusOK, fiber.Map{
@@ -323,7 +323,7 @@ func (h *AuthHandler) ChangePassword(c *fiber.Ctx) error {
 	var tokenBody struct {
 		RefreshToken string `json:"refresh_token"`
 	}
-	// Parse ulang body untuk mendapatkan refresh_token (opsional)
+	// Parsing ulang body untuk mendapatkan refresh_token (opsional)
 	_ = c.BodyParser(&tokenBody)
 
 	err := h.authUsecase.ChangePassword(c.Context(), userID, req, tokenBody.RefreshToken)
@@ -336,7 +336,7 @@ func (h *AuthHandler) ChangePassword(c *fiber.Ctx) error {
 	})
 }
 
-// mapAuthError memetakan domain error ke HTTP error response.
+// mapAuthError memetakan domain error ke HTTP error respons.
 func (h *AuthHandler) mapAuthError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrEmailAlreadyExists):
@@ -416,7 +416,7 @@ func toSnakeCase(s string) string {
 		if i > 0 && r >= 'A' && r <= 'Z' {
 			prev := runes[i-1]
 			// Tambah underscore jika karakter sebelumnya huruf kecil,
-			// atau jika ini awal kata baru setelah akronim (misal: "ID" diikuti "s" → "IDs").
+			// atau jika ini awal kata baru setelah akronim (misal: "ID" diikuti "s" -> "IDs").
 			if prev >= 'a' && prev <= 'z' {
 				result.WriteByte('_')
 			} else if prev >= 'A' && prev <= 'Z' && i+1 < len(runes) && runes[i+1] >= 'a' && runes[i+1] <= 'z' {

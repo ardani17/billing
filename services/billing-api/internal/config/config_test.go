@@ -154,7 +154,6 @@ func TestMasterKeyBytes(t *testing.T) {
 	}
 }
 
-// TestMasterKeyBytesKosong memverifikasi error jika master key kosong.
 func TestMasterKeyBytesKosong(t *testing.T) {
 	cfg := &AppConfig{}
 	_, err := cfg.MasterKeyBytes()
@@ -163,7 +162,6 @@ func TestMasterKeyBytesKosong(t *testing.T) {
 	}
 }
 
-// TestMasterKeyBytesInvalid memverifikasi error jika master key bukan hex valid.
 func TestMasterKeyBytesInvalid(t *testing.T) {
 	cfg := &AppConfig{GatewayMasterKey: "bukan-hex-valid"}
 	_, err := cfg.MasterKeyBytes()
@@ -172,7 +170,6 @@ func TestMasterKeyBytesInvalid(t *testing.T) {
 	}
 }
 
-// TestMasterKeyBytesSalahPanjang memverifikasi error jika key bukan 32 bytes.
 func TestMasterKeyBytesSalahPanjang(t *testing.T) {
 	// 32 karakter hex = 16 bytes (terlalu pendek)
 	cfg := &AppConfig{GatewayMasterKey: "0123456789abcdef0123456789abcdef"}
@@ -182,7 +179,6 @@ func TestMasterKeyBytesSalahPanjang(t *testing.T) {
 	}
 }
 
-// TestValidateGatewayMasterKeyValid memverifikasi validasi lolos untuk key valid.
 func TestValidateGatewayMasterKeyValid(t *testing.T) {
 	cfg := validConfig()
 	cfg.GatewayMasterKey = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
@@ -191,7 +187,6 @@ func TestValidateGatewayMasterKeyValid(t *testing.T) {
 	}
 }
 
-// TestValidateGatewayMasterKeyInvalid memverifikasi validasi gagal untuk key invalid.
 func TestValidateGatewayMasterKeyInvalid(t *testing.T) {
 	cfg := validConfig()
 	cfg.GatewayMasterKey = "bukan-hex"

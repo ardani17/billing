@@ -1,6 +1,5 @@
-// share_handler_test.go — unit test untuk ShareHandler.
-// Menggunakan mock ShareManager dan Fiber app.Test().
-// Test: akses publik (tanpa auth), link kedaluwarsa (410), password salah (401).
+// share_handler_test.go - unit test untuk ShareHandler.
+// Tes: akses publik (tanpa auth), link kedaluwarsa (410), password salah (401).
 package handler
 
 import (
@@ -18,7 +17,6 @@ import (
 )
 
 // =============================================================================
-// Mock ShareManager
 // =============================================================================
 
 type mockShareManager struct {
@@ -54,18 +52,16 @@ func (m *mockShareManager) ListShareLinks(ctx context.Context, tenantID string) 
 }
 
 // =============================================================================
-// Helper — setup test Fiber app untuk ShareHandler
 // =============================================================================
 
 const shareTestTenantID = "tenant-share-test-123"
 
 // setupShareTestApp membuat Fiber app dengan ShareHandler.
-// Route GET /share/:token bersifat publik (tanpa auth middleware).
 func setupShareTestApp(mgr domain.ShareManager) *fiber.App {
 	app := fiber.New()
 	handler := NewShareHandler(mgr)
 
-	// Route publik — akses shared map tanpa auth
+	// Route publik - akses shared map tanpa auth
 	app.Get("/api/v1/network-map/share/:token", handler.GetSharedMap)
 
 	// Route yang memerlukan auth
@@ -82,7 +78,6 @@ func setupShareTestApp(mgr domain.ShareManager) *fiber.App {
 	return app
 }
 
-// parseShareAPIResponse mem-parse body respons ke domain.APIResponse.
 func parseShareAPIResponse(t *testing.T, body io.Reader) domain.APIResponse {
 	t.Helper()
 	var resp domain.APIResponse
@@ -93,7 +88,7 @@ func parseShareAPIResponse(t *testing.T, body io.Reader) domain.APIResponse {
 }
 
 // =============================================================================
-// Test GetSharedMap — akses publik tanpa auth
+// Tes GetSharedMap - akses publik tanpa auth
 // =============================================================================
 
 func TestShareGetSharedMap_PublicAccess(t *testing.T) {
@@ -111,7 +106,6 @@ func TestShareGetSharedMap_PublicAccess(t *testing.T) {
 	}
 	app := setupShareTestApp(mgr)
 
-	// Request tanpa header Authorization — harus tetap berhasil
 	req := httptest.NewRequest("GET", "/api/v1/network-map/share/abc123token", nil)
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -129,7 +123,7 @@ func TestShareGetSharedMap_PublicAccess(t *testing.T) {
 }
 
 // =============================================================================
-// Test GetSharedMap — link kedaluwarsa (410 Gone)
+// Tes GetSharedMap - link kedaluwarsa (410 Gone)
 // =============================================================================
 
 func TestShareGetSharedMap_ExpiredLink(t *testing.T) {
@@ -156,7 +150,7 @@ func TestShareGetSharedMap_ExpiredLink(t *testing.T) {
 }
 
 // =============================================================================
-// Test GetSharedMap — password salah (401 Unauthorized)
+// Tes GetSharedMap - password salah (401 Unauthorized)
 // =============================================================================
 
 func TestShareGetSharedMap_WrongPassword(t *testing.T) {
@@ -183,7 +177,7 @@ func TestShareGetSharedMap_WrongPassword(t *testing.T) {
 }
 
 // =============================================================================
-// Test GetSharedMap — link tidak ditemukan (404)
+// Tes GetSharedMap - link tidak ditemukan (404)
 // =============================================================================
 
 func TestShareGetSharedMap_NotFound(t *testing.T) {
@@ -205,7 +199,7 @@ func TestShareGetSharedMap_NotFound(t *testing.T) {
 }
 
 // =============================================================================
-// Test CreateShareLink — dengan auth
+// Tes CreateShareLink - dengan auth
 // =============================================================================
 
 func TestShareCreate_Success(t *testing.T) {
@@ -245,7 +239,7 @@ func TestShareCreate_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test GetSharedMap — password via header X-Share-Password
+// Tes GetSharedMap - password via header X-Share-Password
 // =============================================================================
 
 func TestShareGetSharedMap_PasswordViaHeader(t *testing.T) {

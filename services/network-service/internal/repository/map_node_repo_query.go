@@ -8,7 +8,6 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// map_node_repo_query.go berisi method query MapNodeRepo: ListByBounds, Search,
 // ListTrashed, PermanentDeleteExpired, CountPhotosByNode.
 
 // ListByBounds mengambil daftar map node dengan join data referensi berdasarkan bounding box.
@@ -56,7 +55,7 @@ func (r *MapNodeRepo) ListByBounds(ctx context.Context, params domain.MapNodeLis
 	return results, rows.Err()
 }
 
-// Search melakukan pencarian full-text di map node dan entitas referensi.
+// Pencarian melakukan pencarian full-text di map node dan entitas referensi.
 func (r *MapNodeRepo) Search(ctx context.Context, tenantID, query string, limit int) ([]*domain.MapSearchResult, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT mn.id, mn.node_type, mn.latitude, mn.longitude,
@@ -98,7 +97,7 @@ func (r *MapNodeRepo) Search(ctx context.Context, tenantID, query string, limit 
 	return results, rows.Err()
 }
 
-// ListTrashed mengambil daftar map node yang sudah di-soft-delete.
+// ListTrashed mengambil daftar map node yang sudah di-hapus lunak.
 func (r *MapNodeRepo) ListTrashed(ctx context.Context, tenantID string) ([]*domain.MapNode, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, tenant_id, node_type, reference_id, latitude, longitude,

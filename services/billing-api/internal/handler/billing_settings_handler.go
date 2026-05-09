@@ -11,7 +11,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// BillingSettingsHandler menangani HTTP request konfigurasi billing tenant.
+// BillingSettingsHandler menangani HTTP permintaan konfigurasi billing tenant.
 type BillingSettingsHandler struct {
 	usecase  *usecase.BillingSettingsUsecase
 	validate *validator.Validate
@@ -43,7 +43,7 @@ func (h *BillingSettingsHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, settings)
 }
 
-// Update menangani PUT /api/v1/settings/billing.
+// Perbarui menangani PUT /api/v1/settings/billing.
 func (h *BillingSettingsHandler) Update(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {

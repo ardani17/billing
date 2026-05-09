@@ -2,7 +2,7 @@
 // NetworkClient mengimplementasikan domain.NetworkServiceClient untuk
 // komunikasi HTTP dengan network-service. Mendukung graceful degradation:
 // jika network-service down, data diambil dari Redis cache (stale).
-// Jika tidak ada cache, response dikembalikan dengan module_inactive=true.
+// Jika tidak ada cache, respons dikembalikan dengan module_inactive=true.
 package usecase
 
 import (
@@ -24,14 +24,14 @@ import (
 // networkCacheTTL adalah TTL cache Redis untuk data network (1 jam).
 const networkCacheTTL = 1 * time.Hour
 
-// networkHTTPTimeout adalah timeout per HTTP request ke network-service (10 detik).
+// networkHTTPTimeout adalah timeout per HTTP permintaan ke network-service (10 detik).
 const networkHTTPTimeout = 10 * time.Second
 
-// Compile-time check: NetworkClient harus mengimplementasikan domain.NetworkServiceClient.
+// Compile-time cek: NetworkClient harus mengimplementasikan domain.NetworkServiceClient.
 var _ domain.NetworkServiceClient = (*NetworkClient)(nil)
 
 // NetworkClient mengimplementasikan domain.NetworkServiceClient.
-// Melakukan HTTP GET ke network-service dan menyimpan response di Redis cache.
+// Melakukan HTTP GET ke network-service dan menyimpan respons di Redis cache.
 type NetworkClient struct {
 	baseURL    string
 	httpClient *http.Client
@@ -62,7 +62,7 @@ func filterHash(params url.Values) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(params.Encode())))
 }
 
-// buildURL membangun URL lengkap untuk request ke network-service.
+// buildURL membangun URL lengkap untuk permintaan ke network-service.
 func (nc *NetworkClient) buildURL(reportType, tenantID string, periodStart, periodEnd time.Time, extra map[string]string) (string, url.Values) {
 	endpoint := fmt.Sprintf("%s/internal/v1/reports/%s", nc.baseURL, reportType)
 	params := url.Values{}
@@ -81,14 +81,13 @@ func (nc *NetworkClient) buildURL(reportType, tenantID string, periodStart, peri
 	return endpoint + "?" + params.Encode(), params
 }
 
-// cachedResponse menyimpan data response beserta timestamp untuk cache.
+// cachedResponse menyimpan data respons beserta timestamp untuk cache.
 type cachedResponse struct {
-	Data      json.RawMessage `json:"data"`
-	CachedAt  time.Time       `json:"cached_at"`
+	Data     json.RawMessage `json:"data"`
+	CachedAt time.Time       `json:"cached_at"`
 }
 
-// fetchAndCache melakukan HTTP GET, parse response, simpan ke cache.
-// Jika gagal, coba ambil dari cache (stale). Jika tidak ada cache, return nil.
+// Jika gagal, coba ambil dari cache (stale). Jika tidak ada cache, mengembalikan nil.
 // Parameter result harus pointer ke struct tujuan (e.g. *domain.UptimeReport).
 func (nc *NetworkClient) fetchAndCache(ctx context.Context, reportType, tenantID string, reqURL string, params url.Values, result interface{}) (stale bool, lastUpdated *time.Time, err error) {
 	key := cacheKey(reportType, tenantID, filterHash(params))
@@ -118,7 +117,7 @@ func (nc *NetworkClient) fetchAndCache(ctx context.Context, reportType, tenantID
 		return nc.fallbackFromCache(ctx, key, result)
 	}
 
-	// Parse response ke struct tujuan
+	// Parsing respons ke struct tujuan
 	if err := json.Unmarshal(body, result); err != nil {
 		nc.logger.Error().Err(err).Str("report_type", reportType).Msg("gagal parse JSON response")
 		return nc.fallbackFromCache(ctx, key, result)
@@ -139,19 +138,19 @@ func (nc *NetworkClient) fetchAndCache(ctx context.Context, reportType, tenantID
 	return false, nil, nil
 }
 
-// fallbackFromCache mengambil data dari Redis cache sebagai fallback.
+// cadanganFromCache mengambil data dari Redis cache sebagai cadangan.
 // Mengembalikan stale=true dan lastUpdated jika cache ditemukan.
 // Mengembalikan stale=false, nil, nil jika tidak ada cache (module_inactive).
 func (nc *NetworkClient) fallbackFromCache(ctx context.Context, key string, result interface{}) (stale bool, lastUpdated *time.Time, err error) {
 	if nc.redis == nil {
-		// Tidak ada Redis client — module dianggap inactive
+		// Tidak ada Redis client - module dianggap inactive
 		nc.logger.Info().Str("key", key).Msg("redis tidak tersedia, module dianggap inactive")
 		return false, nil, nil
 	}
 
 	data, err := nc.redis.Get(ctx, key).Bytes()
 	if err != nil {
-		// Tidak ada cache — module dianggap inactive
+		// Tidak ada cache - module dianggap inactive
 		nc.logger.Info().Str("key", key).Msg("tidak ada cache, module dianggap inactive")
 		return false, nil, nil
 	}
@@ -162,7 +161,7 @@ func (nc *NetworkClient) fallbackFromCache(ctx context.Context, key string, resu
 		return false, nil, nil
 	}
 
-	// Parse cached data ke struct tujuan
+	// Parsing cached data ke struct tujuan
 	if err := json.Unmarshal(cached.Data, result); err != nil {
 		nc.logger.Error().Err(err).Str("key", key).Msg("gagal parse cached JSON ke struct")
 		return false, nil, nil

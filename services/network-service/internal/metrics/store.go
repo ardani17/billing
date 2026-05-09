@@ -1,4 +1,4 @@
-// Package metrics menyediakan implementasi MetricsStore menggunakan Redis sorted sets.
+// Paket metrics menyediakan implementasi MetricsStore menggunakan Redis uruted sets.
 // Metrik router disimpan sebagai time-series dengan retensi 7 hari.
 package metrics
 
@@ -15,8 +15,8 @@ import (
 // ttl7Days adalah durasi retensi metrik (7 hari dalam detik).
 const ttl7Days = 7 * 24 * 60 * 60 // 604800 detik
 
-// redisMetricsStore mengimplementasikan domain.MetricsStore menggunakan Redis sorted sets.
-// Setiap router memiliki sorted set dengan key "router:{id}:metrics",
+// redisMetricsStore mengimplementasikan domain.MetricsStore menggunakan Redis uruted sets.
+// Setiap router memiliki uruted atur dengan key "router:{id}:metrics",
 // score = unix timestamp, member = JSON-encoded RouterMetrics.
 type redisMetricsStore struct {
 	client redis.Cmdable
@@ -27,19 +27,19 @@ func NewRedisMetricsStore(client redis.Cmdable) domain.MetricsStore {
 	return &redisMetricsStore{client: client}
 }
 
-// metricsKey mengembalikan key Redis sorted set untuk router tertentu.
+// metricsKey mengembalikan key Redis uruted atur untuk router tertentu.
 func metricsKey(routerID string) string {
 	return fmt.Sprintf("router:%s:metrics", routerID)
 }
 
 // Store menyimpan satu data point metrik untuk router.
-// Metrik di-encode ke JSON dan disimpan di sorted set dengan score = unix timestamp.
+// Metrik di-encode ke JSON dan disimpan di uruted atur dengan score = unix timestamp.
 // Setelah ZADD, data lebih tua dari 7 hari dihapus via ZREMRANGEBYSCORE.
 func (s *redisMetricsStore) Store(ctx context.Context, routerID string, metrics domain.RouterMetrics) error {
 	now := time.Now()
 	key := metricsKey(routerID)
 
-	// Encode metrik ke JSON sebagai member sorted set
+	// Encode metrik ke JSON sebagai member uruted atur
 	data, err := json.Marshal(metrics)
 	if err != nil {
 		return fmt.Errorf("gagal marshal metrik: %w", err)
@@ -65,8 +65,8 @@ func (s *redisMetricsStore) Store(ctx context.Context, routerID string, metrics 
 	return nil
 }
 
-// Query mengambil data point metrik dalam rentang waktu [from, to].
-// Mengembalikan slice RouterMetricsPoint yang sudah sorted ascending berdasarkan timestamp.
+// Kueri mengambil data point metrik dalam rentang waktu [from, to].
+// Mengembalikan slice RouterMetricsPoint yang sudah uruted ascending berdasarkan timestamp.
 func (s *redisMetricsStore) Query(ctx context.Context, routerID string, from, to time.Time) ([]domain.RouterMetricsPoint, error) {
 	key := metricsKey(routerID)
 
@@ -79,7 +79,7 @@ func (s *redisMetricsStore) Query(ctx context.Context, routerID string, from, to
 		return nil, fmt.Errorf("gagal ZRANGEBYSCORE metrik: %w", err)
 	}
 
-	// Parse setiap member menjadi RouterMetricsPoint
+	// Parsing setiap member menjadi RouterMetricsPoint
 	points := make([]domain.RouterMetricsPoint, 0, len(results))
 	for _, z := range results {
 		point, err := parseMember(z)
@@ -97,7 +97,7 @@ func (s *redisMetricsStore) Query(ctx context.Context, routerID string, from, to
 func (s *redisMetricsStore) GetLatest(ctx context.Context, routerID string) (*domain.RouterMetricsPoint, error) {
 	key := metricsKey(routerID)
 
-	// ZREVRANGEBYSCORE +inf -inf LIMIT 0 1 — ambil member dengan score tertinggi
+	// ZREVRANGEBYSCORE +inf -inf LIMIT 0 1 - ambil member dengan score tertinggi
 	results, err := s.client.ZRevRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
 		Min:    "-inf",
 		Max:    "+inf",
@@ -121,7 +121,7 @@ func (s *redisMetricsStore) GetLatest(ctx context.Context, routerID string) (*do
 	return &point, nil
 }
 
-// parseMember mengekstrak RouterMetricsPoint dari member sorted set.
+// parseMember mengekstrak RouterMetricsPoint dari member uruted atur.
 // Format member: "{unix_timestamp}:{json_metrics}"
 func parseMember(z redis.Z) (domain.RouterMetricsPoint, error) {
 	memberStr, ok := z.Member.(string)

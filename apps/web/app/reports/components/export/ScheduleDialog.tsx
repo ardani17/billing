@@ -83,7 +83,7 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
       await deleteSchedule(id);
       setSchedules((prev) => prev.filter((s) => s.id !== id));
     } catch {
-      // Silently handle
+      // Tangani tanpa menampilkan error
     }
   };
 
@@ -108,7 +108,7 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
         </div>
 
         <div className="space-y-4">
-          {/* Laporan */}
+          {/* Laporan*/}
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Laporan</label>
             <select
@@ -123,7 +123,7 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
             </select>
           </div>
 
-          {/* Jadwal */}
+          {/* Jadwal*/}
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Jadwal</label>
             <div className="flex gap-2">
@@ -145,7 +145,7 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
             </div>
           </div>
 
-          {/* Format */}
+          {/* Format*/}
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Format</label>
             <div className="flex gap-2">
@@ -167,7 +167,7 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
             </div>
           </div>
 
-          {/* Penerima */}
+          {/* Penerima*/}
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Penerima</label>
             <div className="flex gap-2">
@@ -230,7 +230,7 @@ export function ScheduleDialog({ open, onClose }: ScheduleDialogProps) {
           </button>
         </div>
 
-        {/* Active schedules */}
+        {/* Active schedules*/}
         {!loading && schedules.length > 0 && (
           <div className="mt-6 border-t border-slate-200 pt-4">
             <h3 className="mb-3 text-sm font-medium text-slate-700">Jadwal Aktif</h3>

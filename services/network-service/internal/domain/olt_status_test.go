@@ -6,10 +6,8 @@ import (
 	"pgregory.net/rapid"
 )
 
-// allOLTStatuses berisi semua status OLT yang valid.
 var allOLTStatuses = []OLTStatus{OLTStatusOnline, OLTStatusOffline, OLTStatusMaintenance}
 
-// validOLTTransitionPairs berisi semua pasangan transisi status OLT yang valid.
 // Sesuai dengan ValidOLTTransitions di olt.go.
 var validOLTTransitionPairs = map[[2]OLTStatus]bool{
 	{OLTStatusOffline, OLTStatusOnline}:      true,
@@ -21,18 +19,14 @@ var validOLTTransitionPairs = map[[2]OLTStatus]bool{
 }
 
 // =============================================================================
-// Feature: olt-management, Property 1: OLT Status Transition Validation
 // =============================================================================
 
 // TestProperty_OLTStatusTransitionValidation memverifikasi bahwa untuk sembarang
-// pasangan OLTStatus (current, target), CanTransitionOLT mengembalikan true
 // jika dan hanya jika pasangan tersebut ada di ValidOLTTransitions.
-// Untuk semua pasangan yang tidak valid, fungsi harus mengembalikan false.
 //
-// **Validates: Requirements 2.3, 2.4**
+// **Memvalidasi: Kebutuhan 2.3, 2.4**
 func TestProperty_OLTStatusTransitionValidation(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Pilih status asal dan tujuan secara acak dari semua status valid
 		current := rapid.SampledFrom(allOLTStatuses).Draw(t, "current")
 		target := rapid.SampledFrom(allOLTStatuses).Draw(t, "target")
 
@@ -53,20 +47,17 @@ func TestProperty_OLTStatusTransitionValidation(t *testing.T) {
 // sembarang pasangan yang TIDAK ada di ValidOLTTransitions, CanTransitionOLT
 // mengembalikan false. Termasuk status yang tidak dikenal.
 //
-// **Validates: Requirements 2.3, 2.4**
+// **Memvalidasi: Kebutuhan 2.3, 2.4**
 func TestProperty_OLTStatusTransitionInvalidPairs(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate string acak sebagai status tidak valid
 		invalidStatus := OLTStatus(rapid.String().Draw(t, "invalidStatus"))
 
-		// Pastikan bukan salah satu status valid
 		for _, s := range allOLTStatuses {
 			if invalidStatus == s {
 				return // skip iterasi ini, status kebetulan valid
 			}
 		}
 
-		// Transisi dari status tidak valid harus selalu ditolak
 		validTarget := rapid.SampledFrom(allOLTStatuses).Draw(t, "target")
 		if CanTransitionOLT(invalidStatus, validTarget) {
 			t.Errorf(
@@ -75,7 +66,6 @@ func TestProperty_OLTStatusTransitionInvalidPairs(t *testing.T) {
 			)
 		}
 
-		// Transisi ke status tidak valid juga harus ditolak
 		validCurrent := rapid.SampledFrom(allOLTStatuses).Draw(t, "current")
 		if CanTransitionOLT(validCurrent, invalidStatus) {
 			t.Errorf(
@@ -89,7 +79,7 @@ func TestProperty_OLTStatusTransitionInvalidPairs(t *testing.T) {
 // TestProperty_OLTSelfTransitionAlwaysInvalid memverifikasi bahwa transisi
 // ke status yang sama (self-transition) selalu ditolak oleh CanTransitionOLT.
 //
-// **Validates: Requirements 2.3, 2.4**
+// **Memvalidasi: Kebutuhan 2.3, 2.4**
 func TestProperty_OLTSelfTransitionAlwaysInvalid(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// Pilih status acak
@@ -109,12 +99,10 @@ func TestProperty_OLTSelfTransitionAlwaysInvalid(t *testing.T) {
 // Example-based tests untuk transisi status OLT yang diketahui
 // =============================================================================
 
-// TestOLTStatusTransition_KnownValidPairs memverifikasi transisi valid yang
 // sudah diketahui secara eksplisit.
 //
-// **Validates: Requirements 2.3, 2.4**
+// **Memvalidasi: Kebutuhan 2.3, 2.4**
 func TestOLTStatusTransition_KnownValidPairs(t *testing.T) {
-	// Daftar transisi valid sesuai Requirements 2.3
 	validPairs := []struct {
 		from OLTStatus
 		to   OLTStatus
@@ -140,9 +128,8 @@ func TestOLTStatusTransition_KnownValidPairs(t *testing.T) {
 }
 
 // TestOLTStatusTransition_KnownInvalidPairs memverifikasi transisi yang
-// tidak valid ditolak, termasuk self-transition dan status tidak dikenal.
 //
-// **Validates: Requirements 2.3, 2.4**
+// **Memvalidasi: Kebutuhan 2.3, 2.4**
 func TestOLTStatusTransition_KnownInvalidPairs(t *testing.T) {
 	invalidPairs := []struct {
 		name string

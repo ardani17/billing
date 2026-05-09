@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel customers (schema lengkap 24 kolom).
+-- Kueri SQL untuk operasi CRUD tabel customers (schema lengkap 24 kolom).
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel customers dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel customers dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateCustomer :one
 INSERT INTO customers (
@@ -108,7 +107,7 @@ SELECT COUNT(*) FROM customers WHERE status = 'suspend' AND deleted_at IS NULL;
 -- name: CountCustomersByStatusBerhenti :one
 SELECT COUNT(*) FROM customers WHERE status = 'berhenti' AND deleted_at IS NULL;
 
--- name: SearchCustomersForPayment :many
+-- name: PencarianCustomersForPayment :many
 -- Mencari pelanggan berdasarkan nama, customer_id_seq, atau telepon untuk quick payment.
 -- Mengembalikan maksimal 10 hasil, hanya status aktif atau isolir.
 SELECT id, tenant_id, customer_id_seq, name, phone, email, address,

@@ -43,7 +43,7 @@ var validExportFormats = map[string]bool{
 	"xlsx": true,
 }
 
-// ReportExportManager menyediakan akses ke asynq client untuk enqueue task.
+// ReportExportManager menyediakan akses ke asynq client untuk antrekan task.
 // Diset oleh caller setelah konstruksi ReportManager.
 type ReportExportManager struct {
 	jobRepo     domain.ReportJobRepository
@@ -51,8 +51,7 @@ type ReportExportManager struct {
 }
 
 // RequestExport membuat job export laporan.
-// Jika format CSV → generate synchronous (return job_id langsung completed).
-// Jika format PDF/XLSX → create report_job + enqueue asynq task → return job_id.
+// Jika format CSV -> buat synchronous (kembalikan job_id langsung completed).
 func (rm *ReportManager) RequestExport(ctx context.Context, tenantID, userID, reportType, format string, filters domain.ReportFilter) (string, error) {
 	// Validasi report type
 	if !validReportTypes[reportType] {
@@ -71,7 +70,7 @@ func (rm *ReportManager) RequestExport(ctx context.Context, tenantID, userID, re
 		return jobID, nil
 	}
 
-	// Untuk PDF/XLSX, buat report_job dan enqueue asynq task
+	// Untuk PDF/XLSX, buat report_job dan antrekan asynq task
 	if rm.exportManager == nil {
 		rm.logger.Error().Msg("export manager belum dikonfigurasi")
 		return "", domain.ErrInvalidExportFormat
@@ -105,7 +104,7 @@ func (rm *ReportManager) RequestExport(ctx context.Context, tenantID, userID, re
 	task := asynq.NewTask(TaskReportExport, payload)
 	if _, err := rm.exportManager.queueClient.Enqueue(task); err != nil {
 		rm.logger.Error().Err(err).Str("job_id", jobID).Msg("gagal enqueue export task")
-		// Update job status ke failed
+		// Perbarui job status ke failed
 		_ = rm.exportManager.jobRepo.UpdateStatus(ctx, jobID, domain.JobFailed, "", "gagal mengirim task ke queue")
 		return "", err
 	}

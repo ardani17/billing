@@ -1,5 +1,4 @@
-// cable_route_manager_test.go — unit test untuk CableRouteManager.
-// Menggunakan mock in-memory repository dengan pola yang sama seperti map_node_manager_test.go.
+// cable_route_manager_test.go - unit test untuk CableRouteManager.
 // Semua komentar dalam Bahasa Indonesia.
 package usecase
 
@@ -15,7 +14,6 @@ import (
 )
 
 // =============================================================================
-// Mock Repository: CableRouteRepository — in-memory untuk testing
 // =============================================================================
 
 // mockCableRouteRepo adalah implementasi in-memory dari domain.CableRouteRepository.
@@ -72,7 +70,6 @@ func (r *mockCableRouteRepo) SoftDelete(_ context.Context, id string) error {
 }
 
 // ListByBounds mengembalikan cable route yang terhubung ke node dalam bounding box.
-// Untuk simplisitas di mock, mengembalikan semua route yang belum dihapus.
 func (r *mockCableRouteRepo) ListByBounds(_ context.Context, params domain.CableRouteListParams) ([]*domain.CableRoute, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -111,11 +108,8 @@ func (r *mockCableRouteRepo) ListByNode(_ context.Context, nodeID string) ([]*do
 }
 
 // =============================================================================
-// Helper: membuat CableRouteManager dengan mock dependencies
 // =============================================================================
 
-// newTestCableRouteManager membuat instance CableRouteManager dengan mock repository.
-// Mengembalikan manager, mock cable route repo, dan mock map node repo.
 func newTestCableRouteManager() (domain.CableRouteManager, *mockCableRouteRepo, *mockMapNodeRepo) {
 	cableRepo := newMockCableRouteRepo()
 	nodeRepo := newMockMapNodeRepo()
@@ -123,7 +117,6 @@ func newTestCableRouteManager() (domain.CableRouteManager, *mockCableRouteRepo, 
 	return mgr, cableRepo, nodeRepo
 }
 
-// seedMapNode membuat node di mock repo untuk validasi from/to node.
 func seedMapNode(ctx context.Context, nodeRepo *mockMapNodeRepo, id, tenantID string) {
 	nodeRepo.mu.Lock()
 	defer nodeRepo.mu.Unlock()
@@ -146,10 +139,8 @@ func makeCoordinatesJSON(coords [][2]float64) json.RawMessage {
 }
 
 // =============================================================================
-// Unit Test 1: TestCreateRoute_HappyPath — input valid, jarak dihitung otomatis
 // =============================================================================
 
-// TestCreateRoute_HappyPath memverifikasi bahwa CreateRoute dengan input valid
 // mengembalikan CableRouteResponse dengan jarak yang dihitung otomatis.
 func TestCreateRoute_HappyPath(t *testing.T) {
 	mgr, _, nodeRepo := newTestCableRouteManager()
@@ -159,7 +150,7 @@ func TestCreateRoute_HappyPath(t *testing.T) {
 	seedMapNode(ctx, nodeRepo, "node-from-1", "tenant-1")
 	seedMapNode(ctx, nodeRepo, "node-to-1", "tenant-1")
 
-	// Koordinat Jakarta → Bandung (sekitar 120km)
+	// Koordinat Jakarta -> Bandung (sekitar 120km)
 	coords := [][2]float64{
 		{-6.2088, 106.8456}, // Jakarta
 		{-6.9175, 107.6191}, // Bandung
@@ -177,7 +168,6 @@ func TestCreateRoute_HappyPath(t *testing.T) {
 		t.Fatalf("CreateRoute gagal: %v", err)
 	}
 
-	// Verifikasi response
 	if resp.ID == "" {
 		t.Error("ID seharusnya tidak kosong")
 	}
@@ -198,7 +188,7 @@ func TestCreateRoute_HappyPath(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 2: TestCreateRoute_InvalidCoordinates — kurang dari 2 titik
+// Unit Tes 2: TestCreateRoute_InvalidCoordinates - kurang dari 2 titik
 // =============================================================================
 
 // TestCreateRoute_InvalidCoordinates memverifikasi bahwa CreateRoute mengembalikan
@@ -211,7 +201,7 @@ func TestCreateRoute_InvalidCoordinates(t *testing.T) {
 	seedMapNode(ctx, nodeRepo, "node-from-2", "tenant-1")
 	seedMapNode(ctx, nodeRepo, "node-to-2", "tenant-1")
 
-	// Hanya 1 titik koordinat — harus gagal
+	// Hanya 1 titik koordinat - harus gagal
 	coords := [][2]float64{
 		{-6.2088, 106.8456},
 	}
@@ -228,14 +218,13 @@ func TestCreateRoute_InvalidCoordinates(t *testing.T) {
 		t.Fatal("CreateRoute seharusnya mengembalikan error untuk koordinat < 2 titik")
 	}
 
-	// Verifikasi error mengandung ErrInvalidCoordArray
 	if !containsString(err.Error(), domain.ErrInvalidCoordArray.Error()) {
 		t.Errorf("error: got %v, want error yang mengandung ErrInvalidCoordArray", err)
 	}
 }
 
 // =============================================================================
-// Unit Test 3: TestCreateRoute_AutoDistanceCalculation — verifikasi kalkulasi jarak
+// Unit Tes 3: TestCreateRoute_AutoDistanceCalculation - verifikasi kalkulasi jarak
 // =============================================================================
 
 // TestCreateRoute_AutoDistanceCalculation memverifikasi bahwa jarak dihitung
@@ -247,7 +236,7 @@ func TestCreateRoute_AutoDistanceCalculation(t *testing.T) {
 	seedMapNode(ctx, nodeRepo, "node-from-3", "tenant-1")
 	seedMapNode(ctx, nodeRepo, "node-to-3", "tenant-1")
 
-	// Koordinat multi-segment: A → B → C
+	// Koordinat multi-segment: A -> B -> C
 	coords := [][2]float64{
 		{-6.2088, 106.8456}, // Titik A
 		{-6.3000, 106.9000}, // Titik B
@@ -281,7 +270,6 @@ func TestCreateRoute_AutoDistanceCalculation(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 4: TestUpdateRoute_RecalculateDistance — update koordinat, jarak dihitung ulang
 // =============================================================================
 
 // TestUpdateRoute_RecalculateDistance memverifikasi bahwa UpdateRoute menghitung
@@ -313,7 +301,6 @@ func TestUpdateRoute_RecalculateDistance(t *testing.T) {
 
 	initialDistance := created.DistanceMeters
 
-	// Update dengan koordinat yang lebih panjang
 	newCoords := [][2]float64{
 		{-6.2088, 106.8456},
 		{-6.5000, 107.0000},

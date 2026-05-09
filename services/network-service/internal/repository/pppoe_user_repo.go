@@ -21,7 +21,7 @@ func NewPPPoEUserRepo(queries *Queries) *PPPoEUserRepo {
 	return &PPPoEUserRepo{queries: queries}
 }
 
-// --- Mapping sqlc PppoeUser → domain.PPPoEUser ---
+// --- Mapping sqlc PppoeUser -> domain.PPPoEUser ---
 
 // mapPPPoEUserRow memetakan PppoeUser (sqlc model) ke domain.PPPoEUser.
 func mapPPPoEUserRow(row PppoeUser) *domain.PPPoEUser {
@@ -55,7 +55,7 @@ func isUniqueViolation(err error) bool {
 
 // --- Implementasi domain.PPPoEUserRepository ---
 
-// Create membuat record PPPoE user baru.
+// Buat membuat record PPPoE user baru.
 func (r *PPPoEUserRepo) Create(ctx context.Context, user *domain.PPPoEUser) (*domain.PPPoEUser, error) {
 	row, err := r.queries.CreatePPPoEUser(ctx, CreatePPPoEUserParams{
 		TenantID:          stringToUUID(user.TenantID),
@@ -120,7 +120,7 @@ func (r *PPPoEUserRepo) GetByCustomerID(ctx context.Context, customerID string) 
 	return mapPPPoEUserRow(row), nil
 }
 
-// Update memperbarui record PPPoE user.
+// Perbarui memperbarui record PPPoE user.
 func (r *PPPoEUserRepo) Update(ctx context.Context, user *domain.PPPoEUser) (*domain.PPPoEUser, error) {
 	row, err := r.queries.UpdatePPPoEUser(ctx, UpdatePPPoEUserParams{
 		ID:                stringToUUID(user.ID),
@@ -147,7 +147,7 @@ func (r *PPPoEUserRepo) Update(ctx context.Context, user *domain.PPPoEUser) (*do
 	return mapPPPoEUserRow(row), nil
 }
 
-// SoftDelete melakukan soft-delete PPPoE user.
+// SoftDelete melakukan hapus lunak PPPoE user.
 func (r *PPPoEUserRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeletePPPoEUser(ctx, stringToUUID(id))
 	if err != nil {

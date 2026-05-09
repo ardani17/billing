@@ -1,5 +1,5 @@
 // webhook_payment.go berisi method WebhookUsecase untuk pemrosesan event
-// payment.expired dan payment.failed, serta helper publish event.
+// payment.expired dan payment.failed, serta helper terbitkan event.
 package usecase
 
 import (
@@ -12,7 +12,7 @@ import (
 )
 
 // processPaymentExpired memproses event payment.expired dari webhook.
-// Update status payment link menjadi expired tanpa mengubah status invoice.
+// Perbarui status link pembayaran menjadi expired tanpa mengubah status invoice.
 func (uc *WebhookUsecase) processPaymentExpired(ctx context.Context, event *domain.WebhookEvent, link *domain.PaymentLink) error {
 	if err := uc.linkRepo.UpdateStatus(ctx, link.ID, domain.PaymentLinkExpired); err != nil {
 		return err
@@ -25,7 +25,7 @@ func (uc *WebhookUsecase) processPaymentExpired(ctx context.Context, event *doma
 }
 
 // processPaymentFailed memproses event payment.failed dari webhook.
-// Log kegagalan dan publish event notifikasi ke customer.
+// Log kegagalan dan terbitkan event notifikasi ke customer.
 func (uc *WebhookUsecase) processPaymentFailed(ctx context.Context, event *domain.WebhookEvent, link *domain.PaymentLink) error {
 	uc.logger.Warn().
 		Str("payment_link_id", link.ID).
@@ -33,7 +33,7 @@ func (uc *WebhookUsecase) processPaymentFailed(ctx context.Context, event *domai
 		Str("paid_method", event.PaidMethod).
 		Msg("pembayaran online gagal")
 
-	// Publish event notifikasi kegagalan ke customer
+	// Terbitkan event notifikasi kegagalan ke customer
 	uc.publishWebhookEvent(link.TenantID, "payment.online.failed", map[string]interface{}{
 		"tenant_id":        link.TenantID,
 		"customer_id":      link.CustomerID,

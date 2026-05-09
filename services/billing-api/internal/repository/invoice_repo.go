@@ -20,7 +20,7 @@ type InvoiceRepo struct {
 	// queries adalah sqlc-generated Queries untuk operasi invoice.
 	queries *Queries
 
-	// pool digunakan untuk dynamic list query (raw SQL dengan pgx).
+	// pool digunakan untuk dinamis list kueri (raw SQL dengan pgx).
 	pool *pgxpool.Pool
 }
 
@@ -32,7 +32,7 @@ func NewInvoiceRepo(queries *Queries, pool *pgxpool.Pool) *InvoiceRepo {
 	}
 }
 
-// --- Helper function untuk mapping sqlc Invoice → domain.Invoice ---
+// --- Helper function untuk mapping sqlc Invoice -> domain.Invoice ---
 
 // mapInvoiceRow memetakan Invoice (sqlc model) ke domain.Invoice.
 func mapInvoiceRow(row Invoice) *domain.Invoice {
@@ -95,7 +95,7 @@ func mapGetInvoiceByIDRow(row GetInvoiceByIDRow) *domain.Invoice {
 
 // --- Implementasi domain.InvoiceRepository ---
 
-// Create membuat invoice baru dan mengembalikan invoice yang dibuat.
+// Buat membuat invoice baru dan mengembalikan invoice yang dibuat.
 func (r *InvoiceRepo) Create(ctx context.Context, invoice *domain.Invoice) (*domain.Invoice, error) {
 	row, err := r.queries.CreateInvoice(ctx, CreateInvoiceParams{
 		TenantID:       stringToUUID(invoice.TenantID),
@@ -135,7 +135,7 @@ func (r *InvoiceRepo) GetByID(ctx context.Context, id string) (*domain.Invoice, 
 	return mapGetInvoiceByIDRow(row), nil
 }
 
-// Update memperbarui data invoice dan mengembalikan invoice yang diperbarui.
+// Perbarui memperbarui data invoice dan mengembalikan invoice yang diperbarui.
 func (r *InvoiceRepo) Update(ctx context.Context, invoice *domain.Invoice) (*domain.Invoice, error) {
 	row, err := r.queries.UpdateInvoice(ctx, UpdateInvoiceParams{
 		ID:             stringToUUID(invoice.ID),
@@ -191,7 +191,7 @@ func (r *InvoiceRepo) UpdatePaidAmount(ctx context.Context, id string, paidAmoun
 	return mapInvoiceRow(row), nil
 }
 
-// allowedInvoiceSortColumns adalah whitelist kolom yang diizinkan untuk sorting invoice.
+// allowedInvoiceSortColumns adalah whitelist kolom yang diizinkan untuk pengurutan invoice.
 // Mencegah SQL injection pada ORDER BY clause.
 var allowedInvoiceSortColumns = map[string]string{
 	"invoice_number": "i.invoice_number",
@@ -201,12 +201,12 @@ var allowedInvoiceSortColumns = map[string]string{
 	"created_at":     "i.created_at",
 }
 
-// List mengambil daftar invoice dengan dynamic filtering, search, sorting, dan pagination.
+// List mengambil daftar invoice dengan dinamis filtering, search, pengurutan, dan paginasi.
 // Menggunakan raw SQL karena sqlc tidak mendukung dynamic WHERE clause.
-// Query melakukan JOIN ke tabel customers dan packages untuk mendapatkan
+// Kueri melakukan JOIN ke tabel customers dan packages untuk mendapatkan
 // customer_name, customer_id_seq, dan package_name.
 func (r *InvoiceRepo) List(ctx context.Context, params domain.InvoiceListParams) (*domain.InvoiceListResult, error) {
-	// Default values
+	// Nilai bawaan
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -214,12 +214,12 @@ func (r *InvoiceRepo) List(ctx context.Context, params domain.InvoiceListParams)
 		params.PageSize = 25
 	}
 
-	// Build WHERE clauses
+	// Bangun klausa WHERE
 	var conditions []string
 	var args []interface{}
 	argIdx := 1
 
-	// Tenant filter (wajib)
+	// Filter tenant (wajib)
 	conditions = append(conditions, fmt.Sprintf("i.tenant_id = $%d", argIdx))
 	args = append(args, stringToUUID(params.TenantID))
 	argIdx++
@@ -266,7 +266,6 @@ func (r *InvoiceRepo) List(ctx context.Context, params domain.InvoiceListParams)
 		argIdx++
 	}
 
-	// Search filter (case-insensitive ILIKE pada invoice_number, customer name, customer_id_seq)
 	if params.Search != "" {
 		searchPattern := "%" + params.Search + "%"
 		conditions = append(conditions, fmt.Sprintf(
@@ -279,7 +278,7 @@ func (r *InvoiceRepo) List(ctx context.Context, params domain.InvoiceListParams)
 
 	whereClause := "WHERE " + strings.Join(conditions, " AND ")
 
-	// Count total — menggunakan JOIN yang sama untuk filter yang benar
+	// Hitung total - menggunakan JOIN yang sama untuk filter yang benar
 	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM invoices i
 		JOIN customers c ON c.id = i.customer_id
 		%s`, whereClause)
@@ -289,7 +288,7 @@ func (r *InvoiceRepo) List(ctx context.Context, params domain.InvoiceListParams)
 		return nil, fmt.Errorf("repository: gagal menghitung total invoice: %w", err)
 	}
 
-	// Build ORDER BY
+	// Bangun ORDER BY
 	orderBy := "i.created_at"
 	if params.SortBy != "" {
 		if col, ok := allowedInvoiceSortColumns[params.SortBy]; ok {
@@ -301,10 +300,10 @@ func (r *InvoiceRepo) List(ctx context.Context, params domain.InvoiceListParams)
 		sortOrder = "ASC"
 	}
 
-	// Build pagination
+	// Bangun paginasi
 	offset := (params.Page - 1) * params.PageSize
 
-	// Build data query dengan JOIN ke customers dan packages
+	// Bangun data kueri dengan JOIN ke customers dan packages
 	dataQuery := fmt.Sprintf(`SELECT
 		i.id, i.tenant_id, i.customer_id, i.invoice_number, i.period_month, i.period_year,
 		i.due_date, i.subtotal, i.tax_amount, i.penalty_amount, i.discount_amount,
@@ -416,7 +415,7 @@ func (r *InvoiceRepo) List(ctx context.Context, params domain.InvoiceListParams)
 }
 
 // ExistsForPeriod mengecek apakah invoice sudah ada untuk customer dan periode tertentu.
-// Digunakan untuk idempotency check saat auto-generate invoice.
+// Digunakan untuk idempotency cek saat auto-buat invoice.
 func (r *InvoiceRepo) ExistsForPeriod(ctx context.Context, customerID string, month, year int) (bool, error) {
 	exists, err := r.queries.ExistsForPeriod(ctx, ExistsForPeriodParams{
 		CustomerID:  stringToUUID(customerID),
@@ -444,7 +443,7 @@ func (r *InvoiceRepo) ExistsForPeriodPrepaid(ctx context.Context, customerID str
 }
 
 // FindOverdue mengambil semua invoice yang sudah melewati jatuh tempo (status belum_bayar).
-// Digunakan oleh cron job untuk update status ke terlambat.
+// Digunakan oleh job cron untuk perbarui status ke terlambat.
 func (r *InvoiceRepo) FindOverdue(ctx context.Context, currentDate time.Time) ([]*domain.Invoice, error) {
 	rows, err := r.queries.FindOverdueInvoices(ctx, timeToDate(currentDate))
 	if err != nil {
@@ -460,7 +459,7 @@ func (r *InvoiceRepo) FindOverdue(ctx context.Context, currentDate time.Time) ([
 // GetSummary mengambil ringkasan invoice per status untuk dashboard.
 // Mendukung filter opsional berdasarkan period_month dan period_year.
 func (r *InvoiceRepo) GetSummary(ctx context.Context, tenantID string, periodMonth, periodYear *int) (*domain.InvoiceSummary, error) {
-	// Konversi parameter opsional — sqlc menggunakan int32 dengan 0 sebagai NULL
+	// Konversi parameter opsional - sqlc menggunakan int32 dengan 0 sebagai NULL
 	var pm, py int32
 	if periodMonth != nil {
 		pm = int32(*periodMonth)

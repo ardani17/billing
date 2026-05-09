@@ -37,7 +37,7 @@ func EncryptAESGCM(plaintext string, masterKey []byte) (string, error) {
 		return "", fmt.Errorf("%w: gagal membuat GCM: %v", domain.ErrEncryptionFailed, err)
 	}
 
-	// Generate nonce acak (12 bytes untuk GCM standar)
+	// Buat nonce acak (12 bytes untuk GCM standar)
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return "", fmt.Errorf("%w: gagal generate nonce: %v", domain.ErrEncryptionFailed, err)
@@ -97,7 +97,7 @@ func DecryptAESGCM(ciphertext string, masterKey []byte) (string, error) {
 
 // MaskAPIKey mengembalikan API key yang di-mask, hanya menampilkan 4 karakter terakhir.
 // Karakter sebelumnya diganti dengan asterisk (*).
-// Contoh: "xnd_production_abc123xyz" → "********************3xyz"
+// Contoh: "xnd_production_abc123xyz" -> "********************3xyz"
 // Key dengan panjang < 4 karakter dikembalikan apa adanya.
 func MaskAPIKey(apiKey string) string {
 	if len(apiKey) < 4 {

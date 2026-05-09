@@ -9,11 +9,7 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: customer-crud, Property 11: Bulk Action Result Invariant
-// **Validates: Requirements 14.7**
-//
-// For any bulk action result, total == success_count + failure_count,
-// total equals input IDs count, and failure_count equals length of failures array.
+// **Memvalidasi: Kebutuhan 14.7**
 func TestProperty_BulkActionResultInvariant(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		customerRepo := newMockCustomerRepo()
@@ -30,18 +26,15 @@ func TestProperty_BulkActionResultInvariant(t *testing.T) {
 
 		ctx := context.Background()
 
-		// Generate a mix of existing and non-existing customer IDs
 		existingCount := rapid.IntRange(0, 5).Draw(t, "existingCount")
 		nonExistingCount := rapid.IntRange(0, 5).Draw(t, "nonExistingCount")
 
-		// Ensure at least one ID total
 		if existingCount+nonExistingCount == 0 {
 			existingCount = 1
 		}
 
 		var ids []string
 
-		// Create existing customers with status aktif (so isolir can work)
 		for i := 0; i < existingCount; i++ {
 			req := genValidCreateRequest(t)
 			req.Phone = genPhone().Draw(t, fmt.Sprintf("phone_%d", i))
@@ -49,7 +42,6 @@ func TestProperty_BulkActionResultInvariant(t *testing.T) {
 			if err != nil {
 				t.Fatalf("create failed: %v", err)
 			}
-			// Activate the customer (pending → aktif)
 			_, err = uc.Activate(ctx, created.ID, actor)
 			if err != nil {
 				t.Fatalf("activate failed: %v", err)
@@ -62,7 +54,6 @@ func TestProperty_BulkActionResultInvariant(t *testing.T) {
 			ids = append(ids, genUUID().Draw(t, fmt.Sprintf("fakeID_%d", i)))
 		}
 
-		// Pick a random bulk action
 		bulkAction := rapid.SampledFrom([]string{
 			"isolir", "activate", "notify", "change_package", "edit", "delete",
 		}).Draw(t, "bulkAction")
@@ -74,8 +65,7 @@ func TestProperty_BulkActionResultInvariant(t *testing.T) {
 		case "isolir":
 			result, bulkErr = uc.BulkIsolir(ctx, ids, actor)
 		case "activate":
-			// For activate, we need customers in isolir state
-			// Re-isolir the existing ones first
+			// For aktifkan, we need customers in isolir state
 			for _, id := range ids[:existingCount] {
 				_, _ = uc.Isolir(ctx, id, actor)
 			}
@@ -99,18 +89,15 @@ func TestProperty_BulkActionResultInvariant(t *testing.T) {
 			t.Fatalf("bulk action %q failed: %v", bulkAction, bulkErr)
 		}
 
-		// Property 11a: total == success_count + failure_count
 		if result.Total != result.SuccessCount+result.FailureCount {
 			t.Fatalf("total (%d) != success_count (%d) + failure_count (%d)",
 				result.Total, result.SuccessCount, result.FailureCount)
 		}
 
-		// Property 11b: total equals input IDs count
 		if result.Total != len(ids) {
 			t.Fatalf("total (%d) != input IDs count (%d)", result.Total, len(ids))
 		}
 
-		// Property 11c: failure_count equals length of failures array
 		if result.FailureCount != len(result.Failures) {
 			t.Fatalf("failure_count (%d) != len(failures) (%d)",
 				result.FailureCount, len(result.Failures))

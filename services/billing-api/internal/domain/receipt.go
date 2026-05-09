@@ -7,7 +7,7 @@ import (
 )
 
 // =============================================================================
-// Receipt Number Formatting — fungsi pemformatan nomor kwitansi pembayaran
+// Receipt Number Formatting - fungsi pemformatan nomor kwitansi pembayaran
 // =============================================================================
 
 // FormatReceiptNumber memformat nomor kwitansi dari komponen.
@@ -26,7 +26,7 @@ func zeroPadReceiptSeq(seq int) string {
 	return fmt.Sprintf("%d", seq)
 }
 
-// ParseReceiptNumber mem-parse string nomor kwitansi kembali ke komponen.
+// ParseReceiptNumber mem-parsing string nomor kwitansi kembali ke komponen.
 // Mengembalikan year, month, seq, error.
 // Format yang diharapkan: PAY-{YYYY}-{MM}-{SEQ}
 func ParseReceiptNumber(receiptNumber string) (int, int, int, error) {
@@ -58,7 +58,7 @@ func ParseReceiptNumber(receiptNumber string) (int, int, int, error) {
 }
 
 // =============================================================================
-// Payment Event Payloads — payload event pembayaran
+// Payment Payload event - payload event pembayaran
 // =============================================================================
 
 // PaymentRecordedPayload adalah payload event payment.recorded.

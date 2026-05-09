@@ -1,7 +1,7 @@
--- Migrasi: membuat tabel webhook_logs untuk menyimpan log semua webhook request dari payment gateway.
--- Tabel ini bersifat append-only dan menyimpan seluruh request termasuk yang gagal verifikasi.
+-- Migrasi: membuat tabel webhook_logs untuk menyimpan log semua webhook permintaan dari gateway pembayaran.
+-- Tabel ini bersifat append-only dan menyimpan seluruh permintaan termasuk yang gagal verifikasi.
 -- TIDAK menggunakan RLS karena webhook diterima sebelum identifikasi tenant.
--- tenant_id diisi setelah identifikasi payment link (bisa NULL saat penerimaan awal).
+-- tenant_id diisi setelah identifikasi link pembayaran (bisa NULL saat penerimaan awal).
 
 CREATE TABLE webhook_logs (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -26,9 +26,9 @@ CREATE TABLE webhook_logs (
 );
 
 -- TIDAK mengaktifkan RLS: webhook logs tidak tenant-scoped saat penerimaan awal.
--- tenant_id diisi secara asinkron setelah identifikasi payment link.
+-- tenant_id diisi secara asinkron setelah identifikasi link pembayaran.
 
--- Partial unique index: idempotency check untuk webhook yang sudah diproses
+-- Partial unique index: idempotency cek untuk webhook yang sudah diproses
 CREATE INDEX idx_webhook_logs_idempotency
     ON webhook_logs(external_id, event_type)
     WHERE processing_status = 'processed';
@@ -44,7 +44,7 @@ CREATE INDEX idx_webhook_logs_cleanup
     WHERE processing_status NOT IN ('failed')
       AND (signature_valid IS NULL OR signature_valid = true);
 
--- Partial index: lookup berdasarkan tenant untuk query admin
+-- Partial index: lookup berdasarkan tenant untuk kueri admin
 CREATE INDEX idx_webhook_logs_tenant
     ON webhook_logs(tenant_id, created_at DESC)
     WHERE tenant_id IS NOT NULL;

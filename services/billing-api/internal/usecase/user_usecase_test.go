@@ -10,8 +10,6 @@ import (
 	"pgregory.net/rapid"
 )
 
-// --- In-memory mock repositories untuk testing ---
-
 // mockUserRepo adalah implementasi in-memory dari domain.UserRepository.
 type mockUserRepo struct {
 	mu    sync.Mutex
@@ -25,7 +23,7 @@ func newMockUserRepo() *mockUserRepo {
 func (m *mockUserRepo) CreateUser(_ context.Context, user *domain.User) (*domain.User, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	// Generate simple ID jika kosong
+	// Buat simple ID jika kosong
 	if user.ID == "" {
 		user.ID = fmt.Sprintf("user-%d", len(m.users)+1)
 	}
@@ -80,7 +78,6 @@ func (m *mockUserRepo) UpdateUser(_ context.Context, user *domain.User) (*domain
 	if !ok {
 		return nil, domain.ErrUserNotFound
 	}
-	// Update hanya name, phone, role — preserve tenant_id dan field lain
 	existing.Name = user.Name
 	existing.Phone = user.Phone
 	existing.Role = user.Role
@@ -112,7 +109,7 @@ func (m *mockUserRepo) UpdateStatus(_ context.Context, userID string, status dom
 	return nil
 }
 
-func (m *mockUserRepo) LinkGoogleID(_ context.Context, _, _ string) error { return nil }
+func (m *mockUserRepo) LinkGoogleID(_ context.Context, _, _ string) error  { return nil }
 func (m *mockUserRepo) SetEmailVerified(_ context.Context, _ string) error { return nil }
 
 func (m *mockUserRepo) DeleteUser(_ context.Context, userID string) error {
@@ -235,7 +232,6 @@ func (m *mockSessionRepo) DeleteOtherSessions(_ context.Context, userID, current
 
 func (m *mockSessionRepo) DeleteExpired(_ context.Context) error { return nil }
 
-// countSessionsByUserID menghitung jumlah session untuk user tertentu (helper untuk test).
 func (m *mockSessionRepo) countSessionsByUserID(userID string) int {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -314,13 +310,8 @@ func (m *mockTokenRepo) InvalidateEmailVerifications(_ context.Context, _ string
 	return nil
 }
 
-// --- Property Tests ---
-
-// Feature: auth-rbac, Property 12: User Update Preserves Tenant ID Invariant
-// **Validates: Requirements 10.2**
+// **Memvalidasi: Kebutuhan 10.2**
 //
-// For any user update operation, the user's tenant_id SHALL remain unchanged
-// regardless of the request payload. Only name, phone, and role fields SHALL
 // be modifiable.
 func TestProperty_UserUpdatePreservesTenantID(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
@@ -336,7 +327,7 @@ func TestProperty_UserUpdatePreservesTenantID(t *testing.T) {
 			BcryptCost:  4, // cost rendah untuk testing
 		})
 
-		// Generate tenant_id dan user data secara random
+		// Buat tenant_id dan user data secara random
 		originalTenantID := rapid.StringMatching(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`).Draw(t, "tenantID")
 		originalName := rapid.StringMatching(`[A-Za-z ]{3,50}`).Draw(t, "originalName")
 		originalEmail := rapid.StringMatching(`[a-z]{3,10}@example\.com`).Draw(t, "email")
@@ -360,7 +351,6 @@ func TestProperty_UserUpdatePreservesTenantID(t *testing.T) {
 			t.Fatalf("gagal membuat user: %v", err)
 		}
 
-		// Generate update request dengan field random
 		newName := rapid.StringMatching(`[A-Za-z ]{3,50}`).Draw(t, "newName")
 		newPhone := "+62" + rapid.StringMatching(`[0-9]{9,12}`).Draw(t, "newPhone")
 		newRole := rapid.SampledFrom([]domain.UserRole{
@@ -373,18 +363,15 @@ func TestProperty_UserUpdatePreservesTenantID(t *testing.T) {
 			Role:  newRole,
 		}
 
-		// Lakukan update
 		updated, err := uc.UpdateUser(context.Background(), user.ID, updateReq)
 		if err != nil {
 			t.Fatalf("gagal update user: %v", err)
 		}
 
-		// Property: tenant_id HARUS tetap sama setelah update
 		if updated.TenantID != originalTenantID {
 			t.Errorf("tenant_id berubah setelah update: got %q, want %q", updated.TenantID, originalTenantID)
 		}
 
-		// Verifikasi field yang diupdate berubah sesuai request
 		if updated.Name != newName {
 			t.Errorf("name tidak terupdate: got %q, want %q", updated.Name, newName)
 		}
@@ -406,11 +393,8 @@ func TestProperty_UserUpdatePreservesTenantID(t *testing.T) {
 	})
 }
 
-// Feature: auth-rbac, Property 13: User Deactivation Invalidates All Sessions
-// **Validates: Requirements 10.3**
+// **Memvalidasi: Kebutuhan 10.3**
 //
-// For any active user with one or more active sessions, deactivating the user
-// SHALL set status to 'inactive' AND delete all session records for that user,
 // leaving zero active sessions.
 func TestProperty_UserDeactivationInvalidatesAllSessions(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
@@ -441,7 +425,6 @@ func TestProperty_UserDeactivationInvalidatesAllSessions(t *testing.T) {
 			t.Fatalf("gagal membuat user: %v", err)
 		}
 
-		// Buat caller (admin) yang berbeda dari user target
 		caller, err := userRepo.CreateUser(context.Background(), &domain.User{
 			TenantID:      tenantID,
 			Name:          "Admin User",
@@ -479,7 +462,6 @@ func TestProperty_UserDeactivationInvalidatesAllSessions(t *testing.T) {
 			t.Fatalf("gagal deactivate user: %v", err)
 		}
 
-		// Property 1: status harus menjadi inactive
 		deactivated, err := userRepo.GetByID(context.Background(), user.ID)
 		if err != nil {
 			t.Fatalf("gagal mengambil user setelah deactivation: %v", err)
@@ -488,7 +470,6 @@ func TestProperty_UserDeactivationInvalidatesAllSessions(t *testing.T) {
 			t.Errorf("status setelah deactivation: got %q, want %q", deactivated.Status, domain.UserStatusInactive)
 		}
 
-		// Property 2: semua session harus dihapus (zero sessions)
 		afterCount := sessionRepo.countSessionsByUserID(user.ID)
 		if afterCount != 0 {
 			t.Errorf("sessions setelah deactivation: got %d, want 0", afterCount)

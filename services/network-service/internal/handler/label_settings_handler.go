@@ -1,5 +1,5 @@
-// label_settings_handler.go menangani HTTP request untuk konfigurasi label peta.
-// Termasuk: get dan update label settings per tenant.
+// label_settings_handler.go menangani HTTP permintaan untuk konfigurasi label peta.
+// Termasuk: get dan perbarui label settings per tenant.
 package handler
 
 import (
@@ -12,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// LabelSettingsHandler menangani HTTP request untuk konfigurasi label.
+// LabelSettingsHandler menangani HTTP permintaan untuk konfigurasi label.
 type LabelSettingsHandler struct {
 	manager  domain.MapNodeManager
 	validate *validator.Validate
@@ -28,7 +28,7 @@ func NewLabelSettingsHandler(manager domain.MapNodeManager) *LabelSettingsHandle
 
 // GetLabelSettings menangani GET /settings/labels.
 // Mengambil konfigurasi label untuk tenant saat ini.
-// Return default jika tenant belum memiliki konfigurasi.
+// Kembalikan bawaan jika tenant belum memiliki konfigurasi.
 func (h *LabelSettingsHandler) GetLabelSettings(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -44,7 +44,7 @@ func (h *LabelSettingsHandler) GetLabelSettings(c *fiber.Ctx) error {
 }
 
 // UpdateLabelSettings menangani PUT /settings/labels.
-// Parse body, validasi, lalu update konfigurasi label untuk tenant.
+// Parsing body, validasi, lalu perbarui konfigurasi label untuk tenant.
 func (h *LabelSettingsHandler) UpdateLabelSettings(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {

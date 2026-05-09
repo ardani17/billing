@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel olts.
+-- Kueri SQL untuk operasi CRUD tabel olts.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel olts dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel olts dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateOLT :one
 INSERT INTO olts (

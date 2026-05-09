@@ -1,4 +1,4 @@
--- Seed default billing settings for tenants created before billing settings existed.
+-- Seed bawaan billing settings untuk tenants created before billing settings existed.
 
 INSERT INTO billing_settings (
     tenant_id,

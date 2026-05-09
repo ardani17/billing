@@ -18,7 +18,6 @@ import (
 )
 
 // =============================================================================
-// Setup helper untuk InvoiceActionHandler tests
 // =============================================================================
 
 // actionTestSetup berisi semua dependensi untuk testing InvoiceActionHandler.
@@ -28,7 +27,6 @@ type actionTestSetup struct {
 	customerRepo *mockInvCustomerRepo
 }
 
-// setupActionTestApp membuat Fiber app dengan InvoiceActionHandler yang di-back oleh mock repos.
 func setupActionTestApp() *actionTestSetup {
 	invoiceRepo := newMockInvoiceRepo()
 	itemRepo := newMockInvoiceItemRepo()
@@ -38,7 +36,7 @@ func setupActionTestApp() *actionTestSetup {
 	customerRepo := newMockInvCustomerRepo()
 	logger := zerolog.New(io.Discard)
 
-	// Tambah pelanggan default
+	// Tambah pelanggan bawaan
 	customerRepo.customers["cust-1"] = &domain.Customer{
 		ID:       "cust-1",
 		TenantID: "test-tenant",
@@ -76,12 +74,11 @@ func setupActionTestApp() *actionTestSetup {
 }
 
 // =============================================================================
-// Unit Tests — InvoiceActionHandler
+// Unit Tests - InvoiceActionHandler
 // =============================================================================
 
 // --- Cancel endpoint ---
 
-// TestInvoiceActionHandler_Cancel_Success menguji cancel invoice berhasil.
 func TestInvoiceActionHandler_Cancel_Success(t *testing.T) {
 	setup := setupActionTestApp()
 
@@ -209,7 +206,6 @@ func TestInvoiceActionHandler_Cancel_NotFound(t *testing.T) {
 	}
 }
 
-// TestInvoiceActionHandler_Cancel_ValidationError menguji 400 saat body tidak valid.
 func TestInvoiceActionHandler_Cancel_ValidationError(t *testing.T) {
 	setup := setupActionTestApp()
 
@@ -271,7 +267,7 @@ func TestInvoiceActionHandler_RecordPayment_Success(t *testing.T) {
 func TestInvoiceActionHandler_RecordPayment_ValidationError(t *testing.T) {
 	setup := setupActionTestApp()
 
-	// Body tanpa amount dan payment_method
+	// Body tanpa nominal dan payment_method
 	body, _ := json.Marshal(map[string]interface{}{
 		"payment_date": "2024-06-10",
 	})

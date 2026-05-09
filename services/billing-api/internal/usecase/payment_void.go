@@ -10,8 +10,8 @@ import (
 )
 
 // VoidPayment membatalkan pembayaran dan mengembalikan status invoice.
-// Flow: BEGIN tx → ambil payment → validasi → void → rollback invoice →
-// handle credit → audit log → COMMIT → publish re-isolir event jika perlu.
+// Alur: BEGIN tx -> ambil payment -> validasi -> void -> rollback invoice ->
+// handle credit -> audit log -> COMMIT -> terbitkan re-isolir event jika perlu.
 func (uc *PaymentUsecase) VoidPayment(ctx context.Context, paymentID string, req domain.VoidPaymentRequest, actor domain.ActorInfo) (*domain.VoidPaymentResponse, error) {
 	// Mulai transaksi
 	tx, err := uc.pool.Begin(ctx)
@@ -54,7 +54,7 @@ func (uc *PaymentUsecase) VoidPayment(ctx context.Context, paymentID string, req
 		newPaidAmount = 0
 	}
 
-	// Update paid_amount invoice
+	// Perbarui paid_amount invoice
 	updated, err := uc.invoiceRepo.UpdatePaidAmount(ctx, invoice.ID, newPaidAmount, invoice.Version)
 	if err != nil {
 		return nil, fmt.Errorf("gagal update paid_amount invoice: %w", err)
@@ -63,7 +63,7 @@ func (uc *PaymentUsecase) VoidPayment(ctx context.Context, paymentID string, req
 	// Tentukan status baru setelah void
 	newStatus := domain.DeterminePostVoidStatus(newPaidAmount, invoice.TotalAmount, invoice.DueDate, now)
 
-	// Update status jika berubah
+	// Perbarui status jika berubah
 	if newStatus != updated.Status {
 		if _, err := uc.invoiceRepo.UpdateStatus(ctx, invoice.ID, newStatus, updated.Version); err != nil {
 			return nil, fmt.Errorf("gagal update status invoice: %w", err)
@@ -92,11 +92,11 @@ func (uc *PaymentUsecase) VoidPayment(ctx context.Context, paymentID string, req
 
 	// Tulis audit log
 	metadata := map[string]interface{}{
-		"voided_amount":      payment.Amount,
-		"new_paid_amount":    newPaidAmount,
-		"new_status":         string(newStatus),
-		"reason":             req.Reason,
-		"credit_reduced":     creditReduced,
+		"voided_amount":   payment.Amount,
+		"new_paid_amount": newPaidAmount,
+		"new_status":      string(newStatus),
+		"reason":          req.Reason,
+		"credit_reduced":  creditReduced,
 	}
 	uc.writePaymentAuditLog(ctx, invoice.TenantID, invoice.ID, "invoice.payment_voided", actor, metadata)
 
@@ -105,7 +105,7 @@ func (uc *PaymentUsecase) VoidPayment(ctx context.Context, paymentID string, req
 		return nil, fmt.Errorf("gagal commit transaksi: %w", err)
 	}
 
-	// Publish re-isolir event jika invoice kembali ke terlambat
+	// Terbitkan re-isolir event jika invoice kembali ke terlambat
 	if newStatus == domain.InvoiceStatusTerlambat {
 		uc.publishPaymentEvent(invoice.TenantID, "payment.voided.re_isolir", domain.PaymentVoidedReIsolirPayload{
 			TenantID:   invoice.TenantID,
@@ -115,8 +115,8 @@ func (uc *PaymentUsecase) VoidPayment(ctx context.Context, paymentID string, req
 		})
 	}
 
-	// Publish event sinkronisasi payment link setelah void.
-	// Memicu SyncPaymentLinkAmount di gateway worker agar payment link yang aktif
+	// Terbitkan event sinkronisasi link pembayaran setelah void.
+	// Memicu SyncPaymentLinkAmount di gateway worker agar link pembayaran yang aktif
 	// di-expire dan di-regenerate dengan jumlah terbaru.
 	uc.publishSyncPaymentLinkEvent(invoice.TenantID, invoice.ID, invoice.CustomerID)
 

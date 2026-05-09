@@ -6,19 +6,19 @@ import (
 )
 
 // =============================================================================
-// GatewayConfigRepository — operasi data untuk tabel payment_gateway_configs
+// GatewayConfigRepository - operasi data untuk tabel payment_gateway_configs
 // =============================================================================
 
 // GatewayConfigRepository mendefinisikan operasi data untuk tabel payment_gateway_configs.
-// Diimplementasikan oleh repository.GatewayConfigRepo.
+// Diimplementasikan oleh repositori.GatewayConfigRepo.
 type GatewayConfigRepository interface {
-	// Create membuat konfigurasi gateway baru dan mengembalikan konfigurasi yang dibuat.
+	// Buat membuat konfigurasi gateway baru dan mengembalikan konfigurasi yang dibuat.
 	Create(ctx context.Context, config *GatewayConfig) (*GatewayConfig, error)
 	// GetByID mengambil konfigurasi gateway berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*GatewayConfig, error)
-	// Update memperbarui konfigurasi gateway dan mengembalikan konfigurasi yang diperbarui.
+	// Perbarui memperbarui konfigurasi gateway dan mengembalikan konfigurasi yang diperbarui.
 	Update(ctx context.Context, config *GatewayConfig) (*GatewayConfig, error)
-	// Deactivate menonaktifkan konfigurasi gateway (soft delete, set is_active=false).
+	// Deactivate menonaktifkan konfigurasi gateway (hapus lunak, atur is_active=false).
 	Deactivate(ctx context.Context, id string) error
 	// ListByTenant mengambil semua konfigurasi gateway untuk tenant tertentu.
 	ListByTenant(ctx context.Context, tenantID string) ([]*GatewayConfig, error)
@@ -31,42 +31,42 @@ type GatewayConfigRepository interface {
 }
 
 // =============================================================================
-// PaymentLinkRepository — operasi data untuk tabel payment_links
+// PaymentLinkRepository - operasi data untuk tabel payment_links
 // =============================================================================
 
 // PaymentLinkRepository mendefinisikan operasi data untuk tabel payment_links.
-// Diimplementasikan oleh repository.PaymentLinkRepo.
+// Diimplementasikan oleh repositori.PaymentLinkRepo.
 type PaymentLinkRepository interface {
-	// Create membuat payment link baru beserta junction ke invoices (payment_link_invoices).
+	// Buat membuat link pembayaran baru beserta junction ke invoices (payment_link_invoices).
 	Create(ctx context.Context, link *PaymentLink, invoiceIDs []string) (*PaymentLink, error)
-	// GetByID mengambil payment link berdasarkan ID (tenant-scoped via RLS).
+	// GetByID mengambil link pembayaran berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*PaymentLink, error)
-	// GetByExternalID mengambil payment link berdasarkan external_id dari gateway.
+	// GetByExternalID mengambil link pembayaran berdasarkan external_id dari gateway.
 	GetByExternalID(ctx context.Context, externalID string) (*PaymentLink, error)
-	// GetActiveByCustomer mengambil payment link aktif (status='active') untuk customer.
+	// GetActiveByCustomer mengambil link pembayaran aktif (status='active') untuk customer.
 	GetActiveByCustomer(ctx context.Context, customerID string) (*PaymentLink, error)
-	// GetInvoiceIDsByLinkID mengambil daftar invoice ID yang terkait dengan payment link.
+	// GetInvoiceIDsByLinkID mengambil daftar invoice ID yang terkait dengan link pembayaran.
 	GetInvoiceIDsByLinkID(ctx context.Context, linkID string) ([]string, error)
-	// UpdateStatus memperbarui status payment link.
+	// UpdateStatus memperbarui status link pembayaran.
 	UpdateStatus(ctx context.Context, id string, status PaymentLinkStatus) error
 	// UpdateStatusPaid memperbarui status ke paid beserta metode pembayaran dan waktu bayar.
 	UpdateStatusPaid(ctx context.Context, id string, paidMethod string, paidAt time.Time) error
-	// ListByInvoice mengambil semua payment links untuk invoice tertentu (via junction table).
+	// ListByInvoice mengambil semua link pembayarans untuk invoice tertentu (via junction table).
 	ListByInvoice(ctx context.Context, invoiceID string) ([]*PaymentLink, error)
-	// FindExpired mengambil payment links yang sudah melewati expires_at tapi masih active.
+	// FindExpired mengambil link pembayarans yang sudah melewati expires_at tapi masih active.
 	FindExpired(ctx context.Context, batchSize int) ([]*PaymentLink, error)
-	// ExpireByID mengubah status payment link menjadi expired berdasarkan ID.
+	// ExpireByID mengubah status link pembayaran menjadi expired berdasarkan ID.
 	ExpireByID(ctx context.Context, id string) error
 }
 
 // =============================================================================
-// WebhookLogRepository — operasi data untuk tabel webhook_logs
+// WebhookLogRepository - operasi data untuk tabel webhook_logs
 // =============================================================================
 
 // WebhookLogRepository mendefinisikan operasi data untuk tabel webhook_logs.
-// Diimplementasikan oleh repository.WebhookLogRepo.
+// Diimplementasikan oleh repositori.WebhookLogRepo.
 type WebhookLogRepository interface {
-	// Create membuat log webhook baru dan mengembalikan log yang dibuat.
+	// Buat membuat log webhook baru dan mengembalikan log yang dibuat.
 	Create(ctx context.Context, log *WebhookLog) (*WebhookLog, error)
 	// GetByID mengambil webhook log berdasarkan ID.
 	GetByID(ctx context.Context, id string) (*WebhookLog, error)
@@ -76,7 +76,7 @@ type WebhookLogRepository interface {
 	UpdateSignatureValid(ctx context.Context, id string, valid bool) error
 	// IsAlreadyProcessed mengecek apakah webhook dengan external_id dan event_type sudah diproses.
 	IsAlreadyProcessed(ctx context.Context, externalID, eventType string) (bool, error)
-	// ListByPaymentLink mengambil semua webhook logs berdasarkan external_id payment link.
+	// ListByPaymentLink mengambil semua webhook logs berdasarkan external_id link pembayaran.
 	ListByPaymentLink(ctx context.Context, externalID string) ([]*WebhookLog, error)
 	// DeleteOlderThan menghapus webhook logs yang lebih tua dari waktu yang ditentukan.
 	// Tidak menghapus logs dengan processing_status=failed atau signature_valid=false.

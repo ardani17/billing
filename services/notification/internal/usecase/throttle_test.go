@@ -10,10 +10,8 @@ import (
 )
 
 // =============================================================================
-// Mock LogRepository — implementasi sederhana untuk testing throttle
 // =============================================================================
 
-// mockLogRepo adalah mock sederhana yang mengimplementasikan domain.LogRepository
 // dengan nilai yang bisa dikonfigurasi untuk CountTodayByCustomer dan LastSentToCustomer.
 type mockLogRepo struct {
 	countToday int
@@ -48,8 +46,7 @@ func (m *mockLogRepo) LastSentToCustomer(_ context.Context, _, _ string) (*time.
 	return m.lastSent, nil
 }
 
-// Feature: notification-service, Property 9: Throttle daily limit enforcement
-// **Validates: Requirements 11.2**
+// **Memvalidasi: Kebutuhan 11.2**
 //
 // Untuk setiap count notifikasi yang sudah dikirim hari ini dan limit harian:
 // - Jika count >= limit, CheckDailyLimit HARUS mengembalikan true (skip pengiriman).
@@ -58,11 +55,10 @@ func TestProperty_ThrottleDailyLimitEnforcement(t *testing.T) {
 	ctx := context.Background()
 
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate count dan limit acak
+		// Buat count dan limit acak
 		count := rapid.IntRange(0, 100).Draw(t, "count")
 		limit := rapid.IntRange(1, 20).Draw(t, "limit")
 
-		// Buat mock repo dengan count yang dikonfigurasi
 		repo := &mockLogRepo{countToday: count}
 		checker := NewThrottleChecker(repo)
 
@@ -86,23 +82,22 @@ func TestProperty_ThrottleDailyLimitEnforcement(t *testing.T) {
 	})
 }
 
-// Feature: notification-service, Property 10: Throttle cooldown delay
-// **Validates: Requirements 11.4**
+// **Memvalidasi: Kebutuhan 11.4**
 //
 // Untuk setiap waktu pengiriman terakhir (lastSent) dan cooldown_minutes:
-// - Jika now - lastSent < cooldown, CheckCooldown HARUS mengembalikan shouldDelay=true
-//   dengan delayUntil = lastSent + cooldown.
-// - Jika now - lastSent >= cooldown, CheckCooldown HARUS mengembalikan shouldDelay=false.
-// - Jika belum pernah kirim (lastSent=nil), HARUS mengembalikan shouldDelay=false.
+//   - Jika now - lastSent < cooldown, CheckCooldown HARUS mengembalikan shouldDelay=true
+//     dengan delayUntil = lastSent + cooldown.
+//   - Jika now - lastSent >= cooldown, CheckCooldown HARUS mengembalikan shouldDelay=false.
+//   - Jika belum pernah kirim (lastSent=nil), HARUS mengembalikan shouldDelay=false.
 func TestProperty_ThrottleCooldownDelay(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("dengan lastSent", func(t *testing.T) {
 		rapid.Check(t, func(t *rapid.T) {
-			// Generate cooldown antara 5-120 menit (sesuai validasi settings)
+			// Buat cooldown antara 5-120 menit (sesuai validasi settings)
 			cooldownMinutes := rapid.IntRange(5, 120).Draw(t, "cooldownMinutes")
 
-			// Generate berapa menit yang sudah berlalu sejak pengiriman terakhir
+			// Buat berapa menit yang sudah berlalu sejak pengiriman terakhir
 			elapsedMinutes := rapid.IntRange(0, 240).Draw(t, "elapsedMinutes")
 
 			// Hitung lastSent berdasarkan elapsed
@@ -170,8 +165,7 @@ func TestProperty_ThrottleCooldownDelay(t *testing.T) {
 	})
 }
 
-// Feature: notification-service, Property 11: Throttle bypass for exempt events
-// **Validates: Requirements 11.5**
+// **Memvalidasi: Kebutuhan 11.5**
 //
 // Untuk setiap event_type dalam daftar bypass (payment.online.received,
 // payment.recorded, notification.un_isolir, notification.reactivated),
@@ -198,7 +192,7 @@ func TestProperty_ThrottleBypassForExemptEvents(t *testing.T) {
 
 	t.Run("non-bypass events selalu return false", func(t *testing.T) {
 		rapid.Check(t, func(t *rapid.T) {
-			// Generate event_type acak yang BUKAN bypass event
+			// Buat event_type acak yang BUKAN bypass event
 			eventType := rapid.StringMatching(`[a-z][a-z0-9_\.]{3,30}`).Draw(t, "eventType")
 
 			// Pastikan bukan bypass event

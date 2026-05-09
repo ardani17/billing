@@ -1,7 +1,7 @@
--- Query SQL untuk operasi tabel voucher_audit_logs.
+-- Kueri SQL untuk operasi tabel voucher_audit_logs.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel voucher_audit_logs bersifat append-only — hanya INSERT dan SELECT yang diizinkan.
--- Tabel dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel voucher_audit_logs bersifat append-only - hanya INSERT dan SELECT yang diizinkan.
+-- Tabel dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateVoucherAuditLog :one
 -- Membuat catatan audit log voucher baru dan mengembalikan semua kolom.

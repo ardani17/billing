@@ -11,7 +11,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// BillingSettingsUsecase membungkus repository billing settings dengan default dan validasi bisnis.
+// BillingSettingsUsecase membungkus repositori billing settings dengan bawaan dan validasi bisnis.
 type BillingSettingsUsecase struct {
 	repo   domain.BillingSettingsRepository
 	logger zerolog.Logger
@@ -25,7 +25,7 @@ func NewBillingSettingsUsecase(repo domain.BillingSettingsRepository, logger zer
 	}
 }
 
-// Get mengambil settings tenant, atau mengembalikan default jika belum pernah disimpan.
+// Get mengambil settings tenant, atau mengembalikan bawaan jika belum pernah disimpan.
 func (u *BillingSettingsUsecase) Get(ctx context.Context, tenantID string) (*domain.BillingSettings, error) {
 	settings, err := u.repo.GetByTenantID(ctx, tenantID)
 	if err == nil {
@@ -37,7 +37,7 @@ func (u *BillingSettingsUsecase) Get(ctx context.Context, tenantID string) (*dom
 	return nil, err
 }
 
-// Update menyimpan settings billing tenant.
+// Perbarui menyimpan settings billing tenant.
 func (u *BillingSettingsUsecase) Update(ctx context.Context, tenantID string, req domain.UpdateBillingSettingsRequest) (*domain.BillingSettings, error) {
 	if err := validateBillingSettingsRequest(req); err != nil {
 		return nil, err

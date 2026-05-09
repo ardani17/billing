@@ -115,7 +115,7 @@ func ValidateQuietHours(start, end string) error {
 	return nil
 }
 
-// parseHHMM mem-parse string format "HH:MM" menjadi jam dan menit.
+// parseHHMM mem-parsing string format "HH:MM" menjadi jam dan menit.
 func parseHHMM(s string) (int, int, error) {
 	if len(s) != 5 || s[2] != ':' {
 		return 0, 0, fmt.Errorf("format tidak valid")
@@ -203,7 +203,7 @@ func ValidateCredentials(channel Channel, creds json.RawMessage) error {
 	return nil
 }
 
-// NormalizePageSize menormalisasi ukuran halaman (valid: 10, 25, 50; default: 25).
+// NormalizePageSize menormalisasi ukuran halaman (valid: 10, 25, 50; bawaan: 25).
 func NormalizePageSize(pageSize int) int {
 	if validPageSizes[pageSize] {
 		return pageSize

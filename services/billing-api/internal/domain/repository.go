@@ -6,7 +6,7 @@ import (
 )
 
 // UserRepository mendefinisikan operasi data untuk tabel users.
-// Diimplementasikan oleh repository.UserRepo.
+// Diimplementasikan oleh repositori.UserRepo.
 type UserRepository interface {
 	// CreateUser membuat user baru dan mengembalikan user yang dibuat.
 	CreateUser(ctx context.Context, user *User) (*User, error)
@@ -39,7 +39,7 @@ type UserRepository interface {
 }
 
 // SessionRepository mendefinisikan operasi data untuk tabel sessions.
-// Diimplementasikan oleh repository.SessionRepo.
+// Diimplementasikan oleh repositori.SessionRepo.
 type SessionRepository interface {
 	// CreateSession membuat session baru dan mengembalikan session yang dibuat.
 	CreateSession(ctx context.Context, session *Session) (*Session, error)
@@ -71,7 +71,7 @@ type ResellerSessionRepository interface {
 }
 
 // TokenRepository mendefinisikan operasi data untuk password_resets dan email_verifications.
-// Diimplementasikan oleh repository.TokenRepo.
+// Diimplementasikan oleh repositori.TokenRepo.
 type TokenRepository interface {
 	// CreatePasswordReset membuat token reset password baru.
 	CreatePasswordReset(ctx context.Context, pr *PasswordReset) error
@@ -91,7 +91,7 @@ type TokenRepository interface {
 	InvalidateEmailVerifications(ctx context.Context, userID string) error
 }
 
-// --- Customer Repository ---
+// --- Customer Repositori ---
 
 // CustomerRepository mendefinisikan operasi data untuk tabel customers.
 type CustomerRepository interface {
@@ -109,7 +109,7 @@ type CustomerRepository interface {
 	BulkUpdateFields(ctx context.Context, ids []string, fields map[string]interface{}) ([]BulkResult, error)
 	BulkSoftDelete(ctx context.Context, ids []string) ([]BulkResult, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*Customer, error)
-	// SearchForPayment mencari pelanggan berdasarkan nama, customer_id_seq, atau telepon.
+	// PencarianForPayment mencari pelanggan berdasarkan nama, customer_id_seq, atau telepon.
 	// Mengembalikan maksimal 10 hasil, hanya status aktif/isolir.
 	SearchForPayment(ctx context.Context, tenantID, searchTerm string) ([]*Customer, error)
 }
@@ -131,7 +131,7 @@ type AuditLogRepository interface {
 	ListByEntity(ctx context.Context, entityType, entityID string) ([]*AuditLog, error)
 }
 
-// --- Request/Response DTOs ---
+// --- DTO permintaan/respons ---
 
 // CustomerListParams berisi parameter untuk list/filter pelanggan.
 type CustomerListParams struct {
@@ -270,19 +270,19 @@ type BulkEditRequest struct {
 	Fields      BulkEditFields `json:"fields" validate:"required"`
 }
 
-// --- Package Repository ---
+// --- Package Repositori ---
 
 // PackageRepository mendefinisikan operasi data untuk tabel packages.
 type PackageRepository interface {
-	// Create membuat paket baru dan mengembalikan paket yang dibuat.
+	// Buat membuat paket baru dan mengembalikan paket yang dibuat.
 	Create(ctx context.Context, pkg *Package) (*Package, error)
 	// GetByID mengambil paket berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*Package, error)
-	// Update memperbarui data paket dan mengembalikan paket yang diperbarui.
+	// Perbarui memperbarui data paket dan mengembalikan paket yang diperbarui.
 	Update(ctx context.Context, pkg *Package) (*Package, error)
-	// Delete menghapus paket secara permanen (hard delete).
+	// Hapus menghapus paket secara permanen (hapus permanen).
 	Delete(ctx context.Context, id string) error
-	// List mengambil daftar paket dengan filter, search, sorting, dan paginasi.
+	// List mengambil daftar paket dengan filter, search, pengurutan, dan paginasi.
 	List(ctx context.Context, params PackageListParams) (*PackageListResult, error)
 	// UpdateIsActive memperbarui status aktif paket.
 	UpdateIsActive(ctx context.Context, id string, isActive bool) (*Package, error)
@@ -291,7 +291,7 @@ type PackageRepository interface {
 	// CustomerCount menghitung jumlah pelanggan aktif (deleted_at IS NULL) yang menggunakan paket.
 	CustomerCount(ctx context.Context, id string) (int, error)
 	// ListNamesByPrefix mengambil daftar nama paket yang dimulai dengan prefix tertentu.
-	// Digunakan untuk generate nama duplikat yang unik.
+	// Digunakan untuk buat nama duplikat yang unik.
 	ListNamesByPrefix(ctx context.Context, tenantID, prefix string) ([]string, error)
 }
 
@@ -405,12 +405,12 @@ type PackageUsecase interface {
 }
 
 // =============================================================================
-// Reseller Repository — operasi data untuk tabel resellers
+// Reseller Repositori - operasi data untuk tabel resellers
 // =============================================================================
 
 // ResellerRepository mendefinisikan operasi data untuk tabel resellers.
 type ResellerRepository interface {
-	// Create membuat reseller baru dan mengembalikan reseller yang dibuat.
+	// Buat membuat reseller baru dan mengembalikan reseller yang dibuat.
 	Create(ctx context.Context, reseller *Reseller) (*Reseller, error)
 	// GetByID mengambil reseller berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*Reseller, error)
@@ -419,7 +419,7 @@ type ResellerRepository interface {
 	// GetByPhoneGlobal mengambil reseller berdasarkan phone saja (lintas tenant, bypass RLS).
 	// Digunakan untuk login reseller yang tidak memiliki konteks tenant.
 	GetByPhoneGlobal(ctx context.Context, phone string) (*Reseller, error)
-	// Update memperbarui data reseller dan mengembalikan reseller yang diperbarui.
+	// Perbarui memperbarui data reseller dan mengembalikan reseller yang diperbarui.
 	Update(ctx context.Context, reseller *Reseller) (*Reseller, error)
 	// UpdateStatus memperbarui status reseller.
 	UpdateStatus(ctx context.Context, id string, status ResellerStatus) (*Reseller, error)
@@ -427,7 +427,7 @@ type ResellerRepository interface {
 	UpdatePasswordHash(ctx context.Context, id, hash string) error
 	// UpdateLastLogin memperbarui timestamp last_login reseller.
 	UpdateLastLogin(ctx context.Context, id string) error
-	// List mengambil daftar reseller dengan filter, search, sorting, dan paginasi.
+	// List mengambil daftar reseller dengan filter, search, pengurutan, dan paginasi.
 	List(ctx context.Context, params ResellerListParams) (*ResellerListResult, error)
 	// PhoneExists mengecek apakah nomor telepon sudah ada di tenant (exclude ID tertentu).
 	PhoneExists(ctx context.Context, tenantID, phone, excludeID string) (bool, error)
@@ -441,7 +441,7 @@ type ResellerRepository interface {
 }
 
 // =============================================================================
-// Voucher Repository — operasi data untuk tabel vouchers
+// Voucher Repositori - operasi data untuk tabel vouchers
 // =============================================================================
 
 // VoucherRepository mendefinisikan operasi data untuk tabel vouchers.
@@ -454,9 +454,9 @@ type VoucherRepository interface {
 	GetByCode(ctx context.Context, tenantID, code string) (*Voucher, error)
 	// UpdateStatus memperbarui status voucher.
 	UpdateStatus(ctx context.Context, id string, status VoucherStatus) (*Voucher, error)
-	// Activate memperbarui voucher menjadi aktif, set activated_at dan expires_at penggunaan.
+	// Activate memperbarui voucher menjadi aktif, atur activated_at dan expires_at penggunaan.
 	Activate(ctx context.Context, id string, expiresAt time.Time) (*Voucher, error)
-	// List mengambil daftar voucher dengan filter, search, sorting, dan paginasi (admin).
+	// List mengambil daftar voucher dengan filter, search, pengurutan, dan paginasi (admin).
 	List(ctx context.Context, params VoucherListParams) (*VoucherListResult, error)
 	// ListByReseller mengambil daftar voucher milik reseller tertentu.
 	ListByReseller(ctx context.Context, params ResellerVoucherListParams) (*VoucherListResult, error)
@@ -466,7 +466,7 @@ type VoucherRepository interface {
 	BulkUpdateStatus(ctx context.Context, ids []string, status VoucherStatus) ([]BulkResult, error)
 	// BulkAssign meng-assign voucher ke reseller (admin assignment, tanpa potong saldo).
 	BulkAssign(ctx context.Context, ids []string, resellerID string) ([]BulkResult, error)
-	// AssignToReseller meng-assign voucher ke reseller saat pembelian (set snapshot, purchased_at, expires_at).
+	// AssignToReseller meng-assign voucher ke reseller saat pembelian (atur snapshot, purchased_at, expires_at).
 	AssignToReseller(ctx context.Context, id string, resellerID string, sellSnapshot, resellerSnapshot int64, expiresAt time.Time) (*Voucher, error)
 	// GetExpiredVouchers mengambil voucher terjual yang sudah melewati expires_at.
 	GetExpiredVouchers(ctx context.Context, batchSize int) ([]*Voucher, error)
@@ -481,12 +481,12 @@ type VoucherRepository interface {
 }
 
 // =============================================================================
-// Voucher Audit Log Repository — operasi data untuk tabel voucher_audit_logs
+// Voucher Audit Log Repositori - operasi data untuk tabel voucher_audit_logs
 // =============================================================================
 
 // VoucherAuditLogRepository mendefinisikan operasi data untuk tabel voucher_audit_logs.
 type VoucherAuditLogRepository interface {
-	// Create membuat satu entri audit log voucher.
+	// Buat membuat satu entri audit log voucher.
 	Create(ctx context.Context, log *VoucherAuditLog) error
 	// BulkCreate membuat beberapa entri audit log voucher sekaligus.
 	BulkCreate(ctx context.Context, logs []*VoucherAuditLog) error
@@ -495,12 +495,12 @@ type VoucherAuditLogRepository interface {
 }
 
 // =============================================================================
-// Reseller Transaction Repository — operasi data untuk tabel reseller_transactions
+// Reseller Transaction Repositori - operasi data untuk tabel reseller_transactions
 // =============================================================================
 
 // ResellerTransactionRepository mendefinisikan operasi data untuk tabel reseller_transactions.
 type ResellerTransactionRepository interface {
-	// Create membuat satu transaksi reseller dan mengembalikan transaksi yang dibuat.
+	// Buat membuat satu transaksi reseller dan mengembalikan transaksi yang dibuat.
 	Create(ctx context.Context, tx *ResellerTransaction) (*ResellerTransaction, error)
 	// ListByReseller mengambil daftar transaksi reseller dengan paginasi.
 	ListByReseller(ctx context.Context, params ResellerTxListParams) (*ResellerTxListResult, error)
@@ -509,7 +509,7 @@ type ResellerTransactionRepository interface {
 }
 
 // =============================================================================
-// Reseller DTOs — request/response untuk manajemen reseller
+// Reseller DTOs - permintaan/respons untuk manajemen reseller
 // =============================================================================
 
 // CreateResellerRequest adalah payload untuk POST /v1/resellers.
@@ -573,7 +573,7 @@ type ResellerDetail struct {
 }
 
 // =============================================================================
-// Reseller Auth DTOs — request/response untuk autentikasi reseller
+// Reseller Auth DTOs - permintaan/respons untuk autentikasi reseller
 // =============================================================================
 
 // ResellerLoginRequest adalah payload untuk POST /v1/reseller/auth/login.
@@ -591,10 +591,9 @@ type ResellerLoginResponse struct {
 }
 
 // =============================================================================
-// Voucher DTOs — request/response untuk manajemen voucher
 // =============================================================================
 
-// GenerateVoucherRequest adalah payload untuk POST /v1/vouchers/generate.
+// GenerateVoucherRequest adalah payload untuk POST /v1/vouchers/buat.
 type GenerateVoucherRequest struct {
 	PackageID  string `json:"package_id" validate:"required,uuid"`
 	Quantity   int    `json:"quantity" validate:"required,gt=0"`
@@ -603,13 +602,13 @@ type GenerateVoucherRequest struct {
 	Prefix     string `json:"prefix" validate:"omitempty,max=10,alphanum_hyphen"`
 }
 
-// GenerateVoucherResult berisi hasil generate voucher.
+// GenerateVoucherResult berisi hasil buat voucher.
 type GenerateVoucherResult struct {
 	TotalRequested int        `json:"total_requested"`
 	TotalGenerated int        `json:"total_generated"`
 	TotalFailed    int        `json:"total_failed"`
-	Vouchers       []*Voucher `json:"vouchers,omitempty"` // hanya untuk sync generate
-	JobID          string     `json:"job_id,omitempty"`   // hanya untuk async generate
+	Vouchers       []*Voucher `json:"vouchers,omitempty"` // hanya untuk sync buat
+	JobID          string     `json:"job_id,omitempty"`   // hanya untuk async buat
 }
 
 // VoucherListParams berisi parameter untuk list/filter voucher (admin).
@@ -656,7 +655,7 @@ type ActivateVoucherRequest struct {
 }
 
 // =============================================================================
-// Dashboard DTOs — request/response untuk dashboard reseller
+// Dashboard DTOs - permintaan/respons untuk dashboard reseller
 // =============================================================================
 
 // DashboardSummary berisi ringkasan dashboard reseller.
@@ -708,22 +707,22 @@ type ResellerTxListResult struct {
 }
 
 // =============================================================================
-// Invoice Repository — operasi data untuk tabel invoices
+// Invoice Repositori - operasi data untuk tabel invoices
 // =============================================================================
 
 // InvoiceRepository mendefinisikan operasi data untuk tabel invoices.
 type InvoiceRepository interface {
-	// Create membuat invoice baru dan mengembalikan invoice yang dibuat.
+	// Buat membuat invoice baru dan mengembalikan invoice yang dibuat.
 	Create(ctx context.Context, invoice *Invoice) (*Invoice, error)
 	// GetByID mengambil invoice berdasarkan ID (dengan JOIN ke customers dan packages).
 	GetByID(ctx context.Context, id string) (*Invoice, error)
-	// Update memperbarui data invoice dan mengembalikan invoice yang diperbarui.
+	// Perbarui memperbarui data invoice dan mengembalikan invoice yang diperbarui.
 	Update(ctx context.Context, invoice *Invoice) (*Invoice, error)
 	// UpdateStatus memperbarui status invoice dengan optimistic locking via version.
 	UpdateStatus(ctx context.Context, id string, status InvoiceStatus, version int) (*Invoice, error)
 	// UpdatePaidAmount memperbarui jumlah yang sudah dibayar dengan optimistic locking via version.
 	UpdatePaidAmount(ctx context.Context, id string, paidAmount int64, version int) (*Invoice, error)
-	// List mengambil daftar invoice dengan filter, search, sorting, dan paginasi.
+	// List mengambil daftar invoice dengan filter, search, pengurutan, dan paginasi.
 	List(ctx context.Context, params InvoiceListParams) (*InvoiceListResult, error)
 	// ExistsForPeriod mengecek apakah invoice sudah ada untuk customer dan periode tertentu.
 	ExistsForPeriod(ctx context.Context, customerID string, month, year int) (bool, error)
@@ -758,26 +757,26 @@ type InvoiceRepository interface {
 }
 
 // =============================================================================
-// Invoice Item Repository — operasi data untuk tabel invoice_items
+// Invoice Item Repositori - operasi data untuk tabel invoice_items
 // =============================================================================
 
 // InvoiceItemRepository mendefinisikan operasi data untuk tabel invoice_items.
 type InvoiceItemRepository interface {
 	// BulkCreate membuat beberapa item invoice sekaligus.
 	BulkCreate(ctx context.Context, items []*InvoiceItem) ([]*InvoiceItem, error)
-	// ListByInvoice mengambil semua item untuk invoice tertentu (urut berdasarkan sort_order).
+	// ListByInvoice mengambil semua item untuk invoice tertentu (urut berdasarkan urut_order).
 	ListByInvoice(ctx context.Context, invoiceID string) ([]*InvoiceItem, error)
 	// DeleteByInvoice menghapus semua item untuk invoice tertentu (digunakan saat edit).
 	DeleteByInvoice(ctx context.Context, invoiceID string) error
 }
 
 // =============================================================================
-// Invoice Payment Repository — operasi data untuk tabel invoice_payments
+// Invoice Payment Repositori - operasi data untuk tabel invoice_payments
 // =============================================================================
 
 // InvoicePaymentRepository mendefinisikan operasi data untuk tabel invoice_payments.
 type InvoicePaymentRepository interface {
-	// Create membuat catatan pembayaran baru dan mengembalikan pembayaran yang dibuat.
+	// Buat membuat catatan pembayaran baru dan mengembalikan pembayaran yang dibuat.
 	Create(ctx context.Context, payment *InvoicePayment) (*InvoicePayment, error)
 	// ListByInvoice mengambil semua pembayaran non-void untuk invoice tertentu.
 	ListByInvoice(ctx context.Context, invoiceID string) ([]*InvoicePayment, error)
@@ -795,19 +794,19 @@ type InvoicePaymentRepository interface {
 }
 
 // =============================================================================
-// Invoice Audit Log Repository — operasi data untuk tabel invoice_audit_logs
+// Invoice Audit Log Repositori - operasi data untuk tabel invoice_audit_logs
 // =============================================================================
 
 // InvoiceAuditLogRepository mendefinisikan operasi data untuk tabel invoice_audit_logs (append-only).
 type InvoiceAuditLogRepository interface {
-	// Create membuat satu entri audit log invoice.
+	// Buat membuat satu entri audit log invoice.
 	Create(ctx context.Context, log *InvoiceAuditLog) error
 	// ListByInvoice mengambil semua audit log untuk invoice tertentu (urut berdasarkan created_at).
 	ListByInvoice(ctx context.Context, invoiceID string) ([]*InvoiceAuditLog, error)
 }
 
 // =============================================================================
-// Invoice Sequence Repository — operasi data untuk tabel invoice_sequences
+// Invoice Sequence Repositori - operasi data untuk tabel invoice_sequences
 // =============================================================================
 
 // InvoiceSequenceRepository mendefinisikan operasi data untuk tabel invoice_sequences.
@@ -818,7 +817,7 @@ type InvoiceSequenceRepository interface {
 }
 
 // =============================================================================
-// Receipt Sequence Repository — operasi data untuk tabel receipt_sequences
+// Receipt Sequence Repositori - operasi data untuk tabel receipt_sequences
 // =============================================================================
 
 // ReceiptSequenceRepository mendefinisikan operasi data untuk tabel receipt_sequences.
@@ -830,7 +829,7 @@ type ReceiptSequenceRepository interface {
 }
 
 // =============================================================================
-// Billing Settings Repository — operasi data untuk tabel billing_settings
+// Billing Settings Repositori - operasi data untuk tabel billing_settings
 // =============================================================================
 
 // BillingSettingsRepository mendefinisikan operasi data untuk tabel billing_settings.
@@ -839,37 +838,37 @@ type BillingSettingsRepository interface {
 	GetByTenantID(ctx context.Context, tenantID string) (*BillingSettings, error)
 	// Upsert membuat atau memperbarui billing settings untuk tenant.
 	Upsert(ctx context.Context, settings *BillingSettings) (*BillingSettings, error)
-	// ListAll mengambil semua billing settings (untuk cron job lintas tenant).
+	// ListAll mengambil semua billing settings (untuk job cron lintas tenant).
 	ListAll(ctx context.Context) ([]*BillingSettings, error)
 }
 
 // =============================================================================
-// Customer Recurring Item Repository — operasi data untuk tabel customer_recurring_items
+// Customer Recurring Item Repositori - operasi data untuk tabel customer_recurring_items
 // =============================================================================
 
 // CustomerRecurringItemRepository mendefinisikan operasi data untuk tabel customer_recurring_items.
 type CustomerRecurringItemRepository interface {
-	// Create membuat recurring item baru dan mengembalikan item yang dibuat.
+	// Buat membuat item berulang baru dan mengembalikan item yang dibuat.
 	Create(ctx context.Context, item *CustomerRecurringItem) (*CustomerRecurringItem, error)
-	// GetByID mengambil recurring item berdasarkan ID.
+	// GetByID mengambil item berulang berdasarkan ID.
 	GetByID(ctx context.Context, id string) (*CustomerRecurringItem, error)
-	// Update memperbarui recurring item dan mengembalikan item yang diperbarui.
+	// Perbarui memperbarui item berulang dan mengembalikan item yang diperbarui.
 	Update(ctx context.Context, item *CustomerRecurringItem) (*CustomerRecurringItem, error)
-	// Deactivate menonaktifkan recurring item (set is_active = false).
+	// Deactivate menonaktifkan item berulang (atur is_active = false).
 	Deactivate(ctx context.Context, id string) error
-	// ListByCustomer mengambil semua recurring item untuk customer tertentu.
+	// ListByCustomer mengambil semua item berulang untuk customer tertentu.
 	ListByCustomer(ctx context.Context, customerID string) ([]*CustomerRecurringItem, error)
-	// ListActiveByCustomer mengambil recurring item aktif untuk customer pada tanggal periode tertentu.
+	// ListActiveByCustomer mengambil item berulang aktif untuk customer pada tanggal periode tertentu.
 	ListActiveByCustomer(ctx context.Context, customerID string, periodDate time.Time) ([]*CustomerRecurringItem, error)
 }
 
 // =============================================================================
-// Credit Note Repository — operasi data untuk credit notes
+// Credit Note Repositori - operasi data untuk credit notes
 // =============================================================================
 
 // CreditNoteRepository mendefinisikan operasi data untuk credit notes.
 type CreditNoteRepository interface {
-	// Create membuat credit note baru dan mengembalikan credit note yang dibuat.
+	// Buat membuat credit note baru dan mengembalikan credit note yang dibuat.
 	Create(ctx context.Context, cn *CreditNote) (*CreditNote, error)
 	// GetByID mengambil credit note berdasarkan ID.
 	GetByID(ctx context.Context, id string) (*CreditNote, error)
@@ -878,12 +877,12 @@ type CreditNoteRepository interface {
 }
 
 // =============================================================================
-// Debit Note Repository — operasi data untuk debit notes
+// Debit Note Repositori - operasi data untuk debit notes
 // =============================================================================
 
 // DebitNoteRepository mendefinisikan operasi data untuk debit notes.
 type DebitNoteRepository interface {
-	// Create membuat debit note baru dan mengembalikan debit note yang dibuat.
+	// Buat membuat debit note baru dan mengembalikan debit note yang dibuat.
 	Create(ctx context.Context, dn *DebitNote) (*DebitNote, error)
 	// GetByID mengambil debit note berdasarkan ID.
 	GetByID(ctx context.Context, id string) (*DebitNote, error)
@@ -892,7 +891,6 @@ type DebitNoteRepository interface {
 }
 
 // =============================================================================
-// Invoice DTOs — request/response untuk manajemen invoice
 // =============================================================================
 
 // CreateInvoiceRequest adalah payload untuk POST /v1/invoices (pembuatan invoice manual).
@@ -955,7 +953,6 @@ type BulkCancelRequest struct {
 }
 
 // =============================================================================
-// Invoice List/Detail DTOs — response untuk list dan detail invoice
 // =============================================================================
 
 // InvoiceListParams berisi parameter untuk list/filter invoice.
@@ -1001,10 +998,10 @@ type InvoiceSummaryStat struct {
 }
 
 // =============================================================================
-// Recurring Item DTOs — request/response untuk recurring items pelanggan
+// Recurring Item DTOs - permintaan/respons untuk item berulangs pelanggan
 // =============================================================================
 
-// CreateRecurringItemRequest adalah payload untuk POST /v1/customers/:id/recurring-items.
+// CreateRecurringItemRequest adalah payload untuk POST /v1/customers/:id/berulang-items.
 type CreateRecurringItemRequest struct {
 	Description string `json:"description" validate:"required,min=3,max=255"`
 	Amount      int64  `json:"amount" validate:"required,gt=0"`
@@ -1012,7 +1009,7 @@ type CreateRecurringItemRequest struct {
 	EndDate     string `json:"end_date" validate:"omitempty,datetime=2006-01-02"`
 }
 
-// UpdateRecurringItemRequest adalah payload untuk PUT /v1/customers/:id/recurring-items/:item_id.
+// UpdateRecurringItemRequest adalah payload untuk PUT /v1/customers/:id/berulang-items/:item_id.
 type UpdateRecurringItemRequest struct {
 	Description string `json:"description" validate:"omitempty,min=3,max=255"`
 	Amount      *int64 `json:"amount" validate:"omitempty,gt=0"`
@@ -1020,7 +1017,7 @@ type UpdateRecurringItemRequest struct {
 }
 
 // =============================================================================
-// Credit/Debit Note DTOs — request/response untuk credit dan debit notes
+// Credit/Debit Note DTOs - permintaan/respons untuk credit dan debit notes
 // =============================================================================
 
 // CreateCreditNoteRequest adalah payload untuk POST /v1/credit-notes.
@@ -1046,7 +1043,7 @@ type DebitNoteItemRequest struct {
 }
 
 // =============================================================================
-// Invoice Bulk Action Result — hasil bulk action khusus invoice
+// Invoice Bulk Action Result - hasil bulk action khusus invoice
 // =============================================================================
 
 // InvoiceBulkActionResult berisi hasil bulk action untuk invoice.
@@ -1064,7 +1061,7 @@ type InvoiceBulkFailure struct {
 }
 
 // =============================================================================
-// Payment DTOs — request/response untuk modul pembayaran manual
+// Payment DTOs - permintaan/respons untuk modul pembayaran manual
 // =============================================================================
 
 // PaymentListParams berisi parameter untuk list/filter pembayaran.
@@ -1220,12 +1217,12 @@ type BulkImportResponse struct {
 }
 
 // =============================================================================
-// PendingSyncRepository — operasi data untuk tabel pending_syncs
+// PendingSyncRepository - operasi data untuk tabel pending_syncs
 // =============================================================================
 
 // PendingSyncRepository mendefinisikan operasi data untuk tabel pending_syncs.
 type PendingSyncRepository interface {
-	// Create membuat pending sync baru dan mengembalikan record yang dibuat.
+	// Buat membuat pending sync baru dan mengembalikan record yang dibuat.
 	Create(ctx context.Context, sync *PendingSync) (*PendingSync, error)
 	// GetByID mengambil pending sync berdasarkan ID.
 	GetByID(ctx context.Context, id string) (*PendingSync, error)
@@ -1252,42 +1249,42 @@ type PendingSyncRepository interface {
 }
 
 // =============================================================================
-// ExpenseRepository — operasi data untuk tabel expenses
+// ExpenseRepository - operasi data untuk tabel expenses
 // =============================================================================
 
 // ExpenseRepository mendefinisikan operasi data untuk tabel expenses.
-// Diimplementasikan oleh repository.ExpenseRepo.
+// Diimplementasikan oleh repositori.ExpenseRepo.
 type ExpenseRepository interface {
-	// Create membuat pengeluaran baru dan mengembalikan pengeluaran yang dibuat.
+	// Buat membuat pengeluaran baru dan mengembalikan pengeluaran yang dibuat.
 	Create(ctx context.Context, expense *Expense) (*Expense, error)
 	// GetByID mengambil pengeluaran berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*Expense, error)
-	// Update memperbarui data pengeluaran dan mengembalikan pengeluaran yang diperbarui.
+	// Perbarui memperbarui data pengeluaran dan mengembalikan pengeluaran yang diperbarui.
 	Update(ctx context.Context, expense *Expense) (*Expense, error)
-	// SoftDelete menghapus pengeluaran secara soft delete (set deleted_at).
+	// SoftDelete menghapus pengeluaran secara hapus lunak (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 	// List mengambil daftar pengeluaran dengan filter periode dan kategori.
 	List(ctx context.Context, tenantID string, periodStart, periodEnd time.Time, categoryID string) ([]*Expense, error)
-	// ListRecurring mengambil semua pengeluaran berulang yang aktif (untuk auto-create bulanan).
+	// ListRecurring mengambil semua pengeluaran berulang yang aktif (untuk auto-buat bulanan).
 	ListRecurring(ctx context.Context) ([]*Expense, error)
 	// SumByCategory menghitung total pengeluaran per kategori untuk laporan laba rugi.
 	SumByCategory(ctx context.Context, tenantID string, periodStart, periodEnd time.Time) ([]ProfitLossLineItem, error)
 }
 
 // =============================================================================
-// ExpenseCategoryRepository — operasi data untuk tabel expense_categories
+// ExpenseCategoryRepository - operasi data untuk tabel expense_categories
 // =============================================================================
 
 // ExpenseCategoryRepository mendefinisikan operasi data untuk tabel expense_categories.
-// Diimplementasikan oleh repository.ExpenseCategoryRepo.
+// Diimplementasikan oleh repositori.ExpenseCategoryRepo.
 type ExpenseCategoryRepository interface {
-	// Create membuat kategori pengeluaran baru dan mengembalikan kategori yang dibuat.
+	// Buat membuat kategori pengeluaran baru dan mengembalikan kategori yang dibuat.
 	Create(ctx context.Context, category *ExpenseCategory) (*ExpenseCategory, error)
 	// GetByID mengambil kategori pengeluaran berdasarkan ID (tenant-scoped via RLS).
 	GetByID(ctx context.Context, id string) (*ExpenseCategory, error)
-	// Update memperbarui data kategori dan mengembalikan kategori yang diperbarui.
+	// Perbarui memperbarui data kategori dan mengembalikan kategori yang diperbarui.
 	Update(ctx context.Context, category *ExpenseCategory) (*ExpenseCategory, error)
-	// SoftDelete menghapus kategori secara soft delete (set deleted_at).
+	// SoftDelete menghapus kategori secara hapus lunak (atur deleted_at).
 	SoftDelete(ctx context.Context, id string) error
 	// List mengambil semua kategori pengeluaran aktif untuk tenant.
 	List(ctx context.Context, tenantID string) ([]*ExpenseCategory, error)
@@ -1295,16 +1292,16 @@ type ExpenseCategoryRepository interface {
 	NameExists(ctx context.Context, tenantID, name, excludeID string) (bool, error)
 	// ExpenseCount menghitung jumlah pengeluaran aktif dalam kategori.
 	ExpenseCount(ctx context.Context, id string) (int, error)
-	// CreateDefaults membuat kategori default untuk tenant baru.
+	// CreateDefaults membuat kategori bawaan untuk tenant baru.
 	CreateDefaults(ctx context.Context, tenantID string) error
 }
 
 // =============================================================================
-// KPITargetRepository — operasi data untuk tabel kpi_targets
+// KPITargetRepository - operasi data untuk tabel kpi_targets
 // =============================================================================
 
 // KPITargetRepository mendefinisikan operasi data untuk tabel kpi_targets.
-// Diimplementasikan oleh repository.KPITargetRepo.
+// Diimplementasikan oleh repositori.KPITargetRepo.
 type KPITargetRepository interface {
 	// GetByTenant mengambil target KPI berdasarkan tenant ID.
 	GetByTenant(ctx context.Context, tenantID string) (*KPITarget, error)
@@ -1313,19 +1310,19 @@ type KPITargetRepository interface {
 }
 
 // =============================================================================
-// ReportScheduleRepository — operasi data untuk tabel report_schedules
+// ReportScheduleRepository - operasi data untuk tabel report_schedules
 // =============================================================================
 
 // ReportScheduleRepository mendefinisikan operasi data untuk tabel report_schedules.
-// Diimplementasikan oleh repository.ReportScheduleRepo.
+// Diimplementasikan oleh repositori.ReportScheduleRepo.
 type ReportScheduleRepository interface {
-	// Create membuat jadwal laporan baru dan mengembalikan jadwal yang dibuat.
+	// Buat membuat jadwal laporan baru dan mengembalikan jadwal yang dibuat.
 	Create(ctx context.Context, schedule *ReportSchedule) (*ReportSchedule, error)
 	// GetByID mengambil jadwal laporan berdasarkan ID.
 	GetByID(ctx context.Context, id string) (*ReportSchedule, error)
-	// Update memperbarui konfigurasi jadwal dan mengembalikan jadwal yang diperbarui.
+	// Perbarui memperbarui konfigurasi jadwal dan mengembalikan jadwal yang diperbarui.
 	Update(ctx context.Context, schedule *ReportSchedule) (*ReportSchedule, error)
-	// Deactivate menonaktifkan jadwal laporan (set is_active = false).
+	// Deactivate menonaktifkan jadwal laporan (atur is_active = false).
 	Deactivate(ctx context.Context, id string) error
 	// ListByTenant mengambil semua jadwal laporan aktif untuk tenant.
 	ListByTenant(ctx context.Context, tenantID string) ([]*ReportSchedule, error)
@@ -1334,13 +1331,13 @@ type ReportScheduleRepository interface {
 }
 
 // =============================================================================
-// ReportJobRepository — operasi data untuk tabel report_jobs
+// ReportJobRepository - operasi data untuk tabel report_jobs
 // =============================================================================
 
 // ReportJobRepository mendefinisikan operasi data untuk tabel report_jobs.
-// Diimplementasikan oleh repository.ReportJobRepo.
+// Diimplementasikan oleh repositori.ReportJobRepo.
 type ReportJobRepository interface {
-	// Create membuat job export baru dan mengembalikan job yang dibuat.
+	// Buat membuat job export baru dan mengembalikan job yang dibuat.
 	Create(ctx context.Context, job *ReportJob) (*ReportJob, error)
 	// GetByID mengambil job export berdasarkan ID.
 	GetByID(ctx context.Context, id string) (*ReportJob, error)
@@ -1351,28 +1348,28 @@ type ReportJobRepository interface {
 }
 
 // =============================================================================
-// CustomReportTemplateRepository — operasi data untuk tabel custom_report_templates
+// CustomReportTemplateRepository - operasi data untuk tabel custom_report_templates
 // =============================================================================
 
 // CustomReportTemplateRepository mendefinisikan operasi data untuk tabel custom_report_templates.
-// Diimplementasikan oleh repository.CustomReportTemplateRepo.
+// Diimplementasikan oleh repositori.CustomReportTemplateRepo.
 type CustomReportTemplateRepository interface {
-	// Create membuat template laporan custom baru dan mengembalikan template yang dibuat.
+	// Buat membuat template laporan kustom baru dan mengembalikan template yang dibuat.
 	Create(ctx context.Context, template *CustomReportTemplate) (*CustomReportTemplate, error)
 	// GetByID mengambil template laporan berdasarkan ID.
 	GetByID(ctx context.Context, id string) (*CustomReportTemplate, error)
-	// Delete menghapus template laporan secara permanen.
+	// Hapus menghapus template laporan secara permanen.
 	Delete(ctx context.Context, id string) error
 	// ListByTenant mengambil semua template laporan untuk tenant.
 	ListByTenant(ctx context.Context, tenantID string) ([]*CustomReportTemplate, error)
 }
 
 // =============================================================================
-// ReportAggregationRepository — query aggregasi kompleks untuk laporan
+// ReportAggregationRepository - kueri aggregasi kompleks untuk laporan
 // =============================================================================
 
-// ReportAggregationRepository mendefinisikan query aggregasi untuk laporan.
-// Ini adalah repository khusus yang menjalankan complex SQL queries
+// ReportAggregationRepository mendefinisikan kueri aggregasi untuk laporan.
+// Ini adalah repositori khusus yang menjalankan complex SQL queries
 // untuk menghasilkan data laporan dari berbagai tabel.
 type ReportAggregationRepository interface {
 	// --- Financial ---
@@ -1413,7 +1410,7 @@ type ReportAggregationRepository interface {
 
 	// --- Custom Report ---
 
-	// GetCustomReportData mengambil data laporan custom berdasarkan metrik dan dimensi yang dipilih.
+	// GetCustomReportData mengambil data laporan kustom berdasarkan metrik dan dimensi yang dipilih.
 	GetCustomReportData(ctx context.Context, tenantID string, metrics []string, groupBy, subGroupBy string, periodStart, periodEnd time.Time) (interface{}, error)
 
 	// --- Forecast Data ---
@@ -1427,12 +1424,12 @@ type ReportAggregationRepository interface {
 }
 
 // =============================================================================
-// NetworkServiceClient — HTTP client untuk komunikasi dengan network-service
+// NetworkServiceClient - HTTP client untuk komunikasi dengan network-service
 // =============================================================================
 
 // NetworkServiceClient mendefinisikan interface untuk komunikasi dengan network-service.
 // Diimplementasikan oleh usecase.NetworkClient dengan graceful degradation
-// (cache fallback jika service down, module_inactive jika modul belum aktif).
+// (cache cadangan jika service down, module_inactive jika modul belum aktif).
 type NetworkServiceClient interface {
 	// GetUptimeReport mengambil laporan uptime router dari network-service.
 	GetUptimeReport(ctx context.Context, tenantID string, periodStart, periodEnd time.Time, routerID string) (*UptimeReport, error)
@@ -1449,7 +1446,7 @@ type NetworkServiceClient interface {
 }
 
 // =============================================================================
-// ReportUsecase — business logic untuk semua laporan
+// ReportUsecase - business logic untuk semua laporan
 // =============================================================================
 
 // ReportUsecase mendefinisikan business logic untuk laporan.
@@ -1513,19 +1510,19 @@ type ReportUsecase interface {
 }
 
 // =============================================================================
-// ExpenseUsecase — business logic untuk pengeluaran
+// ExpenseUsecase - business logic untuk pengeluaran
 // =============================================================================
 
 // ExpenseUsecase mendefinisikan business logic untuk pengeluaran.
 // Diimplementasikan oleh usecase.ExpenseManager.
 type ExpenseUsecase interface {
-	// Create membuat pengeluaran baru.
+	// Buat membuat pengeluaran baru.
 	Create(ctx context.Context, tenantID string, req CreateExpenseRequest, actor ActorInfo) (*Expense, error)
 	// GetByID mengambil pengeluaran berdasarkan ID.
 	GetByID(ctx context.Context, id string) (*Expense, error)
-	// Update memperbarui data pengeluaran.
+	// Perbarui memperbarui data pengeluaran.
 	Update(ctx context.Context, id string, req UpdateExpenseRequest, actor ActorInfo) (*Expense, error)
-	// Delete menghapus pengeluaran secara soft delete.
+	// Hapus menghapus pengeluaran secara hapus lunak.
 	Delete(ctx context.Context, id string, actor ActorInfo) error
 	// List mengambil daftar pengeluaran dengan filter periode dan kategori.
 	List(ctx context.Context, tenantID string, periodStart, periodEnd time.Time, categoryID string) ([]*Expense, error)
@@ -1540,24 +1537,24 @@ type ExpenseUsecase interface {
 }
 
 // =============================================================================
-// ScheduleUsecase — business logic untuk jadwal laporan otomatis
+// ScheduleUsecase - business logic untuk jadwal laporan otomatis
 // =============================================================================
 
 // ScheduleUsecase mendefinisikan business logic untuk jadwal laporan.
 // Diimplementasikan oleh usecase.ScheduleManager.
 type ScheduleUsecase interface {
-	// Create membuat jadwal laporan baru.
+	// Buat membuat jadwal laporan baru.
 	Create(ctx context.Context, tenantID string, req CreateScheduleRequest, actor ActorInfo) (*ReportSchedule, error)
-	// Update memperbarui konfigurasi jadwal laporan.
+	// Perbarui memperbarui konfigurasi jadwal laporan.
 	Update(ctx context.Context, id string, req UpdateScheduleRequest) (*ReportSchedule, error)
-	// Delete menonaktifkan jadwal laporan.
+	// Hapus menonaktifkan jadwal laporan.
 	Delete(ctx context.Context, id string) error
 	// List mengambil semua jadwal laporan aktif untuk tenant.
 	List(ctx context.Context, tenantID string) ([]*ReportSchedule, error)
 }
 
 // =============================================================================
-// KPITargetUsecase — business logic untuk target KPI
+// KPITargetUsecase - business logic untuk target KPI
 // =============================================================================
 
 // KPITargetUsecase mendefinisikan business logic untuk target KPI.
@@ -1570,24 +1567,24 @@ type KPITargetUsecase interface {
 }
 
 // =============================================================================
-// CustomReportTemplateUsecase — business logic untuk template laporan custom
+// CustomReportTemplateUsecase - business logic untuk template laporan kustom
 // =============================================================================
 
-// CustomReportTemplateUsecase mendefinisikan business logic untuk template custom.
+// CustomReportTemplateUsecase mendefinisikan business logic untuk template kustom.
 // Diimplementasikan oleh usecase.CustomReportBuilder.
 type CustomReportTemplateUsecase interface {
-	// PreviewCustomReport menjalankan laporan custom tanpa menyimpan template.
+	// PreviewCustomReport menjalankan laporan kustom tanpa menyimpan template.
 	PreviewCustomReport(ctx context.Context, tenantID string, metrics []string, groupBy, subGroupBy string, periodStart, periodEnd time.Time, displayType string) (interface{}, error)
-	// CreateTemplate menyimpan konfigurasi laporan custom sebagai template.
+	// CreateTemplate menyimpan konfigurasi laporan kustom sebagai template.
 	CreateTemplate(ctx context.Context, tenantID string, req CreateTemplateRequest, actor ActorInfo) (*CustomReportTemplate, error)
-	// DeleteTemplate menghapus template laporan custom.
+	// DeleteTemplate menghapus template laporan kustom.
 	DeleteTemplate(ctx context.Context, id string) error
-	// ListTemplates mengambil semua template laporan custom untuk tenant.
+	// ListTemplates mengambil semua template laporan kustom untuk tenant.
 	ListTemplates(ctx context.Context, tenantID string) ([]*CustomReportTemplate, error)
 }
 
 // =============================================================================
-// ForecastUsecase — business logic untuk proyeksi/forecasting
+// ForecastUsecase - business logic untuk proyeksi/forecasting
 // =============================================================================
 
 // ForecastUsecase mendefinisikan business logic untuk proyeksi bisnis.
@@ -1598,7 +1595,7 @@ type ForecastUsecase interface {
 }
 
 // =============================================================================
-// ComparisonUsecase — business logic untuk perbandingan antar periode
+// ComparisonUsecase - business logic untuk perbandingan antar periode
 // =============================================================================
 
 // ComparisonUsecase mendefinisikan business logic untuk perbandingan periode.

@@ -1,5 +1,5 @@
 // package_helpers.go berisi fungsi standalone helper untuk usecase paket.
-// Termasuk: merge update, hitung perubahan, dan perbandingan pointer.
+// Termasuk: gabungkan perbarui, hitung perubahan, dan perbandingan pointer.
 package usecase
 
 import "github.com/ispboss/ispboss/services/billing-api/internal/domain"

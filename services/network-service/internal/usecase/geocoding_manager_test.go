@@ -1,5 +1,3 @@
-// geocoding_manager_test.go — unit test dan property test untuk GeocodingManager.
-// Menggunakan mock in-memory repository dan HTTP client.
 // Semua komentar dalam Bahasa Indonesia.
 package usecase
 
@@ -21,7 +19,6 @@ import (
 )
 
 // =============================================================================
-// Mock Repository: GeocodingCacheRepository — in-memory untuk testing
 // =============================================================================
 
 // mockGeocodingCacheRepo adalah implementasi in-memory dari domain.GeocodingCacheRepository.
@@ -89,12 +86,9 @@ func (r *mockGeocodingCacheRepo) DeleteExpired(_ context.Context) (int64, error)
 }
 
 // =============================================================================
-// Mock HTTP Client — untuk testing tanpa request ke Nominatim
 // =============================================================================
 
-// mockHTTPClient adalah implementasi mock dari HTTPClient interface.
 type mockHTTPClient struct {
-	// response yang akan dikembalikan
 	statusCode int
 	body       string
 	err        error
@@ -136,7 +130,7 @@ const nominatimSuccessBody = `{
 }`
 
 // =============================================================================
-// Unit Test 1: TestReverseGeocode_CacheHit — cache hit, tidak panggil provider
+// Unit Tes 1: TestReverseGeocode_CacheHit - cache hit, tidak panggil provider
 // =============================================================================
 
 // TestReverseGeocode_CacheHit memverifikasi bahwa ReverseGeocode mengembalikan
@@ -187,7 +181,7 @@ func TestReverseGeocode_CacheHit(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 2: TestReverseGeocode_CacheMiss — cache miss, panggil provider
+// Unit Tes 2: TestReverseGeocode_CacheMiss - cache miss, panggil provider
 // =============================================================================
 
 // TestReverseGeocode_CacheMiss memverifikasi bahwa ReverseGeocode memanggil
@@ -229,7 +223,7 @@ func TestReverseGeocode_CacheMiss(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 3: TestReverseGeocode_ProviderError — provider gagal, graceful degradation
+// Unit Tes 3: TestReverseGeocode_ProviderError - provider gagal, graceful degradation
 // =============================================================================
 
 // TestReverseGeocode_ProviderError memverifikasi bahwa ReverseGeocode
@@ -253,24 +247,22 @@ func TestReverseGeocode_ProviderError(t *testing.T) {
 		t.Errorf("Longitude: got %f, want %f", result.Longitude, 106.8456)
 	}
 
-	// Verifikasi error field terisi
 	if result.Error == nil {
 		t.Error("Error field seharusnya terisi saat provider gagal")
 	}
 }
 
 // =============================================================================
-// Property Test 10: Geocoding Cache Key Consistency
 // =============================================================================
 
 // TestPropertyGeocodingCacheKeyConsistency memverifikasi bahwa dua koordinat
 // yang menghasilkan rounded value yang sama akan menggunakan cache entry yang sama.
 // Sebaliknya, koordinat dengan rounded value berbeda menggunakan entry berbeda.
 //
-// **Validates: Requirements 8.3**
+// **Memvalidasi: Kebutuhan 8.3**
 func TestPropertyGeocodingCacheKeyConsistency(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate dua pasang koordinat
+		// Buat dua pasang koordinat
 		lat1 := rapid.Float64Range(-90.0, 90.0).Draw(t, "lat1")
 		lng1 := rapid.Float64Range(-180.0, 180.0).Draw(t, "lng1")
 		lat2 := rapid.Float64Range(-90.0, 90.0).Draw(t, "lat2")
@@ -316,7 +308,6 @@ func TestPropertyGeocodingCacheKeyConsistency(t *testing.T) {
 		if math.Abs(latNear) <= 90 {
 			latRoundNear := domain.RoundCoordinate(latNear)
 			// Koordinat yang sangat dekat mungkin atau mungkin tidak menghasilkan key yang sama
-			// tergantung posisi relatif terhadap batas pembulatan — ini valid
 			_ = latRoundNear
 		}
 	})

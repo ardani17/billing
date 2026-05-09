@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel report_jobs.
+-- Kueri SQL untuk operasi CRUD tabel report_jobs.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel report_jobs dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel report_jobs dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateReportJob :one
 -- Membuat job export laporan baru dan mengembalikan semua kolom.
@@ -18,7 +18,7 @@ SELECT * FROM report_jobs
 WHERE id = $1;
 
 -- name: UpdateReportJobStatus :exec
--- Memperbarui status job export (pending → processing → completed/failed).
+-- Memperbarui status job export (pending -> processing -> completed/failed).
 -- Juga mengisi download_url dan error jika ada.
 UPDATE report_jobs SET
     status = $2,

@@ -25,12 +25,12 @@ func NewWebhookLogRepo(queries *Queries) *WebhookLogRepo {
 	return &WebhookLogRepo{queries: queries}
 }
 
-// --- Helper: mapping sqlc WebhookLog → domain.WebhookLog ---
+// --- Helper: mapping sqlc WebhookLog -> domain.WebhookLog ---
 
 // mapWebhookLogRow memetakan WebhookLog (sqlc model) ke domain.WebhookLog.
-// Konversi: pgtype.UUID → string, pgtype.Timestamptz → time.Time,
-// pgtype.Bool → *bool, pgtype.Text → string, netip.Addr → string,
-// []byte (JSONB) → json.RawMessage.
+// Konversi: pgtype.UUID -> string, pgtype.Timestamptz -> time.Time,
+// pgtype.Bool -> *bool, pgtype.Text -> string, netip.Addr -> string,
+// []byte (JSONB) -> json.RawMessage.
 func mapWebhookLogRow(row WebhookLog) *domain.WebhookLog {
 	// Konversi tenant_id (nullable UUID) ke *string
 	var tenantID *string
@@ -60,7 +60,7 @@ func mapWebhookLogRow(row WebhookLog) *domain.WebhookLog {
 	}
 }
 
-// --- Helper: konversi domain → sqlc params ---
+// --- Helper: konversi domain -> sqlc params ---
 
 // stringToPgUUIDNullable mengkonversi *string ke pgtype.UUID (nullable).
 func stringToPgUUIDNullable(s *string) pgtype.UUID {
@@ -80,7 +80,7 @@ func boolToPgBool(b *bool) pgtype.Bool {
 
 // --- Implementasi domain.WebhookLogRepository ---
 
-// Create membuat log webhook baru dan mengembalikan log yang dibuat.
+// Buat membuat log webhook baru dan mengembalikan log yang dibuat.
 func (r *WebhookLogRepo) Create(ctx context.Context, log *domain.WebhookLog) (*domain.WebhookLog, error) {
 	row, err := r.queries.CreateWebhookLog(ctx, CreateWebhookLogParams{
 		TenantID:         stringToPgUUIDNullable(log.TenantID),
@@ -149,7 +149,7 @@ func (r *WebhookLogRepo) IsAlreadyProcessed(ctx context.Context, externalID, eve
 	return exists, nil
 }
 
-// ListByPaymentLink mengambil semua webhook logs berdasarkan external_id payment link.
+// ListByPaymentLink mengambil semua webhook logs berdasarkan external_id link pembayaran.
 // Diurutkan berdasarkan created_at DESC (terbaru di atas).
 func (r *WebhookLogRepo) ListByPaymentLink(ctx context.Context, externalID string) ([]*domain.WebhookLog, error) {
 	rows, err := r.queries.ListWebhookLogsByExternalID(ctx, externalID)

@@ -31,9 +31,9 @@ func NewScheduleManager(
 	}
 }
 
-// Create membuat jadwal laporan baru.
+// Buat membuat jadwal laporan baru.
 func (sm *ScheduleManager) Create(ctx context.Context, tenantID string, req domain.CreateScheduleRequest, actor domain.ActorInfo) (*domain.ReportSchedule, error) {
-	// Konversi recipients dari request ke domain
+	// Konversi recipients dari permintaan ke domain
 	recipients := make([]domain.Recipient, len(req.Recipients))
 	for i, r := range req.Recipients {
 		recipients[i] = domain.Recipient{
@@ -42,7 +42,7 @@ func (sm *ScheduleManager) Create(ctx context.Context, tenantID string, req doma
 		}
 	}
 
-	// Bangun filter dari request (opsional)
+	// Bangun filter dari permintaan (opsional)
 	var filters domain.ReportFilter
 	if req.Filters != nil {
 		filters = *req.Filters
@@ -68,7 +68,7 @@ func (sm *ScheduleManager) Create(ctx context.Context, tenantID string, req doma
 	return created, nil
 }
 
-// Update memperbarui konfigurasi jadwal laporan.
+// Perbarui memperbarui konfigurasi jadwal laporan.
 func (sm *ScheduleManager) Update(ctx context.Context, id string, req domain.UpdateScheduleRequest) (*domain.ReportSchedule, error) {
 	existing, err := sm.scheduleRepo.GetByID(ctx, id)
 	if err != nil {
@@ -78,7 +78,7 @@ func (sm *ScheduleManager) Update(ctx context.Context, id string, req domain.Upd
 		return nil, domain.ErrReportScheduleNotFound
 	}
 
-	// Terapkan perubahan dari request
+	// Terapkan perubahan dari permintaan
 	if req.ReportType != "" {
 		existing.ReportType = req.ReportType
 	}
@@ -110,7 +110,7 @@ func (sm *ScheduleManager) Update(ctx context.Context, id string, req domain.Upd
 	return updated, nil
 }
 
-// Delete menonaktifkan jadwal laporan (soft delete via is_active = false).
+// Hapus menonaktifkan jadwal laporan (hapus lunak via is_active = false).
 func (sm *ScheduleManager) Delete(ctx context.Context, id string) error {
 	return sm.scheduleRepo.Deactivate(ctx, id)
 }

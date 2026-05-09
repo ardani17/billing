@@ -12,7 +12,7 @@ import (
 )
 
 // =============================================================================
-// AESEncryptor — implementasi CredentialEncryptor menggunakan AES-256-GCM
+// AESEncryptor - implementasi CredentialEncryptor menggunakan AES-256-GCM
 // =============================================================================
 
 // AESEncryptor mengenkripsi dan mendekripsi credential router
@@ -49,7 +49,7 @@ func (e *AESEncryptor) Encrypt(plaintext string) (string, error) {
 		return "", fmt.Errorf("%w: gagal membuat GCM", domain.ErrEncryptionFailed)
 	}
 
-	// Generate nonce acak (12 bytes untuk GCM standar)
+	// Buat nonce acak (12 bytes untuk GCM standar)
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return "", fmt.Errorf("%w: gagal generate nonce", domain.ErrEncryptionFailed)

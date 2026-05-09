@@ -1,4 +1,3 @@
-// payment_usecase_test.go berisi unit test untuk PaymentUsecase — list, summary, search, open invoices.
 package usecase
 
 import (
@@ -19,10 +18,8 @@ type tenantCtxKey string
 const tenantCtxKeyID tenantCtxKey = "tenant_id"
 
 // =============================================================================
-// Mock repositories untuk PaymentUsecase tests
 // =============================================================================
 
-// paymentMockInvoiceRepo implementasi mock InvoiceRepository.
 type paymentMockInvoiceRepo struct {
 	invoices map[string]*domain.Invoice
 }
@@ -145,7 +142,6 @@ func (m *paymentMockInvoiceRepo) CountOutstandingInvoices(_ context.Context, _ s
 	return 0, nil
 }
 
-// paymentMockItemRepo implementasi mock InvoiceItemRepository.
 type paymentMockItemRepo struct{}
 
 func (m *paymentMockItemRepo) BulkCreate(_ context.Context, items []*domain.InvoiceItem) ([]*domain.InvoiceItem, error) {
@@ -160,10 +156,9 @@ func (m *paymentMockItemRepo) DeleteByInvoice(_ context.Context, _ string) error
 	return nil
 }
 
-// paymentMockPaymentRepo implementasi mock InvoicePaymentRepository.
 type paymentMockPaymentRepo struct {
-	payments    map[string]*domain.InvoicePayment
-	listResult  *domain.PaymentListResult
+	payments      map[string]*domain.InvoicePayment
+	listResult    *domain.PaymentListResult
 	summaryResult *domain.PaymentSummary
 	findDupResult bool
 }
@@ -228,7 +223,6 @@ func (m *paymentMockPaymentRepo) FindDuplicate(_ context.Context, _ string, _ in
 	return m.findDupResult, nil
 }
 
-// paymentMockAuditRepo implementasi mock InvoiceAuditLogRepository.
 type paymentMockAuditRepo struct{}
 
 func (m *paymentMockAuditRepo) Create(_ context.Context, _ *domain.InvoiceAuditLog) error {
@@ -239,7 +233,6 @@ func (m *paymentMockAuditRepo) ListByInvoice(_ context.Context, _ string) ([]*do
 	return nil, nil
 }
 
-// paymentMockReceiptSeqRepo implementasi mock ReceiptSequenceRepository.
 type paymentMockReceiptSeqRepo struct {
 	seq int
 }
@@ -249,7 +242,6 @@ func (m *paymentMockReceiptSeqRepo) NextSequence(_ context.Context, _ string, _,
 	return m.seq, nil
 }
 
-// paymentMockSettingsRepo implementasi mock BillingSettingsRepository.
 type paymentMockSettingsRepo struct{}
 
 func (m *paymentMockSettingsRepo) GetByTenantID(_ context.Context, _ string) (*domain.BillingSettings, error) {
@@ -264,7 +256,6 @@ func (m *paymentMockSettingsRepo) ListAll(_ context.Context) ([]*domain.BillingS
 	return nil, nil
 }
 
-// paymentMockCustomerRepo implementasi mock CustomerRepository.
 type paymentMockCustomerRepo struct {
 	customers    map[string]*domain.Customer
 	searchResult []*domain.Customer
@@ -345,7 +336,6 @@ func (m *paymentMockCustomerRepo) SearchForPayment(_ context.Context, _, _ strin
 }
 
 // =============================================================================
-// Helper — membuat PaymentUsecase dengan mock repos
 // =============================================================================
 
 type paymentUsecaseSetup struct {
@@ -374,7 +364,7 @@ func setupPaymentUsecase() *paymentUsecaseSetup {
 		&paymentMockReceiptSeqRepo{},
 		&paymentMockSettingsRepo{},
 		customerRepo,
-		nil, // pool — nil karena kita test path yang tidak butuh transaksi
+		nil, // pool - nil karena kita test path yang tidak butuh transaksi
 		nil, // queueClient
 		logger,
 	)
@@ -388,15 +378,12 @@ func setupPaymentUsecase() *paymentUsecaseSetup {
 }
 
 // =============================================================================
-// Test: List — paginasi default
 // =============================================================================
 
-// TestPaymentUsecase_List_DefaultPagination menguji List dengan paginasi default.
 func TestPaymentUsecase_List_DefaultPagination(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := context.Background()
 
-	// Panggil List tanpa page/page_size → default page=1, page_size=25
 	params := domain.PaymentListParams{TenantID: "tenant-1"}
 	result, err := s.uc.List(ctx, params)
 	if err != nil {
@@ -407,7 +394,7 @@ func TestPaymentUsecase_List_DefaultPagination(t *testing.T) {
 		t.Fatal("expected result, got nil")
 	}
 
-	// Verifikasi paginasi default diterapkan
+	// Verifikasi paginasi bawaan diterapkan
 	if result.Pagination.Page != 1 {
 		t.Fatalf("expected page 1, got %d", result.Pagination.Page)
 	}
@@ -416,7 +403,6 @@ func TestPaymentUsecase_List_DefaultPagination(t *testing.T) {
 	}
 }
 
-// TestPaymentUsecase_List_CustomPagination menguji List dengan paginasi kustom.
 func TestPaymentUsecase_List_CustomPagination(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := context.Background()
@@ -440,7 +426,7 @@ func TestPaymentUsecase_List_CustomPagination(t *testing.T) {
 }
 
 // =============================================================================
-// Test: Summary — agregasi statistik
+// Tes: Summary - agregasi statistik
 // =============================================================================
 
 // TestPaymentUsecase_Summary_Aggregation menguji Summary mengembalikan statistik agregat.
@@ -457,7 +443,6 @@ func TestPaymentUsecase_Summary_Aggregation(t *testing.T) {
 		t.Fatal("expected result, got nil")
 	}
 
-	// Verifikasi data dari mock
 	if result.Today.Count != 3 {
 		t.Fatalf("expected today count 3, got %d", result.Today.Count)
 	}
@@ -485,10 +470,9 @@ func TestPaymentUsecase_Summary_Aggregation(t *testing.T) {
 }
 
 // =============================================================================
-// Test: SearchCustomers — validasi term pendek
+// Tes: SearchCustomers - validasi term pendek
 // =============================================================================
 
-// TestPaymentUsecase_SearchCustomers_ShortTermError menguji error saat term < 2 karakter.
 func TestPaymentUsecase_SearchCustomers_ShortTermError(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := context.Background()
@@ -502,7 +486,6 @@ func TestPaymentUsecase_SearchCustomers_ShortTermError(t *testing.T) {
 	}
 }
 
-// TestPaymentUsecase_SearchCustomers_EmptyTermError menguji error saat term kosong.
 func TestPaymentUsecase_SearchCustomers_EmptyTermError(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := context.Background()
@@ -516,12 +499,10 @@ func TestPaymentUsecase_SearchCustomers_EmptyTermError(t *testing.T) {
 	}
 }
 
-// TestPaymentUsecase_SearchCustomers_ValidTerm menguji pencarian dengan term valid.
 func TestPaymentUsecase_SearchCustomers_ValidTerm(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := context.Background()
 
-	// Setup mock search result
 	s.customerRepo.searchResult = []*domain.Customer{
 		{ID: "cust-1", Name: "Ahmad Rizki", CustomerIDSeq: "PLG-001"},
 	}
@@ -540,7 +521,7 @@ func TestPaymentUsecase_SearchCustomers_ValidTerm(t *testing.T) {
 }
 
 // =============================================================================
-// Test: GetOpenInvoices — remaining_amount dan total_arrears
+// Tes: GetOpenInvoices - remaining_amount dan total_arrears
 // =============================================================================
 
 // TestPaymentUsecase_GetOpenInvoices_RemainingAndArrears menguji kalkulasi remaining_amount dan total_arrears.
@@ -552,13 +533,13 @@ func TestPaymentUsecase_GetOpenInvoices_RemainingAndArrears(t *testing.T) {
 	s.invoiceRepo.invoices["inv-1"] = &domain.Invoice{
 		ID: "inv-1", CustomerID: "cust-1", InvoiceNumber: "INV-2024-06-001",
 		TotalAmount: 100000, PaidAmount: 30000,
-		Status: domain.InvoiceStatusBayarSebagian,
+		Status:  domain.InvoiceStatusBayarSebagian,
 		DueDate: time.Now().Add(-48 * time.Hour), PeriodMonth: 6, PeriodYear: 2024,
 	}
 	s.invoiceRepo.invoices["inv-2"] = &domain.Invoice{
 		ID: "inv-2", CustomerID: "cust-1", InvoiceNumber: "INV-2024-07-001",
 		TotalAmount: 150000, PaidAmount: 0,
-		Status: domain.InvoiceStatusBelumBayar,
+		Status:  domain.InvoiceStatusBelumBayar,
 		DueDate: time.Now().Add(24 * time.Hour), PeriodMonth: 7, PeriodYear: 2024,
 	}
 

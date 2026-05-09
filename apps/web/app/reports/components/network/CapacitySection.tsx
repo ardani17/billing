@@ -26,7 +26,7 @@ export function CapacitySection() {
         <ModuleInactive moduleName="MikroTik & OLT" />
       ) : (
         <>
-          {/* Router capacity */}
+          {/* Router capacity*/}
           {mikrotikInactive ? (
             <ModuleInactive moduleName="MikroTik" />
           ) : data.router_capacity && data.router_capacity.length > 0 ? (
@@ -67,7 +67,7 @@ export function CapacitySection() {
             </div>
           ) : null}
 
-          {/* ODP capacity */}
+          {/* ODP capacity*/}
           {oltInactive ? (
             <ModuleInactive moduleName="OLT" />
           ) : data.odp_capacity && data.odp_capacity.length > 0 ? (
@@ -108,7 +108,7 @@ export function CapacitySection() {
             </div>
           ) : null}
 
-          {/* Rekomendasi */}
+          {/* Rekomendasi*/}
           {data.recommendations.length > 0 && (
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
               <h3 className="mb-2 text-sm font-medium text-blue-800">Rekomendasi</h3>

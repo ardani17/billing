@@ -1,13 +1,13 @@
 "use client";
 
 interface ProgressBarProps {
-  /** Nilai progress (0-100+) */
+  /** Nilai progress (0-100+)*/
   value: number;
-  /** Label di sebelah kiri */
+  /** Label di sebelah kiri*/
   label?: string;
-  /** Tampilkan persentase di sebelah kanan */
+  /** Tampilkan persentase di sebelah kanan*/
   showPercentage?: boolean;
-  /** Ukuran bar */
+  /** Ukuran bar*/
   size?: "sm" | "md" | "lg";
 }
 

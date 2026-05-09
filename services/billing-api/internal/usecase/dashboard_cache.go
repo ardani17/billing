@@ -1,5 +1,5 @@
 // dashboard_cache.go berisi DashboardCache yang mengelola cache Redis
-// untuk data dashboard widget. TTL 5 menit untuk response cepat.
+// untuk data dashboard widget. TTL 5 menit untuk respons cepat.
 // Key format: report:dashboard:{tenant_id}
 package usecase
 
@@ -56,8 +56,8 @@ func dashboardCacheKey(tenantID string) string {
 }
 
 // GetDashboardData mengambil data dashboard widget.
-// Flow: cek Redis cache → jika hit → return cached → jika miss →
-// query aggregation + network data → assemble → store cache → return.
+// Alur: cek Redis cache -> jika hit -> kembalikan cached -> jika miss ->
+// kueri aggregation + network data -> assemble -> store cache -> kembalikan.
 func (dc *DashboardCache) GetDashboardData(ctx context.Context, tenantID string) (*domain.DashboardData, error) {
 	key := dashboardCacheKey(tenantID)
 
@@ -71,7 +71,7 @@ func (dc *DashboardCache) GetDashboardData(ctx context.Context, tenantID string)
 		dc.logger.Warn().Err(err).Str("key", key).Msg("gagal parse cached dashboard data")
 	}
 
-	// Cache miss — query data dari aggregation repo
+	// Cache miss - kueri data dari aggregation repo
 	data, err := dc.aggregationRepo.GetDashboardData(ctx, tenantID)
 	if err != nil {
 		dc.logger.Error().Err(err).Str("tenant_id", tenantID).Msg("gagal mengambil dashboard data")

@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel pppoe_users.
+-- Kueri SQL untuk operasi CRUD tabel pppoe_users.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel pppoe_users dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel pppoe_users dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreatePPPoEUser :one
 INSERT INTO pppoe_users (

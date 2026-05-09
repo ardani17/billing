@@ -11,20 +11,19 @@ import (
 )
 
 // =============================================================================
-// Property-based test untuk verifikasi signature webhook Midtrans
 // =============================================================================
 
 // TestProperty_MidtransWebhookSignature memverifikasi bahwa untuk sembarang
 // kombinasi order_id, status_code, gross_amount, dan server_key:
-// - VerifyWebhookSignature mengembalikan true jika signature_key di body
-//   sama dengan SHA512(order_id + status_code + gross_amount + server_key).
-// - VerifyWebhookSignature mengembalikan false jika signature_key berbeda
-//   (signature acak yang salah).
+//   - VerifyWebhookSignature mengembalikan true jika signature_key di body
+//     sama dengan SHA512(order_id + status_code + gross_amount + server_key).
+//   - VerifyWebhookSignature mengembalikan false jika signature_key berbeda
+//     (signature acak yang salah).
 //
-// **Validates: Requirements 6.2**
+// **Memvalidasi: Kebutuhan 6.2**
 func TestProperty_MidtransWebhookSignature(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate field acak menggunakan karakter alfanumerik untuk menghindari
+		// Buat field acak menggunakan karakter alfanumerik untuk menghindari
 		// masalah JSON escaping
 		orderID := rapid.StringMatching("[a-zA-Z0-9]+").Draw(t, "orderID")
 		statusCode := rapid.StringMatching("[a-zA-Z0-9]+").Draw(t, "statusCode")
@@ -39,7 +38,7 @@ func TestProperty_MidtransWebhookSignature(t *testing.T) {
 		// Buat adapter Midtrans dengan server key
 		adapter := NewMidtransAdapter(serverKey)
 
-		// --- Test 1: Signature benar harus mengembalikan true ---
+		// --- Tes 1: Signature benar harus mengembalikan true ---
 		validBody := buildMidtransNotificationBody(t, orderID, statusCode, grossAmount, correctSignature)
 		valid, err := adapter.VerifyWebhookSignature(context.Background(), nil, validBody, "")
 		if err != nil {
@@ -49,7 +48,7 @@ func TestProperty_MidtransWebhookSignature(t *testing.T) {
 			t.Errorf("VerifyWebhookSignature mengembalikan false untuk signature yang benar")
 		}
 
-		// --- Test 2: Signature salah harus mengembalikan false ---
+		// --- Tes 2: Signature salah harus mengembalikan false ---
 		wrongSignature := rapid.StringMatching("[a-zA-Z0-9]+").Draw(t, "wrongSignature")
 		// Pastikan signature salah berbeda dari yang benar
 		if wrongSignature == correctSignature {

@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// CreditNote Entity — nota kredit untuk penyesuaian invoice
+// CreditNote Entitas - nota kredit untuk penyesuaian invoice
 // =============================================================================
 
 // CreditNote merepresentasikan nota kredit untuk penyesuaian invoice.
@@ -21,7 +21,7 @@ type CreditNote struct {
 }
 
 // =============================================================================
-// DebitNote Entity — nota debit untuk tagihan tambahan
+// DebitNote Entitas - nota debit untuk tagihan tambahan
 // =============================================================================
 
 // DebitNote merepresentasikan nota debit untuk tagihan tambahan.
@@ -40,7 +40,7 @@ type DebitNote struct {
 }
 
 // =============================================================================
-// DebitNoteItem Entity — satu item dalam debit note
+// DebitNoteItem Entitas - satu item dalam debit note
 // =============================================================================
 
 // DebitNoteItem merepresentasikan satu item dalam debit note.
@@ -52,7 +52,7 @@ type DebitNoteItem struct {
 }
 
 // =============================================================================
-// CustomerRecurringItem Entity — item berulang per pelanggan
+// CustomerRecurringItem Entitas - item berulang per pelanggan
 // =============================================================================
 
 // CustomerRecurringItem merepresentasikan item berulang per pelanggan.

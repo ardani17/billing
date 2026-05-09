@@ -21,9 +21,9 @@ func NewVPNTunnelRepo(queries *Queries) *VPNTunnelRepo {
 	return &VPNTunnelRepo{queries: queries}
 }
 
-// --- Helper konversi nullable UUID untuk router_id ---
+// --- Fungsi bantu konversi nullable UUID untuk router_id ---
 
-// uuidToStringPtr mengkonversi pgtype.UUID ke *string. NULL → nil.
+// uuidToStringPtr mengkonversi pgtype.UUID ke *string. NULL -> nil.
 func uuidToStringPtr(u pgtype.UUID) *string {
 	if !u.Valid {
 		return nil
@@ -32,7 +32,7 @@ func uuidToStringPtr(u pgtype.UUID) *string {
 	return &s
 }
 
-// stringPtrToUUID mengkonversi *string ke pgtype.UUID. nil → NULL.
+// stringPtrToUUID mengkonversi *string ke pgtype.UUID. nil -> NULL.
 func stringPtrToUUID(s *string) pgtype.UUID {
 	if s == nil || *s == "" {
 		return pgtype.UUID{}
@@ -40,7 +40,7 @@ func stringPtrToUUID(s *string) pgtype.UUID {
 	return stringToUUID(*s)
 }
 
-// int4ToIntPtr mengkonversi pgtype.Int4 ke *int. NULL → nil.
+// int4ToIntPtr mengkonversi pgtype.Int4 ke *int. NULL -> nil.
 func int4ToIntPtr(i pgtype.Int4) *int {
 	if !i.Valid {
 		return nil
@@ -49,7 +49,7 @@ func int4ToIntPtr(i pgtype.Int4) *int {
 	return &v
 }
 
-// intPtrToInt4 mengkonversi *int ke pgtype.Int4. nil → NULL.
+// intPtrToInt4 mengkonversi *int ke pgtype.Int4. nil -> NULL.
 func intPtrToInt4(i *int) pgtype.Int4 {
 	if i == nil {
 		return pgtype.Int4{Valid: false}
@@ -57,7 +57,7 @@ func intPtrToInt4(i *int) pgtype.Int4 {
 	return pgtype.Int4{Int32: int32(*i), Valid: true}
 }
 
-// --- Mapping sqlc VpnTunnel → domain.VPNTunnel ---
+// --- Mapping sqlc VpnTunnel -> domain.VPNTunnel ---
 
 // mapVPNTunnelRow memetakan VpnTunnel (sqlc model) ke domain.VPNTunnel.
 func mapVPNTunnelRow(row VpnTunnel) *domain.VPNTunnel {
@@ -117,7 +117,7 @@ func tunnelToResponse(t *domain.VPNTunnel) *domain.VPNTunnelResponse {
 
 // --- Implementasi CRUD domain.VPNTunnelRepository ---
 
-// Create membuat record VPN tunnel baru.
+// Buat membuat record VPN tunnel baru.
 func (r *VPNTunnelRepo) Create(ctx context.Context, tunnel *domain.VPNTunnel) (*domain.VPNTunnel, error) {
 	row, err := r.queries.CreateVPNTunnel(ctx, CreateVPNTunnelParams{
 		TenantID:                  stringToUUID(tunnel.TenantID),
@@ -162,7 +162,7 @@ func (r *VPNTunnelRepo) GetByID(ctx context.Context, id string) (*domain.VPNTunn
 	return mapVPNTunnelRow(row), nil
 }
 
-// Update memperbarui record VPN tunnel (field yang diizinkan saja).
+// Perbarui memperbarui record VPN tunnel (field yang diizinkan saja).
 func (r *VPNTunnelRepo) Update(ctx context.Context, tunnel *domain.VPNTunnel) (*domain.VPNTunnel, error) {
 	row, err := r.queries.UpdateVPNTunnel(ctx, UpdateVPNTunnelParams{
 		ID:                  stringToUUID(tunnel.ID),
@@ -184,7 +184,7 @@ func (r *VPNTunnelRepo) Update(ctx context.Context, tunnel *domain.VPNTunnel) (*
 	return mapVPNTunnelRow(row), nil
 }
 
-// SoftDelete melakukan soft-delete VPN tunnel (set deleted_at).
+// SoftDelete melakukan hapus lunak VPN tunnel (atur deleted_at).
 func (r *VPNTunnelRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeleteVPNTunnel(ctx, stringToUUID(id))
 	if err != nil {

@@ -11,10 +11,10 @@ import (
 )
 
 // Isolir mentransisikan status pelanggan dari aktif ke isolir.
-// Flow: fetch customer → validate transition (aktif → isolir) via domain.CanTransition →
-// update status → write audit log → publish customer.isolated event.
+// Alur: ambil customer -> validasi transition (aktif -> isolir) via domain.CanTransition ->
+// perbarui status -> tulis audit log -> terbitkan customer.isolated event.
 func (uc *CustomerUsecase) Isolir(ctx context.Context, id string, actor ActorInfo) (*domain.Customer, error) {
-	// Fetch existing customer
+	// Ambil existing customer
 	customer, err := uc.customerRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -24,19 +24,19 @@ func (uc *CustomerUsecase) Isolir(ctx context.Context, id string, actor ActorInf
 		return nil, domain.ErrCustomerNotFound
 	}
 
-	// Validate transition via domain state machine
+	// Validasi transition via domain state machine
 	newStatus, err := domain.Transition(customer.Status, domain.CustomerStatusIsolir)
 	if err != nil {
 		return nil, err
 	}
 
-	// Update status in database
+	// Perbarui status in database
 	updated, err := uc.customerRepo.UpdateStatus(ctx, id, newStatus)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal update status ke isolir: %w", err)
 	}
 
-	// Write audit log
+	// Tulis audit log
 	changes := map[string]interface{}{
 		"status": map[string]interface{}{
 			"old": string(customer.Status),
@@ -61,10 +61,9 @@ func (uc *CustomerUsecase) Isolir(ctx context.Context, id string, actor ActorInf
 }
 
 // Activate mentransisikan status pelanggan dari pending/isolir/suspend ke aktif.
-// Flow: fetch customer → validate transition → update status → write audit log →
-// publish customer.activated or customer.unblocked event (unblocked if from isolir).
+// Alur: ambil customer -> validasi transition -> perbarui status -> tulis audit log ->
 func (uc *CustomerUsecase) Activate(ctx context.Context, id string, actor ActorInfo) (*domain.Customer, error) {
-	// Fetch existing customer
+	// Ambil existing customer
 	customer, err := uc.customerRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -76,19 +75,19 @@ func (uc *CustomerUsecase) Activate(ctx context.Context, id string, actor ActorI
 
 	previousStatus := customer.Status
 
-	// Validate transition via domain state machine
+	// Validasi transition via domain state machine
 	newStatus, err := domain.Transition(customer.Status, domain.CustomerStatusAktif)
 	if err != nil {
 		return nil, err
 	}
 
-	// Update status in database
+	// Perbarui status in database
 	updated, err := uc.customerRepo.UpdateStatus(ctx, id, newStatus)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal update status ke aktif: %w", err)
 	}
 
-	// Write audit log
+	// Tulis audit log
 	changes := map[string]interface{}{
 		"status": map[string]interface{}{
 			"old": string(previousStatus),
@@ -97,7 +96,7 @@ func (uc *CustomerUsecase) Activate(ctx context.Context, id string, actor ActorI
 	}
 	uc.writeAuditLog(ctx, customer.TenantID, id, "customer.status_changed", actor, changes)
 
-	// Publish event: unblocked if from isolir, activated otherwise
+	// Terbitkan event: unblocked jika from isolir, activated otherwise
 	if previousStatus == domain.CustomerStatusIsolir && uc.mikrotikEnabled(ctx, customer.TenantID) {
 		uc.publishEvent(customer.TenantID, domain.TaskCustomerUnIsolir, domain.CustomerUnIsolirPayload{
 			CustomerID:       customer.ID,
@@ -130,10 +129,9 @@ func (uc *CustomerUsecase) Activate(ctx context.Context, id string, actor ActorI
 }
 
 // ChangePackage mengubah paket pelanggan.
-// Flow: fetch customer → validate package_id differs → update package →
-// write audit log → publish package.changed event.
+// tulis audit log -> terbitkan package.changed event.
 func (uc *CustomerUsecase) ChangePackage(ctx context.Context, id string, packageID string, actor ActorInfo) (*domain.Customer, error) {
-	// Fetch existing customer
+	// Ambil existing customer
 	customer, err := uc.customerRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -143,20 +141,20 @@ func (uc *CustomerUsecase) ChangePackage(ctx context.Context, id string, package
 		return nil, domain.ErrCustomerNotFound
 	}
 
-	// Validate package_id differs from current
+	// Validasi package_id differs from current
 	if customer.PackageID == packageID {
 		return nil, domain.ErrSamePackage
 	}
 
 	oldPackageID := customer.PackageID
 
-	// Update package in database
+	// Perbarui package in database
 	updated, err := uc.customerRepo.UpdatePackage(ctx, id, packageID)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal update package: %w", err)
 	}
 
-	// Write audit log
+	// Tulis audit log
 	changes := map[string]interface{}{
 		"package_id": map[string]interface{}{
 			"old": oldPackageID,

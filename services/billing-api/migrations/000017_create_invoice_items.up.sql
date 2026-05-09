@@ -1,6 +1,6 @@
 -- Migrasi: membuat tabel invoice_items untuk menyimpan baris item dalam invoice.
--- Setiap item memiliki tipe (monthly, installation, prorate_charge, dll),
--- deskripsi, quantity, unit_price, dan amount.
+-- Setiap item memiliki tipe (bulanan, installation, prorate_charge, dll),
+-- deskripsi, quantity, unit_price, dan nominal.
 -- Setiap invoice_item dimiliki oleh satu tenant dan dilindungi oleh RLS.
 
 CREATE TABLE invoice_items (
@@ -34,5 +34,5 @@ CREATE POLICY tenant_insert ON invoice_items
     FOR INSERT
     WITH CHECK (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Composite index untuk performa query
+-- Composite index untuk performa kueri
 CREATE INDEX idx_invoice_items_tenant_invoice ON invoice_items(tenant_id, invoice_id);

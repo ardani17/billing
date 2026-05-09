@@ -1,5 +1,5 @@
 // Package usecase berisi implementasi business logic untuk network-service.
-// File ini berisi operasi foto untuk MapNodeManager: upload, list, delete.
+// File ini berisi operasi foto untuk MapNodeManager: upload, list, hapus.
 package usecase
 
 import (
@@ -46,7 +46,7 @@ func (m *mapNodeManager) UploadPhoto(
 		return nil, domain.ErrPhotoLimitReached
 	}
 
-	// Generate ID dan path file
+	// Buat ID dan path file
 	photoID := uuid.New().String()
 	ext := extensionFromMIME(contentType)
 	filePath := fmt.Sprintf("uploads/%s/map-photos/%s/%s%s", node.TenantID, nodeID, photoID, ext)
@@ -116,7 +116,7 @@ func (m *mapNodeManager) ListPhotos(ctx context.Context, nodeID string) ([]*doma
 	return responses, nil
 }
 
-// DeletePhoto melakukan soft-delete foto dengan pencatatan riwayat.
+// DeletePhoto melakukan hapus lunak foto dengan pencatatan riwayat.
 func (m *mapNodeManager) DeletePhoto(ctx context.Context, nodeID, photoID, performedBy string) error {
 	// Pastikan node ada
 	node, err := m.mapNodeRepo.GetByID(ctx, nodeID)

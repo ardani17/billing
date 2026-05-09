@@ -10,8 +10,8 @@ import (
 )
 
 // CreatePrepaid membuat invoice prepaid untuk beberapa bulan sekaligus.
-// Flow: validasi customer → generate nomor invoice → buat line items per bulan →
-// tambah diskon jika ada → buat invoice → tulis audit log.
+// Alur: validasi customer -> buat nomor invoice -> buat line item per bulan ->
+// tambah diskon jika ada -> buat invoice -> tulis audit log.
 func (uc *InvoiceUsecase) CreatePrepaid(ctx context.Context, tenantID string, req domain.CreatePrepaidInvoiceRequest, actor domain.ActorInfo) (*domain.Invoice, error) {
 	// Validasi customer ada dan aktif
 	customer, err := uc.customerRepo.GetByID(ctx, req.CustomerID)
@@ -32,7 +32,7 @@ func (uc *InvoiceUsecase) CreatePrepaid(ctx context.Context, tenantID string, re
 		monthlyPrice = *pkg.MonthlyPrice
 	}
 
-	// Generate nomor invoice
+	// Buat nomor invoice
 	settings, _ := uc.settingsRepo.GetByTenantID(ctx, tenantID)
 	prefix := "INV"
 	if settings != nil && settings.InvoicePrefix != "" {
@@ -45,7 +45,7 @@ func (uc *InvoiceUsecase) CreatePrepaid(ctx context.Context, tenantID string, re
 	}
 	invoiceNumber := domain.FormatInvoiceNumber(prefix, req.StartPeriodYear, req.StartPeriodMonth, seq)
 
-	// Buat line items untuk setiap bulan
+	// Buat line item untuk setiap bulan
 	items := make([]*domain.InvoiceItem, 0, req.Months+1)
 	var subtotal int64
 	currentMonth := req.StartPeriodMonth
@@ -117,7 +117,7 @@ func (uc *InvoiceUsecase) CreatePrepaid(ctx context.Context, tenantID string, re
 		return nil, fmt.Errorf("gagal membuat invoice prepaid: %w", err)
 	}
 
-	// Set invoice_id pada semua items dan bulk create
+	// Set invoice_id pada semua items dan bulk buat
 	for _, item := range items {
 		item.InvoiceID = created.ID
 	}

@@ -1,4 +1,4 @@
-// gateway_handler_link_test.go berisi unit test untuk endpoint payment link:
+// gateway_handler_link_test.go berisi unit test untuk endpoint tautan pembayaran:
 // GetCustomerPaymentLink, RegeneratePaymentLink, GetInvoicePaymentLinks,
 // GetPaymentLinkWebhooks, dan WalledGardenPaymentInfo.
 package handler
@@ -15,11 +15,11 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// --- Test GetCustomerPaymentLink ---
+// --- Tes GetCustomerPaymentLink ---
 
 func TestGatewayHandler_GetCustomerPaymentLink_WithLink(t *testing.T) {
 	setup := setupGatewayTestApp()
-	// Seed data: customer, invoice, dan payment link aktif
+	// Seed data: customer, invoice, dan tautan pembayaran aktif
 	setup.customerRepo.customers["cust-1"] = &domain.Customer{
 		ID: "cust-1", TenantID: "test-tenant-id", Name: "Budi",
 	}
@@ -57,7 +57,7 @@ func TestGatewayHandler_GetCustomerPaymentLink_WithLink(t *testing.T) {
 
 func TestGatewayHandler_GetCustomerPaymentLink_NoLink(t *testing.T) {
 	setup := setupGatewayTestApp()
-	// Customer tanpa payment link aktif
+	// Customer tanpa tautan pembayaran aktif
 	setup.customerRepo.customers["cust-2"] = &domain.Customer{
 		ID: "cust-2", TenantID: "test-tenant-id", Name: "Andi",
 	}
@@ -71,7 +71,6 @@ func TestGatewayHandler_GetCustomerPaymentLink_NoLink(t *testing.T) {
 		body, _ := io.ReadAll(resp.Body)
 		t.Fatalf("expected 200, got %d: %s", resp.StatusCode, string(body))
 	}
-	// Response harus success dengan data null
 	var apiResp domain.APIResponse
 	json.NewDecoder(resp.Body).Decode(&apiResp)
 	if !apiResp.Success {
@@ -82,7 +81,7 @@ func TestGatewayHandler_GetCustomerPaymentLink_NoLink(t *testing.T) {
 	}
 }
 
-// --- Test RegeneratePaymentLink ---
+// --- Tes RegeneratePaymentLink ---
 
 func TestGatewayHandler_RegeneratePaymentLink_Success(t *testing.T) {
 	setup := setupGatewayTestApp()
@@ -110,19 +109,17 @@ func TestGatewayHandler_RegeneratePaymentLink_Success(t *testing.T) {
 		t.Fatalf("request gagal: %v", err)
 	}
 	// Regenerate akan gagal karena adapter Xendit tidak bisa connect ke gateway asli,
-	// sehingga mengembalikan error gateway_unavailable → 502
-	// Ini expected karena kita tidak mock adapter layer
 	if resp.StatusCode != fiber.StatusBadGateway && resp.StatusCode != fiber.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		t.Fatalf("expected 200 atau 502, got %d: %s", resp.StatusCode, string(body))
 	}
 }
 
-// --- Test GetInvoicePaymentLinks ---
+// --- Tes GetInvoicePaymentLinks ---
 
 func TestGatewayHandler_GetInvoicePaymentLinks_Success(t *testing.T) {
 	setup := setupGatewayTestApp()
-	// Seed payment link yang terkait dengan invoice
+	// Seed tautan pembayaran yang terkait dengan invoice
 	setup.linkRepo.links["link-inv"] = &domain.PaymentLink{
 		ID: "link-inv", CustomerID: "cust-1", TenantID: "test-tenant-id",
 		Status: domain.PaymentLinkPaid, Amount: 100000,
@@ -145,11 +142,11 @@ func TestGatewayHandler_GetInvoicePaymentLinks_Success(t *testing.T) {
 	}
 }
 
-// --- Test WalledGardenPaymentInfo ---
+// --- Tes WalledGardenPaymentInfo ---
 
 func TestGatewayHandler_WalledGardenPaymentInfo_Success(t *testing.T) {
 	setup := setupGatewayTestApp()
-	// Seed: customer, invoice, dan payment link aktif
+	// Seed: customer, invoice, dan tautan pembayaran aktif
 	setup.customerRepo.customers["cust-wg"] = &domain.Customer{
 		ID: "cust-wg", TenantID: "test-tenant-id", Name: "Wawan",
 	}

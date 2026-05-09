@@ -1,8 +1,8 @@
 // schedule_worker.go berisi asynq worker untuk jadwal laporan otomatis.
 // ScheduleWorker menangani tiga jenis task:
-// 1. report.scheduled — generate dan kirim laporan terjadwal
-// 2. report.cleanup_jobs — bersihkan report jobs lama
-// 3. report.cleanup_files — bersihkan file export lama
+// 1. report.scheduled - buat dan kirim laporan terjadwal
+// 2. report.cleanup_jobs - bersihkan report jobs lama
+// 3. report.cleanup_files - bersihkan file export lama
 package worker
 
 import (
@@ -22,7 +22,7 @@ import (
 
 // Konstanta tipe task yang diproses oleh ScheduleWorker.
 const (
-	// TaskScheduledReport adalah tipe task untuk generate laporan terjadwal.
+	// TaskScheduledReport adalah tipe task untuk buat laporan terjadwal.
 	TaskScheduledReport = "report.scheduled"
 
 	// TaskCleanupReportJobs adalah tipe task cron untuk bersihkan report jobs lama.
@@ -72,8 +72,8 @@ func (w *ScheduleWorker) RegisterHandlers(mux *asynq.ServeMux) {
 }
 
 // handleScheduledReport memproses task laporan terjadwal.
-// Alur: decode schedule_type → query jadwal yang due → untuk setiap jadwal:
-// enqueue task export untuk generate laporan.
+// Alur: decode schedule_type -> kueri jadwal yang due -> untuk setiap jadwal:
+// antrekan task export untuk buat laporan.
 func (w *ScheduleWorker) handleScheduledReport(ctx context.Context, task *asynq.Task) error {
 	var payload scheduledPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
@@ -84,7 +84,7 @@ func (w *ScheduleWorker) handleScheduledReport(ctx context.Context, task *asynq.
 	scheduleType := domain.ScheduleType(payload.ScheduleType)
 	w.logger.Info().Str("schedule_type", payload.ScheduleType).Msg("memproses jadwal laporan")
 
-	// Query jadwal yang perlu dijalankan
+	// Kueri jadwal yang perlu dijalankan
 	schedules, err := w.scheduleRepo.ListDue(ctx, scheduleType)
 	if err != nil {
 		w.logger.Error().Err(err).Msg("gagal mengambil jadwal due")
@@ -117,9 +117,9 @@ func (w *ScheduleWorker) handleScheduledReport(ctx context.Context, task *asynq.
 	return nil
 }
 
-// processSchedule memproses satu jadwal laporan — enqueue task export.
+// processSchedule memproses satu jadwal laporan - antrekan task export.
 func (w *ScheduleWorker) processSchedule(ctx context.Context, schedule *domain.ReportSchedule) error {
-	// Bangun filter periode berdasarkan schedule type
+	// Bangun filter periode berdasarkan jadwal type
 	now := time.Now()
 	filter := schedule.Filters
 	filter.PeriodEnd = now
@@ -133,7 +133,7 @@ func (w *ScheduleWorker) processSchedule(ctx context.Context, schedule *domain.R
 		filter.PeriodStart = now.AddDate(0, -1, 0)
 	}
 
-	// Enqueue task export untuk generate laporan
+	// Enqueue task export untuk buat laporan
 	exportPayload, _ := json.Marshal(map[string]interface{}{
 		"job_id":      schedule.ID,
 		"tenant_id":   schedule.TenantID,

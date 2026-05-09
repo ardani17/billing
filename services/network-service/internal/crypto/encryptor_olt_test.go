@@ -8,7 +8,6 @@ import (
 )
 
 // =============================================================================
-// Feature: olt-management, Property 4: Credential Encryption Round-Trip
 // =============================================================================
 
 // printableStringGen menghasilkan string non-kosong yang hanya berisi
@@ -32,12 +31,12 @@ func printableStringGen() *rapid.Generator[string] {
 // menghasilkan credential asli. Properti ini memastikan tidak ada data loss
 // saat penyimpanan dan pengambilan credential OLT.
 //
-// **Validates: Requirements 18.1, 18.2, 18.5**
+// **Memvalidasi: Kebutuhan 18.1, 18.2, 18.5**
 func TestProperty_OLT_CredentialEncryptionRoundTrip(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate key acak 32 bytes (AES-256)
+		// Buat key acak 32 bytes (AES-256)
 		key := rapid.SliceOfN(rapid.Byte(), 32, 32).Draw(t, "key")
-		// Generate credential non-kosong dengan karakter printable
+		// Buat credential non-kosong dengan karakter printable
 		credential := printableStringGen().Draw(t, "credential")
 
 		enc, err := NewAESEncryptor(key)
@@ -86,12 +85,12 @@ func TestProperty_OLT_CredentialEncryptionRoundTrip(t *testing.T) {
 // karena random nonce unik per operasi. Ini penting untuk keamanan:
 // penyerang tidak bisa mendeteksi credential identik dari ciphertext.
 //
-// **Validates: Requirements 18.1, 18.2, 18.5**
+// **Memvalidasi: Kebutuhan 18.1, 18.2, 18.5**
 func TestProperty_OLT_EncryptionProducesDifferentCiphertexts(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate key acak 32 bytes
+		// Buat key acak 32 bytes
 		key := rapid.SliceOfN(rapid.Byte(), 32, 32).Draw(t, "key")
-		// Generate credential non-kosong
+		// Buat credential non-kosong
 		credential := printableStringGen().Draw(t, "credential")
 
 		enc, err := NewAESEncryptor(key)
@@ -138,7 +137,7 @@ func TestProperty_OLT_EncryptionProducesDifferentCiphertexts(t *testing.T) {
 }
 
 // =============================================================================
-// Example-based tests — credential OLT tipikal
+// Example-based tests - credential OLT tipikal
 // =============================================================================
 
 // TestExample_OLT_SNMPCommunityEncryption menguji enkripsi/dekripsi

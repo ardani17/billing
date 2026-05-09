@@ -40,7 +40,7 @@ func (uc *IsolirUsecase) ProcessUnIsolir(ctx context.Context, tenantID, customer
 		return nil // masih ada tagihan, tidak bisa buka isolir
 	}
 
-	// Transisi status isolir → aktif
+	// Transisi status isolir -> aktif
 	newStatus, err := domain.Transition(cust.Status, domain.CustomerStatusAktif)
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func (uc *IsolirUsecase) ProcessUnIsolir(ctx context.Context, tenantID, customer
 		return fmt.Errorf("gagal update status ke aktif: %w", err)
 	}
 
-	// Publish event customer.un_isolir dan notification.un_isolir
+	// Terbitkan event customer.un_isolir dan notification.un_isolir
 	p := domain.CustomerUnIsolirPayload{
 		CustomerID:       cust.ID,
 		TenantID:         cust.TenantID,
@@ -94,7 +94,7 @@ func (uc *IsolirUsecase) ProcessReactivate(ctx context.Context, customerID, acto
 		return domain.ErrOutstandingInvoicesExist
 	}
 
-	// Transisi status suspend → aktif
+	// Transisi status suspend -> aktif
 	newStatus, err := domain.Transition(cust.Status, domain.CustomerStatusAktif)
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func (uc *IsolirUsecase) ProcessReactivate(ctx context.Context, customerID, acto
 		return fmt.Errorf("gagal update status ke aktif: %w", err)
 	}
 
-	// Publish event customer.un_isolir dan notification.reactivated
+	// Terbitkan event customer.un_isolir dan notification.reactivated
 	p := domain.CustomerUnIsolirPayload{
 		CustomerID:       cust.ID,
 		TenantID:         cust.TenantID,
@@ -145,7 +145,7 @@ func (uc *IsolirUsecase) ProcessReIsolir(ctx context.Context, tenantID, customer
 		return fmt.Errorf("gagal mengambil billing settings: %w", err)
 	}
 
-	// Cek apakah ada invoice overdue melewati grace period
+	// Cek apakah ada invoice terlambat melewati grace period
 	now := domain.CurrentDateInTimezone(settings.Timezone)
 	invoices, err := uc.invoiceRepo.FindOverdueForIsolir(ctx, tenantID, settings.GracePeriodDays, now.Time)
 	if err != nil {
@@ -161,10 +161,10 @@ func (uc *IsolirUsecase) ProcessReIsolir(ctx context.Context, tenantID, customer
 		}
 	}
 	if targetInv == nil {
-		return nil // tidak ada invoice overdue, tidak perlu re-isolir
+		return nil // tidak ada invoice terlambat, tidak perlu re-isolir
 	}
 
-	// Transisi status aktif → isolir
+	// Transisi status aktif -> isolir
 	newStatus, err := domain.Transition(cust.Status, domain.CustomerStatusIsolir)
 	if err != nil {
 		return err
@@ -173,7 +173,7 @@ func (uc *IsolirUsecase) ProcessReIsolir(ctx context.Context, tenantID, customer
 		return fmt.Errorf("gagal update status ke isolir: %w", err)
 	}
 
-	// Publish event customer.isolir dan notification.isolir
+	// Terbitkan event customer.isolir dan notification.isolir
 	overdue := domain.DaysOverdue(targetInv.DueDate, now.Time)
 	p := domain.CustomerIsolirPayload{
 		CustomerID:       cust.ID,

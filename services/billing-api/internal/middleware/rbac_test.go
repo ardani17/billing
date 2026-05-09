@@ -12,19 +12,12 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: auth-rbac, Property 10: RBAC Enforces Endpoint-Role-Method Access Rules
-// **Validates: Requirements 9.2, 9.3, 9.4, 9.6, 14.2**
+// **Memvalidasi: Kebutuhan 9.2, 9.3, 9.4, 9.6, 14.2**
 //
-// For any combination of (role, endpoint path, HTTP method), the RBAC middleware
-// SHALL allow access if and only if the role is in the endpoint's allowed roles
-// AND (if method restrictions exist for that role) the HTTP method is in the
-// allowed methods. Super_admin SHALL always be allowed. Reseller SHALL only
-// access paths starting with /v1/reseller/ or /v1/auth/*.
 
 func TestProperty_RBACEnforcesEndpointRoleMethodAccessRules(t *testing.T) {
-	// Define a known RBAC config for testing:
+	// Define a known RBAC config untuk testing:
 	// AllowedRoles: tenant_admin, operator, kasir
-	// MethodRestrictions: kasir can only GET
 	rbacConfig := domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
 			domain.RoleTenantAdmin,
@@ -36,7 +29,6 @@ func TestProperty_RBACEnforcesEndpointRoleMethodAccessRules(t *testing.T) {
 		},
 	}
 
-	// All roles in the system
 	allRoles := []domain.UserRole{
 		domain.RoleSuperAdmin,
 		domain.RoleTenantAdmin,
@@ -49,7 +41,7 @@ func TestProperty_RBACEnforcesEndpointRoleMethodAccessRules(t *testing.T) {
 	// HTTP methods to test
 	httpMethods := []string{"GET", "POST", "PUT", "DELETE", "PATCH"}
 
-	// Paths to test — includes reseller-allowed and reseller-disallowed paths
+	// Paths to test - includes reseller-allowed dan reseller-disallowed paths
 	testPaths := []string{
 		"/v1/customers/123",
 		"/v1/invoices/456",
@@ -59,7 +51,6 @@ func TestProperty_RBACEnforcesEndpointRoleMethodAccessRules(t *testing.T) {
 		"/v1/reports/monthly",
 	}
 
-	// Helper: check if a role is in the allowed roles list
 	isAllowedRole := func(role domain.UserRole) bool {
 		for _, r := range rbacConfig.AllowedRoles {
 			if r == role {
@@ -69,11 +60,9 @@ func TestProperty_RBACEnforcesEndpointRoleMethodAccessRules(t *testing.T) {
 		return false
 	}
 
-	// Helper: check if a method is allowed for a role given method restrictions
 	isMethodAllowed := func(role domain.UserRole, method string) bool {
 		methods, hasRestriction := rbacConfig.MethodRestrictions[role]
 		if !hasRestriction {
-			// No restriction means all methods allowed
 			return true
 		}
 		for _, m := range methods {
@@ -84,20 +73,17 @@ func TestProperty_RBACEnforcesEndpointRoleMethodAccessRules(t *testing.T) {
 		return false
 	}
 
-	// Helper: check if a path is allowed for reseller
 	isResellerPathAllowed := func(path string) bool {
 		return len(path) >= len("/v1/reseller/") && path[:len("/v1/reseller/")] == "/v1/reseller/" ||
 			len(path) >= len("/v1/auth/") && path[:len("/v1/auth/")] == "/v1/auth/"
 	}
 
 	rapid.Check(t, func(t *rapid.T) {
-		// Draw random role, method, and path
+		// Draw random role, method, dan path
 		role := rapid.SampledFrom(allRoles).Draw(t, "role")
 		method := rapid.SampledFrom(httpMethods).Draw(t, "method")
 		path := rapid.SampledFrom(testPaths).Draw(t, "path")
 
-		// Set up Fiber app with a helper middleware that sets role in locals,
-		// then the RBAC middleware, then a test handler that returns 200
 		app := fiber.New()
 
 		app.Use(func(c *fiber.Ctx) error {
@@ -107,12 +93,10 @@ func TestProperty_RBACEnforcesEndpointRoleMethodAccessRules(t *testing.T) {
 
 		app.Use(RBAC(rbacConfig))
 
-		// Register a catch-all handler for all methods
 		app.All("/*", func(c *fiber.Ctx) error {
 			return c.SendStatus(fiber.StatusOK)
 		})
 
-		// Build the request
 		req := httptest.NewRequest(method, path, nil)
 
 		resp, err := app.Test(req, -1)
@@ -127,24 +111,19 @@ func TestProperty_RBACEnforcesEndpointRoleMethodAccessRules(t *testing.T) {
 
 		statusCode := resp.StatusCode
 
-		// Compute expected result based on RBAC rules
 		var expectedAllowed bool
 
 		switch {
 		case role == domain.RoleSuperAdmin:
-			// Property: super_admin always allowed
 			expectedAllowed = true
 
 		case !isAllowedRole(role):
-			// Property: roles NOT in AllowedRoles get 403
 			expectedAllowed = false
 
 		case !isMethodAllowed(role, method):
-			// Property: roles with MethodRestrictions only get 200 for allowed methods
 			expectedAllowed = false
 
 		case role == domain.RoleReseller && !isResellerPathAllowed(path):
-			// Property: reseller gets 403 for paths outside /v1/reseller/* and /v1/auth/*
 			expectedAllowed = false
 
 		default:
@@ -166,8 +145,6 @@ func TestProperty_RBACEnforcesEndpointRoleMethodAccessRules(t *testing.T) {
 }
 
 func TestProperty_RBACResellerPathRestriction(t *testing.T) {
-	// Specific property test for reseller path restriction:
-	// Reseller is in AllowedRoles but should only access /v1/reseller/* and /v1/auth/*
 	rbacConfig := domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
 			domain.RoleTenantAdmin,
@@ -177,7 +154,7 @@ func TestProperty_RBACResellerPathRestriction(t *testing.T) {
 		MethodRestrictions: map[domain.UserRole][]string{},
 	}
 
-	// Paths that reseller IS allowed to access
+	// Path yang boleh diakses reseller
 	allowedPaths := []string{
 		"/v1/reseller/vouchers",
 		"/v1/reseller/dashboard",
@@ -187,7 +164,7 @@ func TestProperty_RBACResellerPathRestriction(t *testing.T) {
 		"/v1/auth/sessions",
 	}
 
-	// Paths that reseller is NOT allowed to access
+	// Path yang tidak boleh diakses reseller
 	forbiddenPaths := []string{
 		"/v1/customers/123",
 		"/v1/invoices/456",
@@ -210,7 +187,7 @@ func TestProperty_RBACResellerPathRestriction(t *testing.T) {
 
 		app := fiber.New()
 
-		// Set role to reseller
+		// Atur role menjadi reseller
 		app.Use(func(c *fiber.Ctx) error {
 			c.Locals("role", string(domain.RoleReseller))
 			return c.Next()
@@ -249,10 +226,7 @@ func TestProperty_RBACResellerPathRestriction(t *testing.T) {
 }
 
 func TestProperty_RBACSuperAdminAlwaysAllowed(t *testing.T) {
-	// Property: super_admin always gets 200 regardless of config
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate a random RBAC config — even with empty AllowedRoles,
-		// super_admin should still pass
 		numAllowed := rapid.IntRange(0, 4).Draw(t, "numAllowedRoles")
 		nonSuperRoles := []domain.UserRole{
 			domain.RoleTenantAdmin,

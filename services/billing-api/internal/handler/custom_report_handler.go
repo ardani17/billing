@@ -1,4 +1,4 @@
-// custom_report_handler.go menangani HTTP request untuk laporan custom.
+// custom_report_handler.go menangani HTTP permintaan untuk laporan kustom.
 // Termasuk: Preview, ListTemplates, CreateTemplate, DeleteTemplate.
 package handler
 
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// CustomReportHandler menangani HTTP request untuk laporan custom.
+// CustomReportHandler menangani HTTP permintaan untuk laporan kustom.
 type CustomReportHandler struct {
 	customReportUsecase domain.CustomReportTemplateUsecase
 	validate            *validator.Validate
@@ -29,7 +29,7 @@ func NewCustomReportHandler(customReportUsecase domain.CustomReportTemplateUseca
 	}
 }
 
-// previewRequest adalah payload untuk preview laporan custom.
+// previewRequest adalah payload untuk preview laporan kustom.
 type previewRequest struct {
 	Metrics     []string `json:"metrics" validate:"required,min=1,max=3,dive,required"`
 	GroupBy     string   `json:"group_by" validate:"required"`
@@ -39,8 +39,8 @@ type previewRequest struct {
 	DisplayType string   `json:"display_type" validate:"required,oneof=table bar_chart line_chart pie_chart"`
 }
 
-// Preview menangani POST /v1/reports/custom/preview.
-// Menjalankan laporan custom tanpa menyimpan template.
+// Preview menangani POST /v1/reports/kustom/preview.
+// Menjalankan laporan kustom tanpa menyimpan template.
 func (h *CustomReportHandler) Preview(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -79,8 +79,8 @@ func (h *CustomReportHandler) Preview(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, data)
 }
 
-// ListTemplates menangani GET /v1/reports/custom/templates.
-// Mengembalikan semua template laporan custom untuk tenant.
+// ListTemplates menangani GET /v1/reports/kustom/templates.
+// Mengembalikan semua template laporan kustom untuk tenant.
 func (h *CustomReportHandler) ListTemplates(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -96,8 +96,8 @@ func (h *CustomReportHandler) ListTemplates(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, templates)
 }
 
-// CreateTemplate menangani POST /v1/reports/custom/templates.
-// Menyimpan konfigurasi laporan custom sebagai template.
+// CreateTemplate menangani POST /v1/reports/kustom/templates.
+// Menyimpan konfigurasi laporan kustom sebagai template.
 func (h *CustomReportHandler) CreateTemplate(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -127,8 +127,8 @@ func (h *CustomReportHandler) CreateTemplate(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, template)
 }
 
-// DeleteTemplate menangani DELETE /v1/reports/custom/templates/:id.
-// Menghapus template laporan custom.
+// DeleteTemplate menangani DELETE /v1/reports/kustom/templates/:id.
+// Menghapus template laporan kustom.
 func (h *CustomReportHandler) DeleteTemplate(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -152,7 +152,7 @@ func (h *CustomReportHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapCustomReportError memetakan domain error ke HTTP error response.
+// mapCustomReportError memetakan domain error ke HTTP error respons.
 func (h *CustomReportHandler) mapCustomReportError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrMaxMetricsExceeded):

@@ -1,4 +1,4 @@
-// Package database menyediakan koneksi pool PostgreSQL menggunakan pgx
+// Paket database menyediakan koneksi pool PostgreSQL menggunakan pgx
 // dan helper untuk mengelola konteks tenant dalam sistem multi-tenant.
 package database
 
@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Nilai default untuk konfigurasi connection pool.
+// Nilai bawaan untuk konfigurasi connection pool.
 const (
 	defaultMaxConns        = 10
 	defaultMinConns        = 2
@@ -20,7 +20,7 @@ const (
 )
 
 // PoolConfig berisi konfigurasi connection pool PostgreSQL.
-// Jika nilai tidak diisi (zero value), akan menggunakan default.
+// Jika nilai tidak diisi (zero value), akan menggunakan bawaan.
 type PoolConfig struct {
 	// DSN adalah connection string PostgreSQL, contoh:
 	// "postgres://user:pass@localhost:5432/dbname?sslmode=disable"
@@ -50,13 +50,13 @@ func NewPool(ctx context.Context, cfg PoolConfig) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("database: DSN tidak boleh kosong")
 	}
 
-	// Parse DSN menjadi konfigurasi pgxpool
+	// Parsing DSN menjadi konfigurasi pgxpool
 	poolCfg, err := pgxpool.ParseConfig(cfg.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("database: gagal parsing DSN: %w", err)
 	}
 
-	// Terapkan konfigurasi pool dengan fallback ke default
+	// Terapkan konfigurasi pool dengan cadangan ke bawaan
 	poolCfg.MaxConns = withDefaultInt32(cfg.MaxConns, defaultMaxConns)
 	poolCfg.MinConns = withDefaultInt32(cfg.MinConns, defaultMinConns)
 	poolCfg.MaxConnLifetime = withDefaultDuration(cfg.MaxConnLifetime, defaultMaxConnLifetime)
@@ -83,7 +83,7 @@ func NewPool(ctx context.Context, cfg PoolConfig) (*pgxpool.Pool, error) {
 
 // SetTenantID mengatur session variable app.tenant_id di PostgreSQL
 // untuk mengaktifkan RLS filtering pada koneksi saat ini.
-// Harus dipanggil sebelum menjalankan query tenant-scoped.
+// Harus dipanggil sebelum menjalankan kueri tenant-scoped.
 func SetTenantID(ctx context.Context, pool *pgxpool.Pool, tenantID string) error {
 	if tenantID == "" {
 		return fmt.Errorf("database: tenant_id tidak boleh kosong")

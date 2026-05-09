@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// Request/Response DTO — payload untuk PPPoE user operations
+// Permintaan/respons DTO - payload untuk PPPoE user operations
 // =============================================================================
 
 // CreatePPPoEUserRequest adalah payload untuk POST /api/v1/mikrotik/routers/:id/pppoe/users.
@@ -68,7 +68,7 @@ type SyncStatusSummary struct {
 }
 
 // =============================================================================
-// Incoming Event Payloads — payload event dari Billing API via Redis queue
+// Incoming Payload event - payload event dari Billing API via Redis queue
 // =============================================================================
 
 // CustomerActivatedPayload adalah payload event customer.activated.
@@ -125,11 +125,11 @@ type CustomerSuspendPayload struct {
 }
 
 // CustomerTerminatedPayload adalah payload event customer.terminated.
-// Identik dengan CustomerSuspendPayload — keduanya menjalankan removal sequence yang sama.
+// Identik dengan CustomerSuspendPayload - keduanya menjalankan removal sequence yang sama.
 type CustomerTerminatedPayload = CustomerSuspendPayload
 
 // PackageChangedPayload adalah payload event package.changed.
-// Diterima saat pelanggan upgrade/downgrade paket dan perlu update profile di router.
+// Diterima saat pelanggan upgrade/downgrade paket dan perlu perbarui profile di router.
 type PackageChangedPayload struct {
 	CustomerID          string `json:"customer_id"`
 	TenantID            string `json:"tenant_id"`
@@ -144,7 +144,7 @@ type PackageChangedPayload struct {
 }
 
 // =============================================================================
-// Outgoing Event Payloads — payload event yang dipublikasikan ke Redis queue
+// Outgoing Payload event - payload event yang dipublikasikan ke Redis queue
 // =============================================================================
 
 // CommandResultPayload adalah payload event mikrotik.command_result.

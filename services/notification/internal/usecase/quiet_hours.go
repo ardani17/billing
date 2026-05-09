@@ -8,7 +8,7 @@ import (
 )
 
 // =============================================================================
-// QuietHoursChecker — pengecekan jam tenang notifikasi
+// QuietHoursChecker - pengecekan jam tenang notifikasi
 // =============================================================================
 
 // QuietHoursChecker bertanggung jawab untuk mengecek apakah waktu saat ini
@@ -33,7 +33,7 @@ func NewQuietHoursChecker() *QuietHoursChecker {
 //   - start: jam mulai aktif dalam format HH:MM (contoh: "07:00")
 //   - end: jam selesai aktif dalam format HH:MM (contoh: "21:00")
 func (q *QuietHoursChecker) IsQuietHours(now time.Time, tz, start, end string) bool {
-	// Parse timezone tenant
+	// Parsing timezone tenant
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
 		// Jika timezone tidak valid, anggap bukan quiet hours (kirim saja)
@@ -43,7 +43,7 @@ func (q *QuietHoursChecker) IsQuietHours(now time.Time, tz, start, end string) b
 	// Konversi waktu ke timezone lokal tenant
 	localNow := now.In(loc)
 
-	// Parse jam mulai dan selesai aktif
+	// Parsing jam mulai dan selesai aktif
 	startTime, err := parseHHMM(start, localNow, loc)
 	if err != nil {
 		return false
@@ -53,9 +53,9 @@ func (q *QuietHoursChecker) IsQuietHours(now time.Time, tz, start, end string) b
 		return false
 	}
 
-	// Waktu lokal sebelum jam mulai aktif → quiet hours
-	// Waktu lokal pada atau setelah jam selesai aktif → quiet hours
-	// Waktu lokal dalam rentang [start, end) → bukan quiet hours
+	// Waktu lokal sebelum jam mulai aktif -> quiet hours
+	// Waktu lokal pada atau setelah jam selesai aktif -> quiet hours
+	// Waktu lokal dalam rentang [start, end) -> bukan quiet hours
 	return localNow.Before(startTime) || !localNow.Before(endTime)
 }
 
@@ -76,7 +76,7 @@ func (q *QuietHoursChecker) IsBypassEvent(eventType string) bool {
 func (q *QuietHoursChecker) CalculateScheduledAt(tz, start string) time.Time {
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
-		// Fallback ke Asia/Jakarta jika timezone tidak valid
+		// Cadangan ke Asia/Jakarta jika timezone tidak valid
 		loc, _ = time.LoadLocation("Asia/Jakarta")
 	}
 
@@ -84,7 +84,7 @@ func (q *QuietHoursChecker) CalculateScheduledAt(tz, start string) time.Time {
 
 	scheduled, err := parseHHMM(start, now, loc)
 	if err != nil {
-		// Fallback ke jam 07:00 jika format tidak valid
+		// Cadangan ke jam 07:00 jika format tidak valid
 		scheduled = time.Date(now.Year(), now.Month(), now.Day(), 7, 0, 0, 0, loc)
 	}
 
@@ -96,7 +96,7 @@ func (q *QuietHoursChecker) CalculateScheduledAt(tz, start string) time.Time {
 	return scheduled
 }
 
-// parseHHMM mem-parse string format "HH:MM" menjadi time.Time pada tanggal
+// parseHHMM mem-parsing string format "HH:MM" menjadi time.Time pada tanggal
 // yang sama dengan referensi, menggunakan lokasi yang diberikan.
 func parseHHMM(hhmm string, ref time.Time, loc *time.Location) (time.Time, error) {
 	var hour, minute int

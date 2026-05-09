@@ -14,7 +14,7 @@ CREATE TABLE node_photos (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index untuk query foto per node (exclude soft-deleted)
+-- Index untuk kueri foto per node (exclude hapus lunak)
 CREATE INDEX idx_node_photos_node
     ON node_photos (map_node_id)
     WHERE deleted_at IS NULL;

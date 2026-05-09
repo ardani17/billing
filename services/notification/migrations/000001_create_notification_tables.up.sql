@@ -28,7 +28,7 @@ CREATE POLICY tenant_update_notif_config ON notification_configs
 CREATE POLICY tenant_delete_notif_config ON notification_configs
     FOR DELETE USING (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Index untuk query performa
+-- Index untuk kueri performa
 CREATE INDEX idx_notif_config_tenant_enabled ON notification_configs (tenant_id, is_enabled);
 
 -- Tabel notification_templates: menyimpan template notifikasi per tenant.
@@ -113,7 +113,7 @@ CREATE POLICY tenant_update_notif_log ON notification_logs
 CREATE POLICY tenant_delete_notif_log ON notification_logs
     FOR DELETE USING (tenant_id = current_setting('app.tenant_id')::uuid);
 
--- Index untuk query performa
+-- Index untuk kueri performa
 CREATE INDEX idx_notif_log_tenant_customer ON notification_logs (tenant_id, customer_id);
 CREATE INDEX idx_notif_log_tenant_status ON notification_logs (tenant_id, status);
 CREATE INDEX idx_notif_log_tenant_created ON notification_logs (tenant_id, created_at DESC);

@@ -1,4 +1,4 @@
-// Package logger menyediakan factory untuk membuat zerolog logger
+// Paket logger menyediakan factory untuk membuat zerolog logger
 // yang sudah dikonfigurasi dengan output JSON, timestamp, dan nama service.
 package logger
 
@@ -13,7 +13,7 @@ import (
 // Config berisi konfigurasi untuk membuat logger baru.
 type Config struct {
 	// Level menentukan level log minimum: debug, info, warn, error, fatal.
-	// Jika tidak valid, default ke info.
+	// Jika tidak valid, bawaan ke info.
 	Level string
 
 	// ServiceName adalah nama service yang akan ditambahkan ke setiap log entry.
@@ -60,7 +60,7 @@ func New(cfg Config) zerolog.Logger {
 	return logger
 }
 
-// NewDefault membuat logger dengan konfigurasi default.
+// NewDefault membuat logger dengan konfigurasi bawaan.
 // Menggunakan level info dan output JSON (tanpa pretty mode).
 func NewDefault(serviceName string) zerolog.Logger {
 	return New(Config{
@@ -71,7 +71,7 @@ func NewDefault(serviceName string) zerolog.Logger {
 }
 
 // parseLevel mengkonversi string level ke zerolog.Level.
-// Jika string tidak valid, mengembalikan zerolog.InfoLevel sebagai default.
+// Jika string tidak valid, mengembalikan zerolog.InfoLevel sebagai bawaan.
 func parseLevel(level string) zerolog.Level {
 	switch strings.ToLower(strings.TrimSpace(level)) {
 	case "debug":
@@ -85,7 +85,7 @@ func parseLevel(level string) zerolog.Level {
 	case "fatal":
 		return zerolog.FatalLevel
 	default:
-		// Default ke info jika level tidak dikenali
+		// Bawaan ke info jika level tidak dikenali
 		return zerolog.InfoLevel
 	}
 }

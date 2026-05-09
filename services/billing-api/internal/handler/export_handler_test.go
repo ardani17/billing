@@ -1,5 +1,4 @@
 // export_handler_test.go berisi integration tests untuk export endpoints.
-// Test: request export (async 202), job status query, validation errors.
 package handler
 
 import (
@@ -16,9 +15,6 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// --- Setup helper ---
-
-// setupExportTestApp membuat Fiber app dengan mock ReportUsecase untuk export testing.
 func setupExportTestApp(mock *mockReportUsecase) *fiber.App {
 	logger := zerolog.New(io.Discard)
 	handler := NewExportHandler(mock, logger)
@@ -38,8 +34,6 @@ func setupExportTestApp(mock *mockReportUsecase) *fiber.App {
 
 	return app
 }
-
-// --- Test: Request Export ---
 
 func TestExportHandler_RequestExport_AsyncAccepted(t *testing.T) {
 	mock := &mockReportUsecase{
@@ -91,7 +85,6 @@ func TestExportHandler_RequestExport_ValidationError(t *testing.T) {
 	mock := &mockReportUsecase{}
 	app := setupExportTestApp(mock)
 
-	// Format tidak valid (bukan pdf/xlsx/csv)
 	body, _ := json.Marshal(map[string]interface{}{
 		"report_type": "revenue",
 		"format":      "invalid_format",
@@ -140,7 +133,7 @@ func TestExportHandler_RequestExport_InvalidReportType(t *testing.T) {
 	}
 }
 
-// --- Test: Job Status ---
+// --- Tes: Job Status ---
 
 func TestExportHandler_Status_Success(t *testing.T) {
 	mock := &mockReportUsecase{
@@ -202,7 +195,7 @@ func TestExportHandler_RequestExport_Unauthorized(t *testing.T) {
 	handler := NewExportHandler(mock, logger)
 
 	app := fiber.New()
-	// Tanpa middleware set tenant_id
+	// Tanpa middleware atur tenant_id
 	app.Post("/api/v1/reports/export", handler.RequestExport)
 
 	body, _ := json.Marshal(domain.ExportRequest{

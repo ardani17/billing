@@ -1,5 +1,4 @@
-// map_node_handler_test.go — unit test untuk MapNodeHandler.
-// Menggunakan mock MapNodeManager dan Fiber app.Test().
+// map_node_handler_test.go - unit test untuk MapNodeHandler.
 // Tenant context di-bypass dengan middleware test yang memanggil pkg/tenant.
 package handler
 
@@ -21,23 +20,22 @@ import (
 )
 
 // =============================================================================
-// Mock MapNodeManager
 // =============================================================================
 
 type mockMapNodeManager struct {
-	createNodeFn         func(ctx context.Context, tenantID string, req domain.CreateMapNodeRequest) (*domain.MapNodeResponse, error)
-	getNodeFn            func(ctx context.Context, id string) (*domain.MapNodeDetailResponse, error)
-	updateNodeFn         func(ctx context.Context, id string, req domain.UpdateMapNodeRequest) (*domain.MapNodeResponse, error)
-	deleteNodeFn         func(ctx context.Context, id string, performedBy string) error
-	listNodesFn          func(ctx context.Context, params domain.MapNodeListParams) ([]*domain.MapNodeWithRefResponse, error)
-	searchFn             func(ctx context.Context, tenantID, query string) ([]*domain.MapSearchResult, error)
-	uploadPhotoFn        func(ctx context.Context, nodeID string, file multipart.File, header *multipart.FileHeader, caption, uploadedBy string) (*domain.NodePhotoResponse, error)
-	listPhotosFn         func(ctx context.Context, nodeID string) ([]*domain.NodePhotoResponse, error)
-	deletePhotoFn        func(ctx context.Context, nodeID, photoID, performedBy string) error
-	getHistoryFn         func(ctx context.Context, nodeID string, limit, offset int) ([]*domain.MapChangeHistoryResponse, error)
-	listTrashedFn        func(ctx context.Context, tenantID string) ([]*domain.MapNodeResponse, error)
-	restoreNodeFn        func(ctx context.Context, id, performedBy string) error
-	getLabelSettingsFn   func(ctx context.Context, tenantID string) (*domain.MapLabelSettingsResponse, error)
+	createNodeFn          func(ctx context.Context, tenantID string, req domain.CreateMapNodeRequest) (*domain.MapNodeResponse, error)
+	getNodeFn             func(ctx context.Context, id string) (*domain.MapNodeDetailResponse, error)
+	updateNodeFn          func(ctx context.Context, id string, req domain.UpdateMapNodeRequest) (*domain.MapNodeResponse, error)
+	deleteNodeFn          func(ctx context.Context, id string, performedBy string) error
+	listNodesFn           func(ctx context.Context, params domain.MapNodeListParams) ([]*domain.MapNodeWithRefResponse, error)
+	searchFn              func(ctx context.Context, tenantID, query string) ([]*domain.MapSearchResult, error)
+	uploadPhotoFn         func(ctx context.Context, nodeID string, file multipart.File, header *multipart.FileHeader, caption, uploadedBy string) (*domain.NodePhotoResponse, error)
+	listPhotosFn          func(ctx context.Context, nodeID string) ([]*domain.NodePhotoResponse, error)
+	deletePhotoFn         func(ctx context.Context, nodeID, photoID, performedBy string) error
+	getHistoryFn          func(ctx context.Context, nodeID string, limit, offset int) ([]*domain.MapChangeHistoryResponse, error)
+	listTrashedFn         func(ctx context.Context, tenantID string) ([]*domain.MapNodeResponse, error)
+	restoreNodeFn         func(ctx context.Context, id, performedBy string) error
+	getLabelSettingsFn    func(ctx context.Context, tenantID string) (*domain.MapLabelSettingsResponse, error)
 	updateLabelSettingsFn func(ctx context.Context, tenantID string, req domain.UpdateLabelSettingsRequest) (*domain.MapLabelSettingsResponse, error)
 }
 
@@ -127,7 +125,6 @@ func (m *mockMapNodeManager) UpdateLabelSettings(ctx context.Context, tenantID s
 }
 
 // =============================================================================
-// Helper — setup test Fiber app untuk MapNode
 // =============================================================================
 
 const mapTestTenantID = "tenant-map-test-123"
@@ -137,7 +134,7 @@ func setupMapNodeTestApp(mgr domain.MapNodeManager) *fiber.App {
 	app := fiber.New()
 	handler := NewMapNodeHandler(mgr)
 
-	// Middleware test: set tenant_id di Go context
+	// Middleware test: atur tenant_id di Go context
 	app.Use(func(c *fiber.Ctx) error {
 		ctx := tenant.SetForTest(c.UserContext(), mapTestTenantID)
 		c.SetUserContext(ctx)
@@ -157,7 +154,6 @@ func setupMapNodeTestApp(mgr domain.MapNodeManager) *fiber.App {
 	return app
 }
 
-// parseMapAPIResponse mem-parse body respons ke domain.APIResponse.
 func parseMapAPIResponse(t *testing.T, body io.Reader) domain.APIResponse {
 	t.Helper()
 	var resp domain.APIResponse
@@ -182,7 +178,7 @@ func sampleMapNodeResponse() *domain.MapNodeResponse {
 }
 
 // =============================================================================
-// Test CreateNode — POST /api/v1/network-map/nodes
+// Tes CreateNode - POST /api/v1/network-map/nodes
 // =============================================================================
 
 func TestMapNodeCreate_Success(t *testing.T) {
@@ -260,7 +256,6 @@ func TestMapNodeCreate_MalformedJSON(t *testing.T) {
 }
 
 // =============================================================================
-// Test Error Mapping — domain errors → HTTP status codes
 // =============================================================================
 
 func TestMapNodeCreate_DuplicateError(t *testing.T) {
@@ -378,7 +373,6 @@ func TestMapNodeErrorMapping_InternalError(t *testing.T) {
 }
 
 // =============================================================================
-// Test Response Format — memastikan format respons sesuai standar
 // =============================================================================
 
 func TestMapNodeGetByID_ResponseFormat(t *testing.T) {

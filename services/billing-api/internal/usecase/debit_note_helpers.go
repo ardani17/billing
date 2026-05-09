@@ -20,7 +20,7 @@ func (uc *DebitNoteUsecase) createInvoiceFromDebitNote(
 	dueDate time.Time,
 	actor domain.ActorInfo,
 ) (string, error) {
-	// Generate nomor invoice
+	// Buat nomor invoice
 	periodMonth := int(dueDate.Month())
 	periodYear := dueDate.Year()
 

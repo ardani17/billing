@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel vpn_tunnels.
+-- Kueri SQL untuk operasi CRUD tabel vpn_tunnels.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel vpn_tunnels dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel vpn_tunnels dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateVPNTunnel :one
 INSERT INTO vpn_tunnels (
@@ -104,7 +103,7 @@ WHERE deleted_at IS NULL
 GROUP BY status;
 
 -- name: VPNTunnelNameExists :one
--- Mengecek apakah tunnel_name sudah ada di tenant (exclude ID tertentu untuk update).
+-- Mengecek apakah tunnel_name sudah ada di tenant (exclude ID tertentu untuk perbarui).
 SELECT EXISTS(
     SELECT 1 FROM vpn_tunnels
     WHERE tenant_id = $1 AND tunnel_name = $2 AND id != $3 AND deleted_at IS NULL
@@ -118,7 +117,7 @@ SELECT EXISTS(
 ) AS exists;
 
 -- name: UpdateVPNTunnelStatus :exec
--- Memperbarui status tunnel dan field terkait health check.
+-- Memperbarui status tunnel dan field terkait health cek.
 UPDATE vpn_tunnels SET
     status = $2,
     last_handshake_at = $3,
@@ -129,7 +128,7 @@ WHERE id = $1;
 
 -- name: GetConnectedVPNTunnels :many
 -- Mengambil semua tunnel dengan status 'connected' (cross-tenant untuk health monitor).
--- Query ini dijalankan tanpa RLS context oleh health monitor goroutine.
+-- Kueri ini dijalankan tanpa RLS context oleh health monitor goroutine.
 SELECT id, tenant_id, router_id, tunnel_name, protocol, vpn_ip,
     server_endpoint, server_public_key, client_public_key,
     client_private_key_encrypted, pre_shared_key_encrypted,
@@ -141,8 +140,8 @@ FROM vpn_tunnels
 WHERE status = 'connected' AND deleted_at IS NULL;
 
 -- name: GetDisconnectedVPNTunnels :many
--- Mengambil semua tunnel dengan status 'disconnected' (cross-tenant untuk recovery check).
--- Query ini dijalankan tanpa RLS context oleh health monitor goroutine.
+-- Mengambil semua tunnel dengan status 'disconnected' (cross-tenant untuk recovery cek).
+-- Kueri ini dijalankan tanpa RLS context oleh health monitor goroutine.
 SELECT id, tenant_id, router_id, tunnel_name, protocol, vpn_ip,
     server_endpoint, server_public_key, client_public_key,
     client_private_key_encrypted, pre_shared_key_encrypted,

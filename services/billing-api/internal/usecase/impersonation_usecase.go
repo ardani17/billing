@@ -52,7 +52,7 @@ func (uc *ImpersonationUsecase) StartImpersonation(ctx context.Context, imperson
 		return nil, domain.ErrForbidden
 	}
 
-	// Generate JWT dengan claims target user + impersonator_id
+	// Buat JWT dengan claims target user + impersonator_id
 	tokenCfg := auth.TokenConfig{
 		Secret: uc.jwtSecret,
 		Expiry: uc.jwtExpiry,
@@ -78,7 +78,7 @@ func (uc *ImpersonationUsecase) StartImpersonation(ctx context.Context, imperson
 }
 
 // StopImpersonation mengembalikan JWT ke claims super admin asli.
-// Mengambil data super admin berdasarkan impersonatorID dan generate JWT baru.
+// Mengambil data super admin berdasarkan impersonatorID dan buat JWT baru.
 func (uc *ImpersonationUsecase) StopImpersonation(ctx context.Context, impersonatorID string) (*domain.TokenPair, error) {
 	// Ambil data super admin berdasarkan impersonatorID
 	superAdmin, err := uc.userRepo.GetByID(ctx, impersonatorID)
@@ -86,7 +86,7 @@ func (uc *ImpersonationUsecase) StopImpersonation(ctx context.Context, impersona
 		return nil, fmt.Errorf("gagal mengambil data super admin: %w", err)
 	}
 
-	// Generate JWT dengan claims super admin asli (tanpa impersonator_id)
+	// Buat JWT dengan claims super admin asli (tanpa impersonator_id)
 	tokenCfg := auth.TokenConfig{
 		Secret: uc.jwtSecret,
 		Expiry: uc.jwtExpiry,

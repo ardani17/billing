@@ -82,7 +82,7 @@ func (uc *PaymentUsecase) RecordMultiPayment(ctx context.Context, req domain.Mul
 		}
 	}
 
-	// Siapkan input FIFO dari invoices (sudah terurut due_date ASC dari query)
+	// Siapkan input FIFO dari invoices (sudah terurut due_date ASC dari kueri)
 	fifoInputs := make([]domain.FIFOInput, 0, len(invoices))
 	for _, inv := range invoices {
 		fifoInputs = append(fifoInputs, domain.FIFOInput{
@@ -97,7 +97,7 @@ func (uc *PaymentUsecase) RecordMultiPayment(ctx context.Context, req domain.Mul
 	// Alokasi pembayaran FIFO
 	result := domain.AllocatePaymentFIFO(fifoInputs, req.Amount)
 
-	// Generate receipt_group_id dan nomor kwitansi
+	// Buat receipt_group_id dan nomor kwitansi
 	receiptGroupID := uuid.New().String()
 	now := time.Now()
 	seq, err := uc.receiptSeqRepo.NextSequence(ctx, tenantID, now.Year(), int(now.Month()))
@@ -128,13 +128,13 @@ func (uc *PaymentUsecase) RecordMultiPayment(ctx context.Context, req domain.Mul
 			}
 		}
 
-		// Update paid_amount
+		// Perbarui paid_amount
 		updated, err := uc.invoiceRepo.UpdatePaidAmount(ctx, alloc.InvoiceID, alloc.NewPaidAmount, version)
 		if err != nil {
 			return nil, fmt.Errorf("%w: gagal update paid_amount invoice", domain.ErrConcurrentModification)
 		}
 
-		// Update status jika berubah
+		// Perbarui status jika berubah
 		for _, inv := range invoices {
 			if inv.ID == alloc.InvoiceID && alloc.NewStatus != inv.Status {
 				if _, err := uc.invoiceRepo.UpdateStatus(ctx, alloc.InvoiceID, alloc.NewStatus, updated.Version); err != nil {
@@ -155,7 +155,7 @@ func (uc *PaymentUsecase) RecordMultiPayment(ctx context.Context, req domain.Mul
 		uc.writePaymentAuditLog(ctx, tenantID, alloc.InvoiceID, "invoice.payment_recorded", actor, metadata)
 	}
 
-	// Handle kelebihan bayar → tambah ke credit_balance
+	// Tangani kelebihan bayar -> tambah ke credit_balance
 	if result.ExcessToCredit > 0 {
 		if err := uc.adjustPaymentCreditBalance(ctx, req.CustomerID, result.ExcessToCredit); err != nil {
 			return nil, fmt.Errorf("gagal menambah kredit pelanggan: %w", err)
@@ -167,7 +167,7 @@ func (uc *PaymentUsecase) RecordMultiPayment(ctx context.Context, req domain.Mul
 		return nil, fmt.Errorf("gagal commit transaksi: %w", err)
 	}
 
-	// Publish event (non-blocking, setelah commit)
+	// Terbitkan event (non-blocking, setelah commit)
 	uc.publishPaymentEvent(tenantID, "payment.recorded", domain.PaymentRecordedPayload{
 		TenantID:      tenantID,
 		CustomerID:    req.CustomerID,
@@ -177,8 +177,8 @@ func (uc *PaymentUsecase) RecordMultiPayment(ctx context.Context, req domain.Mul
 		InvoiceCount:  len(result.Allocations),
 	})
 
-	// Publish event sinkronisasi payment link untuk setiap invoice yang menerima alokasi.
-	// Memicu SyncPaymentLinkAmount di gateway worker agar payment link yang aktif
+	// Terbitkan event sinkronisasi link pembayaran untuk setiap invoice yang menerima alokasi.
+	// Memicu SyncPaymentLinkAmount di gateway worker agar link pembayaran yang aktif
 	// di-expire dan di-regenerate dengan jumlah terbaru.
 	for _, alloc := range result.Allocations {
 		uc.publishSyncPaymentLinkEvent(tenantID, alloc.InvoiceID, req.CustomerID)
@@ -211,7 +211,7 @@ func (uc *PaymentUsecase) PayAll(ctx context.Context, req domain.PayAllRequest, 
 		totalArrears += inv.TotalAmount - inv.PaidAmount
 	}
 
-	// Delegasikan ke RecordMultiPayment dengan amount = total tunggakan
+	// Delegasikan ke RecordMultiPayment dengan nominal = total tunggakan
 	multiReq := domain.MultiPaymentRequest{
 		CustomerID:      req.CustomerID,
 		Amount:          totalArrears,

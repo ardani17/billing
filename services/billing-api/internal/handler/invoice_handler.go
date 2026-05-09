@@ -1,6 +1,5 @@
-// invoice_handler.go menangani HTTP request untuk manajemen invoice (CRUD).
-// Termasuk: list, get, create, create prepaid, dan edit.
-// Endpoint read-only (summary, PDF, audit logs) ada di invoice_handler_read.go.
+// invoice_handler.go menangani HTTP permintaan untuk manajemen invoice (CRUD).
+// Endpoint hanya baca (summary, PDF, audit logs) ada di invoice_handler_read.go.
 package handler
 
 import (
@@ -16,7 +15,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// InvoiceHandler menangani HTTP request untuk manajemen invoice.
+// InvoiceHandler menangani HTTP permintaan untuk manajemen invoice.
 type InvoiceHandler struct {
 	invoiceUsecase *usecase.InvoiceUsecase
 	cronUsecase    *usecase.InvoiceCronUsecase
@@ -33,13 +32,13 @@ func NewInvoiceHandler(invoiceUsecase *usecase.InvoiceUsecase, logger zerolog.Lo
 	}
 }
 
-// SetCronUsecase memasang usecase cron agar admin dapat memicu generate invoice on-demand.
+// SetCronUsecase memasang usecase cron agar admin dapat memicu buat invoice on-demand.
 func (h *InvoiceHandler) SetCronUsecase(cronUsecase *usecase.InvoiceCronUsecase) {
 	h.cronUsecase = cronUsecase
 }
 
 // List menangani GET /v1/invoices.
-// Mengembalikan daftar invoice dengan paginasi, filter, dan sorting.
+// Mengembalikan daftar invoice dengan paginasi, filter, dan pengurutan.
 func (h *InvoiceHandler) List(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -58,7 +57,7 @@ func (h *InvoiceHandler) List(c *fiber.Ctx) error {
 	params.SortBy = c.Query("sort_by")
 	params.SortOrder = c.Query("sort_order")
 
-	// Parse period_month dan period_year (opsional)
+	// Parsing period_month dan period_year (opsional)
 	if pmStr := c.Query("period_month"); pmStr != "" {
 		pm, err := strconv.Atoi(pmStr)
 		if err == nil {
@@ -107,7 +106,7 @@ func (h *InvoiceHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, detail)
 }
 
-// Create menangani POST /v1/invoices.
+// Buat menangani POST /v1/invoices.
 // Membuat invoice manual dengan item-item yang ditentukan.
 func (h *InvoiceHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -138,7 +137,7 @@ func (h *InvoiceHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, invoice)
 }
 
-// GenerateDue menangani POST /v1/invoices/generate-due.
+// GenerateDue menangani POST /v1/invoices/buat-due.
 // Menjalankan generator invoice untuk tenant aktif secara on-demand.
 func (h *InvoiceHandler) GenerateDue(c *fiber.Ctx) error {
 	if h.cronUsecase == nil {
@@ -222,7 +221,7 @@ func (h *InvoiceHandler) Edit(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, invoice)
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *InvoiceHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -232,7 +231,7 @@ func (h *InvoiceHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapInvoiceError memetakan domain error ke HTTP error response untuk invoice.
+// mapInvoiceError memetakan domain error ke HTTP error respons untuk invoice.
 func (h *InvoiceHandler) mapInvoiceError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrInvoiceNotFound):

@@ -11,7 +11,7 @@ type RouterConfig struct {
 	// App adalah instance Fiber application
 	App *fiber.App
 
-	// HealthHandler adalah handler untuk health check endpoint
+	// HealthHandler adalah handler untuk health cek endpoint
 	HealthHandler *HealthHandler
 
 	// LogHandler adalah handler untuk notification logs
@@ -29,18 +29,18 @@ type RouterConfig struct {
 	// JWTSecret adalah secret key untuk validasi JWT token
 	JWTSecret string
 
-	// Logger adalah instance zerolog untuk request logging
+	// Logger adalah instance zerolog untuk permintaan logging
 	Logger zerolog.Logger
 }
 
 // RegisterRoutes mendaftarkan semua route pada Fiber app.
-// Health check endpoint bersifat publik (tanpa auth).
+// Health cek endpoint bersifat publik (tanpa auth).
 // Route lainnya dilindungi oleh auth dan tenant middleware.
 func RegisterRoutes(cfg RouterConfig) {
-	// Middleware logging untuk semua request
+	// Middleware logging untuk semua permintaan
 	cfg.App.Use(middleware.RequestLogger(cfg.Logger))
 
-	// Route publik — health check (tanpa autentikasi)
+	// Route publik - health cek (tanpa autentikasi)
 	cfg.App.Get("/healthz", cfg.HealthHandler.Healthz)
 	cfg.App.Get("/readyz", cfg.HealthHandler.Readyz)
 

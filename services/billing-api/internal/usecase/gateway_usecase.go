@@ -1,5 +1,5 @@
 // gateway_usecase.go berisi struct GatewayUsecase, constructor, dan method CRUD konfigurasi gateway.
-// Method payment link ada di file terpisah (gateway_link.go).
+// Method link pembayaran ada di file terpisah (gateway_link.go).
 package usecase
 
 import (
@@ -16,7 +16,7 @@ import (
 )
 
 // GatewayUsecase mengimplementasikan business logic untuk konfigurasi gateway
-// dan manajemen payment link.
+// dan manajemen link pembayaran.
 type GatewayUsecase struct {
 	configRepo   domain.GatewayConfigRepository
 	linkRepo     domain.PaymentLinkRepository
@@ -153,7 +153,7 @@ func (uc *GatewayUsecase) UpdateConfig(ctx context.Context, id string, req domai
 	return updated, nil
 }
 
-// DeactivateConfig menonaktifkan konfigurasi gateway (soft delete).
+// DeactivateConfig menonaktifkan konfigurasi gateway (hapus lunak).
 func (uc *GatewayUsecase) DeactivateConfig(ctx context.Context, id string) error {
 	if err := uc.configRepo.Deactivate(ctx, id); err != nil {
 		return fmt.Errorf("gagal menonaktifkan konfigurasi gateway: %w", err)
@@ -179,7 +179,7 @@ func (uc *GatewayUsecase) ListConfigs(ctx context.Context, tenantID string) ([]*
 	return configs, nil
 }
 
-// TestConfig menguji koneksi ke payment gateway dengan timeout 10 detik.
+// TestConfig menguji koneksi ke gateway pembayaran dengan timeout 10 detik.
 func (uc *GatewayUsecase) TestConfig(ctx context.Context, id string) (*domain.GatewayTestResult, error) {
 	config, err := uc.configRepo.GetByID(ctx, id)
 	if err != nil {

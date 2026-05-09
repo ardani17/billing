@@ -1,4 +1,4 @@
-// invoice_handler_read.go menangani HTTP request read-only untuk invoice.
+// invoice_handler_read.go menangani HTTP permintaan hanya baca untuk invoice.
 // Termasuk: summary, PDF, dan audit logs.
 package handler
 

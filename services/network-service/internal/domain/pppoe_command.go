@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// RouterOS Command Parameter Structs — parameter untuk operasi RouterOS API
+// RouterOS Command Parameter Structs - parameter untuk operasi RouterOS API
 // =============================================================================
 
 // PPPoESecretParams berisi parameter untuk membuat PPPoE secret di router.

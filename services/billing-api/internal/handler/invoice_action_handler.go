@@ -1,4 +1,4 @@
-// invoice_action_handler.go menangani HTTP request untuk aksi invoice.
+// invoice_action_handler.go menangani HTTP permintaan untuk aksi invoice.
 // Termasuk: cancel, record payment, bulk reminder, bulk cancel, bulk PDF, dan export CSV.
 package handler
 
@@ -14,7 +14,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// InvoiceActionHandler menangani HTTP request untuk aksi invoice.
+// InvoiceActionHandler menangani HTTP permintaan untuk aksi invoice.
 type InvoiceActionHandler struct {
 	actionUsecase *usecase.InvoiceActionUsecase
 	validate      *validator.Validate
@@ -201,7 +201,7 @@ func (h *InvoiceActionHandler) ExportCSV(c *fiber.Ctx) error {
 	return c.Send(csvBytes)
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *InvoiceActionHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -211,7 +211,7 @@ func (h *InvoiceActionHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapActionError memetakan domain error ke HTTP error response untuk aksi invoice.
+// mapActionError memetakan domain error ke HTTP error respons untuk aksi invoice.
 func (h *InvoiceActionHandler) mapActionError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrInvoiceNotFound):

@@ -56,7 +56,7 @@ CREATE POLICY tenant_insert ON invoices
 ALTER TABLE invoices ADD CONSTRAINT uq_invoices_tenant_invoice_number
     UNIQUE (tenant_id, invoice_number);
 
--- Composite indexes untuk performa query
+-- Composite indexes untuk performa kueri
 CREATE INDEX idx_invoices_tenant_status ON invoices(tenant_id, status);
 CREATE INDEX idx_invoices_tenant_customer ON invoices(tenant_id, customer_id);
 CREATE INDEX idx_invoices_tenant_period ON invoices(tenant_id, period_year, period_month);

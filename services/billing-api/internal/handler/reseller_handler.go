@@ -1,5 +1,4 @@
-// reseller_handler.go menangani HTTP request untuk manajemen reseller (admin).
-// Termasuk: list, get, create, update.
+// reseller_handler.go menangani HTTP permintaan untuk manajemen reseller (admin).
 package handler
 
 import (
@@ -15,7 +14,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// ResellerHandler menangani HTTP request untuk manajemen reseller.
+// ResellerHandler menangani HTTP permintaan untuk manajemen reseller.
 type ResellerHandler struct {
 	resellerUsecase *usecase.ResellerUsecase
 	validate        *validator.Validate
@@ -23,7 +22,7 @@ type ResellerHandler struct {
 }
 
 // NewResellerHandler membuat instance baru ResellerHandler.
-// Mendaftarkan custom validator phone_id untuk format telepon Indonesia.
+// Mendaftarkan kustom validator phone_id untuk format telepon Indonesia.
 func NewResellerHandler(resellerUsecase *usecase.ResellerUsecase, logger zerolog.Logger) *ResellerHandler {
 	v := validator.New()
 	RegisterCustomValidators(v)
@@ -35,7 +34,7 @@ func NewResellerHandler(resellerUsecase *usecase.ResellerUsecase, logger zerolog
 }
 
 // List menangani GET /v1/resellers.
-// Mengembalikan daftar reseller dengan paginasi, filter, dan sorting.
+// Mengembalikan daftar reseller dengan paginasi, filter, dan pengurutan.
 func (h *ResellerHandler) List(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
@@ -86,7 +85,7 @@ func (h *ResellerHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, detail)
 }
 
-// Create menangani POST /v1/resellers.
+// Buat menangani POST /v1/resellers.
 // Membuat reseller baru dengan status aktif.
 func (h *ResellerHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -117,7 +116,7 @@ func (h *ResellerHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, reseller)
 }
 
-// Update menangani PUT /v1/resellers/:id.
+// Perbarui menangani PUT /v1/resellers/:id.
 // Memperbarui data reseller.
 func (h *ResellerHandler) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -148,7 +147,7 @@ func (h *ResellerHandler) Update(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, reseller)
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *ResellerHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -158,7 +157,7 @@ func (h *ResellerHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapResellerError memetakan domain error ke HTTP error response untuk reseller.
+// mapResellerError memetakan domain error ke HTTP error respons untuk reseller.
 func (h *ResellerHandler) mapResellerError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrResellerNotFound):

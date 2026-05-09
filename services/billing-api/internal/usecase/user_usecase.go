@@ -93,7 +93,7 @@ func (uc *UserManagementUsecase) UpdateUser(ctx context.Context, userID string, 
 		return nil, fmt.Errorf("gagal mengambil user: %w", err)
 	}
 
-	// Update field yang diberikan (preserve tenant_id)
+	// Perbarui field yang diberikan (preserve tenant_id)
 	if req.Name != "" {
 		user.Name = req.Name
 	}
@@ -171,7 +171,7 @@ func (uc *UserManagementUsecase) DeleteUser(ctx context.Context, userID string, 
 }
 
 // ResetUserPassword mengirim email reset password ke user target.
-// Generate token reset dan enqueue email via queue.
+// Buat token reset dan antrekan email via queue.
 func (uc *UserManagementUsecase) ResetUserPassword(ctx context.Context, userID string) error {
 	// Ambil data user
 	user, err := uc.userRepo.GetByID(ctx, userID)
@@ -184,7 +184,7 @@ func (uc *UserManagementUsecase) ResetUserPassword(ctx context.Context, userID s
 		return fmt.Errorf("gagal invalidate token lama: %w", err)
 	}
 
-	// Generate token reset password baru
+	// Buat token reset password baru
 	plainToken, tokenHash, err := GenerateSecureToken()
 	if err != nil {
 		return fmt.Errorf("gagal generate token: %w", err)

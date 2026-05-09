@@ -1,5 +1,4 @@
-// schedule_handler.go menangani HTTP request untuk CRUD jadwal laporan otomatis.
-// Termasuk: List, Create, Update, Delete schedules.
+// schedule_handler.go menangani HTTP permintaan untuk CRUD jadwal laporan otomatis.
 package handler
 
 import (
@@ -12,7 +11,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// ScheduleHandler menangani HTTP request untuk jadwal laporan.
+// ScheduleHandler menangani HTTP permintaan untuk jadwal laporan.
 type ScheduleHandler struct {
 	scheduleUsecase domain.ScheduleUsecase
 	validate        *validator.Validate
@@ -45,7 +44,7 @@ func (h *ScheduleHandler) List(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, schedules)
 }
 
-// Create menangani POST /v1/reports/schedules.
+// Buat menangani POST /v1/reports/schedules.
 // Membuat jadwal laporan baru.
 func (h *ScheduleHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -76,7 +75,7 @@ func (h *ScheduleHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, schedule)
 }
 
-// Update menangani PUT /v1/reports/schedules/:id.
+// Perbarui menangani PUT /v1/reports/schedules/:id.
 // Memperbarui konfigurasi jadwal laporan.
 func (h *ScheduleHandler) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -105,7 +104,7 @@ func (h *ScheduleHandler) Update(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, schedule)
 }
 
-// Delete menangani DELETE /v1/reports/schedules/:id.
+// Hapus menangani DELETE /v1/reports/schedules/:id.
 // Menonaktifkan jadwal laporan.
 func (h *ScheduleHandler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -130,7 +129,7 @@ func (h *ScheduleHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapScheduleError memetakan domain error ke HTTP error response untuk jadwal.
+// mapScheduleError memetakan domain error ke HTTP error respons untuk jadwal.
 func (h *ScheduleHandler) mapScheduleError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrReportScheduleNotFound):

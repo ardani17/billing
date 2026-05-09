@@ -8,24 +8,24 @@ import (
 )
 
 // =============================================================================
-// Konstanta Default Label — nilai default label per tipe node
+// Konstanta Bawaan Label - nilai bawaan label per tipe node
 // =============================================================================
 
 // DefaultMinZoomLevel adalah level zoom minimum untuk menampilkan label di peta.
 // Label hanya ditampilkan saat zoom level >= 15.
 const DefaultMinZoomLevel = 15
 
-// DefaultOLTLabels berisi label default untuk node OLT: name, brand_model, ont_count.
+// DefaultOLTLabels berisi label bawaan untuk node OLT: name, brand_model, ont_count.
 var DefaultOLTLabels = json.RawMessage(`["name","brand_model","ont_count"]`)
 
-// DefaultODPLabels berisi label default untuk node ODP: name, splitter_type, capacity.
+// DefaultODPLabels berisi label bawaan untuk node ODP: name, splitter_type, capacity.
 var DefaultODPLabels = json.RawMessage(`["name","splitter_type","capacity"]`)
 
-// DefaultONTLabels berisi label default untuk node ONT: customer_name, package.
+// DefaultONTLabels berisi label bawaan untuk node ONT: customer_name, package.
 var DefaultONTLabels = json.RawMessage(`["customer_name","package"]`)
 
 // =============================================================================
-// MapLabelSettings Entity — konfigurasi label per tenant
+// MapLabelSettings Entitas - konfigurasi label per tenant
 // =============================================================================
 
 // MapLabelSettings merepresentasikan konfigurasi label per tenant.
@@ -42,7 +42,7 @@ type MapLabelSettings struct {
 	UpdatedAt    time.Time       `json:"updated_at"`
 }
 
-// NewDefaultLabelSettings membuat MapLabelSettings baru dengan nilai default.
+// NewDefaultLabelSettings membuat MapLabelSettings baru dengan nilai bawaan.
 // Digunakan saat tenant belum memiliki konfigurasi label.
 func NewDefaultLabelSettings(tenantID string) MapLabelSettings {
 	now := time.Now()

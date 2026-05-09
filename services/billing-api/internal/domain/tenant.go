@@ -1,5 +1,5 @@
 // Package domain berisi entity dan interface bisnis untuk billing-api.
-// Layer domain tidak boleh mengimpor package dari layer lain (handler, repository).
+// Layer domain tidak boleh mengimpor package dari layer lain (handler, repositori).
 package domain
 
 import "time"

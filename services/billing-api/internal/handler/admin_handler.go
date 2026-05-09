@@ -1,4 +1,4 @@
-// admin_handler.go menangani HTTP request untuk fitur super admin.
+// admin_handler.go menangani HTTP permintaan untuk fitur super admin.
 // Termasuk: start impersonation dan stop impersonation.
 package handler
 
@@ -24,7 +24,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// AdminHandler menangani HTTP request untuk fitur super admin (impersonation).
+// AdminHandler menangani HTTP permintaan untuk fitur super admin (impersonation).
 type AdminHandler struct {
 	impersonationUsecase *usecase.ImpersonationUsecase
 	db                   *pgxpool.Pool
@@ -1712,7 +1712,7 @@ func (h *AdminHandler) PlatformSettingsUpdate(c *fiber.Ctx) error {
 	return h.PlatformSettings(c)
 }
 
-// mapAdminError memetakan domain error ke HTTP error response untuk admin operations.
+// mapAdminError memetakan domain error ke HTTP error respons untuk admin operations.
 func (h *AdminHandler) mapAdminError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrForbidden):

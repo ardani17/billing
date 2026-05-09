@@ -20,22 +20,13 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// Feature: customer-crud, Property 7: Validation Error Aggregation
-// **Validates: Requirements 22.8**
+// **Memvalidasi: Kebutuhan 22.8**
 //
-// For any request body containing multiple invalid fields, the validation
-// response SHALL return HTTP 400 with error code VALIDATION_ERROR and an
-// array of field-level error details covering ALL invalid fields in a single
-// response (not just the first error encountered).
 
-// invalidFieldGenerator generates a CreateCustomerRequest with a random
-// subset of fields set to invalid values. It returns the request and the
-// set of field names that are expected to fail validation.
 func generateInvalidRequest(t *rapid.T) (domain.CreateCustomerRequest, map[string]bool) {
 	expectedErrors := make(map[string]bool)
 
 	req := domain.CreateCustomerRequest{
-		// Start with valid defaults
 		Name:             "Valid Name",
 		Phone:            "+6281234567890",
 		Address:          "Jl. Valid Address No. 1",
@@ -47,66 +38,56 @@ func generateInvalidRequest(t *rapid.T) (domain.CreateCustomerRequest, map[strin
 		ConnectionMethod: "pppoe",
 	}
 
-	// Randomly invalidate fields (at least 2 must be invalid)
 	invalidCount := 0
 
-	// Name: make invalid (too short)
 	if rapid.Bool().Draw(t, "invalidName") {
 		req.Name = "AB" // less than 3 chars
 		expectedErrors["name"] = true
 		invalidCount++
 	}
 
-	// Phone: make invalid (wrong format)
 	if rapid.Bool().Draw(t, "invalidPhone") {
-		req.Phone = "08123" // doesn't start with +62
+		req.Phone = "08123" // doesn't start dengan +62
 		expectedErrors["phone"] = true
 		invalidCount++
 	}
 
-	// Address: make invalid (empty)
 	if rapid.Bool().Draw(t, "invalidAddress") {
 		req.Address = ""
 		expectedErrors["address"] = true
 		invalidCount++
 	}
 
-	// DueDate: make invalid (out of range)
 	if rapid.Bool().Draw(t, "invalidDueDate") {
 		req.DueDate = 30 // > 28
 		expectedErrors["due_date"] = true
 		invalidCount++
 	}
 
-	// ConnectionMethod: make invalid
 	if rapid.Bool().Draw(t, "invalidConnectionMethod") {
 		req.ConnectionMethod = "invalid_method"
 		expectedErrors["connection_method"] = true
 		invalidCount++
 	}
 
-	// PackageID: make invalid (not UUID)
 	if rapid.Bool().Draw(t, "invalidPackageID") {
 		req.PackageID = "not-a-uuid"
 		expectedErrors["package_id"] = true
 		invalidCount++
 	}
 
-	// ActivationDate: make invalid (wrong format)
 	if rapid.Bool().Draw(t, "invalidActivationDate") {
 		req.ActivationDate = "not-a-date"
 		expectedErrors["activation_date"] = true
 		invalidCount++
 	}
 
-	// Email: make invalid (bad format)
 	if rapid.Bool().Draw(t, "invalidEmail") {
 		req.Email = "not-an-email"
 		expectedErrors["email"] = true
 		invalidCount++
 	}
 
-	// Ensure at least 2 fields are invalid
 	if invalidCount < 2 {
 		req.Name = "AB"
 		expectedErrors["name"] = true
@@ -121,10 +102,9 @@ func TestProperty_ValidationErrorAggregation(t *testing.T) {
 	v := validator.New()
 	RegisterCustomValidators(v)
 
-	// Create a minimal Fiber app for testing
 	app := fiber.New()
 
-	// Test endpoint that validates CreateCustomerRequest
+	// Tes endpoint that validates CreateCustomerRequest
 	app.Post("/test-validate", func(c *fiber.Ctx) error {
 		var req domain.CreateCustomerRequest
 		if err := c.BodyParser(&req); err != nil {
@@ -146,40 +126,33 @@ func TestProperty_ValidationErrorAggregation(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		req, expectedErrors := generateInvalidRequest(t)
 
-		// Marshal request to JSON
 		body, err := json.Marshal(req)
 		if err != nil {
 			t.Fatalf("failed to marshal request: %v", err)
 		}
 
-		// Create HTTP request
 		httpReq := httptest.NewRequest("POST", "/test-validate", bytes.NewReader(body))
 		httpReq.Header.Set("Content-Type", "application/json")
 
-		// Execute request
 		resp, err := app.Test(httpReq, -1)
 		if err != nil {
 			t.Fatalf("failed to execute request: %v", err)
 		}
 
-		// Read response body
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			t.Fatalf("failed to read response body: %v", err)
 		}
 
-		// Property 1: Response status must be 400
 		if resp.StatusCode != fiber.StatusBadRequest {
 			t.Fatalf("expected status 400, got %d. Body: %s", resp.StatusCode, string(respBody))
 		}
 
-		// Parse response
 		var apiResp domain.APIResponse
 		if err := json.Unmarshal(respBody, &apiResp); err != nil {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
 
-		// Property 2: Error code must be VALIDATION_ERROR
 		if apiResp.Error == nil {
 			t.Fatal("expected error in response, got nil")
 		}
@@ -187,7 +160,6 @@ func TestProperty_ValidationErrorAggregation(t *testing.T) {
 			t.Fatalf("expected error code VALIDATION_ERROR, got %s", apiResp.Error.Code)
 		}
 
-		// Property 3: Details must contain errors for ALL invalid fields
 		returnedFields := make(map[string]bool)
 		for _, detail := range apiResp.Error.Details {
 			returnedFields[detail.Field] = true
@@ -200,8 +172,6 @@ func TestProperty_ValidationErrorAggregation(t *testing.T) {
 			}
 		}
 
-		// Property 4: Number of returned errors must be >= number of expected errors
-		// (there may be additional errors from dependent validations)
 		if len(apiResp.Error.Details) < len(expectedErrors) {
 			t.Fatalf("expected at least %d validation errors, got %d. Expected fields: %v, Got details: %v",
 				len(expectedErrors), len(apiResp.Error.Details), expectedErrors, apiResp.Error.Details)
@@ -209,17 +179,14 @@ func TestProperty_ValidationErrorAggregation(t *testing.T) {
 	})
 }
 
-// --- Unit Tests for CustomerHandler ---
+// --- Unit Tests untuk CustomerHandler ---
 
-// mockCustomerUsecase is a mock implementation of CustomerUsecase methods
-// used for handler-level testing. It wraps a real CustomerUsecase with mock repos.
 type testHandlerSetup struct {
 	app          *fiber.App
 	customerRepo *mockHandlerCustomerRepo
 	auditLogRepo *mockHandlerAuditLogRepo
 }
 
-// mockHandlerCustomerRepo is a simplified in-memory customer repo for handler tests.
 type mockHandlerCustomerRepo struct {
 	customers   map[string]*domain.Customer
 	seqByTenant map[string]int
@@ -403,7 +370,6 @@ func (m *mockHandlerCustomerRepo) SearchForPayment(_ context.Context, _, _ strin
 	return nil, nil
 }
 
-// mockHandlerAuditLogRepo is a simplified in-memory audit log repo for handler tests.
 type mockHandlerAuditLogRepo struct {
 	logs []*domain.AuditLog
 }
@@ -429,7 +395,6 @@ func (m *mockHandlerAuditLogRepo) ListByEntity(_ context.Context, entityType, en
 	return result, nil
 }
 
-// setupTestApp creates a Fiber app with a real CustomerUsecase backed by mock repos.
 func setupTestApp() *testHandlerSetup {
 	customerRepo := newMockHandlerCustomerRepo()
 	auditLogRepo := newMockHandlerAuditLogRepo()
@@ -440,8 +405,7 @@ func setupTestApp() *testHandlerSetup {
 
 	app := fiber.New()
 
-	// Set up routes matching the real router (without auth/tenant middleware)
-	// We'll set tenant_id/user_id via middleware for testing
+	// We'll atur tenant_id/user_id via middleware untuk testing
 	setLocals := func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "test-tenant-id")
 		c.Locals("user_id", "test-user-id")
@@ -476,7 +440,6 @@ func setupTestApp() *testHandlerSetup {
 	}
 }
 
-// validCreateBody returns a valid JSON body for creating a customer.
 func validCreateBody() []byte {
 	body, _ := json.Marshal(domain.CreateCustomerRequest{
 		Name:             "Ahmad Rizki",
@@ -491,8 +454,6 @@ func validCreateBody() []byte {
 	})
 	return body
 }
-
-// --- Create endpoint tests ---
 
 func TestCustomerHandler_Create_Success(t *testing.T) {
 	setup := setupTestApp()
@@ -522,7 +483,7 @@ func TestCustomerHandler_Create_Success(t *testing.T) {
 func TestCustomerHandler_Create_ValidationError(t *testing.T) {
 	setup := setupTestApp()
 
-	// Missing required fields
+	// Missing required field
 	body, _ := json.Marshal(map[string]interface{}{
 		"name": "AB", // too short
 	})
@@ -550,12 +511,10 @@ func TestCustomerHandler_Create_ValidationError(t *testing.T) {
 func TestCustomerHandler_Create_PhoneDuplicate(t *testing.T) {
 	setup := setupTestApp()
 
-	// Create first customer
 	req1 := httptest.NewRequest("POST", "/api/v1/customers", bytes.NewReader(validCreateBody()))
 	req1.Header.Set("Content-Type", "application/json")
 	setup.app.Test(req1, -1)
 
-	// Create second customer with same phone
 	req2 := httptest.NewRequest("POST", "/api/v1/customers", bytes.NewReader(validCreateBody()))
 	req2.Header.Set("Content-Type", "application/json")
 
@@ -592,8 +551,6 @@ func TestCustomerHandler_Create_InvalidBody(t *testing.T) {
 	}
 }
 
-// --- Get endpoint tests ---
-
 func TestCustomerHandler_Get_NotFound(t *testing.T) {
 	setup := setupTestApp()
 
@@ -619,7 +576,6 @@ func TestCustomerHandler_Get_NotFound(t *testing.T) {
 func TestCustomerHandler_Get_Success(t *testing.T) {
 	setup := setupTestApp()
 
-	// Create a customer first
 	createReq := httptest.NewRequest("POST", "/api/v1/customers", bytes.NewReader(validCreateBody()))
 	createReq.Header.Set("Content-Type", "application/json")
 	createResp, _ := setup.app.Test(createReq, -1)
@@ -632,7 +588,6 @@ func TestCustomerHandler_Get_Success(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Get the customer
 	getReq := httptest.NewRequest("GET", "/api/v1/customers/"+createApiResp.Data.ID, nil)
 	resp, err := setup.app.Test(getReq, -1)
 	if err != nil {
@@ -644,8 +599,6 @@ func TestCustomerHandler_Get_Success(t *testing.T) {
 		t.Fatalf("expected 200, got %d: %s", resp.StatusCode, string(body))
 	}
 }
-
-// --- List endpoint tests ---
 
 func TestCustomerHandler_List_Success(t *testing.T) {
 	setup := setupTestApp()
@@ -679,8 +632,6 @@ func TestCustomerHandler_List_InvalidPageSize(t *testing.T) {
 	}
 }
 
-// --- Update endpoint tests ---
-
 func TestCustomerHandler_Update_NotFound(t *testing.T) {
 	setup := setupTestApp()
 
@@ -699,12 +650,9 @@ func TestCustomerHandler_Update_NotFound(t *testing.T) {
 	}
 }
 
-// --- Delete endpoint tests ---
-
 func TestCustomerHandler_Delete_ConfirmationMismatch(t *testing.T) {
 	setup := setupTestApp()
 
-	// Create a customer first
 	createReq := httptest.NewRequest("POST", "/api/v1/customers", bytes.NewReader(validCreateBody()))
 	createReq.Header.Set("Content-Type", "application/json")
 	createResp, _ := setup.app.Test(createReq, -1)
@@ -716,7 +664,6 @@ func TestCustomerHandler_Delete_ConfirmationMismatch(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Delete with wrong confirmation name
 	body, _ := json.Marshal(domain.DeleteCustomerRequest{ConfirmationName: "Wrong Name"})
 	req := httptest.NewRequest("DELETE", "/api/v1/customers/"+createApiResp.Data.ID, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -778,7 +725,6 @@ func TestCustomerHandler_Stats_Success(t *testing.T) {
 func TestCustomerHandler_Isolir_InvalidTransition(t *testing.T) {
 	setup := setupTestApp()
 
-	// Create a customer (status: pending)
 	createReq := httptest.NewRequest("POST", "/api/v1/customers", bytes.NewReader(validCreateBody()))
 	createReq.Header.Set("Content-Type", "application/json")
 	createResp, _ := setup.app.Test(createReq, -1)
@@ -790,7 +736,6 @@ func TestCustomerHandler_Isolir_InvalidTransition(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Try to isolir a pending customer (invalid: pending → isolir not allowed)
 	req := httptest.NewRequest("POST", "/api/v1/customers/"+createApiResp.Data.ID+"/isolir", nil)
 
 	resp, err := setup.app.Test(req, -1)
@@ -813,7 +758,6 @@ func TestCustomerHandler_Isolir_InvalidTransition(t *testing.T) {
 func TestCustomerHandler_Activate_Success(t *testing.T) {
 	setup := setupTestApp()
 
-	// Create a customer (status: pending)
 	createReq := httptest.NewRequest("POST", "/api/v1/customers", bytes.NewReader(validCreateBody()))
 	createReq.Header.Set("Content-Type", "application/json")
 	createResp, _ := setup.app.Test(createReq, -1)
@@ -825,7 +769,7 @@ func TestCustomerHandler_Activate_Success(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Activate (pending → aktif)
+	// Activate (pending -> aktif)
 	req := httptest.NewRequest("POST", "/api/v1/customers/"+createApiResp.Data.ID+"/activate", nil)
 
 	resp, err := setup.app.Test(req, -1)
@@ -842,7 +786,6 @@ func TestCustomerHandler_Activate_Success(t *testing.T) {
 func TestCustomerHandler_ChangePackage_SamePackage(t *testing.T) {
 	setup := setupTestApp()
 
-	// Create a customer
 	createReq := httptest.NewRequest("POST", "/api/v1/customers", bytes.NewReader(validCreateBody()))
 	createReq.Header.Set("Content-Type", "application/json")
 	createResp, _ := setup.app.Test(createReq, -1)
@@ -855,7 +798,6 @@ func TestCustomerHandler_ChangePackage_SamePackage(t *testing.T) {
 	}
 	json.NewDecoder(createResp.Body).Decode(&createApiResp)
 
-	// Try to change to the same package
 	body, _ := json.Marshal(domain.ChangePackageRequest{
 		PackageID: "00000000-0000-0000-0000-000000000001",
 	})

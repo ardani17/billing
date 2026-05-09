@@ -1,4 +1,4 @@
-// reseller_action.go berisi business logic untuk aksi reseller (suspend, activate,
+// reseller_action.go berisi business logic untuk aksi reseller (suspend, aktifkan,
 // deactivate, reset password, deposit, withdraw).
 // Mengimplementasikan ResellerActionUsecase pada struct ResellerActionUsecase.
 package usecase
@@ -20,7 +20,7 @@ import (
 )
 
 // ResellerActionUsecase mengimplementasikan business logic untuk aksi reseller
-// (suspend, activate, deactivate, reset password, deposit, withdraw).
+// (suspend, aktifkan, deactivate, reset password, deposit, withdraw).
 type ResellerActionUsecase struct {
 	resellerRepo    domain.ResellerRepository
 	voucherRepo     domain.VoucherRepository
@@ -62,7 +62,7 @@ func NewResellerActionUsecase(
 }
 
 // Suspend mengubah status reseller dari aktif ke suspended.
-// Flow: fetch reseller → validasi transisi → update status → tulis audit log → publish event.
+// Alur: ambil reseller -> validasi transisi -> perbarui status -> tulis audit log -> terbitkan event.
 func (uc *ResellerActionUsecase) Suspend(ctx context.Context, id string, actor domain.ActorInfo) (*domain.Reseller, error) {
 	// Ambil reseller yang ada
 	reseller, err := uc.resellerRepo.GetByID(ctx, id)
@@ -77,7 +77,7 @@ func (uc *ResellerActionUsecase) Suspend(ctx context.Context, id string, actor d
 		return nil, err
 	}
 
-	// Update status di database
+	// Perbarui status di database
 	updated, err := uc.resellerRepo.UpdateStatus(ctx, id, domain.ResellerStatusSuspended)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal suspend reseller: %w", err)
@@ -89,7 +89,7 @@ func (uc *ResellerActionUsecase) Suspend(ctx context.Context, id string, actor d
 		"new_status": string(domain.ResellerStatusSuspended),
 	})
 
-	// Publish event reseller.status_changed
+	// Terbitkan event reseller.status_changed
 	uc.publishEvent(reseller.TenantID, "reseller.status_changed", domain.ResellerStatusChangedPayload{
 		ResellerID: id,
 		TenantID:   reseller.TenantID,
@@ -101,7 +101,7 @@ func (uc *ResellerActionUsecase) Suspend(ctx context.Context, id string, actor d
 }
 
 // Activate mengubah status reseller dari suspended ke aktif.
-// Flow: fetch reseller → validasi transisi → update status → tulis audit log → publish event.
+// Alur: ambil reseller -> validasi transisi -> perbarui status -> tulis audit log -> terbitkan event.
 func (uc *ResellerActionUsecase) Activate(ctx context.Context, id string, actor domain.ActorInfo) (*domain.Reseller, error) {
 	// Ambil reseller yang ada
 	reseller, err := uc.resellerRepo.GetByID(ctx, id)
@@ -116,7 +116,7 @@ func (uc *ResellerActionUsecase) Activate(ctx context.Context, id string, actor 
 		return nil, err
 	}
 
-	// Update status di database
+	// Perbarui status di database
 	updated, err := uc.resellerRepo.UpdateStatus(ctx, id, domain.ResellerStatusAktif)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal activate reseller: %w", err)
@@ -128,7 +128,7 @@ func (uc *ResellerActionUsecase) Activate(ctx context.Context, id string, actor 
 		"new_status": string(domain.ResellerStatusAktif),
 	})
 
-	// Publish event reseller.status_changed
+	// Terbitkan event reseller.status_changed
 	uc.publishEvent(reseller.TenantID, "reseller.status_changed", domain.ResellerStatusChangedPayload{
 		ResellerID: id,
 		TenantID:   reseller.TenantID,
@@ -139,10 +139,10 @@ func (uc *ResellerActionUsecase) Activate(ctx context.Context, id string, actor 
 	return updated, nil
 }
 
-// Deactivate mengubah status reseller ke nonaktif (terminal state).
-// Flow: fetch reseller → verifikasi confirmation_name → validasi transisi → update status →
-// void semua voucher tersedia milik reseller → tulis voucher audit logs →
-// tulis audit log → publish event → invalidasi semua session reseller.
+// Deactivate mengubah status reseller ke nonaktif (status akhir).
+// Alur: ambil reseller -> verifikasi confirmation_name -> validasi transisi -> perbarui status ->
+// void semua voucher tersedia milik reseller -> tulis voucher audit logs ->
+// tulis audit log -> terbitkan event -> invalidasi semua session reseller.
 func (uc *ResellerActionUsecase) Deactivate(ctx context.Context, id string, confirmName string, actor domain.ActorInfo) (*domain.Reseller, error) {
 	// Ambil reseller yang ada
 	reseller, err := uc.resellerRepo.GetByID(ctx, id)
@@ -162,7 +162,7 @@ func (uc *ResellerActionUsecase) Deactivate(ctx context.Context, id string, conf
 		return nil, err
 	}
 
-	// Update status di database
+	// Perbarui status di database
 	updated, err := uc.resellerRepo.UpdateStatus(ctx, id, domain.ResellerStatusNonaktif)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal deactivate reseller: %w", err)
@@ -177,7 +177,7 @@ func (uc *ResellerActionUsecase) Deactivate(ctx context.Context, id string, conf
 		"new_status": string(domain.ResellerStatusNonaktif),
 	})
 
-	// Publish event reseller.status_changed
+	// Terbitkan event reseller.status_changed
 	uc.publishEvent(reseller.TenantID, "reseller.status_changed", domain.ResellerStatusChangedPayload{
 		ResellerID: id,
 		TenantID:   reseller.TenantID,
@@ -271,9 +271,9 @@ func (uc *ResellerActionUsecase) voidResellerVouchers(ctx context.Context, resel
 }
 
 // ResetPassword menghasilkan password baru acak untuk reseller.
-// Flow: fetch reseller → generate password acak 8 karakter alfanumerik →
-// hash dengan bcrypt → update password_hash → invalidasi semua session →
-// tulis audit log → kembalikan password plaintext.
+// Alur: ambil reseller -> buat password acak 8 karakter alfanumerik ->
+// hash dengan bcrypt -> perbarui password_hash -> invalidasi semua session ->
+// tulis audit log -> kembalikan password plaintext.
 func (uc *ResellerActionUsecase) ResetPassword(ctx context.Context, id string, actor domain.ActorInfo) (string, error) {
 	// Ambil reseller yang ada (untuk validasi keberadaan dan mendapatkan tenant_id)
 	reseller, err := uc.resellerRepo.GetByID(ctx, id)
@@ -281,7 +281,7 @@ func (uc *ResellerActionUsecase) ResetPassword(ctx context.Context, id string, a
 		return "", err
 	}
 
-	// Generate password acak 8 karakter alfanumerik menggunakan crypto/rand
+	// Buat password acak 8 karakter alfanumerik menggunakan crypto/rand
 	plaintext, err := generateRandomPassword(8)
 	if err != nil {
 		return "", fmt.Errorf("usecase: gagal generate password acak: %w", err)
@@ -293,7 +293,7 @@ func (uc *ResellerActionUsecase) ResetPassword(ctx context.Context, id string, a
 		return "", fmt.Errorf("usecase: gagal hash password: %w", err)
 	}
 
-	// Update password_hash di database
+	// Perbarui password_hash di database
 	if err := uc.resellerRepo.UpdatePasswordHash(ctx, id, string(hash)); err != nil {
 		return "", fmt.Errorf("usecase: gagal update password hash: %w", err)
 	}
@@ -310,8 +310,8 @@ func (uc *ResellerActionUsecase) ResetPassword(ctx context.Context, id string, a
 }
 
 // Deposit menambah saldo reseller secara atomik menggunakan database transaction.
-// Flow: BEGIN TX → GetForUpdate (row lock) → update balance → create transaksi →
-// tulis audit log → COMMIT → kembalikan reseller yang diperbarui.
+// Alur: BEGIN TX -> GetForUpdate (row lock) -> perbarui balance -> buat transaksi ->
+// tulis audit log -> COMMIT -> kembalikan reseller yang diperbarui.
 func (uc *ResellerActionUsecase) Deposit(ctx context.Context, id string, req domain.DepositRequest, actor domain.ActorInfo) (*domain.Reseller, error) {
 	// Mulai database transaction
 	tx, err := uc.pool.Begin(ctx)
@@ -335,7 +335,7 @@ func (uc *ResellerActionUsecase) Deposit(ctx context.Context, id string, req dom
 	balanceBefore := reseller.Balance
 	balanceAfter := balanceBefore + req.Amount
 
-	// Update saldo reseller
+	// Perbarui saldo reseller
 	if err := txResellerRepo.UpdateBalance(ctx, id, balanceAfter); err != nil {
 		return nil, fmt.Errorf("usecase: gagal update saldo deposit: %w", err)
 	}
@@ -376,8 +376,8 @@ func (uc *ResellerActionUsecase) Deposit(ctx context.Context, id string, req dom
 }
 
 // Withdraw mengurangi saldo reseller secara atomik menggunakan database transaction.
-// Flow: BEGIN TX → GetForUpdate (row lock) → verifikasi saldo cukup →
-// update balance → create transaksi → tulis audit log → COMMIT →
+// Alur: BEGIN TX -> GetForUpdate (row lock) -> verifikasi saldo cukup ->
+// perbarui balance -> buat transaksi -> tulis audit log -> COMMIT ->
 // kembalikan reseller yang diperbarui.
 // Mengembalikan ErrInsufficientBalance jika saldo tidak mencukupi.
 func (uc *ResellerActionUsecase) Withdraw(ctx context.Context, id string, req domain.WithdrawRequest, actor domain.ActorInfo) (*domain.Reseller, error) {
@@ -408,7 +408,7 @@ func (uc *ResellerActionUsecase) Withdraw(ctx context.Context, id string, req do
 	balanceBefore := reseller.Balance
 	balanceAfter := balanceBefore - req.Amount
 
-	// Update saldo reseller
+	// Perbarui saldo reseller
 	if err := txResellerRepo.UpdateBalance(ctx, id, balanceAfter); err != nil {
 		return nil, fmt.Errorf("usecase: gagal update saldo withdraw: %w", err)
 	}
@@ -448,7 +448,7 @@ func (uc *ResellerActionUsecase) Withdraw(ctx context.Context, id string, req do
 	return updated, nil
 }
 
-// --- Helper methods ---
+// --- Fungsi bantu methods ---
 
 // generateRandomPassword menghasilkan password acak alfanumerik dengan panjang tertentu
 // menggunakan crypto/rand untuk keamanan kriptografis.

@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel notification_logs.
+-- Kueri SQL untuk operasi CRUD tabel notification_logs.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel notification_logs dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel notification_logs dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Digunakan untuk audit trail, retry tracking, deduplication, throttle, dan cooldown.
 
 -- name: CreateLog :one
@@ -35,7 +35,7 @@ SET
 WHERE id = $1;
 
 -- name: ListLogs :many
--- Mengambil daftar log notifikasi dengan filter opsional dan pagination.
+-- Mengambil daftar log notifikasi dengan filter opsional dan paginasi.
 -- Filter: tenant_id (wajib), channel, status, customer_id, template_id, date_from, date_to.
 -- Diurutkan berdasarkan created_at DESC (terbaru di atas).
 SELECT *
@@ -52,7 +52,7 @@ LIMIT $2 OFFSET $3;
 
 -- name: CountLogs :one
 -- Menghitung jumlah total log notifikasi dengan filter yang sama seperti ListLogs.
--- Digunakan untuk metadata pagination (total dan total_pages).
+-- Digunakan untuk metadata paginasi (total dan total_pages).
 SELECT COUNT(*)
 FROM notification_logs
 WHERE tenant_id = $1
@@ -87,7 +87,7 @@ WHERE tenant_id = $1
 
 -- name: LastSentToCustomer :one
 -- Mengambil waktu pengiriman terakhir ke pelanggan tertentu.
--- Digunakan untuk pengecekan cooldown antar pesan (default 30 menit).
+-- Digunakan untuk pengecekan cooldown antar pesan (bawaan 30 menit).
 -- Hanya mempertimbangkan notifikasi yang berhasil dikirim.
 SELECT sent_at
 FROM notification_logs

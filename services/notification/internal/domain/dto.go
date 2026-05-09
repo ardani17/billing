@@ -7,7 +7,7 @@ import (
 )
 
 // =============================================================================
-// Request DTO — payload dari HTTP request
+// Permintaan DTO - payload dari HTTP permintaan
 // =============================================================================
 
 // UpdateConfigRequest adalah payload untuk PUT /api/v1/notifications/config.
@@ -72,12 +72,12 @@ type ResendRequest struct {
 }
 
 // =============================================================================
-// API Response — format standar respons API (reuse pattern dari billing-api)
+// API Respons - format standar respons API (reuse pattern dari billing-api)
 // =============================================================================
 
 // APIResponse adalah format standar respons API.
 type APIResponse struct {
-	// Success menunjukkan apakah request berhasil
+	// Success menunjukkan apakah permintaan berhasil
 	Success bool `json:"success"`
 
 	// Data berisi data respons jika sukses
@@ -110,7 +110,7 @@ type FieldError struct {
 
 // PaginatedData membungkus data dengan metadata paginasi.
 type PaginatedData struct {
-	// Items berisi data hasil query
+	// Items berisi data hasil kueri
 	Items interface{} `json:"items"`
 
 	// Total adalah jumlah total record
@@ -127,7 +127,7 @@ type PaginatedData struct {
 }
 
 // =============================================================================
-// Response Helpers — fungsi pembantu untuk membuat respons API
+// Respons Fungsi bantus - fungsi pembantu untuk membuat respons API
 // =============================================================================
 
 // SuccessResponse mengembalikan respons sukses JSON dengan format standar.

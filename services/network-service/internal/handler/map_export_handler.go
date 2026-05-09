@@ -1,6 +1,6 @@
-// map_export_handler.go menangani HTTP request untuk export peta.
+// map_export_handler.go menangani HTTP permintaan untuk export peta.
 // Mendukung format KML, KMZ, GeoJSON, dan CSV.
-// Dataset besar (>500 items) diproses async, return job_id.
+// Dataset besar (>500 items) diproses async, kembalikan job_id.
 package handler
 
 import (
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// ExportHandler menangani HTTP request untuk export peta.
+// ExportHandler menangani HTTP permintaan untuk export peta.
 type ExportHandler struct {
 	manager  domain.MapExportManager
 	validate *validator.Validate
@@ -28,8 +28,8 @@ func NewExportHandler(manager domain.MapExportManager) *ExportHandler {
 }
 
 // Export menangani POST /export.
-// Parse body, validasi format dan layers, lalu export data peta.
-// Jika dataset kecil → return file langsung. Jika besar → return job_id.
+// Parsing body, validasi format dan layers, lalu export data peta.
+// Jika dataset kecil -> kembalikan file langsung. Jika besar -> kembalikan job_id.
 func (h *ExportHandler) Export(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -50,7 +50,7 @@ func (h *ExportHandler) Export(c *fiber.Ctx) error {
 		return h.mapError(c, err)
 	}
 
-	// Jika async, return 202 Accepted dengan job_id
+	// Jika async, kembalikan 202 Accepted dengan job_id
 	if result.Async {
 		return c.Status(fiber.StatusAccepted).JSON(domain.APIResponse{
 			Success: true,
@@ -58,7 +58,7 @@ func (h *ExportHandler) Export(c *fiber.Ctx) error {
 		})
 	}
 
-	// Jika sync, return file langsung
+	// Jika sync, kembalikan file langsung
 	c.Set("Content-Type", result.ContentType)
 	c.Set("Content-Disposition", "attachment; filename="+result.FileName)
 	return c.Send(result.FileBytes)
@@ -80,7 +80,7 @@ func (h *ExportHandler) GetExportStatus(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, status)
 }
 
-// mapError memetakan domain error export ke HTTP error response.
+// mapError memetakan domain error export ke HTTP error respons.
 func (h *ExportHandler) mapError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrUnsupportedFormat):

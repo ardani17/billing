@@ -1,10 +1,9 @@
-// gateway_worker.go berisi asynq worker untuk task async payment gateway.
+// gateway_worker.go berisi asynq worker untuk task async gateway pembayaran.
 // GatewayWorker menangani lima jenis task:
-// 1. gateway.generate_payment_link — generate payment link via gateway
-// 2. gateway.process_webhook — proses webhook dari gateway secara async
-// 3. gateway.expire_payment_links — cron expire payment links yang sudah lewat waktu
-// 4. gateway.cleanup_webhook_logs — cron pembersihan webhook logs lama
-// 5. gateway.sync_payment_link_amount — sinkronisasi jumlah payment link setelah invoice berubah
+// 1. gateway.generate_payment_link - buat link pembayaran via gateway
+// 2. gateway.process_webhook - proses webhook dari gateway secara async
+// 3. gateway.expire_payment_links - cron expire link pembayarans yang sudah lewat waktu
+// 4. gateway.cleanup_webhook_logs - cron pembersihan webhook logs lama
 package worker
 
 import (
@@ -22,30 +21,30 @@ import (
 
 // Konstanta tipe task yang diproses oleh GatewayWorker.
 const (
-	// TaskGeneratePaymentLink adalah tipe task untuk generate payment link via gateway.
+	// TaskGeneratePaymentLink adalah tipe task untuk buat link pembayaran via gateway.
 	TaskGeneratePaymentLink = "gateway.generate_payment_link"
 
 	// TaskProcessWebhook adalah tipe task untuk memproses webhook secara async.
 	TaskProcessWebhook = "gateway.process_webhook"
 
-	// TaskExpirePaymentLinks adalah tipe task cron untuk expire payment links.
+	// TaskExpirePaymentLinks adalah tipe task cron untuk expire link pembayarans.
 	TaskExpirePaymentLinks = "gateway.expire_payment_links"
 
 	// TaskCleanupWebhookLogs adalah tipe task cron untuk pembersihan webhook logs lama.
 	TaskCleanupWebhookLogs = "gateway.cleanup_webhook_logs"
 
-	// TaskSyncPaymentLinkAmount adalah tipe task untuk sinkronisasi jumlah payment link.
+	// TaskSyncPaymentLinkAmount adalah tipe task untuk sinkronisasi jumlah link pembayaran.
 	TaskSyncPaymentLinkAmount = "gateway.sync_payment_link_amount"
 )
 
-// GatewayWorker menangani task asynq terkait payment gateway.
-// Mendaftarkan handler untuk generate link, proses webhook, expire, cleanup, dan sync.
+// GatewayWorker menangani task asynq terkait gateway pembayaran.
+// Mendaftarkan handler untuk buat link, proses webhook, expire, cleanup, dan sync.
 type GatewayWorker struct {
 	gatewayUsecase *usecase.GatewayUsecase
 	webhookUsecase *usecase.WebhookUsecase
 	linkRepo       domain.PaymentLinkRepository
 	webhookRepo    domain.WebhookLogRepository
-	retentionDays  int // Jumlah hari retensi webhook logs (default 90)
+	retentionDays  int // Jumlah hari retensi webhook logs (bawaan 90)
 	logger         zerolog.Logger
 }
 
@@ -80,7 +79,7 @@ func (w *GatewayWorker) RegisterHandlers(mux *asynq.ServeMux) {
 	mux.HandleFunc(TaskSyncPaymentLinkAmount, w.handleSyncPaymentLinkAmount)
 }
 
-// handleGeneratePaymentLink memproses task generate payment link.
+// handleGeneratePaymentLink memproses task buat link pembayaran.
 // Deserialize GeneratePaymentLinkRequest dari payload, panggil usecase.
 func (w *GatewayWorker) handleGeneratePaymentLink(ctx context.Context, task *asynq.Task) error {
 	var req domain.GeneratePaymentLinkRequest
@@ -129,15 +128,15 @@ func (w *GatewayWorker) handleProcessWebhook(ctx context.Context, task *asynq.Ta
 	return nil
 }
 
-// handleExpirePaymentLinks memproses task cron expire payment links.
-// Ambil batch payment links yang sudah expired, expire satu per satu.
+// handleExpirePaymentLinks memproses task cron expire link pembayarans.
+// Ambil batch link pembayarans yang sudah expired, expire satu per satu.
 func (w *GatewayWorker) handleExpirePaymentLinks(ctx context.Context, task *asynq.Task) error {
-	w.logger.Info().Msg("memulai cron expire payment links")
+	w.logger.Info().Msg("memulai cron expire payment link")
 
 	const batchSize = 100
 	expired, err := w.linkRepo.FindExpired(ctx, batchSize)
 	if err != nil {
-		w.logger.Error().Err(err).Msg("gagal mengambil payment links expired")
+		w.logger.Error().Err(err).Msg("gagal mengambil payment link expired")
 		return fmt.Errorf("worker: gagal ambil expired links: %w", err)
 	}
 
@@ -153,12 +152,12 @@ func (w *GatewayWorker) handleExpirePaymentLinks(ctx context.Context, task *asyn
 	w.logger.Info().
 		Int("total_found", len(expired)).
 		Int("total_expired", expiredCount).
-		Msg("selesai cron expire payment links")
+		Msg("selesai cron expire payment link")
 	return nil
 }
 
 // handleCleanupWebhookLogs memproses task cron pembersihan webhook logs lama.
-// Hapus logs yang lebih tua dari retentionDays (default 90 hari).
+// Hapus logs yang lebih tua dari retentionDays (bawaan 90 hari).
 func (w *GatewayWorker) handleCleanupWebhookLogs(ctx context.Context, task *asynq.Task) error {
 	w.logger.Info().Int("retention_days", w.retentionDays).Msg("memulai cron cleanup webhook logs")
 
@@ -173,7 +172,7 @@ func (w *GatewayWorker) handleCleanupWebhookLogs(ctx context.Context, task *asyn
 	return nil
 }
 
-// handleSyncPaymentLinkAmount memproses task sinkronisasi jumlah payment link.
+// handleSyncPaymentLinkAmount memproses task sinkronisasi jumlah link pembayaran.
 // Deserialize invoiceID dari payload, panggil gatewayUsecase.SyncPaymentLinkAmount.
 func (w *GatewayWorker) handleSyncPaymentLinkAmount(ctx context.Context, task *asynq.Task) error {
 	var payload struct {

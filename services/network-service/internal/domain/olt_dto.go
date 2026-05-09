@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// OLT Request DTOs — payload dari HTTP request untuk operasi OLT
+// OLT DTO permintaan - payload dari HTTP permintaan untuk operasi OLT
 // =============================================================================
 
 // CreateOLTRequest adalah payload untuk POST /api/v1/olt/devices.
@@ -27,7 +27,7 @@ type CreateOLTRequest struct {
 }
 
 // UpdateOLTRequest adalah payload untuk PUT /api/v1/olt/devices/:id.
-// Semua field bersifat opsional — hanya field yang dikirim yang akan diupdate.
+// Semua field bersifat opsional - hanya field yang dikirim yang akan diupdate.
 // CLIPort dan HealthCheckIntervalSec menggunakan pointer untuk membedakan zero value dan tidak dikirim.
 type UpdateOLTRequest struct {
 	Name                   string `json:"name,omitempty" validate:"omitempty,min=1,max=100"`
@@ -50,11 +50,11 @@ type UpdateOLTRequest struct {
 }
 
 // OLTListParams berisi parameter untuk list OLT dengan paginasi dan filter.
-// TenantID diisi dari context auth middleware, bukan dari request body.
+// TenantID diisi dari context auth middleware, bukan dari permintaan body.
 type OLTListParams struct {
 	TenantID string // diisi dari auth context
-	Page     int    // halaman saat ini (default 1)
-	PageSize int    // jumlah item per halaman (default 20)
+	Page     int    // halaman saat ini (bawaan 1)
+	PageSize int    // jumlah item per halaman (bawaan 20)
 	Status   string // filter berdasarkan status: online, offline, maintenance (opsional)
 	Brand    string // filter berdasarkan brand: zte, huawei, dll (opsional)
 	Search   string // pencarian berdasarkan name atau host (opsional)

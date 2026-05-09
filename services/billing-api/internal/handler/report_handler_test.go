@@ -1,5 +1,3 @@
-// report_handler_test.go berisi integration tests untuk report endpoints.
-// Test: HTTP status codes, response shape, filter validation, graceful degradation.
 package handler
 
 import (
@@ -15,8 +13,6 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
-
-// --- Mock ReportUsecase untuk report handler tests ---
 
 // mockReportUsecase mengimplementasikan domain.ReportUsecase untuk testing.
 type mockReportUsecase struct {
@@ -100,16 +96,13 @@ func (m *mockReportUsecase) GetExportStatus(_ context.Context, _ string) (*domai
 	return m.exportJob, m.err
 }
 
-// --- Setup helper ---
-
-// setupReportTestApp membuat Fiber app dengan mock ReportUsecase untuk testing.
 func setupReportTestApp(mock *mockReportUsecase) *fiber.App {
 	logger := zerolog.New(io.Discard)
 	handler := NewReportHandler(mock, logger)
 
 	app := fiber.New()
 
-	// Middleware untuk set tenant_id
+	// Middleware untuk atur tenant_id
 	setLocals := func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "test-tenant-id")
 		c.Locals("user_id", "test-user-id")
@@ -135,13 +128,13 @@ func setupReportTestApp(mock *mockReportUsecase) *fiber.App {
 	return app
 }
 
-// --- Test: Filter validation ---
+// --- Tes: Filter validation ---
 
 func TestReportHandler_Revenue_MissingPeriod(t *testing.T) {
 	mock := &mockReportUsecase{}
 	app := setupReportTestApp(mock)
 
-	// Tanpa period_start dan period_end → 400
+	// Tanpa period_start dan period_end -> 400
 	req := httptest.NewRequest("GET", "/api/v1/reports/financial/revenue", nil)
 	resp, err := app.Test(req, -1)
 	if err != nil {
@@ -163,7 +156,7 @@ func TestReportHandler_Revenue_PeriodStartAfterEnd(t *testing.T) {
 	mock := &mockReportUsecase{}
 	app := setupReportTestApp(mock)
 
-	// period_start > period_end → 400
+	// period_start > period_end -> 400
 	req := httptest.NewRequest("GET",
 		"/api/v1/reports/financial/revenue?period_start=2024-12-31&period_end=2024-01-01", nil)
 	resp, err := app.Test(req, -1)
@@ -186,7 +179,6 @@ func TestReportHandler_Revenue_InvalidDateFormat(t *testing.T) {
 	mock := &mockReportUsecase{}
 	app := setupReportTestApp(mock)
 
-	// Format tanggal tidak valid → 400
 	req := httptest.NewRequest("GET",
 		"/api/v1/reports/financial/revenue?period_start=invalid&period_end=2024-01-31", nil)
 	resp, err := app.Test(req, -1)
@@ -198,7 +190,7 @@ func TestReportHandler_Revenue_InvalidDateFormat(t *testing.T) {
 	}
 }
 
-// --- Test: Successful responses ---
+// --- Tes: Successful responses ---
 
 func TestReportHandler_Revenue_Success(t *testing.T) {
 	mock := &mockReportUsecase{
@@ -309,7 +301,7 @@ func TestReportHandler_ProfitLoss_Success(t *testing.T) {
 	}
 }
 
-// --- Test: Customer report endpoints ---
+// --- Tes: Customer report endpoints ---
 
 func TestReportHandler_CustomerGrowth_Success(t *testing.T) {
 	mock := &mockReportUsecase{
@@ -377,8 +369,6 @@ func TestReportHandler_ChurnAnalysis_Success(t *testing.T) {
 	}
 }
 
-// --- Test: Usecase error propagation ---
-
 func TestReportHandler_Revenue_InternalError(t *testing.T) {
 	mock := &mockReportUsecase{
 		err: domain.ErrInsufficientData,
@@ -402,8 +392,6 @@ func TestReportHandler_Revenue_InternalError(t *testing.T) {
 		t.Fatalf("expected INSUFFICIENT_DATA, got %v", apiResp.Error)
 	}
 }
-
-// --- Test: Response shape ---
 
 func TestReportHandler_Revenue_ResponseShape(t *testing.T) {
 	mock := &mockReportUsecase{
@@ -436,7 +424,6 @@ func TestReportHandler_Revenue_ResponseShape(t *testing.T) {
 		t.Fatalf("gagal parse response: %v", err)
 	}
 
-	// Verifikasi shape: success, data.current, data.trend
 	if raw["success"] != true {
 		t.Fatal("expected success=true")
 	}
@@ -452,7 +439,7 @@ func TestReportHandler_Revenue_ResponseShape(t *testing.T) {
 	}
 }
 
-// --- Test: Unauthorized (tanpa tenant_id) ---
+// --- Tes: Unauthorized (tanpa tenant_id) ---
 
 func TestReportHandler_Revenue_Unauthorized(t *testing.T) {
 	mock := &mockReportUsecase{}
@@ -460,7 +447,7 @@ func TestReportHandler_Revenue_Unauthorized(t *testing.T) {
 	handler := NewReportHandler(mock, logger)
 
 	app := fiber.New()
-	// Tanpa middleware set tenant_id
+	// Tanpa middleware atur tenant_id
 	app.Get("/api/v1/reports/financial/revenue", handler.Revenue)
 
 	req := httptest.NewRequest("GET",

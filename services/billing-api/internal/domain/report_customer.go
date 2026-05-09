@@ -1,21 +1,21 @@
 package domain
 
 // =============================================================================
-// Customer Growth Report — laporan pertumbuhan pelanggan
+// Laporan pertumbuhan pelanggan - laporan pertumbuhan pelanggan
 // =============================================================================
 
 // CustomerGrowthReport berisi laporan pertumbuhan pelanggan.
 type CustomerGrowthReport struct {
-	TotalActive      int                       `json:"total_active"`
-	NewCustomers     int                       `json:"new_customers"`
-	ChurnedCustomers int                       `json:"churned_customers"`
-	NetGrowth        int                       `json:"net_growth"`
-	ARPU             int64                     `json:"arpu"`
-	CLV              int64                     `json:"clv"`
-	ChurnRate        float64                   `json:"churn_rate"`
-	Trend            []MonthlyGrowthTrend      `json:"trend"`
-	Comparison       *CustomerGrowthReport     `json:"comparison,omitempty"`
-	Delta            map[string]RevenueDelta   `json:"delta,omitempty"`
+	TotalActive      int                     `json:"total_active"`
+	NewCustomers     int                     `json:"new_customers"`
+	ChurnedCustomers int                     `json:"churned_customers"`
+	NetGrowth        int                     `json:"net_growth"`
+	ARPU             int64                   `json:"arpu"`
+	CLV              int64                   `json:"clv"`
+	ChurnRate        float64                 `json:"churn_rate"`
+	Trend            []MonthlyGrowthTrend    `json:"trend"`
+	Comparison       *CustomerGrowthReport   `json:"comparison,omitempty"`
+	Delta            map[string]RevenueDelta `json:"delta,omitempty"`
 }
 
 // MonthlyGrowthTrend berisi data trend pertumbuhan per bulan.
@@ -27,7 +27,7 @@ type MonthlyGrowthTrend struct {
 }
 
 // =============================================================================
-// Customer Distribution Report — laporan distribusi pelanggan
+// Laporan distribusi pelanggan - laporan distribusi pelanggan
 // =============================================================================
 
 // DistributionItem berisi satu item distribusi.
@@ -47,7 +47,7 @@ type CustomerDistributionReport struct {
 }
 
 // =============================================================================
-// Churn Analysis Report — laporan analisis churn pelanggan
+// Laporan analisis churn - laporan analisis churn pelanggan
 // =============================================================================
 
 // ChurnByReason berisi churn per alasan.
@@ -68,7 +68,7 @@ type ChurnAnalysisReport struct {
 }
 
 // =============================================================================
-// Revenue by Area Report — laporan pendapatan per area
+// Laporan pendapatan per area - laporan pendapatan per area
 // =============================================================================
 
 // AreaRevenue berisi pendapatan per area.

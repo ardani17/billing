@@ -1,5 +1,5 @@
-// reseller_action.go menangani HTTP request untuk aksi reseller (admin).
-// Termasuk: suspend, activate, deactivate, reset-password, deposit, withdraw.
+// reseller_action.go menangani HTTP permintaan untuk aksi reseller (admin).
+// Termasuk: suspend, aktifkan, deactivate, reset-password, deposit, withdraw.
 package handler
 
 import (
@@ -13,8 +13,8 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// ResellerActionHandler menangani HTTP request untuk aksi reseller
-// (suspend, activate, deactivate, reset-password, deposit, withdraw).
+// ResellerActionHandler menangani HTTP permintaan untuk aksi reseller
+// (suspend, aktifkan, deactivate, reset-password, deposit, withdraw).
 type ResellerActionHandler struct {
 	resellerActionUsecase *usecase.ResellerActionUsecase
 	validate              *validator.Validate
@@ -22,7 +22,7 @@ type ResellerActionHandler struct {
 }
 
 // NewResellerActionHandler membuat instance baru ResellerActionHandler.
-// Mendaftarkan custom validator untuk format telepon Indonesia.
+// Mendaftarkan kustom validator untuk format telepon Indonesia.
 func NewResellerActionHandler(resellerActionUsecase *usecase.ResellerActionUsecase, logger zerolog.Logger) *ResellerActionHandler {
 	v := validator.New()
 	RegisterCustomValidators(v)
@@ -51,7 +51,7 @@ func (h *ResellerActionHandler) Suspend(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, reseller)
 }
 
-// Activate menangani POST /v1/resellers/:id/activate.
+// Activate menangani POST /v1/resellers/:id/aktifkan.
 // Mentransisikan status reseller dari suspended ke aktif.
 func (h *ResellerActionHandler) Activate(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -70,7 +70,7 @@ func (h *ResellerActionHandler) Activate(c *fiber.Ctx) error {
 }
 
 // Deactivate menangani POST /v1/resellers/:id/deactivate.
-// Mentransisikan status reseller ke nonaktif (terminal state).
+// Mentransisikan status reseller ke nonaktif (status akhir).
 // Memerlukan confirmation_name yang cocok dengan nama reseller.
 func (h *ResellerActionHandler) Deactivate(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -184,7 +184,7 @@ func (h *ResellerActionHandler) Withdraw(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, reseller)
 }
 
-// extractActor mengambil informasi aktor dari Fiber locals (di-set oleh auth middleware).
+// extractActor mengambil informasi aktor dari Fiber locals (di-atur oleh auth middleware).
 func (h *ResellerActionHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	actorID, _ := c.Locals("user_id").(string)
 	actorName, _ := c.Locals("user_name").(string)
@@ -194,7 +194,7 @@ func (h *ResellerActionHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapResellerError memetakan domain error ke HTTP error response untuk aksi reseller.
+// mapResellerError memetakan domain error ke HTTP error respons untuk aksi reseller.
 // Menggunakan pemetaan yang sama dengan reseller_handler.go.
 func (h *ResellerActionHandler) mapResellerError(c *fiber.Ctx, err error) error {
 	switch {

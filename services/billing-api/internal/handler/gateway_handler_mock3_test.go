@@ -1,4 +1,3 @@
-// gateway_handler_mock3_test.go berisi mock InvoiceRepo dan CustomerRepo untuk test GatewayHandler.
 package handler
 
 import (
@@ -7,8 +6,6 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
-
-// --- Mock: InvoiceRepository (subset yang dibutuhkan) ---
 
 type mockGatewayInvoiceRepo struct {
 	invoices map[string]*domain.Invoice
@@ -100,8 +97,6 @@ func (m *mockGatewayInvoiceRepo) SumOutstandingAmount(_ context.Context, _ strin
 func (m *mockGatewayInvoiceRepo) CountOutstandingInvoices(_ context.Context, _ string) (int, error) {
 	return 0, nil
 }
-
-// --- Mock: CustomerRepository (subset yang dibutuhkan) ---
 
 type mockGatewayCustomerRepo struct {
 	customers map[string]*domain.Customer

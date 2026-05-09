@@ -1,5 +1,5 @@
 // custom_report_builder.go berisi CustomReportBuilder yang mengimplementasikan
-// domain.CustomReportTemplateUsecase untuk laporan custom dengan metrik dan
+// domain.CustomReportTemplateUsecase untuk laporan kustom dengan metrik dan
 // dimensi yang dipilih pengguna. Maksimal 3 metrik per laporan.
 package usecase
 
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// CustomReportBuilder mengimplementasikan business logic untuk laporan custom.
+// CustomReportBuilder mengimplementasikan business logic untuk laporan kustom.
 type CustomReportBuilder struct {
 	aggregationRepo domain.ReportAggregationRepository
 	templateRepo    domain.CustomReportTemplateRepository
@@ -33,15 +33,15 @@ func NewCustomReportBuilder(
 	}
 }
 
-// PreviewCustomReport menjalankan laporan custom tanpa menyimpan template.
-// Validasi: maksimal 3 metrik. Query aggregation dengan dynamic grouping.
+// PreviewCustomReport menjalankan laporan kustom tanpa menyimpan template.
+// Validasi: maksimal 3 metrik. Kueri aggregation dengan dinamis grouping.
 func (crb *CustomReportBuilder) PreviewCustomReport(ctx context.Context, tenantID string, metrics []string, groupBy, subGroupBy string, periodStart, periodEnd time.Time, displayType string) (interface{}, error) {
 	// Validasi jumlah metrik
 	if len(metrics) > 3 {
 		return nil, domain.ErrMaxMetricsExceeded
 	}
 
-	// Query data dari aggregation repo dengan dynamic grouping
+	// Kueri data dari aggregation repo dengan dinamis grouping
 	data, err := crb.aggregationRepo.GetCustomReportData(ctx, tenantID, metrics, groupBy, subGroupBy, periodStart, periodEnd)
 	if err != nil {
 		crb.logger.Error().Err(err).Str("tenant_id", tenantID).Msg("gagal mengambil custom report data")
@@ -51,7 +51,7 @@ func (crb *CustomReportBuilder) PreviewCustomReport(ctx context.Context, tenantI
 	return data, nil
 }
 
-// CreateTemplate menyimpan konfigurasi laporan custom sebagai template.
+// CreateTemplate menyimpan konfigurasi laporan kustom sebagai template.
 func (crb *CustomReportBuilder) CreateTemplate(ctx context.Context, tenantID string, req domain.CreateTemplateRequest, actor domain.ActorInfo) (*domain.CustomReportTemplate, error) {
 	// Validasi jumlah metrik
 	if len(req.Metrics) > 3 {
@@ -78,12 +78,12 @@ func (crb *CustomReportBuilder) CreateTemplate(ctx context.Context, tenantID str
 	return created, nil
 }
 
-// DeleteTemplate menghapus template laporan custom.
+// DeleteTemplate menghapus template laporan kustom.
 func (crb *CustomReportBuilder) DeleteTemplate(ctx context.Context, id string) error {
 	return crb.templateRepo.Delete(ctx, id)
 }
 
-// ListTemplates mengambil semua template laporan custom untuk tenant.
+// ListTemplates mengambil semua template laporan kustom untuk tenant.
 func (crb *CustomReportBuilder) ListTemplates(ctx context.Context, tenantID string) ([]*domain.CustomReportTemplate, error) {
 	return crb.templateRepo.ListByTenant(ctx, tenantID)
 }

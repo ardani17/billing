@@ -9,7 +9,7 @@ import (
 )
 
 // =============================================================================
-// ThrottleChecker — pengecekan anti-spam throttle notifikasi
+// ThrottleChecker - pengecekan anti-spam throttle notifikasi
 // =============================================================================
 
 // ThrottleChecker bertanggung jawab untuk membatasi jumlah pesan yang dikirim
@@ -48,7 +48,7 @@ func (t *ThrottleChecker) CheckDailyLimit(ctx context.Context, tenantID, custome
 // Mengembalikan:
 //   - shouldDelay: true jika harus menunda pengiriman
 //   - delayUntil: waktu kapan boleh kirim lagi (nil jika tidak perlu delay)
-//   - error: jika terjadi kesalahan saat query database
+//   - error: jika terjadi kesalahan saat kueri database
 func (t *ThrottleChecker) CheckCooldown(ctx context.Context, tenantID, customerID string, cooldownMinutes int) (bool, *time.Time, error) {
 	lastSent, err := t.logRepo.LastSentToCustomer(ctx, tenantID, customerID)
 	if err != nil {

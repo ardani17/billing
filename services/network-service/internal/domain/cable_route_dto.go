@@ -6,7 +6,7 @@ import (
 )
 
 // =============================================================================
-// Cable Route Request DTOs — payload dari HTTP request untuk operasi cable route
+// Cable Route DTO permintaan - payload dari HTTP permintaan untuk operasi cable route
 // =============================================================================
 
 // CreateCableRouteRequest adalah payload untuk POST /api/v1/network-map/cables.
@@ -23,7 +23,7 @@ type CreateCableRouteRequest struct {
 }
 
 // UpdateCableRouteRequest adalah payload untuk PUT /api/v1/network-map/cables/:id.
-// Semua field bersifat opsional — hanya field yang dikirim yang akan diupdate.
+// Semua field bersifat opsional - hanya field yang dikirim yang akan diupdate.
 // Jika Coordinates diupdate, DistanceMeters akan dihitung ulang secara otomatis.
 type UpdateCableRouteRequest struct {
 	Coordinates json.RawMessage `json:"coordinates,omitempty"`
@@ -32,7 +32,7 @@ type UpdateCableRouteRequest struct {
 }
 
 // =============================================================================
-// Cable Route Response DTOs — format respons untuk operasi cable route
+// Cable Route Respons DTOs - format respons untuk operasi cable route
 // =============================================================================
 
 // CableRouteResponse adalah respons untuk operasi CRUD cable route.
@@ -51,7 +51,7 @@ type CableRouteResponse struct {
 }
 
 // =============================================================================
-// Helper Functions — konversi entity ke response DTO
+// Fungsi bantu Functions - konversi entity ke respons DTO
 // =============================================================================
 
 // ToCableRouteResponse mengkonversi CableRoute entity ke CableRouteResponse DTO.

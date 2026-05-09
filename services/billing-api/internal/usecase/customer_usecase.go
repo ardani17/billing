@@ -1,5 +1,5 @@
 // customer_usecase.go berisi business logic untuk manajemen pelanggan.
-// Mengimplementasikan Create, GetByID, Update, SoftDelete, List, dan Stats.
+// Mengimplementasikan Buat, GetByID, Perbarui, SoftDelete, List, dan Stats.
 package usecase
 
 import (
@@ -48,24 +48,23 @@ func NewCustomerUsecase(
 	}
 }
 
-// SetPackageRepository memasang package repository opsional untuk memperkaya event jaringan.
+// SetPackageRepository memasang package repositori opsional untuk memperkaya event jaringan.
 // Constructor lama dipertahankan agar test dan modul lain tetap kompatibel.
 func (uc *CustomerUsecase) SetPackageRepository(packageRepo domain.PackageRepository) {
 	uc.packageRepo = packageRepo
 }
 
-// SetTenantModuleRepository memasang repository entitlement agar event teknis
+// SetTenantModuleRepository memasang repositori entitlement agar event teknis
 // jaringan hanya dikirim saat add-on terkait aktif.
 func (uc *CustomerUsecase) SetTenantModuleRepository(moduleRepo TenantModuleRepository) {
 	uc.moduleRepo = moduleRepo
 }
 
-// Create membuat pelanggan baru.
-// Flow: validate → check phone duplicate → get max seq → generate customer ID →
-// auto-generate PPPoE if needed → create customer with status pending →
-// write audit log → publish customer.created event.
+// Buat membuat pelanggan baru.
+// Alur: validasi -> cek phone duplicate -> get max seq -> buat customer ID ->
+// tulis audit log -> terbitkan customer.created event.
 func (uc *CustomerUsecase) Create(ctx context.Context, tenantID string, req domain.CreateCustomerRequest, actor ActorInfo) (*domain.Customer, error) {
-	// Check phone duplicate
+	// Periksa phone duplicate
 	exists, err := uc.customerRepo.PhoneExists(ctx, tenantID, req.Phone, "")
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal cek phone duplicate: %w", err)
@@ -74,22 +73,22 @@ func (uc *CustomerUsecase) Create(ctx context.Context, tenantID string, req doma
 		return nil, domain.ErrPhoneDuplicate
 	}
 
-	// Get max sequence number for this tenant
+	// Get max sequence number untuk this tenant
 	maxSeq, err := uc.customerRepo.GetMaxSeq(ctx, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal ambil max seq: %w", err)
 	}
 
-	// Generate customer ID
+	// Buat customer ID
 	customerIDSeq := domain.GenerateCustomerID(maxSeq)
 
-	// Parse activation date
+	// Parsing activation date
 	activationDate, err := time.Parse("2006-01-02", req.ActivationDate)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: format activation_date tidak valid: %w", err)
 	}
 
-	// Auto-generate PPPoE credentials if needed
+	// Auto-buat PPPoE credentials jika needed
 	pppoeUsername := req.PPPoEUsername
 	pppoePassword := req.PPPoEPassword
 	if domain.ConnectionMethod(req.ConnectionMethod) == domain.ConnectionPPPoE {
@@ -101,7 +100,7 @@ func (uc *CustomerUsecase) Create(ctx context.Context, tenantID string, req doma
 		}
 	}
 
-	// Build customer entity
+	// Bangun customer entity
 	customer := &domain.Customer{
 		TenantID:         tenantID,
 		CustomerIDSeq:    customerIDSeq,
@@ -125,13 +124,13 @@ func (uc *CustomerUsecase) Create(ctx context.Context, tenantID string, req doma
 		Status:           domain.CustomerStatusPending,
 	}
 
-	// Create customer in database
+	// Buat customer in database
 	created, err := uc.customerRepo.Create(ctx, customer)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal membuat customer: %w", err)
 	}
 
-	// Write audit log
+	// Tulis audit log
 	uc.writeAuditLog(ctx, tenantID, created.ID, "customer.created", actor, nil)
 
 	if uc.mikrotikEnabled(ctx, tenantID) {
@@ -155,7 +154,7 @@ func (uc *CustomerUsecase) GetByID(ctx context.Context, id string, includeAudit 
 		return nil, err
 	}
 
-	// Check if soft-deleted
+	// Periksa jika hapus lunak
 	if customer.DeletedAt != nil {
 		return nil, domain.ErrCustomerNotFound
 	}
@@ -164,12 +163,12 @@ func (uc *CustomerUsecase) GetByID(ctx context.Context, id string, includeAudit 
 		Customer: customer,
 	}
 
-	// Optionally fetch audit logs
+	// Ambil audit log jika diminta
 	if includeAudit {
 		logs, err := uc.auditLogRepo.ListByEntity(ctx, "customer", id)
 		if err != nil {
 			uc.logger.Error().Err(err).Str("customer_id", id).Msg("gagal mengambil audit logs")
-			// Don't fail the request, just skip audit logs
+			// Don't fail the permintaan, just skip audit logs
 		} else {
 			detail.AuditLogs = logs
 		}
@@ -178,11 +177,11 @@ func (uc *CustomerUsecase) GetByID(ctx context.Context, id string, includeAudit 
 	return detail, nil
 }
 
-// Update memperbarui data pelanggan.
-// Flow: validate → check phone duplicate → update → compute changed fields →
-// write audit log with old/new values.
+// Perbarui memperbarui data pelanggan.
+// Alur: validasi -> cek phone duplicate -> perbarui -> compute changed field ->
+// tulis audit log dengan nilai lama/baru.
 func (uc *CustomerUsecase) Update(ctx context.Context, id string, req domain.UpdateCustomerRequest, actor ActorInfo) (*domain.Customer, error) {
-	// Fetch existing customer
+	// Ambil existing customer
 	existing, err := uc.customerRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -192,7 +191,7 @@ func (uc *CustomerUsecase) Update(ctx context.Context, id string, req domain.Upd
 		return nil, domain.ErrCustomerNotFound
 	}
 
-	// Check phone duplicate if phone is being changed
+	// Periksa phone duplicate jika phone is being changed
 	if req.Phone != "" && req.Phone != existing.Phone {
 		exists, err := uc.customerRepo.PhoneExists(ctx, existing.TenantID, req.Phone, id)
 		if err != nil {
@@ -203,19 +202,18 @@ func (uc *CustomerUsecase) Update(ctx context.Context, id string, req domain.Upd
 		}
 	}
 
-	// Apply updates to existing customer (only non-zero values)
 	updated := applyCustomerUpdates(existing, req)
 
-	// Save to database
+	// Simpan to database
 	result, err := uc.customerRepo.Update(ctx, updated)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal memperbarui customer: %w", err)
 	}
 
-	// Compute changed fields for audit log
+	// Compute changed field untuk audit log
 	changes := computeChanges(existing, result)
 
-	// Write audit log with old/new values
+	// Tulis audit log dengan nilai lama/baru
 	if len(changes) > 0 {
 		uc.writeAuditLog(ctx, existing.TenantID, id, "customer.updated", actor, changes)
 	}
@@ -223,11 +221,10 @@ func (uc *CustomerUsecase) Update(ctx context.Context, id string, req domain.Upd
 	return result, nil
 }
 
-// SoftDelete menghapus pelanggan secara soft delete.
-// Flow: fetch customer → verify confirmation_name matches → soft delete →
-// write audit log → publish customer.terminated event.
+// SoftDelete menghapus pelanggan secara hapus lunak.
+// tulis audit log -> terbitkan customer.terminated event.
 func (uc *CustomerUsecase) SoftDelete(ctx context.Context, id string, confirmationName string, actor ActorInfo) error {
-	// Fetch existing customer
+	// Ambil existing customer
 	customer, err := uc.customerRepo.GetByID(ctx, id)
 	if err != nil {
 		return err
@@ -242,12 +239,12 @@ func (uc *CustomerUsecase) SoftDelete(ctx context.Context, id string, confirmati
 		return domain.ErrConfirmationMismatch
 	}
 
-	// Soft delete
+	// Soft hapus
 	if err := uc.customerRepo.SoftDelete(ctx, id); err != nil {
 		return fmt.Errorf("usecase: gagal soft-delete customer: %w", err)
 	}
 
-	// Write audit log
+	// Tulis audit log
 	uc.writeAuditLog(ctx, customer.TenantID, id, "customer.deleted", actor, nil)
 
 	if uc.mikrotikEnabled(ctx, customer.TenantID) {
@@ -288,10 +285,10 @@ func (uc *CustomerUsecase) mikrotikEnabled(ctx context.Context, tenantID string)
 	return caps.MikroTik
 }
 
-// List mengambil daftar pelanggan dengan paginasi, filter, dan sorting.
-// Menerapkan default: page=1, page_size=25.
+// List mengambil daftar pelanggan dengan paginasi, filter, dan pengurutan.
+// Menerapkan bawaan: page=1, page_size=25.
 func (uc *CustomerUsecase) List(ctx context.Context, params domain.CustomerListParams) (*domain.CustomerListResult, error) {
-	// Apply defaults
+	// Terapkan defaults
 	if params.Page < 1 {
 		params.Page = 1
 	}
@@ -307,7 +304,7 @@ func (uc *CustomerUsecase) Stats(ctx context.Context) (map[domain.CustomerStatus
 	return uc.customerRepo.CountByStatus(ctx)
 }
 
-// --- Helper functions ---
+// --- Fungsi bantu functions ---
 
 // writeAuditLog menulis audit log entry. Tidak mengembalikan error agar
 // operasi utama tidak gagal karena audit log.

@@ -1,7 +1,7 @@
-// invoice_worker.go berisi asynq worker untuk cron job invoice.
+// invoice_worker.go berisi asynq worker untuk job cron invoice.
 // InvoiceWorker menangani dua jenis task:
-// 1. invoice.generate_cron — cron harian untuk auto-generate invoice pelanggan
-// 2. invoice.overdue_cron — cron harian untuk update status invoice overdue
+// 1. invoice.generate_cron - cron harian untuk auto-buat invoice pelanggan
+// 2. invoice.overdue_cron - cron harian untuk perbarui status invoice terlambat
 package worker
 
 import (
@@ -16,15 +16,15 @@ import (
 
 // Konstanta tipe task yang diproses oleh InvoiceWorker.
 const (
-	// TaskInvoiceGenerateCron adalah tipe task untuk cron auto-generate invoice harian.
+	// TaskInvoiceGenerateCron adalah tipe task untuk cron auto-buat invoice harian.
 	TaskInvoiceGenerateCron = "invoice.generate_cron"
 
-	// TaskInvoiceOverdueCron adalah tipe task untuk cron update status overdue harian.
+	// TaskInvoiceOverdueCron adalah tipe task untuk cron perbarui status terlambat harian.
 	TaskInvoiceOverdueCron = "invoice.overdue_cron"
 )
 
 // InvoiceWorker menangani task asynq terkait invoice cron jobs.
-// Mendaftarkan handler untuk auto-generate dan overdue update.
+// Mendaftarkan handler untuk auto-buat dan terlambat perbarui.
 type InvoiceWorker struct {
 	cronUsecase *usecase.InvoiceCronUsecase
 	logger      zerolog.Logger
@@ -47,7 +47,7 @@ func (w *InvoiceWorker) RegisterHandlers(mux *asynq.ServeMux) {
 	mux.HandleFunc(TaskInvoiceOverdueCron, w.handleOverdueCron)
 }
 
-// handleGenerateCron memproses task cron auto-generate invoice harian.
+// handleGenerateCron memproses task cron auto-buat invoice harian.
 // Memanggil InvoiceCronUsecase.ProcessAutoGenerate untuk memproses
 // semua tenant dan pelanggan yang eligible untuk invoice baru.
 func (w *InvoiceWorker) handleGenerateCron(ctx context.Context, task *asynq.Task) error {
@@ -62,7 +62,7 @@ func (w *InvoiceWorker) handleGenerateCron(ctx context.Context, task *asynq.Task
 	return nil
 }
 
-// handleOverdueCron memproses task cron update status overdue harian.
+// handleOverdueCron memproses task cron perbarui status terlambat harian.
 // Memanggil InvoiceCronUsecase.ProcessOverdueUpdate untuk memperbarui
 // status invoice yang sudah melewati tanggal jatuh tempo.
 func (w *InvoiceWorker) handleOverdueCron(ctx context.Context, task *asynq.Task) error {

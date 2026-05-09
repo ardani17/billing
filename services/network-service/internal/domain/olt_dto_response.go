@@ -3,10 +3,10 @@ package domain
 import "time"
 
 // =============================================================================
-// OLT Response DTOs — format respons untuk operasi OLT
+// OLT Respons DTOs - format respons untuk operasi OLT
 // =============================================================================
 
-// OLTResponse adalah respons untuk operasi create/update/list OLT.
+// OLTResponse adalah respons untuk operasi buat/perbarui/list OLT.
 // Tidak menyertakan kredensial (SNMP community, password) untuk keamanan.
 type OLTResponse struct {
 	ID                     string     `json:"id"`
@@ -21,6 +21,7 @@ type OLTResponse struct {
 	HealthCheckIntervalSec int        `json:"health_check_interval_sec"`
 	LastOnlineAt           *time.Time `json:"last_online_at,omitempty"`
 	Notes                  string     `json:"notes,omitempty"`
+	Warning                string     `json:"warning,omitempty"`
 	CreatedAt              time.Time  `json:"created_at"`
 	UpdatedAt              time.Time  `json:"updated_at"`
 }
@@ -33,7 +34,6 @@ type OLTDetailResponse struct {
 	CLIProtocol      CLIProtocol `json:"cli_protocol"`
 	CLIPort          int         `json:"cli_port"`
 	ActiveAlarmCount int64       `json:"active_alarm_count"`
-	Warning          string      `json:"warning,omitempty"` // contoh: "SNMP v2c tanpa VPN tidak aman"
 }
 
 // OLTListResult berisi hasil list OLT dengan metadata paginasi.
@@ -46,7 +46,7 @@ type OLTListResult struct {
 }
 
 // =============================================================================
-// OLT Status Summary — ringkasan status untuk dashboard widget
+// OLT Status Summary - ringkasan status untuk dashboard widget
 // =============================================================================
 
 // OLTStatusSummary berisi ringkasan status semua OLT tenant untuk dashboard.
@@ -60,7 +60,7 @@ type OLTStatusSummary struct {
 }
 
 // =============================================================================
-// CLI Test Result — hasil test koneksi CLI (SSH/Telnet)
+// CLI Tes Result - hasil test koneksi CLI (SSH/Telnet)
 // =============================================================================
 
 // CLITestResult berisi hasil test koneksi CLI ke OLT.
@@ -72,7 +72,7 @@ type CLITestResult struct {
 }
 
 // =============================================================================
-// Capacity Planning — data kapasitas OLT dan per PON port
+// Capacity Planning - data kapasitas OLT dan per PON port
 // =============================================================================
 
 // OLTCapacity berisi data capacity planning untuk satu OLT.
@@ -94,7 +94,7 @@ type OLTCapacity struct {
 type PortCapacity struct {
 	PortIndex          int     `json:"port_index"`
 	ONTCount           int     `json:"ont_count"`
-	MaxONTPerPort      int     `json:"max_ont_per_port"` // default 64 untuk GPON
+	MaxONTPerPort      int     `json:"max_ont_per_port"` // bawaan 64 untuk GPON
 	UtilizationPercent float64 `json:"utilization_percent"`
 	Warning            string  `json:"warning,omitempty"` // diisi jika utilisasi > 90%
 }

@@ -33,7 +33,7 @@ func (uc *PaymentUsecase) GetReceipt(ctx context.Context, paymentID string) (*do
 	tenantName := ""
 	settings, _ := uc.settingsRepo.GetByTenantID(ctx, invoice.TenantID)
 	if settings != nil {
-		tenantName = settings.InvoicePrefix // Gunakan prefix sebagai fallback
+		tenantName = settings.InvoicePrefix // Gunakan prefix sebagai cadangan
 	}
 
 	// Kumpulkan daftar invoice dalam kwitansi
@@ -73,7 +73,7 @@ func (uc *PaymentUsecase) GetReceipt(ctx context.Context, paymentID string) (*do
 		}
 	}
 
-	// Fallback: jika tidak ada receipt_group_id atau gagal ambil grup
+	// Cadangan: jika tidak ada receipt_group_id atau gagal ambil grup
 	if len(invoices) == 0 {
 		invoices = []domain.ReceiptInvoice{
 			{

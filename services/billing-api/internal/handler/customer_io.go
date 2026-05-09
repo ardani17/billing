@@ -1,4 +1,4 @@
-// customer_io.go menangani HTTP request untuk import/export pelanggan.
+// customer_io.go menangani HTTP permintaan untuk import/export pelanggan.
 // Termasuk: import CSV/Excel, export CSV/Excel, dan download template import.
 package handler
 
@@ -18,7 +18,7 @@ func (h *CustomerHandler) Import(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant tidak teridentifikasi")
 	}
 
-	// Parse multipart file
+	// Parsing file multipart
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "file wajib diunggah")
@@ -63,7 +63,7 @@ func (h *CustomerHandler) Export(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "format harus csv atau xlsx")
 	}
 
-	// Parse filter params (same as list)
+	// Parsing parameter filter (sama seperti daftar)
 	var params domain.CustomerListParams
 	params.TenantID = tenantID
 	params.Search = c.Query("search")
@@ -71,7 +71,7 @@ func (h *CustomerHandler) Export(c *fiber.Ctx) error {
 	params.PackageID = c.Query("package_id")
 	params.AreaID = c.Query("area_id")
 
-	// Parse columns
+	// Parsing kolom
 	var columns []string
 	if columnsStr := c.Query("columns"); columnsStr != "" {
 		columns = strings.Split(columnsStr, ",")

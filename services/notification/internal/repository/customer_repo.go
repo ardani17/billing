@@ -10,7 +10,7 @@ import (
 )
 
 // =============================================================================
-// CustomerDataRepo — implementasi fetcher data pelanggan dan tenant
+// CustomerDataRepo - implementasi fetcher data pelanggan dan tenant
 // menggunakan sqlc Queries untuk keperluan substitusi variabel template.
 // =============================================================================
 

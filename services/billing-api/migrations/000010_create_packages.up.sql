@@ -58,7 +58,7 @@ CREATE POLICY tenant_insert ON packages
 -- Unique constraint: nama paket unik per tenant
 ALTER TABLE packages ADD CONSTRAINT uq_packages_tenant_name UNIQUE (tenant_id, name);
 
--- Composite indexes untuk performa query
+-- Composite indexes untuk performa kueri
 CREATE INDEX idx_packages_tenant_type ON packages(tenant_id, type);
 CREATE INDEX idx_packages_tenant_active ON packages(tenant_id, is_active);
 CREATE INDEX idx_packages_tenant_type_active ON packages(tenant_id, type, is_active);

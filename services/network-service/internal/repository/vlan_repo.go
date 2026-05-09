@@ -20,7 +20,7 @@ func NewVLANRepo(queries *Queries) *VLANRepo {
 	return &VLANRepo{queries: queries}
 }
 
-// --- Mapping sqlc Vlan → domain.VLAN ---
+// --- Mapping sqlc Vlan -> domain.VLAN ---
 
 // mapVLANRow memetakan Vlan (sqlc model) ke domain.VLAN.
 func mapVLANRow(row Vlan) *domain.VLAN {
@@ -40,7 +40,7 @@ func mapVLANRow(row Vlan) *domain.VLAN {
 
 // --- Implementasi CRUD domain.VLANRepository ---
 
-// Create membuat VLAN baru dan mengembalikan VLAN yang dibuat.
+// Buat membuat VLAN baru dan mengembalikan VLAN yang dibuat.
 func (r *VLANRepo) Create(ctx context.Context, vlan *domain.VLAN) (*domain.VLAN, error) {
 	row, err := r.queries.CreateVLAN(ctx, CreateVLANParams{
 		TenantID:    stringToUUID(vlan.TenantID),
@@ -68,7 +68,7 @@ func (r *VLANRepo) GetByID(ctx context.Context, id string) (*domain.VLAN, error)
 	return mapVLANRow(row), nil
 }
 
-// Update memperbarui data VLAN dan mengembalikan VLAN yang diperbarui.
+// Perbarui memperbarui data VLAN dan mengembalikan VLAN yang diperbarui.
 func (r *VLANRepo) Update(ctx context.Context, vlan *domain.VLAN) (*domain.VLAN, error) {
 	row, err := r.queries.UpdateVLAN(ctx, UpdateVLANParams{
 		ID:          stringToUUID(vlan.ID),
@@ -85,7 +85,7 @@ func (r *VLANRepo) Update(ctx context.Context, vlan *domain.VLAN) (*domain.VLAN,
 	return mapVLANRow(row), nil
 }
 
-// SoftDelete melakukan soft-delete VLAN (set deleted_at).
+// SoftDelete melakukan hapus lunak VLAN (atur deleted_at).
 func (r *VLANRepo) SoftDelete(ctx context.Context, id string) error {
 	err := r.queries.SoftDeleteVLAN(ctx, stringToUUID(id))
 	if err != nil {
@@ -161,7 +161,7 @@ func (r *VLANRepo) GetByOLTAndVLANID(ctx context.Context, oltID string, vlanID i
 	return mapVLANRow(row), nil
 }
 
-// GetDefaultVLAN mengambil VLAN default untuk OLT (VLAN pertama tipe data).
+// GetDefaultVLAN mengambil VLAN bawaan untuk OLT (VLAN pertama tipe data).
 func (r *VLANRepo) GetDefaultVLAN(ctx context.Context, oltID string) (*domain.VLAN, error) {
 	row, err := r.queries.GetDefaultVLAN(ctx, stringToUUID(oltID))
 	if err != nil {
@@ -200,5 +200,5 @@ func (r *VLANRepo) CountActiveONTs(ctx context.Context, vlanID string) (int64, e
 	return count, nil
 }
 
-// Compile-time check: VLANRepo mengimplementasikan domain.VLANRepository.
+// Compile-time cek: VLANRepo mengimplementasikan domain.VLANRepository.
 var _ domain.VLANRepository = (*VLANRepo)(nil)

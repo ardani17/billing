@@ -1,4 +1,3 @@
-// gateway_handler_mock_test.go berisi mock GatewayConfigRepository dan setup helper.
 package handler
 
 import (
@@ -9,8 +8,6 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 	"github.com/ispboss/ispboss/services/billing-api/internal/gateway"
 )
-
-// --- Mock: GatewayConfigRepository ---
 
 type mockGatewayConfigRepo struct {
 	configs map[string]*domain.GatewayConfig
@@ -99,7 +96,6 @@ func (m *mockGatewayConfigRepo) ExistsByProvider(_ context.Context, tenantID str
 	}
 	return false, nil
 }
-
 
 // encryptTestKey mengenkripsi key menggunakan testMasterKey untuk test.
 func encryptTestKey(key string) (string, error) {

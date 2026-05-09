@@ -22,7 +22,7 @@ func NewGeocodingCacheRepo(db DBTX) *GeocodingCacheRepo {
 
 // Get mengambil cache geocoding berdasarkan koordinat yang sudah dibulatkan.
 // Mengembalikan nil jika cache tidak ditemukan atau sudah kedaluwarsa.
-// tenantID diambil dari context RLS, tapi query tetap menerima parameter eksplisit
+// tenantID diambil dari context RLS, tapi kueri tetap menerima parameter eksplisit
 // sesuai pola sqlc query yang sudah didefinisikan.
 func (r *GeocodingCacheRepo) Get(ctx context.Context, latRound, lngRound float64) (*domain.GeocodingCache, error) {
 	var c domain.GeocodingCache
@@ -73,5 +73,5 @@ func (r *GeocodingCacheRepo) DeleteExpired(ctx context.Context) (int64, error) {
 	return tag.RowsAffected(), nil
 }
 
-// Compile-time check: GeocodingCacheRepo mengimplementasikan domain.GeocodingCacheRepository.
+// Compile-time cek: GeocodingCacheRepo mengimplementasikan domain.GeocodingCacheRepository.
 var _ domain.GeocodingCacheRepository = (*GeocodingCacheRepo)(nil)

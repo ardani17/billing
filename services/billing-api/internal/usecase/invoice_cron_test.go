@@ -1,6 +1,5 @@
 // invoice_cron_test.go berisi unit test untuk InvoiceCronUsecase.
-// Menguji auto-generate idempotency, skip prepaid periods, include recurring items,
-// tax calculation, credit application, overdue status update.
+// Menguji auto-buat idempotency, skip prepaid periods, include item berulangs,
 package usecase
 
 import (
@@ -16,7 +15,6 @@ import (
 )
 
 // =============================================================================
-// Mock repositories khusus untuk InvoiceCronUsecase tests
 // =============================================================================
 
 // mockCronInvoiceRepo extends mockInvoiceRepo dengan kontrol idempotency.
@@ -49,7 +47,6 @@ func (m *mockCronInvoiceRepo) FindOverdue(_ context.Context, _ time.Time) ([]*do
 	return m.overdueList, nil
 }
 
-// mockCronCustomerRepo extends invMockCustomerRepo dengan list yang mengembalikan pelanggan.
 type mockCronCustomerRepo struct {
 	*invMockCustomerRepo
 }
@@ -124,17 +121,16 @@ func (m *mockRecurringItemRepo) ListActiveByCustomer(_ context.Context, customer
 }
 
 // =============================================================================
-// Helper untuk membuat InvoiceCronUsecase dengan mock repos
 // =============================================================================
 
 type cronUsecaseSetup struct {
-	uc              *InvoiceCronUsecase
-	invoiceRepo     *mockCronInvoiceRepo
-	itemRepo        *mockItemRepo
-	customerRepo    *mockCronCustomerRepo
-	packageRepo     *invMockPackageRepo
-	settingsRepo    *mockSettingsRepo
-	recurringRepo   *mockRecurringItemRepo
+	uc            *InvoiceCronUsecase
+	invoiceRepo   *mockCronInvoiceRepo
+	itemRepo      *mockItemRepo
+	customerRepo  *mockCronCustomerRepo
+	packageRepo   *invMockPackageRepo
+	settingsRepo  *mockSettingsRepo
+	recurringRepo *mockRecurringItemRepo
 }
 
 func setupCronUsecase() *cronUsecaseSetup {
@@ -166,10 +162,10 @@ func setupCronUsecase() *cronUsecaseSetup {
 }
 
 // =============================================================================
-// Unit Tests — InvoiceCronUsecase
+// Unit Tests - InvoiceCronUsecase
 // =============================================================================
 
-// TestCron_AutoGenerate_Idempotency menguji bahwa invoice tidak di-generate ulang untuk periode yang sama.
+// TestCron_AutoGenerate_Idempotency menguji bahwa invoice tidak di-buat ulang untuk periode yang sama.
 func TestCron_AutoGenerate_Idempotency(t *testing.T) {
 	s := setupCronUsecase()
 	ctx := context.Background()
@@ -190,7 +186,7 @@ func TestCron_AutoGenerate_Idempotency(t *testing.T) {
 	// Tandai periode sudah ada
 	s.invoiceRepo.existingPeriods["cust-1-6-2024"] = true
 
-	// Simulasi generate pada tanggal 10 Juni (due_date 15 - generate_days 5 = 10)
+	// Simulasi buat pada tanggal 10 Juni (due_date 15 - generate_days 5 = 10)
 	now := time.Date(2024, 6, 10, 0, 0, 0, 0, time.UTC)
 	err := s.uc.processAutoGenerateForTenant(ctx, s.settingsRepo.settings["tenant-1"], now)
 	if err != nil {
@@ -236,7 +232,7 @@ func TestCron_AutoGenerate_SkipPrepaid(t *testing.T) {
 	}
 }
 
-// TestCron_AutoGenerate_IncludeRecurringItems menguji bahwa recurring items disertakan.
+// TestCron_AutoGenerate_IncludeRecurringItems menguji bahwa item berulangs disertakan.
 func TestCron_AutoGenerate_IncludeRecurringItems(t *testing.T) {
 	s := setupCronUsecase()
 	ctx := context.Background()
@@ -254,7 +250,7 @@ func TestCron_AutoGenerate_IncludeRecurringItems(t *testing.T) {
 		ID: "pkg-1", Name: "Test", MonthlyPrice: &monthlyPrice,
 	}
 
-	// Tambah recurring item aktif
+	// Tambah item berulang aktif
 	s.recurringRepo.items["cust-1"] = []*domain.CustomerRecurringItem{
 		{ID: "ri-1", CustomerID: "cust-1", Description: "Sewa router", Amount: 25000, IsActive: true},
 	}
@@ -270,7 +266,7 @@ func TestCron_AutoGenerate_IncludeRecurringItems(t *testing.T) {
 		t.Fatalf("expected 1 invoice, got %d", len(s.invoiceRepo.invoices))
 	}
 
-	// Subtotal harus = monthly + recurring = 200000 + 25000 = 225000
+	// Subtotal harus = bulanan + berulang = 200000 + 25000 = 225000
 	for _, inv := range s.invoiceRepo.invoices {
 		if inv.Subtotal != 225000 {
 			t.Fatalf("expected subtotal 225000, got %d", inv.Subtotal)
@@ -352,16 +348,14 @@ func TestCron_AutoGenerate_WithCredit(t *testing.T) {
 
 	// Verifikasi saldo kredit pelanggan berkurang
 	// Catatan: credit_balance diupdate secara atomik via SQL langsung (pool.Exec),
-	// bukan melalui customerRepo.Update, sehingga mock tidak terpengaruh.
 	// Verifikasi ini hanya berlaku di environment dengan database nyata.
 }
 
-// TestCron_OverdueUpdate menguji update status overdue.
 func TestCron_OverdueUpdate(t *testing.T) {
 	s := setupCronUsecase()
 	ctx := context.Background()
 
-	// Tambah invoice overdue
+	// Tambah invoice terlambat
 	inv := &domain.Invoice{
 		ID:            "inv-overdue",
 		TenantID:      "tenant-1",

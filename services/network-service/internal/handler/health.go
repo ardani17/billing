@@ -1,5 +1,5 @@
 // Package handler berisi HTTP handler untuk network-service.
-// Setiap handler menerima request Fiber dan mengembalikan respons JSON.
+// Setiap handler menerima permintaan Fiber dan mengembalikan respons JSON.
 package handler
 
 import (
@@ -24,7 +24,7 @@ type ReadyResponse struct {
 	Dependencies map[string]string `json:"dependencies"`
 }
 
-// HealthHandler menangani health check dan readiness check.
+// HealthHandler menangani pemeriksaan kesehatan dan pemeriksaan kesiapan.
 // Memeriksa konektivitas ke database PostgreSQL dan Redis.
 type HealthHandler struct {
 	serviceName string

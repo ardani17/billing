@@ -9,13 +9,13 @@ import (
 )
 
 // =============================================================================
-// PaymentGatewayAdapter — kontrak untuk interaksi dengan payment gateway
+// PaymentGatewayAdapter - kontrak untuk interaksi dengan gateway pembayaran
 // =============================================================================
 
-// PaymentGatewayAdapter mendefinisikan kontrak untuk interaksi dengan payment gateway.
+// PaymentGatewayAdapter mendefinisikan kontrak untuk interaksi dengan gateway pembayaran.
 // Diimplementasikan oleh XenditAdapter dan MidtransAdapter.
 type PaymentGatewayAdapter interface {
-	// CreatePaymentLink membuat payment link baru di gateway.
+	// CreatePaymentLink membuat link pembayaran baru di gateway.
 	// Mengembalikan PaymentLinkResponse berisi URL dan external ID.
 	CreatePaymentLink(ctx context.Context, req CreateLinkRequest) (*domain.PaymentLinkResponse, error)
 
@@ -23,10 +23,10 @@ type PaymentGatewayAdapter interface {
 	// Mengembalikan true jika signature valid.
 	VerifyWebhookSignature(ctx context.Context, headers map[string]string, body []byte, secret string) (bool, error)
 
-	// ParseWebhookPayload mem-parse body webhook menjadi WebhookEvent.
+	// ParseWebhookPayload mem-parsing body webhook menjadi WebhookEvent.
 	ParseWebhookPayload(body []byte) (*domain.WebhookEvent, error)
 
-	// ExpirePaymentLink meng-expire payment link di gateway.
+	// ExpirePaymentLink meng-expire link pembayaran di gateway.
 	ExpirePaymentLink(ctx context.Context, externalID string) error
 
 	// TestConnection menguji koneksi dan kredensial ke gateway.
@@ -34,10 +34,10 @@ type PaymentGatewayAdapter interface {
 }
 
 // =============================================================================
-// CreateLinkRequest — parameter untuk membuat payment link
+// CreateLinkRequest - parameter untuk membuat link pembayaran
 // =============================================================================
 
-// CreateLinkRequest berisi parameter untuk membuat payment link di gateway.
+// CreateLinkRequest berisi parameter untuk membuat link pembayaran di gateway.
 type CreateLinkRequest struct {
 	ExternalID     string        // ID unik dari sistem kita (payment_link.id)
 	Amount         int64         // Jumlah dalam Rupiah
@@ -49,7 +49,7 @@ type CreateLinkRequest struct {
 }
 
 // =============================================================================
-// NewAdapter — factory untuk membuat adapter berdasarkan provider
+// NewAdapter - factory untuk membuat adapter berdasarkan provider
 // =============================================================================
 
 // NewAdapter membuat adapter berdasarkan provider.

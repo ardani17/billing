@@ -23,7 +23,7 @@ func NewSessionRepo(queries *Queries) *SessionRepo {
 	}
 }
 
-// --- Helper functions untuk mapping sqlc row → domain.Session ---
+// --- Helper functions untuk mapping sqlc row -> domain.Session ---
 
 // mapCreateSessionRow memetakan Session (sqlc model) ke domain.Session.
 func mapCreateSessionRow(row Session) *domain.Session {

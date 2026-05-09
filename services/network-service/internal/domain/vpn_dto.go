@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// Request DTOs — payload untuk VPN tunnel operations
+// DTO permintaan - payload untuk VPN tunnel operations
 // =============================================================================
 
 // CreateVPNTunnelRequest adalah payload untuk POST /api/v1/mikrotik/vpn/tunnels.
@@ -16,7 +16,7 @@ type CreateVPNTunnelRequest struct {
 }
 
 // UpdateVPNTunnelRequest adalah payload untuk PUT /api/v1/mikrotik/vpn/tunnels/:id.
-// Field bersifat opsional — hanya field yang dikirim yang akan diupdate.
+// Field bersifat opsional - hanya field yang dikirim yang akan diupdate.
 type UpdateVPNTunnelRequest struct {
 	TunnelName          string `json:"tunnel_name,omitempty" validate:"omitempty,min=1,max=100"`
 	Notes               string `json:"notes,omitempty" validate:"omitempty,max=500"`
@@ -36,10 +36,10 @@ type VPNTunnelListParams struct {
 }
 
 // =============================================================================
-// Response DTOs — format respons untuk VPN tunnel operations
+// Respons DTOs - format respons untuk VPN tunnel operations
 // =============================================================================
 
-// VPNTunnelResponse adalah respons untuk operasi create/update/list tunnel.
+// VPNTunnelResponse adalah respons untuk operasi buat/perbarui/list tunnel.
 type VPNTunnelResponse struct {
 	ID                  string       `json:"id"`
 	TunnelName          string       `json:"tunnel_name"`
@@ -66,10 +66,10 @@ type VPNTunnelResponse struct {
 // Private key dan PSK di-mask, tidak pernah di-expose ke client.
 type VPNTunnelDetailResponse struct {
 	VPNTunnelResponse
-	ClientPrivateKeyMasked string `json:"client_private_key"`        // selalu "********"
-	PreSharedKeyMasked     string `json:"pre_shared_key"`            // selalu "********" atau kosong
+	ClientPrivateKeyMasked string `json:"client_private_key"` // selalu "********"
+	PreSharedKeyMasked     string `json:"pre_shared_key"`     // selalu "********" atau kosong
 	L2TPUsername           string `json:"l2tp_username,omitempty"`
-	L2TPPasswordMasked     string `json:"l2tp_password"`             // selalu "********" atau kosong
+	L2TPPasswordMasked     string `json:"l2tp_password"` // selalu "********" atau kosong
 	ActiveEndpoint         string `json:"active_endpoint,omitempty"`
 }
 
@@ -107,7 +107,7 @@ type VPNBandwidthResult struct {
 }
 
 // =============================================================================
-// VPN Event Payloads — dipublikasikan ke Redis queue via asynq
+// VPN Payload event - dipublikasikan ke Redis queue via asynq
 // =============================================================================
 
 // VPNTunnelDownPayload adalah payload event mikrotik.vpn_tunnel_down.

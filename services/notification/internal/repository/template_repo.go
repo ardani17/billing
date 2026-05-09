@@ -52,7 +52,7 @@ func mapTemplateRow(row NotificationTemplate) (*domain.NotificationTemplate, err
 		BodyWhatsApp: textToString(row.BodyWhatsapp), BodySMS: textToString(row.BodySms),
 		BodyEmailSubject: textToString(row.BodyEmailSubject),
 		BodyEmailHTML:    textToString(row.BodyEmailHtml),
-		Variables: variables, IsActive: row.IsActive, IsDefault: row.IsDefault,
+		Variables:        variables, IsActive: row.IsActive, IsDefault: row.IsDefault,
 		CreatedAt: timestamptzToTime(row.CreatedAt), UpdatedAt: timestamptzToTime(row.UpdatedAt),
 	}, nil
 }
@@ -68,7 +68,7 @@ func buildCreateParams(t *domain.NotificationTemplate) (chJSON, varJSON []byte, 
 	return chJSON, varJSON, nil
 }
 
-// Create membuat template notifikasi baru dan mengembalikan template yang dibuat.
+// Buat membuat template notifikasi baru dan mengembalikan template yang dibuat.
 func (r *TemplateRepo) Create(ctx context.Context, t *domain.NotificationTemplate) (*domain.NotificationTemplate, error) {
 	chJSON, varJSON, err := buildCreateParams(t)
 	if err != nil {
@@ -128,7 +128,7 @@ func (r *TemplateRepo) GetByEventType(ctx context.Context, tenantID, eventType s
 	return mapTemplateRow(row)
 }
 
-// Update memperbarui template dan mengembalikan template yang diperbarui.
+// Perbarui memperbarui template dan mengembalikan template yang diperbarui.
 func (r *TemplateRepo) Update(ctx context.Context, t *domain.NotificationTemplate) (*domain.NotificationTemplate, error) {
 	chJSON, err := json.Marshal(t.Channels)
 	if err != nil {
@@ -174,7 +174,7 @@ func (r *TemplateRepo) ListByTenant(ctx context.Context, tenantID string) ([]*do
 	return result, nil
 }
 
-// BulkCreate membuat beberapa template sekaligus (untuk seeding default templates).
+// BulkCreate membuat beberapa template sekaligus (untuk seeding bawaan templates).
 func (r *TemplateRepo) BulkCreate(ctx context.Context, templates []*domain.NotificationTemplate) error {
 	for _, t := range templates {
 		chJSON, varJSON, err := buildCreateParams(t)
@@ -196,7 +196,7 @@ func (r *TemplateRepo) BulkCreate(ctx context.Context, templates []*domain.Notif
 	return nil
 }
 
-// SlugExists mengecek apakah slug sudah ada di tenant (exclude ID untuk update).
+// SlugExists mengecek apakah slug sudah ada di tenant (exclude ID untuk perbarui).
 func (r *TemplateRepo) SlugExists(ctx context.Context, tenantID, slug, excludeID string) (bool, error) {
 	exists, err := r.queries.SlugExists(ctx, SlugExistsParams{
 		TenantID: parseUUID(tenantID), Slug: slug, ID: parseUUID(excludeID),

@@ -1,5 +1,4 @@
-// expense_handler.go menangani HTTP request untuk CRUD pengeluaran.
-// Termasuk: List, Create, Update, Delete expenses.
+// expense_handler.go menangani HTTP permintaan untuk CRUD pengeluaran.
 // Method kategori ada di expense_handler_category.go.
 package handler
 
@@ -14,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// ExpenseHandler menangani HTTP request untuk pengeluaran.
+// ExpenseHandler menangani HTTP permintaan untuk pengeluaran.
 type ExpenseHandler struct {
 	expenseUsecase domain.ExpenseUsecase
 	validate       *validator.Validate
@@ -64,7 +63,7 @@ func (h *ExpenseHandler) List(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, expenses)
 }
 
-// Create menangani POST /v1/expenses.
+// Buat menangani POST /v1/expenses.
 // Membuat pengeluaran baru.
 func (h *ExpenseHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -95,7 +94,7 @@ func (h *ExpenseHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, expense)
 }
 
-// Update menangani PUT /v1/expenses/:id.
+// Perbarui menangani PUT /v1/expenses/:id.
 // Memperbarui data pengeluaran.
 func (h *ExpenseHandler) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -126,8 +125,8 @@ func (h *ExpenseHandler) Update(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, expense)
 }
 
-// Delete menangani DELETE /v1/expenses/:id.
-// Soft delete pengeluaran.
+// Hapus menangani DELETE /v1/expenses/:id.
+// Hapus lunak pengeluaran.
 func (h *ExpenseHandler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -151,7 +150,7 @@ func (h *ExpenseHandler) extractActor(c *fiber.Ctx) domain.ActorInfo {
 	}
 }
 
-// mapExpenseError memetakan domain error ke HTTP error response untuk pengeluaran.
+// mapExpenseError memetakan domain error ke HTTP error respons untuk pengeluaran.
 func (h *ExpenseHandler) mapExpenseError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrExpenseNotFound):

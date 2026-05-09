@@ -1,5 +1,4 @@
-// user_handler.go menangani HTTP request untuk manajemen user oleh tenant admin.
-// Termasuk: list, create, get, update, delete, deactivate, activate, dan reset password.
+// user_handler.go menangani HTTP permintaan untuk manajemen user oleh tenant admin.
 package handler
 
 import (
@@ -13,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/usecase"
 )
 
-// UserHandler menangani HTTP request untuk manajemen user.
+// UserHandler menangani HTTP permintaan untuk manajemen user.
 type UserHandler struct {
 	userUsecase *usecase.UserManagementUsecase
 	validate    *validator.Validate
@@ -46,7 +45,7 @@ func (h *UserHandler) List(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, users)
 }
 
-// Create menangani POST /v1/settings/users.
+// Buat menangani POST /v1/settings/users.
 // Membuat user baru dalam tenant.
 func (h *UserHandler) Create(c *fiber.Ctx) error {
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -91,7 +90,7 @@ func (h *UserHandler) Get(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, user)
 }
 
-// Update menangani PUT /v1/settings/users/:id.
+// Perbarui menangani PUT /v1/settings/users/:id.
 // Memperbarui data user (name, phone, role).
 func (h *UserHandler) Update(c *fiber.Ctx) error {
 	userID := c.Params("id")
@@ -120,7 +119,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, user)
 }
 
-// Delete menangani DELETE /v1/settings/users/:id.
+// Hapus menangani DELETE /v1/settings/users/:id.
 // Menghapus user secara permanen (memerlukan konfirmasi nama).
 func (h *UserHandler) Delete(c *fiber.Ctx) error {
 	targetUserID := c.Params("id")
@@ -181,7 +180,7 @@ func (h *UserHandler) Deactivate(c *fiber.Ctx) error {
 	})
 }
 
-// Activate menangani POST /v1/settings/users/:id/activate.
+// Activate menangani POST /v1/settings/users/:id/aktifkan.
 // Mengaktifkan kembali user yang dinonaktifkan.
 func (h *UserHandler) Activate(c *fiber.Ctx) error {
 	targetUserID := c.Params("id")
@@ -217,7 +216,7 @@ func (h *UserHandler) ResetPassword(c *fiber.Ctx) error {
 	})
 }
 
-// mapUserError memetakan domain error ke HTTP error response untuk user management.
+// mapUserError memetakan domain error ke HTTP error respons untuk user management.
 func (h *UserHandler) mapUserError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrEmailAlreadyExists):

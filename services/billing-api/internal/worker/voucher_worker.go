@@ -1,7 +1,7 @@
 // Package worker berisi asynq worker untuk memproses task async.
 // VoucherWorker menangani dua jenis task:
-// 1. voucher.async_generate — generate voucher dalam jumlah besar (>500) secara async
-// 2. voucher.expiry_cron — cron harian untuk memproses voucher expired
+// 1. voucher.async_generate - buat voucher dalam jumlah besar (>500) secara async
+// 2. voucher.expiry_cron - cron harian untuk memproses voucher expired
 package worker
 
 import (
@@ -19,7 +19,7 @@ import (
 
 // Konstanta tipe task yang diproses oleh VoucherWorker.
 const (
-	// TaskAsyncGenerate adalah tipe task untuk generate voucher secara async.
+	// TaskAsyncGenerate adalah tipe task untuk buat voucher secara async.
 	TaskAsyncGenerate = "voucher.async_generate"
 
 	// TaskExpiryCron adalah tipe task untuk cron expiry voucher harian.
@@ -27,7 +27,7 @@ const (
 )
 
 // VoucherWorker menangani task asynq terkait voucher.
-// Mendaftarkan handler untuk async generate dan expiry cron.
+// Mendaftarkan handler untuk async buat dan expiry cron.
 type VoucherWorker struct {
 	voucherUsecase *usecase.VoucherUsecase
 	expiryUsecase  *usecase.VoucherExpiryUsecase
@@ -53,9 +53,9 @@ func (w *VoucherWorker) RegisterHandlers(mux *asynq.ServeMux) {
 	mux.HandleFunc(TaskExpiryCron, w.handleExpiryCron)
 }
 
-// handleAsyncGenerate memproses task generate voucher secara async.
+// handleAsyncGenerate memproses task buat voucher secara async.
 // Payload di-deserialize dari format TaskEnvelope, lalu memanggil
-// VoucherUsecase.Generate dengan data dari envelope.
+// VoucherUsecase.Buat dengan data dari envelope.
 func (w *VoucherWorker) handleAsyncGenerate(ctx context.Context, task *asynq.Task) error {
 	// Decode envelope dari payload task
 	envelope, err := queue.DecodeEnvelope(task)
@@ -69,14 +69,14 @@ func (w *VoucherWorker) handleAsyncGenerate(ctx context.Context, task *asynq.Tas
 		Str("correlation_id", envelope.CorrelationID).
 		Msg("memproses task async generate voucher")
 
-	// Deserialize payload menjadi parameter generate
+	// Deserialize payload menjadi parameter buat
 	var payload asyncGeneratePayload
 	if err := json.Unmarshal(envelope.Payload, &payload); err != nil {
 		w.logger.Error().Err(err).Msg("gagal unmarshal payload async generate")
 		return fmt.Errorf("worker: gagal unmarshal payload: %w", err)
 	}
 
-	// Bangun request dan actor info dari payload
+	// Bangun permintaan dan actor info dari payload
 	req := domain.GenerateVoucherRequest{
 		PackageID:  payload.PackageID,
 		Quantity:   payload.Quantity,
@@ -90,7 +90,7 @@ func (w *VoucherWorker) handleAsyncGenerate(ctx context.Context, task *asynq.Tas
 		ActorName: payload.ActorName,
 	}
 
-	// Panggil usecase untuk generate voucher
+	// Panggil usecase untuk buat voucher
 	result, err := w.voucherUsecase.Generate(ctx, envelope.TenantID, req, actor)
 	if err != nil {
 		w.logger.Error().Err(err).
@@ -125,7 +125,7 @@ func (w *VoucherWorker) handleExpiryCron(ctx context.Context, task *asynq.Task) 
 	return nil
 }
 
-// asyncGeneratePayload adalah struktur payload untuk task async generate voucher.
+// asyncGeneratePayload adalah struktur payload untuk task async buat voucher.
 // Sesuai dengan format yang dikirim oleh VoucherUsecase.enqueueAsyncGenerate.
 type asyncGeneratePayload struct {
 	PackageID  string `json:"package_id"`

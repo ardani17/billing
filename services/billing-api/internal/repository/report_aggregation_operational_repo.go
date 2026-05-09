@@ -84,12 +84,12 @@ func (r *ReportAggregationRepo) GetDashboardData(ctx context.Context, tenantID s
 
 // --- Custom Report Methods ---
 
-// GetCustomReportData mengambil data laporan custom berdasarkan metrik dan dimensi.
-// Implementasi sederhana: mengembalikan nil karena custom report memerlukan
-// dynamic query building yang akan dihandle di usecase layer.
+// GetCustomReportData mengambil data laporan kustom berdasarkan metrik dan dimensi.
+// Implementasi sederhana: mengembalikan nil karena kustom report memerlukan
+// dinamis kueri building yang akan dihandle di usecase layer.
 func (r *ReportAggregationRepo) GetCustomReportData(ctx context.Context, tenantID string, metrics []string, groupBy, subGroupBy string, periodStart, periodEnd time.Time) (interface{}, error) {
-	// Custom report data diassemble di usecase layer dari query-query yang sudah ada.
-	// Repository hanya menyediakan building blocks via method lain.
+	// Custom report data diassemble di usecase layer dari kueri-kueri yang sudah ada.
+	// Repositori hanya menyediakan building blocks via method lain.
 	return nil, nil
 }
 

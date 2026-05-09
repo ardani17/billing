@@ -6,12 +6,9 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: isolir-system, Property 4: Event payload completeness
-// **Validates: Requirements 11.5**
+// **Memvalidasi: Kebutuhan 11.5**
 //
-// For any event payload constructed from valid customer and tenant data
 // (CustomerIsolirPayload, CustomerUnIsolirPayload, CustomerSuspendPayload,
-// PenaltyAddedPayload), the tenant_id and customer_id fields SHALL be
 // non-empty strings.
 func TestProperty_EventPayloadCompleteness(t *testing.T) {
 	// Generator untuk UUID non-kosong (format sederhana, bukan strict UUID v4)

@@ -14,7 +14,6 @@ import (
 )
 
 // =============================================================================
-// Mock TemplateRepository — implementasi mock untuk pengujian TemplateHandler
 // =============================================================================
 
 type mockTemplateRepoForHandler struct {
@@ -96,7 +95,6 @@ func (m *mockTemplateRepoForHandler) SlugExists(_ context.Context, _, _, _ strin
 }
 
 // =============================================================================
-// Test: TemplateHandler.List — 200 dengan templates
 // =============================================================================
 
 func TestTemplateHandler_List_Success(t *testing.T) {
@@ -169,7 +167,6 @@ func TestTemplateHandler_List_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: TemplateHandler.Create — 201 sukses dengan request valid
 // =============================================================================
 
 func TestTemplateHandler_Create_Success(t *testing.T) {
@@ -228,7 +225,6 @@ func TestTemplateHandler_Create_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: TemplateHandler.Create — 409 slug sudah ada
 // =============================================================================
 
 func TestTemplateHandler_Create_SlugExists(t *testing.T) {
@@ -275,7 +271,6 @@ func TestTemplateHandler_Create_SlugExists(t *testing.T) {
 }
 
 // =============================================================================
-// Test: TemplateHandler.Create — 422 semua body kosong
 // =============================================================================
 
 func TestTemplateHandler_Create_NoBody(t *testing.T) {
@@ -285,7 +280,6 @@ func TestTemplateHandler_Create_NoBody(t *testing.T) {
 	app := fiber.New()
 	app.Post("/api/v1/notifications/templates", testTenantMiddleware("tenant-1"), handler.Create)
 
-	// Request tanpa body channel apapun
 	reqBody := domain.CreateTemplateRequest{
 		Slug:     "empty_body",
 		Name:     "Template Tanpa Body",
@@ -321,7 +315,6 @@ func TestTemplateHandler_Create_NoBody(t *testing.T) {
 }
 
 // =============================================================================
-// Test: TemplateHandler.Update — 200 sukses
 // =============================================================================
 
 func TestTemplateHandler_Update_Success(t *testing.T) {
@@ -385,14 +378,13 @@ func TestTemplateHandler_Update_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: TemplateHandler.Delete — 200 sukses (template custom)
 // =============================================================================
 
 func TestTemplateHandler_Delete_Success(t *testing.T) {
 	repo := newMockTemplateRepoForHandler()
 	now := time.Now()
 
-	// Template custom (is_default=false) yang bisa dihapus
+	// Template kustom (is_default=false) yang bisa dihapus
 	repo.byID["tpl-custom"] = &domain.NotificationTemplate{
 		ID:           "tpl-custom",
 		TenantID:     "tenant-1",
@@ -438,14 +430,13 @@ func TestTemplateHandler_Delete_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: TemplateHandler.Delete — 422 template default tidak bisa dihapus
 // =============================================================================
 
 func TestTemplateHandler_Delete_DefaultNotDeletable(t *testing.T) {
 	repo := newMockTemplateRepoForHandler()
 	now := time.Now()
 
-	// Template default (is_default=true) yang tidak bisa dihapus
+	// Template bawaan (is_default=true) yang tidak bisa dihapus
 	repo.byID["tpl-default"] = &domain.NotificationTemplate{
 		ID:           "tpl-default",
 		TenantID:     "tenant-1",

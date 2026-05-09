@@ -90,7 +90,7 @@ func CanTransitionTunnel(current, target TunnelStatus) bool {
 	return false
 }
 
-// --- VPN Tunnel Entity ---
+// --- VPN Tunnel Entitas ---
 
 // VPNTunnel merepresentasikan koneksi VPN antara perangkat tenant dan VPN server ISPBoss.
 type VPNTunnel struct {
@@ -122,7 +122,7 @@ type VPNTunnel struct {
 	DeletedAt                 *time.Time   `json:"deleted_at,omitempty"`
 }
 
-// --- VPN Subnet Entity ---
+// --- VPN Subnet Entitas ---
 
 // VPNSubnet merepresentasikan alokasi subnet VPN per tenant.
 // Setiap tenant mendapat 1 subnet /24: 10.99.{tenant_seq}.0/24.
@@ -136,7 +136,7 @@ type VPNSubnet struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
-// --- IP Address Helpers ---
+// --- IP Address Fungsi bantus ---
 
 // BuildClientIP menghasilkan IP address client dari tenant sequence dan client sequence.
 // Format: 10.99.{tenant_seq}.{client_seq}
@@ -180,9 +180,9 @@ type VPNBandwidthPoint struct {
 	Metrics   VPNBandwidthMetrics `json:"metrics"`
 }
 
-// --- Tunnel Health Update ---
+// --- Tunnel Health Perbarui ---
 
-// TunnelHealthUpdate berisi field yang diupdate saat health check.
+// TunnelHealthUpdate berisi field yang diupdate saat health cek.
 type TunnelHealthUpdate struct {
 	Status          *TunnelStatus
 	LastHandshakeAt *time.Time

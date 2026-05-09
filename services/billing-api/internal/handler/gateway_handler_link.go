@@ -1,6 +1,5 @@
-// gateway_handler_link.go menangani endpoint payment link, webhook query, dan walled garden.
-// Termasuk: get customer payment link, regenerate, invoice payment links,
-// payment link webhooks, dan walled garden payment info.
+// gateway_handler_link.go menangani endpoint link pembayaran, webhook kueri, dan walled garden.
+// link pembayaran webhooks, dan walled garden payment info.
 package handler
 
 import (
@@ -10,7 +9,7 @@ import (
 )
 
 // GetCustomerPaymentLink menangani GET /v1/customers/:id/payment-link.
-// Mengembalikan payment link aktif untuk customer beserta detail invoice.
+// Mengembalikan link pembayaran aktif untuk customer beserta detail invoice.
 func (h *GatewayHandler) GetCustomerPaymentLink(c *fiber.Ctx) error {
 	customerID := c.Params("id")
 	if customerID == "" {
@@ -22,7 +21,7 @@ func (h *GatewayHandler) GetCustomerPaymentLink(c *fiber.Ctx) error {
 		return h.mapGatewayError(c, err)
 	}
 
-	// Jika tidak ada payment link aktif, kembalikan null
+	// Jika tidak ada link pembayaran aktif, kembalikan null
 	if result == nil {
 		return domain.SuccessResponse(c, fiber.StatusOK, nil)
 	}
@@ -47,7 +46,7 @@ func (h *GatewayHandler) RegeneratePaymentLink(c *fiber.Ctx) error {
 }
 
 // GetInvoicePaymentLinks menangani GET /v1/invoices/:id/payment-links.
-// Mengembalikan semua payment links (active, expired, paid) untuk invoice tertentu.
+// Mengembalikan semua link pembayarans (active, expired, paid) untuk invoice tertentu.
 func (h *GatewayHandler) GetInvoicePaymentLinks(c *fiber.Ctx) error {
 	invoiceID := c.Params("id")
 	if invoiceID == "" {
@@ -63,20 +62,20 @@ func (h *GatewayHandler) GetInvoicePaymentLinks(c *fiber.Ctx) error {
 }
 
 // GetPaymentLinkWebhooks menangani GET /v1/payment-links/:id/webhooks.
-// Mengembalikan semua webhook logs untuk payment link tertentu.
+// Mengembalikan semua webhook logs untuk link pembayaran tertentu.
 func (h *GatewayHandler) GetPaymentLinkWebhooks(c *fiber.Ctx) error {
 	linkID := c.Params("id")
 	if linkID == "" {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "payment link ID wajib diisi")
 	}
 
-	// Ambil payment link untuk mendapatkan external_id
+	// Ambil link pembayaran untuk mendapatkan external_id
 	link, err := h.linkRepo.GetByID(c.Context(), linkID)
 	if err != nil || link == nil {
 		return domain.ErrorResponse(c, fiber.StatusNotFound, "PAYMENT_LINK_NOT_FOUND", "payment link tidak ditemukan")
 	}
 
-	// Ambil webhook logs berdasarkan external_id payment link
+	// Ambil webhook logs berdasarkan external_id link pembayaran
 	webhooks, err := h.webhookRepo.ListByPaymentLink(c.Context(), link.ExternalID)
 	if err != nil {
 		h.logger.Error().Err(err).Str("link_id", linkID).Msg("gagal mengambil webhook logs")

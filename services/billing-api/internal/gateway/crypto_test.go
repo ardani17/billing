@@ -86,7 +86,6 @@ func TestAESGCM_InvalidKeyLength(t *testing.T) {
 func TestDecryptAESGCM_ErrorCases(t *testing.T) {
 	key := generateTestKey(t)
 
-	// Base64 tidak valid
 	_, err := DecryptAESGCM("bukan-base64!!!", key)
 	if !errors.Is(err, domain.ErrDecryptionFailed) {
 		t.Errorf("base64 invalid: error = %v, ingin ErrDecryptionFailed", err)
@@ -180,7 +179,6 @@ func TestMaskAPIKey(t *testing.T) {
 }
 
 // =============================================================================
-// Property-based test untuk AES-256-GCM encryption round-trip
 // =============================================================================
 
 // TestProperty_EncryptDecryptRoundTrip memverifikasi bahwa untuk sembarang
@@ -189,13 +187,13 @@ func TestMaskAPIKey(t *testing.T) {
 // plaintext asli. Juga memverifikasi bahwa ciphertext berbeda dari plaintext
 // (enkripsi benar-benar mentransformasi data).
 //
-// **Validates: Requirements 1.6**
+// **Memvalidasi: Kebutuhan 1.6**
 func TestProperty_EncryptDecryptRoundTrip(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate master key acak 32 bytes
+		// Buat master key acak 32 bytes
 		masterKey := rapid.SliceOfN(rapid.Byte(), 32, 32).Draw(t, "masterKey")
 
-		// Generate plaintext acak
+		// Buat plaintext acak
 		plaintext := rapid.String().Draw(t, "plaintext")
 
 		// Enkripsi plaintext
@@ -223,19 +221,18 @@ func TestProperty_EncryptDecryptRoundTrip(t *testing.T) {
 }
 
 // =============================================================================
-// Property-based test untuk API Key Masking
 // =============================================================================
 
 // TestProperty_MaskAPIKey memverifikasi bahwa untuk sembarang API key string:
-// - Jika panjang >= 4: MaskAPIKey mengembalikan string dengan 4 karakter terakhir
-//   sama dengan aslinya, semua karakter sebelumnya adalah asterisk (*), dan
-//   panjang total sama dengan panjang key asli.
-// - Jika panjang < 4: string dikembalikan apa adanya tanpa masking.
+//   - Jika panjang >= 4: MaskAPIKey mengembalikan string dengan 4 karakter terakhir
+//     sama dengan aslinya, semua karakter sebelumnya adalah asterisk (*), dan
+//     panjang total sama dengan panjang key asli.
+//   - Jika panjang < 4: string dikembalikan apa adanya tanpa masking.
 //
-// **Validates: Requirements 1.4**
+// **Memvalidasi: Kebutuhan 1.4**
 func TestProperty_MaskAPIKey(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate API key string acak
+		// Buat API key string acak
 		apiKey := rapid.String().Draw(t, "apiKey")
 
 		// Panggil MaskAPIKey

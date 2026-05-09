@@ -1,4 +1,4 @@
-// Package repository menyediakan implementasi repository yang membungkus
+// Paket repositori menyediakan implementasi repositori yang membungkus
 // kode sqlc-generated dan memetakan tipe database ke domain entities.
 package repository
 
@@ -20,7 +20,7 @@ type UserRepo struct {
 	// queries adalah sqlc-generated Queries yang beroperasi dalam konteks tenant (RLS aktif).
 	queries *Queries
 
-	// pool digunakan untuk query yang membutuhkan akses lintas tenant (bypass RLS),
+	// pool digunakan untuk kueri yang membutuhkan akses lintas tenant (bypass RLS),
 	// seperti EmailExistsGlobal dan GetByEmail.
 	pool *pgxpool.Pool
 }
@@ -35,7 +35,7 @@ func NewUserRepo(queries *Queries, pool *pgxpool.Pool) *UserRepo {
 	}
 }
 
-// --- Helper functions untuk konversi tipe pgtype ↔ domain ---
+// --- Fungsi bantu functions untuk konversi tipe pgtype ↔ domain ---
 
 // uuidToString mengkonversi pgtype.UUID ke string.
 // Mengembalikan string kosong jika UUID tidak valid.

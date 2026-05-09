@@ -37,16 +37,14 @@ func (uc *CustomerUsecase) customerExportColumns(ctx context.Context, tenantID s
 }
 
 // ExportCSV mengirim job export ke queue.
-// Flow: enqueue asynq job (customer.export) with filter params, format,
-// and optional columns list → return job_id.
 func (uc *CustomerUsecase) ExportCSV(ctx context.Context, tenantID string, params domain.CustomerListParams, format string, columns []string, actor ActorInfo) (string, error) {
-	// Default format to csv
+	// Bawaan format to csv
 	if format == "" {
 		format = "csv"
 	}
 	columns = uc.customerExportColumns(ctx, tenantID, columns)
 
-	// Build export job payload
+	// Bangun export job payload
 	payload := map[string]interface{}{
 		"format":     format,
 		"columns":    columns,
@@ -87,13 +85,13 @@ func (uc *CustomerUsecase) ExportCSV(ctx context.Context, tenantID string, param
 		return "", fmt.Errorf("usecase: gagal enqueue export job: %w", err)
 	}
 
-	// Use the correlation ID as job_id
+	// Gunakan the correlation ID as job_id
 	jobID := envelope.CorrelationID
 	if jobID == "" {
 		jobID = "export-" + tenantID
 	}
 
-	// Write audit log
+	// Tulis audit log
 	uc.writeAuditLog(ctx, tenantID, "", "customer.export_started", actor, map[string]interface{}{
 		"format":  format,
 		"columns": columns,

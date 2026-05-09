@@ -11,7 +11,7 @@ import (
 
 // GetUptimeReport mengambil laporan uptime router dari network-service.
 // Menambahkan SLA target dari KPI targets jika tersedia.
-// Graceful degradation: jika network-service down → stale cache → module_inactive.
+// Graceful degradation: jika network-service down -> stale cache -> module_inactive.
 func (rm *ReportManager) GetUptimeReport(ctx context.Context, tenantID string, filter domain.ReportFilter) (*domain.UptimeReport, error) {
 	report, err := rm.networkClient.GetUptimeReport(ctx, tenantID, filter.PeriodStart, filter.PeriodEnd, filter.RouterID)
 	if err != nil {
@@ -46,7 +46,7 @@ func (rm *ReportManager) attachUptimeKPI(ctx context.Context, tenantID string, r
 }
 
 // GetTrafficReport mengambil laporan traffic jaringan dari network-service.
-// Graceful degradation: jika network-service down → stale cache → module_inactive.
+// Graceful degradation: jika network-service down -> stale cache -> module_inactive.
 func (rm *ReportManager) GetTrafficReport(ctx context.Context, tenantID string, filter domain.ReportFilter) (*domain.TrafficReport, error) {
 	report, err := rm.networkClient.GetTrafficReport(ctx, tenantID, filter.PeriodStart, filter.PeriodEnd, filter.RouterID)
 	if err != nil {
@@ -57,7 +57,7 @@ func (rm *ReportManager) GetTrafficReport(ctx context.Context, tenantID string, 
 }
 
 // GetSignalQualityReport mengambil laporan kualitas signal OLT dari network-service.
-// Graceful degradation: jika network-service down → stale cache → module_inactive.
+// Graceful degradation: jika network-service down -> stale cache -> module_inactive.
 func (rm *ReportManager) GetSignalQualityReport(ctx context.Context, tenantID string, filter domain.ReportFilter) (*domain.SignalQualityReport, error) {
 	report, err := rm.networkClient.GetSignalQualityReport(ctx, tenantID, filter.PeriodStart, filter.PeriodEnd, filter.RouterID)
 	if err != nil {
@@ -68,7 +68,7 @@ func (rm *ReportManager) GetSignalQualityReport(ctx context.Context, tenantID st
 }
 
 // GetCapacityReport mengambil laporan kapasitas jaringan dari network-service.
-// Graceful degradation: jika network-service down → stale cache → module_inactive.
+// Graceful degradation: jika network-service down -> stale cache -> module_inactive.
 func (rm *ReportManager) GetCapacityReport(ctx context.Context, tenantID string) (*domain.CapacityReport, error) {
 	report, err := rm.networkClient.GetCapacityReport(ctx, tenantID)
 	if err != nil {

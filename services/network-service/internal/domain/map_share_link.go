@@ -9,7 +9,7 @@ import (
 )
 
 // =============================================================================
-// Konstanta Share Link — konfigurasi token generation
+// Konstanta Share Link - konfigurasi token generation
 // =============================================================================
 
 // ShareTokenLength adalah panjang token dalam bytes sebelum di-encode ke hex.
@@ -17,10 +17,10 @@ import (
 const ShareTokenLength = 32
 
 // =============================================================================
-// MapShareLink Entity — link read-only ke peta untuk berbagi eksternal
+// MapShareLink Entitas - link hanya baca ke peta untuk berbagi eksternal
 // =============================================================================
 
-// MapShareLink merepresentasikan share link read-only ke peta.
+// MapShareLink merepresentasikan share link hanya baca ke peta.
 // Admin dapat membuat link dengan opsi expiry dan password untuk
 // berbagi visualisasi jaringan dengan investor, partner, atau pihak eksternal.
 // Data diisolasi per tenant via RLS di PostgreSQL.
@@ -37,7 +37,7 @@ type MapShareLink struct {
 }
 
 // =============================================================================
-// Token Generation — helper untuk membuat secure random token
+// Token Generation - helper untuk membuat secure random token
 // =============================================================================
 
 // GenerateShareToken menghasilkan token acak yang aman secara kriptografis.

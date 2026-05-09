@@ -1,7 +1,7 @@
--- Query SQL untuk operasi tabel provisioning_settings.
+-- Kueri SQL untuk operasi tabel provisioning_settings.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Satu record per tenant, menggunakan upsert untuk create/update.
+-- Tabel dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
+-- Satu record per tenant, menggunakan upsert untuk buat/perbarui.
 
 -- name: GetProvisioningSettingsByTenantID :one
 SELECT id, tenant_id, auto_provisioning_enabled, auto_port_migration_enabled,

@@ -1,6 +1,6 @@
-// API client functions for all network-map endpoints.
-// Browser requests go through the Next.js proxy so the backend receives
-// the dev JWT/tenant headers from the server side.
+// Fungsi client API untuk semua network-map endpoints.
+// Permintaan browser melewati proxy Next.js agar backend menerima
+// header JWT/tenant dev dari sisi server.
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 const MAP_API = `${API_BASE}/api/network-map`;
@@ -50,7 +50,7 @@ export interface CableRoute {
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
-  // Joined node data for rendering
+  // Joined node data untuk rendering
   from_node_status?: string;
   to_node_status?: string;
 }
@@ -192,7 +192,7 @@ export interface ImportSummary {
 }
 
 // ---------------------------------------------------------------------------
-// Helper
+// Fungsi bantu
 // ---------------------------------------------------------------------------
 
 async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
@@ -397,7 +397,7 @@ export async function deletePhoto(
 }
 
 // ---------------------------------------------------------------------------
-// Search
+// Pencarian
 // ---------------------------------------------------------------------------
 
 export async function searchNodes(query: string): Promise<SearchResult[]> {

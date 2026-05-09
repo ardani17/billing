@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel users.
+-- Kueri SQL untuk operasi CRUD tabel users.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel users dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel users dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateUser :one
 INSERT INTO users (tenant_id, name, email, phone, password_hash, role, email_verified, google_id, status)

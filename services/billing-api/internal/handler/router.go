@@ -16,7 +16,7 @@ type RouterConfig struct {
 	// App adalah instance Fiber application
 	App *fiber.App
 
-	// HealthHandler adalah handler untuk health check endpoint
+	// HealthHandler adalah handler untuk health cek endpoint
 	HealthHandler *HealthHandler
 
 	// AuthHandler adalah handler untuk endpoint autentikasi
@@ -43,13 +43,13 @@ type RouterConfig struct {
 	// ResellerHandler adalah handler untuk manajemen reseller (admin CRUD)
 	ResellerHandler *ResellerHandler
 
-	// ResellerActionHandler adalah handler untuk aksi reseller (admin: suspend, activate, dll)
+	// ResellerActionHandler adalah handler untuk aksi reseller (admin: suspend, aktifkan, dll)
 	ResellerActionHandler *ResellerActionHandler
 
 	// VoucherHandler adalah handler untuk manajemen voucher (admin)
 	VoucherHandler *VoucherHandler
 
-	// VoucherPrintHandler adalah handler untuk generate PDF voucher
+	// VoucherPrintHandler adalah handler untuk buat PDF voucher
 	VoucherPrintHandler *VoucherPrintHandler
 
 	// ResellerAuthHandler adalah handler untuk autentikasi reseller
@@ -64,7 +64,7 @@ type RouterConfig struct {
 	// InvoiceActionHandler adalah handler untuk aksi invoice (cancel, payment, bulk, export)
 	InvoiceActionHandler *InvoiceActionHandler
 
-	// RecurringItemHandler adalah handler untuk recurring items pelanggan
+	// RecurringItemHandler adalah handler untuk item berulangs pelanggan
 	RecurringItemHandler *RecurringItemHandler
 
 	// CreditNoteHandler adalah handler untuk credit notes
@@ -76,7 +76,7 @@ type RouterConfig struct {
 	// PaymentHandler adalah handler untuk modul pembayaran manual
 	PaymentHandler *PaymentHandler
 
-	// GatewayHandler adalah handler untuk konfigurasi payment gateway dan payment link
+	// GatewayHandler adalah handler untuk konfigurasi gateway pembayaran dan link pembayaran
 	GatewayHandler *GatewayHandler
 
 	// BillingSettingsHandler adalah handler untuk konfigurasi billing tenant
@@ -85,7 +85,7 @@ type RouterConfig struct {
 	// WebhookHandler adalah handler untuk endpoint webhook publik (Xendit, Midtrans)
 	WebhookHandler *WebhookHandler
 
-	// IsolirHandler adalah handler untuk modul isolir (sync, pending syncs, summary, waive penalty, reactivate)
+	// IsolirHandler adalah handler untuk modul isolir (sync, pending syncs, summary, waive denda, reactivate)
 	IsolirHandler *IsolirHandler
 
 	// ReportHandler adalah handler untuk laporan (financial, customer, network, operational)
@@ -115,7 +115,7 @@ type RouterConfig struct {
 	// ComparisonHandler adalah handler untuk perbandingan antar periode
 	ComparisonHandler *ComparisonHandler
 
-	// CustomReportHandler adalah handler untuk laporan custom
+	// CustomReportHandler adalah handler untuk laporan kustom
 	CustomReportHandler *CustomReportHandler
 
 	// DashboardHandler adalah handler untuk dashboard widget
@@ -133,21 +133,21 @@ type RouterConfig struct {
 	// JWTSecret adalah secret key untuk validasi JWT token
 	JWTSecret string
 
-	// Logger adalah instance zerolog untuk request logging
+	// Logger adalah instance zerolog untuk permintaan logging
 	Logger zerolog.Logger
 }
 
 // loginRateLimiterMiddleware membuat Fiber middleware wrapper untuk LoginRateLimiter.
-// Middleware ini memeriksa rate limit berdasarkan email dari request body.
+// Middleware ini memeriksa rate limit berdasarkan email dari permintaan body.
 // Jika email terkunci, mengembalikan HTTP 429 dengan sisa waktu lock.
 func loginRateLimiterMiddleware(rateLimiter *middleware.LoginRateLimiter) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Parse email dari request body tanpa mengkonsumsi body
+		// Parsing email dari permintaan body tanpa mengkonsumsi body
 		var body struct {
 			Email string `json:"email"`
 		}
 		if err := c.BodyParser(&body); err != nil || body.Email == "" {
-			// Jika tidak bisa parse email, lanjutkan ke handler (handler akan validasi)
+			// Jika tidak bisa parsing email, lanjutkan ke handler (handler akan validasi)
 			return c.Next()
 		}
 
@@ -168,18 +168,18 @@ func loginRateLimiterMiddleware(rateLimiter *middleware.LoginRateLimiter) fiber.
 }
 
 // RegisterRoutes mendaftarkan semua route pada Fiber app.
-// Health check dan Swagger bersifat publik (tanpa auth).
+// Health cek dan Swagger bersifat publik (tanpa auth).
 // Auth routes dibagi menjadi public (tanpa auth) dan protected (dengan auth).
 // Settings dan admin routes dilindungi oleh auth + RBAC middleware.
 func RegisterRoutes(cfg RouterConfig) {
-	// Middleware logging untuk semua request
+	// Middleware logging untuk semua permintaan
 	cfg.App.Use(middleware.RequestLogger(cfg.Logger))
 
-	// Route publik — health check (tanpa autentikasi)
+	// Route publik - health cek (tanpa autentikasi)
 	cfg.App.Get("/healthz", cfg.HealthHandler.Healthz)
 	cfg.App.Get("/readyz", cfg.HealthHandler.Readyz)
 
-	// Swagger UI — dokumentasi API otomatis
+	// Swagger UI - dokumentasi API otomatis
 	cfg.App.Get("/swagger/*", swagger.HandlerDefault)
 
 	// --- Public webhook routes (tanpa auth, keamanan via IP whitelist + signature) ---
@@ -240,10 +240,10 @@ func RegisterRoutes(cfg RouterConfig) {
 	settings := cfg.App.Group("/api/v1/settings")
 	settings.Use(middleware.Auth(cfg.JWTSecret))
 
-	// Change password — semua authenticated user boleh akses
+	// Change password - semua authenticated user boleh akses
 	settings.Post("/security/change-password", cfg.AuthHandler.ChangePassword)
 
-	// User management — hanya tenant_admin (dan super_admin via bypass)
+	// User management - hanya tenant_admin (dan super_admin via bypass)
 	users := settings.Group("/users")
 	users.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
@@ -257,7 +257,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	users.Post("/:id/activate", cfg.UserHandler.Activate)
 	users.Post("/:id/reset-password", cfg.UserHandler.ResetPassword)
 
-	// --- Payment gateway config routes (auth + RBAC, tenant_admin only) ---
+	// --- Gateway pembayaran config routes (auth + RBAC, tenant_admin only) ---
 	paymentGateways := settings.Group("/payment-gateways")
 	paymentGateways.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
@@ -337,7 +337,7 @@ func RegisterRoutes(cfg RouterConfig) {
 
 	customers := api.Group("/customers")
 
-	// Routes accessible by admin, operator, kasir(GET only)
+	// Route yang dapat diakses oleh admin, operator, kasir(GET saja)
 	customersRead := customers.Group("")
 	customersRead.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -350,9 +350,9 @@ func RegisterRoutes(cfg RouterConfig) {
 	customersRead.Get("/", customerHandler.List)
 	customersRead.Get("/stats", customerHandler.Stats)
 
-	// Routes accessible by tenant_admin only (import, export, bulk delete).
-	// Static paths must be registered before /:id so Fiber does not treat
-	// "export", "import", or "bulk" as customer IDs.
+	// Route yang dapat diakses oleh tenant_admin only (import, export, bulk delete).
+	// Path statis harus didaftarkan sebelum /:id agar Fiber tidak menganggap
+	// "export", "import", atau "bulk" sebagai ID pelanggan.
 	customersAdmin := customers.Group("")
 	customersAdmin.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
@@ -365,10 +365,10 @@ func RegisterRoutes(cfg RouterConfig) {
 
 	customersRead.Get("/:id", customerHandler.Get)
 
-	// Payment link read — admin + kasir (GET only)
+	// Tautan pembayaran read - admin + kasir (GET saja)
 	customersRead.Get("/:id/payment-link", cfg.GatewayHandler.GetCustomerPaymentLink)
 
-	// Routes accessible by admin, operator (write operations)
+	// Route yang dapat diakses oleh admin, operator (write operations)
 	customersWrite := customers.Group("")
 	customersWrite.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -387,7 +387,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	customersWrite.Post("/:id/activate", customerHandler.Activate)
 	customersWrite.Post("/:id/change-package", customerHandler.ChangePackage)
 
-	// Regenerate payment link — admin + operator (write)
+	// Regenerate link pembayaran - admin + operator (write)
 	customersWrite.Post("/:id/payment-link/regenerate", cfg.GatewayHandler.RegeneratePaymentLink)
 
 	// --- Area routes (auth + tenant + RBAC) ---
@@ -403,11 +403,11 @@ func RegisterRoutes(cfg RouterConfig) {
 	areas.Put("/:id", areaHandler.Update)
 	areas.Delete("/:id", areaHandler.Delete)
 
-	// --- Package routes (auth + tenant + RBAC) ---
+	// --- Route paket (auth + tenant + RBAC) ---
 	packageHandler := cfg.PackageHandler
 	packages := api.Group("/packages")
 
-	// Routes accessible by admin, operator, kasir(GET only)
+	// Route yang dapat diakses oleh admin, operator, kasir(GET saja)
 	packagesRead := packages.Group("")
 	packagesRead.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -420,7 +420,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	packagesRead.Get("/", packageHandler.List)
 	packagesRead.Get("/:id", packageHandler.Get)
 
-	// Routes accessible by tenant_admin only (write operations)
+	// Route yang dapat diakses oleh tenant_admin only (write operations)
 	packagesAdmin := packages.Group("")
 	packagesAdmin.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
@@ -437,7 +437,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	resellerActionHandler := cfg.ResellerActionHandler
 	resellers := api.Group("/resellers")
 
-	// Routes accessible by admin + operator (GET-only untuk operator)
+	// Route yang dapat diakses oleh admin + operator (GET saja untuk operator)
 	resellersRead := resellers.Group("")
 	resellersRead.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -450,7 +450,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	resellersRead.Get("/", resellerHandler.List)
 	resellersRead.Get("/:id", resellerHandler.Get)
 
-	// Routes accessible by tenant_admin only (write operations)
+	// Route yang dapat diakses oleh tenant_admin only (write operations)
 	resellersAdmin := resellers.Group("")
 	resellersAdmin.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
@@ -469,7 +469,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	voucherPrintHandler := cfg.VoucherPrintHandler
 	vouchers := api.Group("/vouchers")
 
-	// Routes accessible by admin + operator (GET-only untuk operator)
+	// Route yang dapat diakses oleh admin + operator (GET saja untuk operator)
 	vouchersRead := vouchers.Group("")
 	vouchersRead.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -482,7 +482,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	vouchersRead.Get("/", voucherHandler.List)
 	vouchersRead.Get("/:id", voucherHandler.Get)
 
-	// Routes accessible by tenant_admin only (write operations + export)
+	// Route yang dapat diakses oleh tenant_admin only (write operations + export)
 	vouchersAdmin := vouchers.Group("")
 	vouchersAdmin.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
@@ -499,7 +499,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	invoiceActionHandler := cfg.InvoiceActionHandler
 	invoices := api.Group("/invoices")
 
-	// Routes accessible by admin, operator, kasir (GET-only)
+	// Route yang dapat diakses oleh admin, operator, kasir (GET saja)
 	invoicesRead := invoices.Group("")
 	invoicesRead.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -516,10 +516,10 @@ func RegisterRoutes(cfg RouterConfig) {
 	invoicesRead.Get("/:id/pdf", invoiceHandler.PDF)
 	invoicesRead.Get("/:id/audit-logs", invoiceHandler.AuditLogs)
 
-	// Payment links untuk invoice — menggunakan group invoicesRead yang sudah ada
+	// Tautan pembayaran untuk invoice - menggunakan group invoicesRead yang sudah ada
 	invoicesRead.Get("/:id/payment-links", cfg.GatewayHandler.GetInvoicePaymentLinks)
 
-	// Routes accessible by admin + kasir (write: record payment)
+	// Route yang dapat diakses oleh admin + kasir (write: record payment)
 	invoicesWrite := invoices.Group("")
 	invoicesWrite.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -528,7 +528,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	}))
 	invoicesWrite.Post("/:id/payment", invoiceActionHandler.RecordPayment)
 
-	// Routes accessible by tenant_admin only (write operations)
+	// Route yang dapat diakses oleh tenant_admin only (write operations)
 	invoicesAdmin := invoices.Group("")
 	invoicesAdmin.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
@@ -575,7 +575,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	paymentHandler := cfg.PaymentHandler
 	payments := api.Group("/payments")
 
-	// Routes accessible by admin + kasir (read + record payment)
+	// Route yang dapat diakses oleh admin + kasir (read + record payment)
 	paymentsReadWrite := payments.Group("")
 	paymentsReadWrite.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -592,7 +592,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	paymentsReadWrite.Post("/:payment_id/proof", paymentHandler.UploadProof)
 	paymentsReadWrite.Get("/:payment_id/proof", paymentHandler.GetProof)
 
-	// Routes accessible by tenant_admin only (void, bulk import)
+	// Route yang dapat diakses oleh tenant_admin only (void, bulk import)
 	paymentsAdmin := payments.Group("")
 	paymentsAdmin.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},
@@ -600,7 +600,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	paymentsAdmin.Post("/:payment_id/void", paymentHandler.VoidPayment)
 	paymentsAdmin.Post("/import", paymentHandler.BulkImport)
 
-	// --- Payment link webhook query routes (auth + tenant + RBAC, admin + kasir) ---
+	// --- Tautan pembayaran webhook kueri routes (auth + tenant + RBAC, admin + kasir) ---
 	paymentLinks := api.Group("/payment-links")
 	paymentLinks.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -621,7 +621,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	isolir.Get("/pending-syncs", cfg.IsolirHandler.ListPendingSyncs)
 	isolir.Get("/summary", cfg.IsolirHandler.Summary)
 
-	// --- Report routes (auth + tenant + RBAC) ---
+	// --- Route laporan (auth + tenant + RBAC) ---
 	reportHandler := cfg.ReportHandler
 	exportHandler := cfg.ExportHandler
 	scheduleHandler := cfg.ScheduleHandler
@@ -633,7 +633,7 @@ func RegisterRoutes(cfg RouterConfig) {
 
 	reports := api.Group("/reports")
 
-	// Reports read — admin + operator + kasir (GET only)
+	// Baca laporan - admin + operator + kasir (GET saja)
 	reportsRead := reports.Group("")
 	reportsRead.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{
@@ -653,7 +653,7 @@ func RegisterRoutes(cfg RouterConfig) {
 	reportsRead.Get("/financial/profit-loss", reportHandler.ProfitLoss)
 	reportsRead.Get("/financial/revenue-by-area", reportHandler.RevenueByArea)
 
-	// Customer reports
+	// Laporan pelanggan
 	reportsRead.Get("/customers/growth", reportHandler.CustomerGrowth)
 	reportsRead.Get("/customers/distribution", reportHandler.CustomerDistribution)
 	reportsRead.Get("/customers/churn", reportHandler.ChurnAnalysis)
@@ -674,10 +674,10 @@ func RegisterRoutes(cfg RouterConfig) {
 	reportsRead.Get("/forecast", forecastHandler.Forecast)
 	reportsRead.Get("/dashboard", dashboardHandler.Dashboard)
 
-	// Export status (GET — read-only)
+	// Status export (GET - hanya baca)
 	reportsRead.Get("/export/:job_id", exportHandler.Status)
 
-	// Reports admin — tenant_admin only (export, schedules, KPI, custom reports)
+	// Reports admin - tenant_admin only (export, schedules, KPI, custom reports)
 	reportsAdmin := reports.Group("")
 	reportsAdmin.Use(middleware.RBAC(domain.RBACConfig{
 		AllowedRoles: []domain.UserRole{domain.RoleTenantAdmin},

@@ -7,8 +7,7 @@ import (
 	"github.com/ispboss/ispboss/services/notification/internal/domain"
 )
 
-// TemplateHandler menangani HTTP request untuk manajemen template notifikasi.
-// Menyediakan endpoint CRUD: list, create, update, dan soft-delete template.
+// TemplateHandler menangani HTTP permintaan untuk manajemen template notifikasi.
 type TemplateHandler struct {
 	templateRepo domain.TemplateRepository
 }
@@ -21,13 +20,13 @@ func NewTemplateHandler(templateRepo domain.TemplateRepository) *TemplateHandler
 // List menangani GET /api/v1/notifications/templates.
 // Mengembalikan semua template notifikasi untuk tenant yang terautentikasi.
 func (h *TemplateHandler) List(c *fiber.Ctx) error {
-	// Ambil tenant_id dari Fiber locals (di-set oleh auth middleware)
+	// Ambil tenant_id dari Fiber locals (di-atur oleh auth middleware)
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant_id tidak ditemukan")
 	}
 
-	// Panggil repository untuk mengambil semua template tenant
+	// Panggil repositori untuk mengambil semua template tenant
 	templates, err := h.templateRepo.ListByTenant(c.UserContext(), tenantID)
 	if err != nil {
 		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal mengambil data template")
@@ -36,16 +35,16 @@ func (h *TemplateHandler) List(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, templates)
 }
 
-// Create menangani POST /api/v1/notifications/templates.
-// Memvalidasi request, cek keunikan slug, dan membuat template baru.
+// Buat menangani POST /api/v1/notifications/templates.
+// Memvalidasi permintaan, cek keunikan slug, dan membuat template baru.
 func (h *TemplateHandler) Create(c *fiber.Ctx) error {
-	// Ambil tenant_id dari Fiber locals (di-set oleh auth middleware)
+	// Ambil tenant_id dari Fiber locals (di-atur oleh auth middleware)
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant_id tidak ditemukan")
 	}
 
-	// Parse request body
+	// Parsing permintaan body
 	var req domain.CreateTemplateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "format request tidak valid")
@@ -101,10 +100,10 @@ func (h *TemplateHandler) Create(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusCreated, created)
 }
 
-// Update menangani PUT /api/v1/notifications/templates/:id.
-// Memvalidasi request dan memperbarui template yang sudah ada.
+// Perbarui menangani PUT /api/v1/notifications/templates/:id.
+// Memvalidasi permintaan dan memperbarui template yang sudah ada.
 func (h *TemplateHandler) Update(c *fiber.Ctx) error {
-	// Ambil tenant_id dari Fiber locals (di-set oleh auth middleware)
+	// Ambil tenant_id dari Fiber locals (di-atur oleh auth middleware)
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant_id tidak ditemukan")
@@ -116,7 +115,7 @@ func (h *TemplateHandler) Update(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "id template tidak boleh kosong")
 	}
 
-	// Parse request body
+	// Parsing permintaan body
 	var req domain.UpdateTemplateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "format request tidak valid")
@@ -136,7 +135,7 @@ func (h *TemplateHandler) Update(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusNotFound, "TEMPLATE_NOT_FOUND", "template tidak ditemukan")
 	}
 
-	// Terapkan perubahan dari request ke template yang ada
+	// Terapkan perubahan dari permintaan ke template yang ada
 	if req.Name != "" {
 		existing.Name = req.Name
 	}
@@ -168,10 +167,10 @@ func (h *TemplateHandler) Update(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, updated)
 }
 
-// Delete menangani DELETE /api/v1/notifications/templates/:id.
-// Memeriksa apakah template default, lalu melakukan soft-delete.
+// Hapus menangani DELETE /api/v1/notifications/templates/:id.
+// Memeriksa apakah template bawaan, lalu melakukan hapus lunak.
 func (h *TemplateHandler) Delete(c *fiber.Ctx) error {
-	// Ambil tenant_id dari Fiber locals (di-set oleh auth middleware)
+	// Ambil tenant_id dari Fiber locals (di-atur oleh auth middleware)
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant_id tidak ditemukan")
@@ -197,12 +196,12 @@ func (h *TemplateHandler) Delete(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusNotFound, "TEMPLATE_NOT_FOUND", "template tidak ditemukan")
 	}
 
-	// Template default tidak boleh dihapus
+	// Template bawaan tidak boleh dihapus
 	if template.IsDefault {
 		return domain.ErrorResponse(c, fiber.StatusUnprocessableEntity, "TEMPLATE_NOT_DELETABLE", "template default tidak bisa dihapus")
 	}
 
-	// Soft-delete template (set is_active=false)
+	// Soft-hapus template (atur is_active=false)
 	if err := h.templateRepo.SoftDelete(c.UserContext(), templateID); err != nil {
 		return domain.ErrorResponse(c, fiber.StatusInternalServerError, "INTERNAL_ERROR", "gagal menghapus template")
 	}

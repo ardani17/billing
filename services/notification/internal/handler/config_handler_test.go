@@ -14,14 +14,13 @@ import (
 )
 
 // =============================================================================
-// Mock ConfigRepository — implementasi mock untuk pengujian ConfigHandler
 // =============================================================================
 
 type mockConfigRepo struct {
-	configs    []*domain.NotificationConfig
-	settings   *domain.ConfigSettings
-	upsertErr  error
-	getErr     error
+	configs     []*domain.NotificationConfig
+	settings    *domain.ConfigSettings
+	upsertErr   error
+	getErr      error
 	settingsErr error
 }
 
@@ -73,7 +72,6 @@ func (m *mockConfigRepo) UpdateSettings(_ context.Context, _ string, _ domain.Co
 }
 
 // =============================================================================
-// Mock TemplateRepository — implementasi mock untuk pengujian ConfigHandler
 // =============================================================================
 
 type mockTemplateRepo struct {
@@ -126,14 +124,12 @@ func (m *mockTemplateRepo) SlugExists(_ context.Context, _, _, _ string) (bool, 
 }
 
 // =============================================================================
-// Test: ConfigHandler.Get — 200 dengan credential yang di-mask
 // =============================================================================
 
 func TestConfigHandler_Get_Success(t *testing.T) {
 	configRepo := newMockConfigRepo()
 	templateRepo := newMockTemplateRepo()
 
-	// Siapkan konfigurasi mock dengan credential WhatsApp
 	waCreds, _ := json.Marshal(domain.WhatsAppCredentials{
 		APIToken:     "token-secret-12345678",
 		SenderNumber: "08123456789",
@@ -225,7 +221,6 @@ func TestConfigHandler_Get_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: ConfigHandler.Update — 200 sukses dengan konfigurasi valid
 // =============================================================================
 
 func TestConfigHandler_Update_Success(t *testing.T) {
@@ -241,7 +236,6 @@ func TestConfigHandler_Update_Success(t *testing.T) {
 	app := fiber.New()
 	app.Put("/api/v1/notifications/config", testTenantMiddleware("tenant-1"), handler.Update)
 
-	// Buat request body yang valid
 	creds, _ := json.Marshal(domain.WhatsAppCredentials{
 		APIToken:     "my-api-token-1234",
 		SenderNumber: "08123456789",
@@ -278,7 +272,6 @@ func TestConfigHandler_Update_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: ConfigHandler.Update — 422 saat is_enabled=true tapi credential kosong
 // =============================================================================
 
 func TestConfigHandler_Update_ValidationError(t *testing.T) {
@@ -289,7 +282,6 @@ func TestConfigHandler_Update_ValidationError(t *testing.T) {
 	app := fiber.New()
 	app.Put("/api/v1/notifications/config", testTenantMiddleware("tenant-1"), handler.Update)
 
-	// Buat request dengan is_enabled=true tapi credential kosong
 	creds, _ := json.Marshal(domain.WhatsAppCredentials{
 		APIToken:     "",
 		SenderNumber: "",

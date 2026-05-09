@@ -15,10 +15,10 @@ const (
 	EventOLTAlarm = "olt.alarm"
 )
 
-// --- Event Payloads ---
+// --- Payload event ---
 
 // OLTDeviceOfflinePayload adalah payload event olt.device_offline.
-// Dipublikasikan saat OLT terdeteksi offline setelah 3x kegagalan health check berturut-turut.
+// Dipublikasikan saat OLT terdeteksi offline setelah 3x kegagalan health cek berturut-turut.
 type OLTDeviceOfflinePayload struct {
 	CorrelationID string    `json:"correlation_id"`
 	OLTID         string    `json:"olt_id"`
@@ -29,7 +29,7 @@ type OLTDeviceOfflinePayload struct {
 }
 
 // OLTDeviceOnlinePayload adalah payload event olt.device_online.
-// Dipublikasikan saat OLT yang sebelumnya offline kembali merespons health check.
+// Dipublikasikan saat OLT yang sebelumnya offline kembali merespons health cek.
 type OLTDeviceOnlinePayload struct {
 	CorrelationID    string        `json:"correlation_id"`
 	OLTID            string        `json:"olt_id"`

@@ -1,6 +1,4 @@
-// payment_multi_test.go berisi unit test untuk PaymentUsecase — multi-payment dan pay-all.
 // Karena RecordMultiPayment dan PayAll membutuhkan pool (transaksi DB),
-// kita test path validasi dan error yang terjadi sebelum transaksi,
 // serta test PayAll yang mendelegasikan ke RecordMultiPayment.
 package usecase
 
@@ -14,7 +12,7 @@ import (
 )
 
 // =============================================================================
-// Test: RecordMultiPayment — FIFO allocation (validasi sebelum transaksi)
+// Tes: RecordMultiPayment - FIFO allocation (validasi sebelum transaksi)
 // =============================================================================
 
 // TestPaymentUsecase_RecordMultiPayment_NoPool menguji bahwa RecordMultiPayment
@@ -24,7 +22,6 @@ func TestPaymentUsecase_RecordMultiPayment_NoPool(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := context.Background()
 
-	// Format tanggal salah → error sebelum pool.Begin
 	req := domain.MultiPaymentRequest{
 		CustomerID:    "cust-1",
 		Amount:        100000,
@@ -39,7 +36,6 @@ func TestPaymentUsecase_RecordMultiPayment_NoPool(t *testing.T) {
 	}
 }
 
-// TestPaymentUsecase_RecordMultiPayment_InvalidDateFormat menguji error format tanggal.
 func TestPaymentUsecase_RecordMultiPayment_InvalidDateFormat(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := context.Background()
@@ -61,13 +57,13 @@ func TestPaymentUsecase_RecordMultiPayment_InvalidDateFormat(t *testing.T) {
 // TestPaymentUsecase_RecordMultiPayment_FIFOAllocation menguji alokasi FIFO
 // melalui domain function secara langsung (karena usecase butuh pool).
 func TestPaymentUsecase_RecordMultiPayment_FIFOAllocation(t *testing.T) {
-	// Test FIFO allocation secara langsung karena RecordMultiPayment butuh pool
+	// Tes FIFO allocation secara langsung karena RecordMultiPayment butuh pool
 	invoices := []domain.FIFOInput{
 		{InvoiceID: "inv-1", InvoiceNumber: "INV-001", TotalAmount: 100000, PaidAmount: 0},
 		{InvoiceID: "inv-2", InvoiceNumber: "INV-002", TotalAmount: 150000, PaidAmount: 50000},
 	}
 
-	// Bayar 120000 → inv-1 lunas (100000), inv-2 bayar_sebagian (20000)
+	// Bayar 120000 -> inv-1 lunas (100000), inv-2 bayar_sebagian (20000)
 	result := domain.AllocatePaymentFIFO(invoices, 120000)
 
 	if len(result.Allocations) != 2 {
@@ -101,12 +97,12 @@ func TestPaymentUsecase_RecordMultiPayment_FIFOAllocation(t *testing.T) {
 // TestPaymentUsecase_RecordMultiPayment_InvoiceIDsOverride menguji alokasi
 // dengan invoice_ids yang ditentukan secara eksplisit.
 func TestPaymentUsecase_RecordMultiPayment_InvoiceIDsOverride(t *testing.T) {
-	// Test FIFO allocation dengan subset invoice
+	// Tes FIFO allocation dengan subset invoice
 	invoices := []domain.FIFOInput{
 		{InvoiceID: "inv-2", InvoiceNumber: "INV-002", TotalAmount: 150000, PaidAmount: 50000},
 	}
 
-	// Bayar 100000 ke inv-2 saja → lunas (remaining = 100000)
+	// Bayar 100000 ke inv-2 saja -> lunas (remaining = 100000)
 	result := domain.AllocatePaymentFIFO(invoices, 100000)
 
 	if len(result.Allocations) != 1 {
@@ -130,7 +126,7 @@ func TestPaymentUsecase_RecordMultiPayment_ExcessToCredit(t *testing.T) {
 		{InvoiceID: "inv-1", InvoiceNumber: "INV-001", TotalAmount: 100000, PaidAmount: 0},
 	}
 
-	// Bayar 150000 untuk invoice 100000 → excess 50000
+	// Bayar 150000 untuk invoice 100000 -> excess 50000
 	result := domain.AllocatePaymentFIFO(invoices, 150000)
 
 	if len(result.Allocations) != 1 {
@@ -145,14 +141,14 @@ func TestPaymentUsecase_RecordMultiPayment_ExcessToCredit(t *testing.T) {
 		t.Fatalf("expected excess 50000, got %d", result.ExcessToCredit)
 	}
 
-	// Verifikasi invariant: TotalAllocated + ExcessToCredit == amount
+	// Verifikasi invariant: TotalAllocated + ExcessToCredit == nominal
 	if result.TotalAllocated+result.ExcessToCredit != 150000 {
 		t.Fatalf("invariant violated: %d + %d != 150000", result.TotalAllocated, result.ExcessToCredit)
 	}
 }
 
 // =============================================================================
-// Test: PayAll — multiple invoices dan no open invoices
+// Tes: PayAll - multiple invoices dan no open invoices
 // =============================================================================
 
 // TestPaymentUsecase_PayAll_MultipleInvoices menguji PayAll menghitung total tunggakan.
@@ -166,13 +162,13 @@ func TestPaymentUsecase_PayAll_MultipleInvoices(t *testing.T) {
 	s.invoiceRepo.invoices["inv-1"] = &domain.Invoice{
 		ID: "inv-1", CustomerID: "cust-1", TenantID: "tenant-1",
 		TotalAmount: 100000, PaidAmount: 0,
-		Status: domain.InvoiceStatusBelumBayar,
+		Status:  domain.InvoiceStatusBelumBayar,
 		DueDate: time.Now().Add(24 * time.Hour),
 	}
 	s.invoiceRepo.invoices["inv-2"] = &domain.Invoice{
 		ID: "inv-2", CustomerID: "cust-1", TenantID: "tenant-1",
 		TotalAmount: 150000, PaidAmount: 50000,
-		Status: domain.InvoiceStatusBayarSebagian,
+		Status:  domain.InvoiceStatusBayarSebagian,
 		DueDate: time.Now().Add(48 * time.Hour),
 	}
 
@@ -206,7 +202,6 @@ func TestPaymentUsecase_PayAll_MultipleInvoices(t *testing.T) {
 	}
 }
 
-// TestPaymentUsecase_PayAll_NoOpenInvoices menguji error saat tidak ada invoice terbuka.
 func TestPaymentUsecase_PayAll_NoOpenInvoices(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := context.Background()
@@ -228,7 +223,6 @@ func TestPaymentUsecase_PayAll_NoOpenInvoices(t *testing.T) {
 	}
 }
 
-// TestPaymentUsecase_PayAll_OnlyLunasInvoices menguji error saat semua invoice sudah lunas.
 func TestPaymentUsecase_PayAll_OnlyLunasInvoices(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := context.Background()

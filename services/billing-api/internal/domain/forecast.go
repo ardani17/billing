@@ -7,13 +7,13 @@ import (
 )
 
 // =============================================================================
-// Linear Regression — pure function untuk forecasting
+// Linear Regression - pure function untuk forecasting
 // =============================================================================
 
 // DataPoint merepresentasikan satu titik data untuk regresi linear.
 type DataPoint struct {
 	X float64 // index bulan (0, 1, 2, ...)
-	Y float64 // nilai (revenue, customer count, dll)
+	Y float64 // nilai (revenue, jumlah pelanggan, dll)
 }
 
 // LinearRegressionResult berisi hasil regresi linear.
@@ -23,12 +23,12 @@ type LinearRegressionResult struct {
 	RSquared  float64 // koefisien determinasi (0-1)
 }
 
-// LinearRegression menghitung regresi linear sederhana dari data points.
+// LinearRegression menghitung regresi linear sederhana dari titik data.
 // Mengembalikan slope, intercept, dan R-squared.
 // Invarian: Predict(result, x) == result.Slope * x + result.Intercept
 // Invarian: len(points) >= 2 (minimal 2 titik data)
-// Invarian: jika semua Y sama → slope == 0
-// Invarian: jika 2 titik → R² == 1.0
+// Invarian: jika semua Y sama -> slope == 0
+// Invarian: jika 2 titik -> R² == 1.0
 func LinearRegression(points []DataPoint) LinearRegressionResult {
 	n := float64(len(points))
 	if n < 2 {
@@ -45,7 +45,7 @@ func LinearRegression(points []DataPoint) LinearRegressionResult {
 
 	denominator := n*sumX2 - sumX*sumX
 	if denominator == 0 {
-		// Semua X sama — tidak bisa menghitung slope
+		// Semua X sama - tidak bisa menghitung slope
 		return LinearRegressionResult{Intercept: sumY / n}
 	}
 
@@ -80,7 +80,7 @@ func Predict(result LinearRegressionResult, x float64) float64 {
 }
 
 // =============================================================================
-// Comparison Delta — kalkulasi delta perbandingan periode
+// Comparison Delta - kalkulasi delta perbandingan periode
 // =============================================================================
 
 // CalculateComparisonDelta menghitung delta antara dua nilai.
@@ -107,7 +107,7 @@ func CalculateComparisonDelta(baseValue, compareValue float64) (deltaAbs, deltaP
 }
 
 // =============================================================================
-// Insight Generation — generate insight otomatis dari metrik perbandingan
+// Insight Generation - buat insight otomatis dari metrik perbandingan
 // =============================================================================
 
 // GenerateInsights menghasilkan insight otomatis dari metrik perbandingan.

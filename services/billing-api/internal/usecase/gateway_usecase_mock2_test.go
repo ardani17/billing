@@ -1,5 +1,3 @@
-// gateway_usecase_mock2_test.go berisi mock InvoiceRepository, CustomerRepository,
-// BillingSettingsRepository, dan setup helper untuk unit test GatewayUsecase.
 package usecase
 
 import (
@@ -11,8 +9,6 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
-
-// --- Mock: InvoiceRepository (subset untuk gateway test) ---
 
 type gwMockInvoiceRepo struct {
 	invoices map[string]*domain.Invoice
@@ -124,8 +120,6 @@ func (m *gwMockInvoiceRepo) CountOutstandingInvoices(_ context.Context, _ string
 	return 0, nil
 }
 
-// --- Mock: CustomerRepository (subset untuk gateway test) ---
-
 type gwMockCustomerRepo struct {
 	customers map[string]*domain.Customer
 }
@@ -182,8 +176,6 @@ func (m *gwMockCustomerRepo) SearchForPayment(_ context.Context, _, _ string) ([
 	return nil, nil
 }
 
-// --- Mock: BillingSettingsRepository ---
-
 type gwMockSettingsRepo struct{}
 
 func (m *gwMockSettingsRepo) GetByTenantID(_ context.Context, _ string) (*domain.BillingSettings, error) {
@@ -196,8 +188,6 @@ func (m *gwMockSettingsRepo) ListAll(_ context.Context) ([]*domain.BillingSettin
 	return nil, nil
 }
 
-// --- Setup helper untuk test GatewayUsecase ---
-
 // gwTestSetup berisi semua komponen yang dibutuhkan untuk test.
 type gwTestSetup struct {
 	uc           *GatewayUsecase
@@ -207,7 +197,6 @@ type gwTestSetup struct {
 	customerRepo *gwMockCustomerRepo
 }
 
-// setupGatewayUsecase membuat GatewayUsecase dengan mock repos untuk test.
 func setupGatewayUsecase() *gwTestSetup {
 	configRepo := newGwMockConfigRepo()
 	linkRepo := newGwMockLinkRepo()

@@ -9,7 +9,7 @@ import (
 )
 
 // =============================================================================
-// Voucher Status State Machine
+// Voucher Status Mesin status
 // =============================================================================
 
 // VoucherStatus mendefinisikan status voucher dalam sistem.
@@ -30,9 +30,9 @@ var ValidVoucherTransitions = map[VoucherStatus][]VoucherStatus{
 	VoucherStatusTersedia: {VoucherStatusTerjual, VoucherStatusVoid},
 	VoucherStatusTerjual:  {VoucherStatusAktif, VoucherStatusExpired, VoucherStatusVoid},
 	VoucherStatusAktif:    {VoucherStatusSelesai},
-	VoucherStatusSelesai:  {}, // terminal state
-	VoucherStatusExpired:  {}, // terminal state
-	VoucherStatusVoid:     {}, // terminal state
+	VoucherStatusSelesai:  {}, // status akhir
+	VoucherStatusExpired:  {}, // status akhir
+	VoucherStatusVoid:     {}, // status akhir
 }
 
 // CanVoucherTransition memeriksa apakah transisi dari current ke target valid.
@@ -79,7 +79,7 @@ func AllowedVoucherTargets(current VoucherStatus) []VoucherStatus {
 }
 
 // =============================================================================
-// Code Format — format karakter kode voucher
+// Code Format - format karakter kode voucher
 // =============================================================================
 
 // CodeFormat mendefinisikan format karakter kode voucher.
@@ -106,7 +106,7 @@ func charsetForFormat(format CodeFormat) string {
 }
 
 // =============================================================================
-// Transaction Type — jenis transaksi keuangan reseller
+// Transaction Type - jenis transaksi keuangan reseller
 // =============================================================================
 
 // TransactionType mendefinisikan jenis transaksi reseller.
@@ -120,7 +120,7 @@ const (
 )
 
 // =============================================================================
-// Voucher Entity
+// Voucher Entitas
 // =============================================================================
 
 // Voucher merepresentasikan satu kode voucher internet.
@@ -144,7 +144,6 @@ type Voucher struct {
 }
 
 // =============================================================================
-// Voucher Audit Log Entity — catatan lifecycle voucher (append-only)
 // =============================================================================
 
 // VoucherAuditLog merepresentasikan catatan lifecycle voucher (append-only).
@@ -160,7 +159,7 @@ type VoucherAuditLog struct {
 }
 
 // =============================================================================
-// Reseller Transaction Entity — catatan transaksi keuangan reseller
+// Reseller Transaction Entitas - catatan transaksi keuangan reseller
 // =============================================================================
 
 // ResellerTransaction merepresentasikan satu transaksi keuangan reseller.
@@ -178,7 +177,7 @@ type ResellerTransaction struct {
 }
 
 // =============================================================================
-// Domain Error Variables — error khusus domain voucher
+// Variabel error domain - error khusus domain voucher
 // =============================================================================
 
 var (
@@ -199,7 +198,7 @@ var (
 )
 
 // =============================================================================
-// Voucher Code Generation — menggunakan crypto/rand untuk keamanan kriptografis
+// Voucher Code Generation - menggunakan crypto/rand untuk keamanan kriptografis
 // =============================================================================
 
 // GenerateVoucherCode menghasilkan satu kode voucher acak menggunakan crypto/rand.
@@ -227,12 +226,12 @@ func GenerateVoucherCode(format CodeFormat, length int, prefix string) (string, 
 
 // GenerateVoucherCodes menghasilkan batch kode voucher unik.
 // Untuk setiap kode, jika terjadi collision dengan existingCodes, retry hingga maxRetries kali.
-// Mengembalikan daftar kode yang berhasil di-generate dan jumlah yang gagal (collision persisten).
+// Mengembalikan daftar kode yang berhasil di-buat dan jumlah yang gagal (collision persisten).
 func GenerateVoucherCodes(format CodeFormat, length int, prefix string, quantity int, existingCodes map[string]struct{}, maxRetries int) ([]string, int) {
 	codes := make([]string, 0, quantity)
 	failed := 0
 
-	// Set untuk melacak kode yang sudah di-generate dalam batch ini
+	// Set untuk melacak kode yang sudah di-buat dalam batch ini
 	generated := make(map[string]struct{}, quantity)
 
 	for i := 0; i < quantity; i++ {
@@ -252,7 +251,7 @@ func GenerateVoucherCodes(format CodeFormat, length int, prefix string, quantity
 				continue
 			}
 
-			// Cek collision dengan kode yang sudah di-generate dalam batch ini
+			// Cek collision dengan kode yang sudah di-buat dalam batch ini
 			if _, exists := generated[code]; exists {
 				continue
 			}

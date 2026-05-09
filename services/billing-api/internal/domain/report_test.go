@@ -7,10 +7,9 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: reporting, Property 1: aging bucket sum invariant
-// **Validates: Requirements 2.7, 1.2, 10.3**
+// **Memvalidasi: Kebutuhan 2.7, 1.2, 10.3**
 //
-// Untuk set aging buckets yang dihasilkan, sum total_amount semua bucket
+// Untuk atur aging buckets yang dihasilkan, sum total_amount semua bucket
 // HARUS sama dengan total_outstanding. Berlaku juga untuk revenue breakdown
 // (sum sources == total) dan area revenue (sum area == total row).
 
@@ -18,13 +17,13 @@ import (
 // dari semua aging bucket sama dengan total_outstanding pada AgingReport.
 func TestProperty_AgingBucketSumInvariant(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate 4 aging buckets sesuai spesifikasi (1-7, 8-14, 15-30, 30+)
+		// Buat 4 aging buckets sesuai spesifikasi (1-7, 8-14, 15-30, 30+)
 		labels := []string{"1-7 hari", "8-14 hari", "15-30 hari", "30+ hari"}
 		buckets := make([]AgingBucket, len(labels))
 		var expectedTotal int64
 
 		for i, label := range labels {
-			// Gunakan amount non-negatif (piutang tidak bisa negatif)
+			// Gunakan nominal non-negatif (piutang tidak bisa negatif)
 			amount := rapid.Int64Range(0, 1_000_000_000).Draw(t, label+"_amount")
 			count := rapid.IntRange(0, 10000).Draw(t, label+"_count")
 			buckets[i] = AgingBucket{
@@ -35,7 +34,6 @@ func TestProperty_AgingBucketSumInvariant(t *testing.T) {
 			expectedTotal += amount
 		}
 
-		// Bangun AgingReport menggunakan helper function
 		report := BuildAgingReport(buckets)
 
 		// Verifikasi invariant: sum bucket amounts == total outstanding
@@ -57,17 +55,15 @@ func TestProperty_AgingBucketSumInvariant(t *testing.T) {
 // sumber pendapatan sama dengan Total pada RevenueSource.
 func TestProperty_RevenueSourceSumInvariant(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate nilai pendapatan per sumber (bisa negatif untuk koreksi/refund)
+		// Buat nilai pendapatan per sumber (bisa negatif untuk koreksi/refund)
 		monthly := rapid.Int64Range(0, 1_000_000_000).Draw(t, "monthly")
 		voucher := rapid.Int64Range(0, 1_000_000_000).Draw(t, "voucher")
 		installation := rapid.Int64Range(0, 1_000_000_000).Draw(t, "installation")
 		late := rapid.Int64Range(0, 1_000_000_000).Draw(t, "late")
 		other := rapid.Int64Range(0, 1_000_000_000).Draw(t, "other")
 
-		// Bangun RevenueSource menggunakan helper function
 		source := BuildRevenueSource(monthly, voucher, installation, late, other)
 
-		// Hitung expected total
 		expectedTotal := monthly + voucher + installation + late + other
 
 		// Verifikasi invariant: sum sources == total
@@ -101,7 +97,7 @@ func TestProperty_RevenueSourceSumInvariant(t *testing.T) {
 // semua area sama dengan total row pada RevenueByAreaReport.
 func TestProperty_AreaRevenueSumInvariant(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate 1-20 area revenues
+		// Buat 1-20 area revenues
 		numAreas := rapid.IntRange(1, 20).Draw(t, "num_areas")
 		areas := make([]AreaRevenue, numAreas)
 
@@ -130,7 +126,6 @@ func TestProperty_AreaRevenueSumInvariant(t *testing.T) {
 			expectedCustomers += customers
 		}
 
-		// Bangun total row menggunakan helper function
 		total := BuildRevenueByAreaTotal(areas)
 
 		// Verifikasi invariant: sum area revenues == total revenue
@@ -159,21 +154,20 @@ func TestProperty_AreaRevenueSumInvariant(t *testing.T) {
 	})
 }
 
-// Feature: reporting, Property 4: aging bucket classification
-// **Validates: Requirements 2.2**
+// **Memvalidasi: Kebutuhan 2.2**
 //
-// Untuk setiap invoice yang belum lunas dengan jumlah hari overdue tertentu,
+// Untuk setiap invoice yang belum lunas dengan jumlah hari terlambat tertentu,
 // invoice tersebut HARUS masuk ke bucket yang benar:
-//   - 1-7 hari   jika overdue 1-7
-//   - 8-14 hari  jika overdue 8-14
-//   - 15-30 hari jika overdue 15-30
-//   - 30+ hari   jika overdue > 30
+//   - 1-7 hari   jika terlambat 1-7
+//   - 8-14 hari  jika terlambat 8-14
+//   - 15-30 hari jika terlambat 15-30
+//   - 30+ hari   jika terlambat > 30
 
 // TestProperty_AgingBucketClassification memverifikasi bahwa ClassifyAgingBucket
 // mengembalikan label bucket yang benar berdasarkan jumlah hari tunggakan.
 func TestProperty_AgingBucketClassification(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate overdue days antara 1 dan 365
+		// Buat terlambat days antara 1 dan 365
 		overdueDays := rapid.IntRange(1, 365).Draw(t, "overdue_days")
 
 		// Klasifikasikan menggunakan fungsi yang diuji
@@ -202,19 +196,17 @@ func TestProperty_AgingBucketClassification(t *testing.T) {
 	})
 }
 
-// Feature: reporting, Property 5: distribusi persentase berjumlah 100%
-// **Validates: Requirements 3.2, 4.2, 8.2, 8.3, 8.5**
+// **Memvalidasi: Kebutuhan 3.2, 4.2, 8.2, 8.3, 8.5**
 //
-// Untuk set items yang didistribusikan berdasarkan kategori (metode pembayaran,
+// Untuk atur items yang didistribusikan berdasarkan kategori (metode pembayaran,
 // paket voucher, paket pelanggan, area, status, metode koneksi), jumlah semua
 // percentage HARUS mendekati 100% (toleransi rounding ±0.1%). Setiap percentage
 // HARUS sama dengan item_amount / total_amount * 100.
 
 // TestProperty_DistributionPercentageSumTo100 memverifikasi bahwa CalculateDistribution
-// menghasilkan persentase yang berjumlah mendekati 100% untuk semua input valid.
 func TestProperty_DistributionPercentageSumTo100(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate 1-20 items dengan amount non-negatif
+		// Buat 1-20 items dengan nominal non-negatif
 		numItems := rapid.IntRange(1, 20).Draw(t, "num_items")
 		amounts := make([]int64, numItems)
 		for i := 0; i < numItems; i++ {
@@ -224,7 +216,6 @@ func TestProperty_DistributionPercentageSumTo100(t *testing.T) {
 		// Hitung distribusi menggunakan fungsi yang diuji
 		percentages := CalculateDistribution(amounts)
 
-		// Verifikasi jumlah elemen sama dengan input
 		if len(percentages) != numItems {
 			t.Fatalf("expected %d percentages, got %d", numItems, len(percentages))
 		}
@@ -273,18 +264,16 @@ func TestProperty_DistributionPercentageSumTo100(t *testing.T) {
 	})
 }
 
-// Feature: reporting, Property 6: profit loss and margin calculation
-// **Validates: Requirements 5.4, 4.4**
+// **Memvalidasi: Kebutuhan 5.4, 4.4**
 //
 // Untuk setiap total_revenue dan total_expenses, net_profit HARUS sama dengan
 // total_revenue - total_expenses, dan profit_margin HARUS sama dengan
 // net_profit / total_revenue * 100 (atau 0 jika total_revenue == 0).
 
 // TestProperty_ProfitLossCalculation memverifikasi bahwa CalculateProfitLoss
-// menghasilkan net_profit dan profit_margin yang benar untuk semua input.
 func TestProperty_ProfitLossCalculation(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate total revenue dan total expenses (bisa nol atau positif)
+		// Buat total revenue dan total expenses (bisa nol atau positif)
 		totalRevenue := rapid.Int64Range(0, 10_000_000_000).Draw(t, "total_revenue")
 		totalExpenses := rapid.Int64Range(0, 10_000_000_000).Draw(t, "total_expenses")
 
@@ -326,8 +315,7 @@ func TestProperty_ProfitLossCalculation(t *testing.T) {
 	})
 }
 
-// Feature: reporting, Property 7: customer metrics calculation
-// **Validates: Requirements 7.2, 7.4, 7.5, 7.6**
+// **Memvalidasi: Kebutuhan 7.2, 7.4, 7.5, 7.6**
 //
 // Untuk data pelanggan dalam satu periode:
 //   - net_growth HARUS sama dengan new_customers - churned_customers
@@ -336,10 +324,9 @@ func TestProperty_ProfitLossCalculation(t *testing.T) {
 //   - churn_rate HARUS sama dengan churned / total_start * 100 (atau 0 jika total_start == 0)
 
 // TestProperty_CustomerMetricsCalculation memverifikasi bahwa CalculateCustomerMetrics
-// menghasilkan net_growth, ARPU, CLV, dan churn_rate yang benar untuk semua input.
 func TestProperty_CustomerMetricsCalculation(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate data pelanggan
+		// Buat data pelanggan
 		newCustomers := rapid.IntRange(0, 10000).Draw(t, "new_customers")
 		churnedCustomers := rapid.IntRange(0, 10000).Draw(t, "churned_customers")
 		avgActive := rapid.IntRange(0, 50000).Draw(t, "avg_active")
@@ -407,26 +394,21 @@ func TestProperty_CustomerMetricsCalculation(t *testing.T) {
 	})
 }
 
-// Feature: reporting, Property 9: KPI progress and status label
-// **Validates: Requirements 20.4**
+// **Memvalidasi: Kebutuhan 20.4**
 //
 // Untuk setiap current_value dan target_value, progress_percentage HARUS sama
-// dengan current_value / target_value * 100 (atau 0 jika target == 0).
 // Status label HARUS "tercapai" jika progress >= 100%, "hampir" jika >= 80%,
 // dan "di_bawah_target" jika < 80%.
 
 // TestProperty_KPIProgressAndStatusLabel memverifikasi bahwa CalculateKPIProgress
-// menghasilkan progress dan status label yang benar untuk semua input.
 func TestProperty_KPIProgressAndStatusLabel(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate current dan target sebagai nilai non-negatif
 		current := rapid.Float64Range(0, 10_000_000_000).Draw(t, "current")
 		target := rapid.Float64Range(0, 10_000_000_000).Draw(t, "target")
 
 		// Hitung menggunakan fungsi yang diuji
 		progress, status := CalculateKPIProgress(current, target)
 
-		// Verifikasi invariant: progress == current / target * 100 (atau 0 jika target == 0)
 		if target == 0 {
 			if progress != 0 {
 				t.Fatalf(
@@ -475,10 +457,9 @@ func TestProperty_KPIProgressAndStatusLabel(t *testing.T) {
 	})
 }
 
-// Feature: reporting, Property 11: top debtors ordering and peak payment
-// **Validates: Requirements 2.5, 3.4**
+// **Memvalidasi: Kebutuhan 2.5, 3.4**
 //
-// Untuk set debitur apapun, top_debtors HARUS diurutkan berdasarkan
+// Untuk atur debitur apapun, top_debtors HARUS diurutkan berdasarkan
 // total_outstanding descending dan maksimal 10 item. Untuk daily payments,
 // peak_payment_date HARUS merupakan tanggal dengan total_amount tertinggi.
 
@@ -486,7 +467,7 @@ func TestProperty_KPIProgressAndStatusLabel(t *testing.T) {
 // mengurutkan debitur berdasarkan TotalOutstanding descending dan membatasi ke 10 item.
 func TestProperty_TopDebtorsOrderingAndLimit(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate 0-25 debitur (bisa lebih dari 10 untuk menguji limiting)
+		// Buat 0-25 debitur (bisa lebih dari 10 untuk menguji limiting)
 		numDebtors := rapid.IntRange(0, 25).Draw(t, "num_debtors")
 		debtors := make([]TopDebtor, numDebtors)
 
@@ -502,7 +483,6 @@ func TestProperty_TopDebtorsOrderingAndLimit(t *testing.T) {
 		// Jalankan fungsi yang diuji dengan limit 10
 		result := SortAndLimitTopDebtors(debtors, 10)
 
-		// Jika input kosong, hasil harus nil
 		if numDebtors == 0 {
 			if result != nil {
 				t.Fatalf("expected nil for empty input, got %d items", len(result))
@@ -529,8 +509,6 @@ func TestProperty_TopDebtorsOrderingAndLimit(t *testing.T) {
 			}
 		}
 
-		// Verifikasi invariant: setiap item di result harus ada di input asli
-		// dan TotalOutstanding result[0] harus >= semua TotalOutstanding di input
 		if len(result) > 0 {
 			maxOutstanding := result[0].TotalOutstanding
 			for _, d := range debtors {
@@ -549,12 +527,12 @@ func TestProperty_TopDebtorsOrderingAndLimit(t *testing.T) {
 // mengembalikan tanggal dengan TotalAmount tertinggi dari daftar pembayaran harian.
 func TestProperty_PeakPaymentDate(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate 0-60 pembayaran harian (simulasi 1-2 bulan)
+		// Buat 0-60 pembayaran harian (simulasi 1-2 bulan)
 		numPayments := rapid.IntRange(0, 60).Draw(t, "num_payments")
 		payments := make([]DailyPayment, numPayments)
 
 		for i := 0; i < numPayments; i++ {
-			// Generate tanggal unik dalam format YYYY-MM-DD
+			// Buat tanggal unik dalam format YYYY-MM-DD
 			day := rapid.IntRange(1, 28).Draw(t, "day")
 			month := rapid.IntRange(1, 12).Draw(t, "month")
 			dateStr := rapid.Just(
@@ -571,7 +549,6 @@ func TestProperty_PeakPaymentDate(t *testing.T) {
 		// Jalankan fungsi yang diuji
 		peakDate, peakAmount := FindPeakPaymentDate(payments)
 
-		// Jika input kosong, hasil harus kosong
 		if numPayments == 0 {
 			if peakDate != "" || peakAmount != 0 {
 				t.Fatalf("expected empty result for empty input, got date=%q amount=%d", peakDate, peakAmount)

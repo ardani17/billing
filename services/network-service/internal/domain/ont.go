@@ -69,7 +69,7 @@ func CanTransitionONT(current, target ONTStatus) bool {
 	return false
 }
 
-// --- ONT Entity ---
+// --- ONT Entitas ---
 
 // ONT merepresentasikan entitas ONT per tenant.
 // Setiap tenant memiliki daftar ONT sendiri yang diisolasi via RLS.

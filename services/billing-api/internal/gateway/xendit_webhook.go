@@ -38,7 +38,7 @@ func (a *XenditAdapter) VerifyWebhookSignature(_ context.Context, headers map[st
 	return callbackToken == secret, nil
 }
 
-// ParseWebhookPayload mem-parse body webhook Xendit menjadi WebhookEvent.
+// ParseWebhookPayload mem-parsing body webhook Xendit menjadi WebhookEvent.
 // Memetakan status Xendit (PAID, EXPIRED, FAILED) ke event type internal
 // (payment.paid, payment.expired, payment.failed).
 // Mengekstrak metode pembayaran dari field payment_method dan payment_channel.
@@ -53,7 +53,7 @@ func (a *XenditAdapter) ParseWebhookPayload(body []byte) (*domain.WebhookEvent, 
 		return nil, fmt.Errorf("status xendit tidak dikenal: %s", payload.Status)
 	}
 
-	// Tentukan jumlah pembayaran — gunakan paid_amount jika tersedia
+	// Tentukan jumlah pembayaran - gunakan paid_amount jika tersedia
 	amount := int64(math.Round(payload.Amount))
 	if payload.PaidAmount > 0 {
 		amount = int64(math.Round(payload.PaidAmount))
@@ -86,7 +86,7 @@ func mapXenditPaymentMethod(method, channel string) string {
 	case "CREDIT_CARD":
 		return "credit_card"
 	default:
-		// Fallback: gunakan kombinasi method_channel dalam lowercase
+		// Cadangan: gunakan kombinasi method_channel dalam lowercase
 		if channel != "" {
 			return method + "_" + channel
 		}

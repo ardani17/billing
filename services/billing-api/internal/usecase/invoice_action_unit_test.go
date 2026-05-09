@@ -15,7 +15,6 @@ import (
 )
 
 // =============================================================================
-// Helper untuk membuat InvoiceActionUsecase dengan mock repos
 // =============================================================================
 
 type actionUsecaseSetup struct {
@@ -50,7 +49,7 @@ func setupActionUsecase() *actionUsecaseSetup {
 }
 
 // =============================================================================
-// Unit Tests — InvoiceActionUsecase
+// Unit Tests - InvoiceActionUsecase
 // =============================================================================
 
 // TestInvoiceAction_Cancel_WithCreditRestoration menguji cancel dengan restorasi kredit.
@@ -86,11 +85,9 @@ func TestInvoiceAction_Cancel_WithCreditRestoration(t *testing.T) {
 
 	// Verifikasi kredit dikembalikan ke pelanggan
 	// Catatan: credit_balance diupdate secara atomik via SQL langsung (pool.Exec),
-	// bukan melalui customerRepo.Update, sehingga mock tidak terpengaruh.
 	// Verifikasi ini hanya berlaku di environment dengan database nyata.
 }
 
-// TestInvoiceAction_Cancel_ConfirmationMismatch menguji error saat konfirmasi tidak cocok.
 func TestInvoiceAction_Cancel_ConfirmationMismatch(t *testing.T) {
 	s := setupActionUsecase()
 	ctx := context.Background()
@@ -114,7 +111,6 @@ func TestInvoiceAction_Cancel_ConfirmationMismatch(t *testing.T) {
 	}
 }
 
-// TestInvoiceAction_Cancel_NotCancellable menguji error saat invoice sudah lunas.
 func TestInvoiceAction_Cancel_NotCancellable(t *testing.T) {
 	s := setupActionUsecase()
 	ctx := context.Background()
@@ -135,7 +131,7 @@ func TestInvoiceAction_Cancel_NotCancellable(t *testing.T) {
 	}
 }
 
-// TestInvoiceAction_RecordPayment_FullPayment menguji pembayaran penuh → status lunas.
+// TestInvoiceAction_RecordPayment_FullPayment menguji pembayaran penuh -> status lunas.
 func TestInvoiceAction_RecordPayment_FullPayment(t *testing.T) {
 	s := setupActionUsecase()
 	ctx := context.Background()
@@ -202,9 +198,8 @@ func TestInvoiceAction_RecordPayment_Overpayment(t *testing.T) {
 		t.Fatalf("RecordPayment gagal: %v", err)
 	}
 
-	// Kelebihan bayar = 150000 - 100000 = 50000 → kredit pelanggan
+	// Kelebihan bayar = 150000 - 100000 = 50000 -> kredit pelanggan
 	// Catatan: credit_balance diupdate secara atomik via SQL langsung (pool.Exec),
-	// bukan melalui customerRepo.Update, sehingga mock tidak terpengaruh.
 	// Verifikasi ini hanya berlaku di environment dengan database nyata.
 }
 

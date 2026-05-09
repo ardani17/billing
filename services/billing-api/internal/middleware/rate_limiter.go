@@ -33,7 +33,7 @@ func rateLimitKey(email string) string {
 	return fmt.Sprintf("rate:login:%s", email)
 }
 
-// Check memeriksa apakah email masih boleh melakukan login.
+// Periksa memeriksa apakah email masih boleh melakukan login.
 // Mengembalikan (allowed, remainingSeconds, error):
 //   - allowed: true jika counter belum mencapai maxAttempts
 //   - remainingSeconds: sisa waktu lock dalam detik (0 jika belum terkunci)
@@ -70,8 +70,8 @@ func (r *LoginRateLimiter) Check(ctx context.Context, email string) (bool, int, 
 }
 
 // Increment menambah counter gagal login untuk email.
-// Jika ini adalah percobaan pertama (counter == 1), set TTL ke lockDuration.
-// TTL hanya di-set sekali agar durasi lock konsisten dari percobaan pertama.
+// Jika ini adalah percobaan pertama (counter == 1), atur TTL ke lockDuration.
+// TTL hanya di-atur sekali agar durasi lock konsisten dari percobaan pertama.
 func (r *LoginRateLimiter) Increment(ctx context.Context, email string) error {
 	key := rateLimitKey(email)
 

@@ -10,32 +10,32 @@ import type { MapNodeWithRef } from '../lib/api';
 // ---------------------------------------------------------------------------
 
 interface HeatmapOverlayProps {
-  /** ONT nodes with signal data */
+  /** Node ONT dengan data sinyal*/
   nodes: MapNodeWithRef[];
-  /** Whether the heatmap layer is visible */
+  /** Menentukan apakah layer heatmap terlihat*/
   visible: boolean;
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Fungsi bantus
 // ---------------------------------------------------------------------------
 
 /**
- * Convert signal dBm to a 0–1 intensity value.
- * Good signal (-8 to -20 dBm) → high intensity (green)
- * Weak signal (-20 to -25 dBm) → medium intensity (yellow)
- * Poor signal (-25 to -27 dBm) → lower intensity (orange)
- * Critical (below -27 dBm) → lowest intensity (red)
+ * Konversi sinyal dBm ke nilai intensitas 0-1.
+ * Sinyal bagus (-8 to -20 dBm) → intensitas tinggi (hijau)
+ * Sinyal lemah (-20 to -25 dBm) → intensitas sedang (kuning)
+ * Sinyal buruk (-25 to -27 dBm) → intensitas lebih rendah (oranye)
+ * Kritis (di bawah -27 dBm) → intensitas paling rendah (merah)
  */
 function signalToIntensity(dbm: number): number {
   // Clamp to reasonable range
   const clamped = Math.max(-35, Math.min(-5, dbm));
-  // Map -5..-35 to 1..0
+  // Petakan -5..-35 ke 1..0
   return (clamped + 35) / 30;
 }
 
 // ---------------------------------------------------------------------------
-// Legend Component
+// Legend Komponen
 // ---------------------------------------------------------------------------
 
 export function HeatmapLegend() {
@@ -73,12 +73,11 @@ function LegendItem({
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Komponen
 // ---------------------------------------------------------------------------
 
 /**
  * HeatmapOverlay renders a heatmap layer using leaflet-heat.
- * Falls back to colored circle markers if leaflet-heat is not available.
  */
 export default function HeatmapOverlay({
   nodes,
@@ -89,7 +88,7 @@ export default function HeatmapOverlay({
   useEffect(() => {
     if (!visible) return;
 
-    // Filter ONT nodes with signal data
+    // Filter Node ONT dengan data sinyal
     const heatData = nodes
       .filter((n) => n.node_type === 'ont' && n.signal_dbm != null)
       .map((n) => ({
@@ -101,11 +100,9 @@ export default function HeatmapOverlay({
 
     if (heatData.length === 0) return;
 
-    // Try to use leaflet-heat if available, otherwise use circle markers
     const layerGroup = L.layerGroup();
 
     try {
-      // Attempt to use L.heatLayer (from leaflet-heat plugin)
       const heat = (L as unknown as Record<string, unknown>).heatLayer;
       if (typeof heat === 'function') {
         const heatPoints = heatData.map((d) => [d.lat, d.lng, d.intensity]);
@@ -114,11 +111,11 @@ export default function HeatmapOverlay({
           blur: 15,
           maxZoom: 17,
           gradient: {
-            0.0: '#ef4444', // red — critical
-            0.3: '#f97316', // orange — poor
-            0.5: '#eab308', // yellow — weak
-            0.8: '#22c55e', // green — good
-            1.0: '#16a34a', // dark green — excellent
+            0.0: '#ef4444', // merah - kritis
+            0.3: '#f97316', // oranye - buruk
+            0.5: '#eab308', // kuning - lemah
+            0.8: '#22c55e', // hijau - bagus
+            1.0: '#16a34a', // dark green - excellent
           },
         });
         layerGroup.addLayer(heatLayer);
@@ -126,7 +123,7 @@ export default function HeatmapOverlay({
         throw new Error('leaflet-heat not available');
       }
     } catch {
-      // Fallback: colored circle markers
+      // Cadangan: marker lingkaran berwarna
       for (const d of heatData) {
         let color = '#ef4444'; // red
         if (d.dbm >= -20) color = '#22c55e'; // green

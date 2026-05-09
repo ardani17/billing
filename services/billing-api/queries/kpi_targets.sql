@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel kpi_targets.
+-- Kueri SQL untuk operasi CRUD tabel kpi_targets.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel kpi_targets dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel kpi_targets dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Setiap tenant hanya memiliki satu baris kpi_targets (UNIQUE pada tenant_id).
 
 -- name: GetKPITargetByTenant :one

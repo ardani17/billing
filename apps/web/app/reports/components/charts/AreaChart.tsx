@@ -11,33 +11,33 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-/** Konfigurasi satu area dalam chart */
+/** Konfigurasi satu area dalam chart*/
 export interface AreaConfig {
   dataKey: string;
   name: string;
   color: string;
-  /** Opacity fill area (0-1) */
+  /** Opacity fill area (0-1)*/
   fillOpacity?: number;
   stackId?: string;
 }
 
 interface AreaChartProps {
-  /** Data array untuk chart */
+  /** Data array untuk chart*/
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: readonly any[];
-  /** Key untuk sumbu X */
+  /** Key untuk sumbu X*/
   xKey: string;
-  /** Konfigurasi area(s) */
+  /** Konfigurasi area(s)*/
   areas: AreaConfig[];
-  /** Tinggi chart dalam pixel */
+  /** Tinggi chart dalam pixel*/
   height?: number;
-  /** Formatter untuk tooltip value */
+  /** Formatter untuk tooltip value*/
   valueFormatter?: (value: number) => string;
-  /** Formatter untuk label sumbu X */
+  /** Formatter untuk label sumbu X*/
   xFormatter?: (value: string) => string;
-  /** Tampilkan grid */
+  /** Tampilkan grid*/
   showGrid?: boolean;
-  /** Tampilkan legend */
+  /** Tampilkan legend*/
   showLegend?: boolean;
 }
 

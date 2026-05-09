@@ -1,6 +1,6 @@
--- Query SQL untuk operasi pada tabel geocoding_cache.
+-- Kueri SQL untuk operasi pada tabel geocoding_cache.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel geocoding_cache dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel geocoding_cache dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Cache entries memiliki TTL (expires_at) dan dibersihkan secara periodik.
 
 -- name: GetGeocodingCache :one

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// --- Customer Status State Machine ---
+// --- Customer Status Mesin status ---
 
 // CustomerStatus mendefinisikan status pelanggan dalam sistem.
 type CustomerStatus string
@@ -28,7 +28,7 @@ var ValidTransitions = map[CustomerStatus][]CustomerStatus{
 	CustomerStatusAktif:    {CustomerStatusIsolir, CustomerStatusBerhenti},
 	CustomerStatusIsolir:   {CustomerStatusAktif, CustomerStatusSuspend, CustomerStatusBerhenti},
 	CustomerStatusSuspend:  {CustomerStatusAktif, CustomerStatusBerhenti},
-	CustomerStatusBerhenti: {}, // terminal state
+	CustomerStatusBerhenti: {}, // status akhir
 }
 
 // CanTransition memeriksa apakah transisi dari current ke target valid.
@@ -87,7 +87,7 @@ const (
 	ConnectionStatic      ConnectionMethod = "static"
 )
 
-// --- Customer Entity ---
+// --- Customer Entitas ---
 
 // Customer merepresentasikan pelanggan ISP yang dikelola oleh tenant.
 type Customer struct {
@@ -120,7 +120,7 @@ type Customer struct {
 	UpdatedAt        time.Time        `json:"updated_at"`
 }
 
-// --- Domain Error Variables ---
+// --- Variabel error domain ---
 
 var (
 	// ErrCustomerNotFound dikembalikan saat pelanggan tidak ditemukan atau milik tenant lain
@@ -141,11 +141,11 @@ var (
 	// ErrPackageNotFound dikembalikan saat package_id tidak ditemukan
 	ErrPackageNotFound = errors.New("paket tidak ditemukan")
 
-	// ErrCustomerDeleted dikembalikan saat pelanggan sudah di-soft-delete
+	// ErrCustomerDeleted dikembalikan saat pelanggan sudah di-hapus lunak
 	ErrCustomerDeleted = errors.New("pelanggan sudah dihapus")
 )
 
-// --- Helper Functions ---
+// --- Fungsi bantu Functions ---
 
 // GenerateCustomerID menghasilkan customer_id_seq berdasarkan sequence terakhir.
 // Format: PLG-001, PLG-002, ..., PLG-999, PLG-1000, ...
@@ -160,7 +160,7 @@ func GenerateCustomerID(lastSeq int) string {
 
 // GeneratePPPoEUsername menghasilkan username PPPoE dari nama dan customer ID.
 // Format: {first-name-lowercase}-{customer-id-lowercase-no-dash}
-// Contoh: "Ahmad Rizki" + "PLG-001" → "ahmad-plg001"
+// Contoh: "Ahmad Rizki" + "PLG-001" -> "ahmad-plg001"
 func GeneratePPPoEUsername(name, customerIDSeq string) string {
 	fields := strings.Fields(name)
 	firstName := ""
@@ -178,7 +178,7 @@ func GeneratePPPoEPassword() string {
 	randomBytes := make([]byte, 8)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
-		// Fallback: should never happen in practice
+		// Cadangan: seharusnya tidak pernah terjadi dalam praktik
 		panic("crypto/rand failed: " + err.Error())
 	}
 	for i := range b {

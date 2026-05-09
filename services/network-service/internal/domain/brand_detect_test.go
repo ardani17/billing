@@ -8,7 +8,7 @@ import (
 )
 
 // brandKeywords memetakan setiap OLTBrand ke daftar keyword yang dikenali.
-// Sesuai dengan logika DetectBrand di olt.go dan Requirements 6.6.
+// Sesuai dengan logika DetectBrand di olt.go dan Kebutuhan 6.6.
 var brandKeywords = map[OLTBrand][]string{
 	BrandZTE:       {"ZTE", "ZXA10"},
 	BrandHuawei:    {"Huawei", "MA56"},
@@ -40,14 +40,13 @@ func containsAnyBrandKeyword(s string) bool {
 }
 
 // =============================================================================
-// Feature: olt-management, Property 3: Brand Detection from sysDescr
 // =============================================================================
 
 // TestProperty_BrandDetectionFromSysDescr memverifikasi bahwa untuk sembarang
 // brand keyword yang disisipkan dalam teks acak, DetectBrand mengembalikan
 // OLTBrand constant yang sesuai, terlepas dari teks sekitarnya.
 //
-// **Validates: Requirements 6.2, 6.6**
+// **Memvalidasi: Kebutuhan 6.2, 6.6**
 func TestProperty_BrandDetectionFromSysDescr(t *testing.T) {
 	// Generator untuk semua brand
 	allBrands := make([]OLTBrand, 0, len(brandKeywords))
@@ -63,7 +62,7 @@ func TestProperty_BrandDetectionFromSysDescr(t *testing.T) {
 		// Pilih keyword acak dari brand tersebut
 		keyword := rapid.SampledFrom(keywords).Draw(t, "keyword")
 
-		// Generate teks acak sebelum dan sesudah keyword
+		// Buat teks acak sebelum dan sesudah keyword
 		prefix := rapid.String().Draw(t, "prefix")
 		suffix := rapid.String().Draw(t, "suffix")
 
@@ -89,10 +88,10 @@ func TestProperty_BrandDetectionFromSysDescr(t *testing.T) {
 // string yang TIDAK mengandung keyword brand apapun, DetectBrand mengembalikan
 // string kosong.
 //
-// **Validates: Requirements 6.2, 6.6**
+// **Memvalidasi: Kebutuhan 6.2, 6.6**
 func TestProperty_BrandDetectionNoBrandKeyword(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate string acak
+		// Buat string acak
 		s := rapid.String().Draw(t, "sysDescr")
 
 		// Skip jika kebetulan mengandung keyword brand
@@ -111,10 +110,10 @@ func TestProperty_BrandDetectionNoBrandKeyword(t *testing.T) {
 }
 
 // TestProperty_BrandDetectionCaseInsensitive memverifikasi bahwa DetectBrand
-// bersifat case-insensitive — keyword dalam huruf besar, kecil, atau campuran
+// bersifat case-insensitive - keyword dalam huruf besar, kecil, atau campuran
 // tetap terdeteksi dengan benar.
 //
-// **Validates: Requirements 6.2, 6.6**
+// **Memvalidasi: Kebutuhan 6.2, 6.6**
 func TestProperty_BrandDetectionCaseInsensitive(t *testing.T) {
 	allBrands := make([]OLTBrand, 0, len(brandKeywords))
 	for brand := range brandKeywords {
@@ -155,7 +154,7 @@ func TestProperty_BrandDetectionCaseInsensitive(t *testing.T) {
 // TestBrandDetection_KnownSysDescr memverifikasi deteksi brand dari sysDescr
 // string yang diketahui dari perangkat OLT nyata.
 //
-// **Validates: Requirements 6.2, 6.6**
+// **Memvalidasi: Kebutuhan 6.2, 6.6**
 func TestBrandDetection_KnownSysDescr(t *testing.T) {
 	cases := []struct {
 		name     string

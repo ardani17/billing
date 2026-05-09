@@ -8,20 +8,19 @@ import (
 )
 
 // =============================================================================
-// Property Test: Haversine Segment Additivity
 // =============================================================================
 
 // TestHaversineSegmentAdditivity memverifikasi bahwa CalculateRouteDistance
 // untuk array koordinat [A,B,C,...,N] sama dengan penjumlahan Haversine
 // per segment: Haversine(A,B) + Haversine(B,C) + ... + Haversine(M,N).
 //
-// **Validates: Requirements 25.1, 25.4**
+// **Memvalidasi: Kebutuhan 25.1, 25.4**
 func TestHaversineSegmentAdditivity(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate jumlah titik antara 2-20
+		// Buat jumlah titik antara 2-20
 		n := rapid.IntRange(2, 20).Draw(t, "numPoints")
 
-		// Generate array koordinat dengan lat dalam [-90,90] dan lng dalam [-180,180]
+		// Buat array koordinat dengan lat dalam [-90,90] dan lng dalam [-180,180]
 		coords := make([][2]float64, n)
 		for i := 0; i < n; i++ {
 			lat := rapid.Float64Range(-90.0, 90.0).Draw(t, "lat")
@@ -52,7 +51,7 @@ func TestHaversineSegmentAdditivity(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test: Jarak Jakarta-Bandung ≈ 120km
+// Unit Tes: Jarak Jakarta-Bandung ≈ 120km
 // =============================================================================
 
 // TestJakartaBandungDistance memverifikasi bahwa jarak Jakarta-Bandung
@@ -78,7 +77,7 @@ func TestJakartaBandungDistance(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test: Edge cases — 0 dan 1 koordinat mengembalikan 0
+// Unit Tes: Edge cases - 0 dan 1 koordinat mengembalikan 0
 // =============================================================================
 
 // TestCalculateRouteDistanceEmptyCoordinates memverifikasi bahwa

@@ -1,6 +1,6 @@
--- Migrasi: membuat tabel custom_report_templates untuk menyimpan template laporan custom per tenant.
+-- Migrasi: membuat tabel custom_report_templates untuk menyimpan template laporan kustom per tenant.
 -- Setiap template dimiliki oleh satu tenant dan dibuat oleh satu user.
--- Mendukung konfigurasi metrik (max 3), dimensi grouping, tipe tampilan, dan periode default.
+-- Mendukung konfigurasi metrik (max 3), dimensi grouping, tipe tampilan, dan periode bawaan.
 -- Dilindungi oleh RLS.
 
 CREATE TABLE custom_report_templates (

@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel invoice_payments.
+-- Kueri SQL untuk operasi CRUD tabel invoice_payments.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel invoice_payments dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel invoice_payments dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateInvoicePayment :one
 -- Membuat catatan pembayaran baru dan mengembalikan semua kolom.
@@ -39,7 +39,7 @@ WHERE ip.id = $1;
 
 -- name: FindDuplicatePayment :one
 -- Mengecek apakah ada pembayaran duplikat dalam 24 jam terakhir.
--- Duplikat didefinisikan sebagai pembayaran dengan customer_id, amount, payment_method,
+-- Duplikat didefinisikan sebagai pembayaran dengan customer_id, nominal, payment_method,
 -- dan payment_date yang sama, belum di-void.
 SELECT EXISTS(
     SELECT 1 FROM invoice_payments ip

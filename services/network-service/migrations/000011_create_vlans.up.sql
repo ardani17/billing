@@ -16,12 +16,12 @@ CREATE TABLE vlans (
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Unique: VLAN ID unik per OLT (exclude soft-deleted)
+-- Unique: VLAN ID unik per OLT (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_vlans_olt_vlanid
     ON vlans (olt_id, vlan_id)
     WHERE deleted_at IS NULL;
 
--- Index untuk query per OLT
+-- Index untuk kueri per OLT
 CREATE INDEX idx_vlans_olt
     ON vlans (olt_id) WHERE deleted_at IS NULL;
 

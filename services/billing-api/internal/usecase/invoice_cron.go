@@ -1,5 +1,5 @@
-// invoice_cron.go berisi business logic untuk cron job invoice.
-// InvoiceCronUsecase menangani auto-generate invoice dan update status overdue.
+// invoice_cron.go berisi business logic untuk job cron invoice.
+// InvoiceCronUsecase menangani auto-buat invoice dan perbarui status terlambat.
 package usecase
 
 import (
@@ -14,7 +14,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// InvoiceCronUsecase mengimplementasikan business logic untuk cron job invoice.
+// InvoiceCronUsecase mengimplementasikan business logic untuk job cron invoice.
 type InvoiceCronUsecase struct {
 	invoiceRepo       domain.InvoiceRepository
 	itemRepo          domain.InvoiceItemRepository
@@ -58,9 +58,9 @@ func NewInvoiceCronUsecase(
 	}
 }
 
-// ProcessAutoGenerate memproses auto-generate invoice untuk semua tenant.
-// Mengambil semua billing settings → untuk setiap tenant: cari pelanggan eligible →
-// untuk setiap pelanggan: cek idempotency → generate invoice.
+// ProcessAutoGenerate memproses auto-buat invoice untuk semua tenant.
+// Mengambil semua billing settings -> untuk setiap tenant: cari pelanggan eligible ->
+// untuk setiap pelanggan: cek idempotency -> buat invoice.
 // Kegagalan satu tenant/pelanggan tidak memblokir yang lain.
 func (uc *InvoiceCronUsecase) ProcessAutoGenerate(ctx context.Context) error {
 	// Ambil semua billing settings (satu per tenant)
@@ -83,7 +83,7 @@ func (uc *InvoiceCronUsecase) ProcessAutoGenerate(ctx context.Context) error {
 	return nil
 }
 
-// GenerateDueForTenant menjalankan auto-generate invoice untuk satu tenant secara on-demand.
+// GenerateDueForTenant menjalankan auto-buat invoice untuk satu tenant secara on-demand.
 func (uc *InvoiceCronUsecase) GenerateDueForTenant(ctx context.Context, tenantID string) error {
 	settings, err := uc.settingsRepo.GetByTenantID(ctx, tenantID)
 	if err != nil {
@@ -92,7 +92,7 @@ func (uc *InvoiceCronUsecase) GenerateDueForTenant(ctx context.Context, tenantID
 	return uc.processAutoGenerateForTenant(ctx, settings, time.Now())
 }
 
-// processAutoGenerateForTenant memproses auto-generate invoice untuk satu tenant.
+// processAutoGenerateForTenant memproses auto-buat invoice untuk satu tenant.
 func (uc *InvoiceCronUsecase) processAutoGenerateForTenant(ctx context.Context, settings *domain.BillingSettings, now time.Time) error {
 	// Cari pelanggan aktif yang due_date-nya cocok dengan generate_days
 	// Pelanggan eligible: status aktif, tanggal saat ini == due_date - generate_days
@@ -143,8 +143,8 @@ func (uc *InvoiceCronUsecase) processAutoGenerateForTenant(ctx context.Context, 
 	return nil
 }
 
-// isEligibleForInvoice memeriksa apakah pelanggan eligible untuk auto-generate invoice.
-// Pelanggan eligible sejak tanggal generate sampai tanggal jatuh tempo periode berjalan.
+// isEligibleForInvoice memeriksa apakah pelanggan eligible untuk auto-buat invoice.
+// Pelanggan eligible sejak tanggal buat sampai tanggal jatuh tempo periode berjalan.
 func (uc *InvoiceCronUsecase) isEligibleForInvoice(customer *domain.Customer, settings *domain.BillingSettings, now time.Time) bool {
 	periodMonth, periodYear := uc.calculatePeriod(customer.DueDate, now)
 	dueDate := time.Date(periodYear, time.Month(periodMonth), customer.DueDate, 0, 0, 0, 0, now.Location())

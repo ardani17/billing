@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel olt_alarms.
+-- Kueri SQL untuk operasi CRUD tabel olt_alarms.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel olt_alarms dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel olt_alarms dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateOLTAlarm :one
 INSERT INTO olt_alarms (

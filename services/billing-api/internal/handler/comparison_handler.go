@@ -1,4 +1,4 @@
-// comparison_handler.go menangani HTTP request untuk perbandingan antar periode.
+// comparison_handler.go menangani HTTP permintaan untuk perbandingan antar periode.
 // Termasuk: Compare (MoM, YoY, QoQ, Custom).
 package handler
 
@@ -12,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// ComparisonHandler menangani HTTP request untuk perbandingan periode.
+// ComparisonHandler menangani HTTP permintaan untuk perbandingan periode.
 type ComparisonHandler struct {
 	comparisonUsecase domain.ComparisonUsecase
 	logger            zerolog.Logger
@@ -34,7 +34,7 @@ func (h *ComparisonHandler) Compare(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", "tenant tidak teridentifikasi")
 	}
 
-	// Parse comparison_type (wajib)
+	// Parsing comparison_type (wajib)
 	compTypeStr := c.Query("comparison_type")
 	if compTypeStr == "" {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "comparison_type wajib diisi (mom, yoy, qoq, custom)")
@@ -48,7 +48,7 @@ func (h *ComparisonHandler) Compare(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "comparison_type harus salah satu dari: mom, yoy, qoq, custom")
 	}
 
-	// Parse base period (wajib)
+	// Parsing periode dasar (wajib)
 	basePeriodStart := c.Query("period_start")
 	basePeriodEnd := c.Query("period_end")
 	if basePeriodStart == "" || basePeriodEnd == "" {
@@ -65,7 +65,7 @@ func (h *ComparisonHandler) Compare(c *fiber.Ctx) error {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "format period_end tidak valid (gunakan YYYY-MM-DD)")
 	}
 
-	// Parse compare period (opsional, wajib untuk custom)
+	// Parsing compare period (opsional, wajib untuk kustom)
 	var comparePeriodStart, comparePeriodEnd *time.Time
 	if cs := c.Query("compare_start"); cs != "" {
 		t, err := time.Parse("2006-01-02", cs)
@@ -82,7 +82,7 @@ func (h *ComparisonHandler) Compare(c *fiber.Ctx) error {
 		comparePeriodEnd = &t
 	}
 
-	// Untuk custom, compare period wajib
+	// Untuk kustom, compare period wajib
 	if compType == domain.ComparisonCustom && (comparePeriodStart == nil || comparePeriodEnd == nil) {
 		return domain.ErrorResponse(c, fiber.StatusBadRequest, "BAD_REQUEST", "compare_start dan compare_end wajib diisi untuk comparison_type=custom")
 	}

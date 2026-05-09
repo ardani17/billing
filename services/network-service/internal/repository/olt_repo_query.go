@@ -7,7 +7,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// olt_repo_query.go berisi method query OLTRepo: List, CountByStatus,
+// olt_repo_kueri.go berisi method kueri OLTRepo: List, CountByStatus,
 // GetActiveOLTs, GetOnlineOLTs, NameExists, UpdateHealthCheck, UpdateONTCounts.
 
 // List mengambil daftar OLT dengan paginasi dan filter (tenant-scoped via RLS).
@@ -88,7 +88,7 @@ func (r *OLTRepo) CountByStatus(ctx context.Context) (map[domain.OLTStatus]int64
 	return result, nil
 }
 
-// GetActiveOLTs mengambil semua OLT yang tidak di-delete dan bukan maintenance.
+// GetActiveOLTs mengambil semua OLT yang tidak di-hapus dan bukan maintenance.
 func (r *OLTRepo) GetActiveOLTs(ctx context.Context) ([]*domain.OLT, error) {
 	rows, err := r.queries.GetActiveOLTs(ctx)
 	if err != nil {
@@ -100,6 +100,20 @@ func (r *OLTRepo) GetActiveOLTs(ctx context.Context) ([]*domain.OLT, error) {
 		olts = append(olts, mapOLTRow(row))
 	}
 	return olts, nil
+}
+
+// GetByHost mengambil OLT aktif berdasarkan host/source IP.
+func (r *OLTRepo) GetByHost(ctx context.Context, host string) (*domain.OLT, error) {
+	olts, err := r.GetActiveOLTs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, olt := range olts {
+		if olt.Host == host {
+			return olt, nil
+		}
+	}
+	return nil, domain.ErrOLTNotFound
 }
 
 // GetOnlineOLTs mengambil semua OLT dengan status online.
@@ -117,7 +131,7 @@ func (r *OLTRepo) GetOnlineOLTs(ctx context.Context) ([]*domain.OLT, error) {
 }
 
 // NameExists mengecek apakah nama OLT sudah ada di tenant.
-// excludeID digunakan untuk mengecualikan OLT tertentu (saat update).
+// excludeID digunakan untuk mengecualikan OLT tertentu (saat perbarui).
 func (r *OLTRepo) NameExists(ctx context.Context, tenantID, name, excludeID string) (bool, error) {
 	// Jika excludeID kosong, gunakan UUID nil agar tidak mengecualikan siapapun
 	exID := excludeID
@@ -136,7 +150,7 @@ func (r *OLTRepo) NameExists(ctx context.Context, tenantID, name, excludeID stri
 	return exists, nil
 }
 
-// UpdateHealthCheck memperbarui field health check OLT.
+// UpdateHealthCheck memperbarui field health cek OLT.
 func (r *OLTRepo) UpdateHealthCheck(ctx context.Context, id string, params domain.OLTHealthCheckUpdate) error {
 	// Tentukan status string, gunakan empty string jika nil
 	status := ""

@@ -1,4 +1,4 @@
-// payment_proof_test.go berisi unit test untuk PaymentUsecase — upload dan pengambilan bukti transfer.
+// payment_proof_test.go berisi unit test untuk PaymentUsecase - upload dan pengambilan bukti transfer.
 package usecase
 
 import (
@@ -10,15 +10,13 @@ import (
 )
 
 // =============================================================================
-// Test: UploadProof — file terlalu besar
+// Tes: UploadProof - file terlalu besar
 // =============================================================================
 
-// TestPaymentUsecase_UploadProof_FileTooLarge menguji error saat file > 5MB.
 func TestPaymentUsecase_UploadProof_FileTooLarge(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
 
-	// Tambahkan payment yang valid
 	s.paymentRepo.payments["pay-1"] = &domain.InvoicePayment{
 		ID: "pay-1", TenantID: "tenant-1", InvoiceID: "inv-1",
 		Amount: 100000, CreatedAt: time.Now(),
@@ -41,15 +39,12 @@ func TestPaymentUsecase_UploadProof_FileTooLarge(t *testing.T) {
 }
 
 // =============================================================================
-// Test: UploadProof — format file tidak valid
 // =============================================================================
 
-// TestPaymentUsecase_UploadProof_InvalidFormat menguji error saat format file bukan JPEG/PNG/WebP.
 func TestPaymentUsecase_UploadProof_InvalidFormat(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
 
-	// Tambahkan payment yang valid
 	s.paymentRepo.payments["pay-1"] = &domain.InvoicePayment{
 		ID: "pay-1", TenantID: "tenant-1", InvoiceID: "inv-1",
 		Amount: 100000, CreatedAt: time.Now(),
@@ -67,7 +62,6 @@ func TestPaymentUsecase_UploadProof_InvalidFormat(t *testing.T) {
 	}
 }
 
-// TestPaymentUsecase_UploadProof_EmptyFile menguji error saat file kosong.
 func TestPaymentUsecase_UploadProof_EmptyFile(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
@@ -77,7 +71,6 @@ func TestPaymentUsecase_UploadProof_EmptyFile(t *testing.T) {
 		Amount: 100000, CreatedAt: time.Now(),
 	}
 
-	// File kosong → magic bytes tidak valid
 	_, err := s.uc.UploadProof(ctx, "pay-1", []byte{}, "proof.jpg")
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -88,10 +81,9 @@ func TestPaymentUsecase_UploadProof_EmptyFile(t *testing.T) {
 }
 
 // =============================================================================
-// Test: UploadProof — payment tidak ditemukan
+// Tes: UploadProof - payment tidak ditemukan
 // =============================================================================
 
-// TestPaymentUsecase_UploadProof_PaymentNotFound menguji error saat payment tidak ada.
 func TestPaymentUsecase_UploadProof_PaymentNotFound(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
@@ -109,10 +101,9 @@ func TestPaymentUsecase_UploadProof_PaymentNotFound(t *testing.T) {
 }
 
 // =============================================================================
-// Test: GetProof — payment tidak ditemukan
+// Tes: GetProof - payment tidak ditemukan
 // =============================================================================
 
-// TestPaymentUsecase_GetProof_PaymentNotFound menguji error saat payment tidak ada.
 func TestPaymentUsecase_GetProof_PaymentNotFound(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")
@@ -126,7 +117,6 @@ func TestPaymentUsecase_GetProof_PaymentNotFound(t *testing.T) {
 	}
 }
 
-// TestPaymentUsecase_GetProof_NoProofURL menguji error saat proof_image_url kosong.
 func TestPaymentUsecase_GetProof_NoProofURL(t *testing.T) {
 	s := setupPaymentUsecase()
 	ctx := ctxWithTenant("tenant-1")

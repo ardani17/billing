@@ -1,6 +1,6 @@
 -- Migrasi: membuat tabel payment_links dan payment_link_invoices.
--- payment_links menyimpan payment link yang digenerate via Xendit/Midtrans.
--- payment_link_invoices adalah junction table untuk mendukung multi-invoice payment link.
+-- payment_links menyimpan link pembayaran yang digenerate via Xendit/Midtrans.
+-- payment_link_invoices adalah junction table untuk mendukung multi-invoice link pembayaran.
 -- Data dilindungi oleh RLS.
 
 CREATE TABLE payment_links (
@@ -46,12 +46,12 @@ CREATE POLICY payment_links_tenant_insert ON payment_links
 -- Unique index: external_id harus unik (ID dari gateway)
 CREATE UNIQUE INDEX idx_payment_links_external_id ON payment_links(external_id);
 
--- Partial index: payment link aktif per customer untuk query cepat
+-- Partial index: link pembayaran aktif per customer untuk kueri cepat
 CREATE INDEX idx_payment_links_customer_active
     ON payment_links(customer_id, status)
     WHERE status = 'active';
 
--- Partial index: payment link aktif yang akan expired untuk background job
+-- Partial index: link pembayaran aktif yang akan expired untuk background job
 CREATE INDEX idx_payment_links_expires_at
     ON payment_links(expires_at)
     WHERE status = 'active';
@@ -62,11 +62,11 @@ CREATE TABLE payment_link_invoices (
     payment_link_id UUID NOT NULL REFERENCES payment_links(id) ON DELETE CASCADE,
     invoice_id      UUID NOT NULL REFERENCES invoices(id),
 
-    -- Satu invoice hanya bisa terhubung sekali ke satu payment link
+    -- Satu invoice hanya bisa terhubung sekali ke satu link pembayaran
     CONSTRAINT uq_payment_link_invoices UNIQUE (payment_link_id, invoice_id)
 );
 
--- Index pada FK payment_link_id untuk join query
+-- Index pada FK payment_link_id untuk join kueri
 CREATE INDEX idx_payment_link_invoices_link_id ON payment_link_invoices(payment_link_id);
 
 -- Index pada FK invoice_id untuk reverse lookup

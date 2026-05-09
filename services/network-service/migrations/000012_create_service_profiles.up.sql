@@ -17,12 +17,12 @@ CREATE TABLE service_profiles (
     updated_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Unique: kombinasi profile unik per OLT (exclude soft-deleted)
+-- Unique: kombinasi profile unik per OLT (exclude hapus lunak)
 CREATE UNIQUE INDEX idx_sp_olt_profiles
     ON service_profiles (olt_id, line_profile_id, service_profile_id)
     WHERE deleted_at IS NULL;
 
--- Index untuk query per OLT
+-- Index untuk kueri per OLT
 CREATE INDEX idx_sp_olt
     ON service_profiles (olt_id) WHERE deleted_at IS NULL;
 

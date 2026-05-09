@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// Prorate Calculation — perhitungan biaya prorate untuk pelanggan baru
+// Prorate Calculation - perhitungan biaya prorate untuk pelanggan baru
 // dan perubahan paket di tengah siklus billing
 // =============================================================================
 
@@ -34,8 +34,8 @@ func CalculateProrateCredit(monthlyPrice int64, remainingDays int) int64 {
 }
 
 // RoundUpTo500 membulatkan ke atas ke kelipatan Rp 500 terdekat.
-// Jika amount sudah kelipatan 500, dikembalikan apa adanya.
-// Jika amount <= 0, dikembalikan 0.
+// Jika nominal sudah kelipatan 500, dikembalikan apa adanya.
+// Jika nominal <= 0, dikembalikan 0.
 func RoundUpTo500(amount int64) int64 {
 	if amount <= 0 {
 		return 0
@@ -48,8 +48,8 @@ func RoundUpTo500(amount int64) int64 {
 }
 
 // RoundDownTo500 membulatkan ke bawah ke kelipatan Rp 500 terdekat.
-// Jika amount sudah kelipatan 500, dikembalikan apa adanya.
-// Jika amount <= 0, dikembalikan 0.
+// Jika nominal sudah kelipatan 500, dikembalikan apa adanya.
+// Jika nominal <= 0, dikembalikan 0.
 func RoundDownTo500(amount int64) int64 {
 	if amount <= 0 {
 		return 0

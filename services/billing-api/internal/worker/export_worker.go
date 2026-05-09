@@ -1,6 +1,6 @@
 // export_worker.go berisi asynq worker untuk export laporan async.
-// ExportWorker menangani task report.export — dequeue task, generate
-// laporan dalam format PDF/XLSX, simpan file, dan update status job.
+// ExportWorker menangani task report.export - dequeue task, buat
+// laporan dalam format PDF/XLSX, simpan file, dan perbarui status job.
 package worker
 
 import (
@@ -27,10 +27,10 @@ const (
 
 // exportPayload adalah struktur payload untuk task export laporan.
 type exportPayload struct {
-	JobID      string             `json:"job_id"`
-	TenantID   string             `json:"tenant_id"`
-	ReportType string             `json:"report_type"`
-	Format     string             `json:"format"`
+	JobID      string              `json:"job_id"`
+	TenantID   string              `json:"tenant_id"`
+	ReportType string              `json:"report_type"`
+	Format     string              `json:"format"`
 	Filters    domain.ReportFilter `json:"filters"`
 }
 
@@ -61,9 +61,9 @@ func (w *ExportWorker) RegisterHandlers(mux *asynq.ServeMux) {
 }
 
 // handleExportTask memproses task export laporan async.
-// Alur: decode payload → update status processing → generate report →
-// simpan file → update status completed + download_url.
-// Jika gagal: update status failed + pesan error.
+// Alur: decode payload -> perbarui status processing -> buat report ->
+// simpan file -> perbarui status completed + download_url.
+// Jika gagal: perbarui status failed + pesan error.
 func (w *ExportWorker) handleExportTask(ctx context.Context, task *asynq.Task) error {
 	var payload exportPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
@@ -78,23 +78,23 @@ func (w *ExportWorker) handleExportTask(ctx context.Context, task *asynq.Task) e
 		Str("format", payload.Format).
 		Msg("memproses task export laporan")
 
-	// Update status ke processing
+	// Perbarui status ke processing
 	if err := w.jobRepo.UpdateStatus(ctx, payload.JobID, domain.JobProcessing, "", ""); err != nil {
 		w.logger.Error().Err(err).Str("job_id", payload.JobID).Msg("gagal update status processing")
 	}
 
-	// Generate report data dan simpan file
+	// Buat report data dan simpan file
 	downloadURL, err := w.generateAndSave(ctx, payload)
 	if err != nil {
 		w.logger.Error().Err(err).
 			Str("job_id", payload.JobID).
 			Msg("gagal generate export laporan")
-		// Update status ke failed
+		// Perbarui status ke failed
 		_ = w.jobRepo.UpdateStatus(ctx, payload.JobID, domain.JobFailed, "", err.Error())
 		return fmt.Errorf("worker: gagal export laporan: %w", err)
 	}
 
-	// Update status ke completed dengan download URL
+	// Perbarui status ke completed dengan download URL
 	if err := w.jobRepo.UpdateStatus(ctx, payload.JobID, domain.JobCompleted, downloadURL, ""); err != nil {
 		w.logger.Error().Err(err).Str("job_id", payload.JobID).Msg("gagal update status completed")
 		return fmt.Errorf("worker: gagal update status completed: %w", err)

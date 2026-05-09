@@ -1,5 +1,5 @@
-// package_action.go menangani HTTP request untuk aksi paket.
-// Termasuk: activate, deactivate, dan duplicate.
+// package_action.go menangani HTTP permintaan untuk aksi paket.
+// Termasuk: aktifkan, deactivate, dan duplicate.
 package handler
 
 import (
@@ -8,7 +8,7 @@ import (
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
 
-// Activate menangani POST /v1/packages/:id/activate.
+// Activate menangani POST /v1/packages/:id/aktifkan.
 // Mengaktifkan paket yang sedang nonaktif.
 func (h *PackageHandler) Activate(c *fiber.Ctx) error {
 	id := c.Params("id")

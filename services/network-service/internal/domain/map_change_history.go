@@ -6,7 +6,7 @@ import (
 )
 
 // =============================================================================
-// ChangeAction Constants — aksi perubahan yang dicatat di riwayat node
+// ChangeAction Constants - aksi perubahan yang dicatat di riwayat node
 // =============================================================================
 
 const (
@@ -16,7 +16,7 @@ const (
 	// ChangeActionLocationMoved dicatat saat lokasi (latitude/longitude) node dipindahkan.
 	ChangeActionLocationMoved = "location_moved"
 
-	// ChangeActionCustomFieldsUpdated dicatat saat custom fields node diperbarui.
+	// ChangeActionCustomFieldsUpdated dicatat saat kustom field node diperbarui.
 	ChangeActionCustomFieldsUpdated = "custom_fields_updated"
 
 	// ChangeActionPhotoAdded dicatat saat foto baru di-upload ke node.
@@ -25,7 +25,7 @@ const (
 	// ChangeActionPhotoRemoved dicatat saat foto dihapus dari node.
 	ChangeActionPhotoRemoved = "photo_removed"
 
-	// ChangeActionDeleted dicatat saat node di-soft-delete (masuk trash).
+	// ChangeActionDeleted dicatat saat node di-hapus lunak (masuk trash).
 	ChangeActionDeleted = "deleted"
 
 	// ChangeActionRestored dicatat saat node di-restore dari trash.
@@ -54,12 +54,12 @@ func IsValidChangeAction(action string) bool {
 }
 
 // =============================================================================
-// MapChangeHistory Entity — riwayat perubahan per node di peta (append-only)
+// MapChangeHistory Entitas - riwayat perubahan per node di peta (append-only)
 // =============================================================================
 
 // MapChangeHistory merepresentasikan satu entri riwayat perubahan pada node di peta.
-// Tabel ini bersifat append-only: tidak ada operasi update atau delete.
-// Setiap modifikasi pada lokasi, custom fields, atau foto node akan menghasilkan
+// Tabel ini bersifat append-only: tidak ada operasi perbarui atau hapus.
+// Setiap modifikasi pada lokasi, kustom field, atau foto node akan menghasilkan
 // entri baru dengan old_value dan new_value dalam format JSONB.
 // Data diisolasi per tenant via RLS di PostgreSQL.
 type MapChangeHistory struct {

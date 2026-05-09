@@ -1,7 +1,7 @@
--- Query SQL untuk operasi CRUD tabel webhook_logs.
+-- Kueri SQL untuk operasi CRUD tabel webhook_logs.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
 -- Tabel webhook_logs TIDAK menggunakan RLS karena webhook diterima sebelum identifikasi tenant.
--- Bersifat append-only, menyimpan seluruh request termasuk yang gagal verifikasi.
+-- Bersifat append-only, menyimpan seluruh permintaan termasuk yang gagal verifikasi.
 
 -- name: CreateWebhookLog :one
 -- Membuat log webhook baru dan mengembalikan semua kolom.
@@ -37,7 +37,7 @@ WHERE id = $1;
 
 -- name: IsWebhookAlreadyProcessed :one
 -- Mengecek apakah webhook dengan external_id dan event_type sudah berhasil diproses.
--- Digunakan untuk idempotency check sebelum memproses webhook.
+-- Digunakan untuk idempotency cek sebelum memproses webhook.
 SELECT EXISTS(
     SELECT 1 FROM webhook_logs
     WHERE external_id = $1 AND event_type = $2 AND processing_status = 'processed'
@@ -45,7 +45,7 @@ SELECT EXISTS(
 
 -- name: ListWebhookLogsByExternalID :many
 -- Mengambil semua webhook logs berdasarkan external_id dengan urutan terbaru.
--- Digunakan untuk melihat riwayat webhook terkait payment link tertentu.
+-- Digunakan untuk melihat riwayat webhook terkait link pembayaran tertentu.
 SELECT *
 FROM webhook_logs
 WHERE external_id = $1

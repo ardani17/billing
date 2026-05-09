@@ -16,15 +16,14 @@ var validIndonesianMonths = []string{
 	"Juli", "Agustus", "September", "Oktober", "November", "Desember",
 }
 
-// Feature: notification-service, Property 3: FormatMoney round-trip
-// **Validates: Requirements 5.5**
+// **Memvalidasi: Kebutuhan 5.5**
 //
-// Untuk setiap int64 amount >= 0, FormatMoney(amount) menghasilkan string yang
+// Untuk setiap int64 nominal >= 0, FormatMoney(nominal) menghasilkan string yang
 // dimulai dengan "Rp " diikuti digit dengan pemisah ribuan (titik).
-// Parsing bagian numerik (hapus "Rp " dan titik) menghasilkan amount asli.
+// Parsing bagian numerik (hapus "Rp " dan titik) menghasilkan nominal asli.
 func TestProperty_FormatMoney(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate amount non-negatif
+		// Buat nominal non-negatif
 		amount := rapid.Int64Range(0, 999_999_999_999).Draw(t, "amount")
 
 		result := FormatMoney(amount)
@@ -47,7 +46,6 @@ func TestProperty_FormatMoney(t *testing.T) {
 			}
 		}
 
-		// Hapus titik pemisah ribuan dan parse kembali
 		cleaned := strings.ReplaceAll(numericPart, ".", "")
 		parsed, err := strconv.ParseInt(cleaned, 10, 64)
 		if err != nil {
@@ -57,7 +55,6 @@ func TestProperty_FormatMoney(t *testing.T) {
 			)
 		}
 
-		// Verifikasi round-trip: nilai yang di-parse harus sama dengan amount asli
 		if parsed != amount {
 			t.Fatalf(
 				"FormatMoney round-trip gagal: amount=%d, formatted=%q, parsed=%d",
@@ -67,14 +64,12 @@ func TestProperty_FormatMoney(t *testing.T) {
 	})
 }
 
-// Feature: notification-service, Property 4: FormatDateID contains valid Indonesian month
-// **Validates: Requirements 5.6**
+// **Memvalidasi: Kebutuhan 5.6**
 //
-// Untuk setiap time.Time yang valid, FormatDateID(t) menghasilkan string yang
 // mengandung nomor hari dan salah satu dari 12 nama bulan Indonesia diikuti tahun.
 func TestProperty_FormatDateID(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate timestamp acak dalam rentang wajar (tahun 1970-2100)
+		// Buat timestamp acak dalam rentang wajar (tahun 1970-2100)
 		unixSec := rapid.Int64Range(0, 4102444800).Draw(t, "unixSec")
 		ts := time.Unix(unixSec, 0).UTC()
 
@@ -93,7 +88,6 @@ func TestProperty_FormatDateID(t *testing.T) {
 			)
 		}
 
-		// Verifikasi: output mengandung salah satu nama bulan Indonesia
 		foundMonth := false
 		for _, month := range validIndonesianMonths {
 			if strings.Contains(result, month) {

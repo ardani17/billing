@@ -1,9 +1,9 @@
--- Query SQL untuk operasi CRUD tabel routers.
+-- Kueri SQL untuk operasi CRUD tabel routers.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel routers dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel routers dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
+-- Semua kueri menyertakan WHERE deleted_at IS NULL untuk mengecualikan hapus lunak.
 
--- name: CreateRouter :one
+-- name: CreateRouter:one
 INSERT INTO routers (
     tenant_id, name, host, port, username, password_encrypted,
     use_ssl, service_types, router_os_version, board_name,
@@ -22,7 +22,7 @@ RETURNING id, tenant_id, name, host, port, username, password_encrypted,
     last_uptime_sec, failure_count, notes,
     deleted_at, created_at, updated_at;
 
--- name: GetRouterByID :one
+-- name: GetRouterByID:one
 SELECT id, tenant_id, name, host, port, username, password_encrypted,
     use_ssl, service_types, router_os_version, board_name,
     cpu_count, total_ram_mb, identity, status,
@@ -32,7 +32,7 @@ SELECT id, tenant_id, name, host, port, username, password_encrypted,
 FROM routers
 WHERE id = $1 AND deleted_at IS NULL;
 
--- name: UpdateRouter :one
+-- name: UpdateRouter:one
 UPDATE routers SET
     name = $2,
     host = $3,
@@ -49,7 +49,8 @@ UPDATE routers SET
     status = $14,
     health_check_interval_sec = $15,
     last_online_at = $16,
-    notes = $17,
+    last_uptime_sec = $17,
+    notes = $18,
     updated_at = NOW()
 WHERE id = $1 AND deleted_at IS NULL
 RETURNING id, tenant_id, name, host, port, username, password_encrypted,
@@ -59,11 +60,11 @@ RETURNING id, tenant_id, name, host, port, username, password_encrypted,
     last_uptime_sec, failure_count, notes,
     deleted_at, created_at, updated_at;
 
--- name: SoftDeleteRouter :exec
+-- name: SoftDeleteRouter:exec
 UPDATE routers SET deleted_at = NOW(), updated_at = NOW()
 WHERE id = $1 AND deleted_at IS NULL;
 
--- name: ListRouters :many
+-- name: ListRouters:many
 SELECT id, tenant_id, name, host, port, username, password_encrypted,
     use_ssl, service_types, router_os_version, board_name,
     cpu_count, total_ram_mb, identity, status,
@@ -77,19 +78,19 @@ WHERE deleted_at IS NULL
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;
 
--- name: CountRouters :one
+-- name: CountRouters:one
 SELECT COUNT(*) FROM routers
 WHERE deleted_at IS NULL
   AND (sqlc.narg('status')::varchar IS NULL OR status = sqlc.narg('status')::varchar)
   AND (sqlc.narg('search')::varchar IS NULL OR name ILIKE '%' || sqlc.narg('search')::varchar || '%');
 
--- name: CountByStatus :many
+-- name: CountByStatus:many
 SELECT status, COUNT(*) AS count
 FROM routers
 WHERE deleted_at IS NULL
 GROUP BY status;
 
--- name: GetActiveRouters :many
+-- name: GetActiveRouters:many
 SELECT id, tenant_id, name, host, port, username, password_encrypted,
     use_ssl, service_types, router_os_version, board_name,
     cpu_count, total_ram_mb, identity, status,
@@ -99,13 +100,13 @@ SELECT id, tenant_id, name, host, port, username, password_encrypted,
 FROM routers
 WHERE deleted_at IS NULL AND status != 'maintenance';
 
--- name: NameExists :one
+-- name: NameExists:one
 SELECT EXISTS(
     SELECT 1 FROM routers
     WHERE tenant_id = $1 AND name = $2 AND id != $3 AND deleted_at IS NULL
 ) AS exists;
 
--- name: UpdateHealthCheck :exec
+-- name: UpdateHealthCek:exec
 UPDATE routers SET
     last_checked_at = COALESCE($2, last_checked_at),
     last_online_at = COALESCE($3, last_online_at),

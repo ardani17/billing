@@ -13,8 +13,8 @@ import (
 )
 
 // ProcessOverdueUpdate memperbarui status invoice yang sudah melewati jatuh tempo.
-// Mencari semua invoice dengan status belum_bayar yang due_date < tanggal saat ini →
-// transisi ke terlambat → tulis audit log → publish event.
+// Mencari semua invoice dengan status belum_bayar yang due_date < tanggal saat ini ->
+// transisi ke terlambat -> tulis audit log -> terbitkan event.
 func (uc *InvoiceCronUsecase) ProcessOverdueUpdate(ctx context.Context) error {
 	now := time.Now()
 
@@ -44,7 +44,7 @@ func (uc *InvoiceCronUsecase) ProcessOverdueUpdate(ctx context.Context) error {
 			daysOverdue = 1
 		}
 
-		// Publish event invoice.overdue
+		// Terbitkan event invoice.terlambat
 		uc.publishCronEvent(invoice.TenantID, "invoice.overdue", domain.InvoiceOverduePayload{
 			InvoiceID:     invoice.ID,
 			TenantID:      invoice.TenantID,
@@ -58,8 +58,8 @@ func (uc *InvoiceCronUsecase) ProcessOverdueUpdate(ctx context.Context) error {
 	return nil
 }
 
-// buildInvoiceItems membangun daftar item invoice untuk auto-generate.
-// Termasuk: item bulanan, item instalasi (jika invoice pertama), dan recurring items.
+// buildInvoiceItems membangun daftar item invoice untuk auto-buat.
+// Termasuk: item bulanan, item instalasi (jika invoice pertama), dan item berulangs.
 func (uc *InvoiceCronUsecase) buildInvoiceItems(
 	ctx context.Context,
 	settings *domain.BillingSettings,
@@ -162,7 +162,7 @@ func (uc *InvoiceCronUsecase) calculatePeriod(dueDay int, now time.Time) (int, i
 	year := now.Year()
 
 	if dueDay < currentDay {
-		// Due date sudah lewat bulan ini, generate untuk bulan depan
+		// Due date sudah lewat bulan ini, buat untuk bulan depan
 		month++
 		if month > 12 {
 			month = 1
@@ -191,7 +191,7 @@ func (uc *InvoiceCronUsecase) writeCronAuditLog(ctx context.Context, tenantID, i
 	}
 }
 
-// publishCronEvent mempublikasikan event ke Redis queue dari cron job.
+// publishCronEvent mempublikasikan event ke Redis queue dari job cron.
 func (uc *InvoiceCronUsecase) publishCronEvent(tenantID, eventType string, payload interface{}) {
 	if uc.queueClient == nil {
 		return

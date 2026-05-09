@@ -6,9 +6,9 @@ import { LineChart } from "../charts/LineChart";
 
 interface ForecastChartProps {
   data: ForecastReport;
-  /** Data historis aktual (6 bulan) untuk ditampilkan bersama proyeksi */
+  /** Data historis aktual (6 bulan) untuk ditampilkan bersama proyeksi*/
   historicalRevenue?: { month: string; value: number }[];
-  /** Target KPI pendapatan bulanan */
+  /** Target KPI pendapatan bulanan*/
   revenueTarget?: number;
 }
 
@@ -45,7 +45,7 @@ export function ForecastChart({ data, historicalRevenue, revenueTarget }: Foreca
     });
   }
 
-  // Titik penghubung: set projected pada bulan terakhir historis
+  // Titik penghubung: atur projected pada bulan terakhir historis
   if (historicalRevenue && historicalRevenue.length > 0 && chartData.length > 0) {
     const lastHistIdx = historicalRevenue.length - 1;
     if (chartData[lastHistIdx]) {
@@ -76,7 +76,7 @@ export function ForecastChart({ data, historicalRevenue, revenueTarget }: Foreca
         />
       </div>
 
-      {/* Tabel proyeksi */}
+      {/* Tabel proyeksi*/}
       {data.projections.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <h3 className="mb-3 text-sm font-medium text-slate-700">Detail Proyeksi 3 Bulan</h3>
@@ -105,7 +105,7 @@ export function ForecastChart({ data, historicalRevenue, revenueTarget }: Foreca
         </div>
       )}
 
-      {/* Estimated target date */}
+      {/* Estimated target date*/}
       {data.estimated_target_date && Object.keys(data.estimated_target_date).length > 0 && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
           <h3 className="mb-2 text-sm font-medium text-emerald-800">Estimasi Pencapaian Target</h3>
@@ -119,7 +119,7 @@ export function ForecastChart({ data, historicalRevenue, revenueTarget }: Foreca
         </div>
       )}
 
-      {/* Disclaimer */}
+      {/* Disclaimer*/}
       {data.disclaimer && (
         <p className="text-xs italic text-slate-400">{data.disclaimer}</p>
       )}

@@ -11,7 +11,7 @@ import (
 )
 
 // =============================================================================
-// Struktur GeoJSON — representasi format GeoJSON (RFC 7946)
+// Struktur GeoJSON - representasi format GeoJSON (RFC 7946)
 // =============================================================================
 
 // geoJSONCollection merepresentasikan FeatureCollection dalam format GeoJSON.
@@ -34,7 +34,7 @@ type geoJSONGeometry struct {
 }
 
 // =============================================================================
-// Export GeoJSON — generate FeatureCollection dari data peta
+// Export GeoJSON - buat FeatureCollection dari data peta
 // =============================================================================
 
 // exportGeoJSON menghasilkan file GeoJSON dari data node dan cable route.
@@ -105,7 +105,7 @@ func exportGeoJSON(
 }
 
 // parseGeoJSONLineCoords mengkonversi JSON coordinates ke format GeoJSON LineString.
-// Input: [[lat,lng], ...] → Output: [[lng,lat], ...] (GeoJSON menggunakan lng,lat).
+// Input: [[lat,lng], ...] -> Output: [[lng,lat], ...] (GeoJSON menggunakan lng,lat).
 func parseGeoJSONLineCoords(raw json.RawMessage) [][2]float64 {
 	var coords [][2]float64
 	if err := json.Unmarshal(raw, &coords); err != nil {
@@ -120,7 +120,7 @@ func parseGeoJSONLineCoords(raw json.RawMessage) [][2]float64 {
 }
 
 // =============================================================================
-// Export CSV — generate file CSV dari data peta
+// Export CSV - buat file CSV dari data peta
 // =============================================================================
 
 // csvHeader adalah header kolom untuk file CSV export.

@@ -1,5 +1,5 @@
-// customer_action.go menangani HTTP request untuk aksi pelanggan.
-// Termasuk: isolir, activate, dan change-package.
+// customer_action.go menangani HTTP permintaan untuk aksi pelanggan.
+// Termasuk: isolir, aktifkan, dan change-package.
 package handler
 
 import (
@@ -29,7 +29,7 @@ func (h *CustomerHandler) Isolir(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, customer)
 }
 
-// Activate menangani POST /v1/customers/:id/activate.
+// Activate menangani POST /v1/customers/:id/aktifkan.
 // Mentransisikan status pelanggan ke aktif.
 func (h *CustomerHandler) Activate(c *fiber.Ctx) error {
 	id := c.Params("id")

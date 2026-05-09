@@ -56,7 +56,7 @@ func mapReportScheduleRow(row ReportSchedule) *domain.ReportSchedule {
 
 // --- Implementasi domain.ReportScheduleRepository ---
 
-// Create membuat jadwal laporan baru dan mengembalikan jadwal yang dibuat.
+// Buat membuat jadwal laporan baru dan mengembalikan jadwal yang dibuat.
 func (r *ReportScheduleRepo) Create(ctx context.Context, schedule *domain.ReportSchedule) (*domain.ReportSchedule, error) {
 	recipientsJSON, err := json.Marshal(schedule.Recipients)
 	if err != nil {
@@ -94,7 +94,7 @@ func (r *ReportScheduleRepo) GetByID(ctx context.Context, id string) (*domain.Re
 	return mapReportScheduleRow(row), nil
 }
 
-// Update memperbarui konfigurasi jadwal dan mengembalikan jadwal yang diperbarui.
+// Perbarui memperbarui konfigurasi jadwal dan mengembalikan jadwal yang diperbarui.
 func (r *ReportScheduleRepo) Update(ctx context.Context, schedule *domain.ReportSchedule) (*domain.ReportSchedule, error) {
 	recipientsJSON, err := json.Marshal(schedule.Recipients)
 	if err != nil {
@@ -122,7 +122,7 @@ func (r *ReportScheduleRepo) Update(ctx context.Context, schedule *domain.Report
 	return mapReportScheduleRow(row), nil
 }
 
-// Deactivate menonaktifkan jadwal laporan (set is_active = false).
+// Deactivate menonaktifkan jadwal laporan (atur is_active = false).
 func (r *ReportScheduleRepo) Deactivate(ctx context.Context, id string) error {
 	err := r.queries.DeactivateReportSchedule(ctx, stringToUUID(id))
 	if err != nil {

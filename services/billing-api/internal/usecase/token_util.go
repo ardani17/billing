@@ -7,7 +7,7 @@ import (
 )
 
 // GenerateSecureToken membuat token random 32 bytes dan mengembalikan hex string
-// beserta SHA-256 hash-nya. Plaintext token dikirim ke user (via email atau API response),
+// beserta SHA-256 hash-nya. Plaintext token dikirim ke user (via email atau API respons),
 // sedangkan hash disimpan di database untuk validasi.
 func GenerateSecureToken() (plaintext string, hash string, err error) {
 	bytes := make([]byte, 32)

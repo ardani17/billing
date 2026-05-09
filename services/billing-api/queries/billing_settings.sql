@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel billing_settings.
+-- Kueri SQL untuk operasi CRUD tabel billing_settings.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel billing_settings dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel billing_settings dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Setiap tenant memiliki tepat satu baris billing_settings (UNIQUE pada tenant_id).
 
 -- name: GetBillingSettingsByTenantID :one
@@ -46,7 +46,7 @@ ON CONFLICT (tenant_id) DO UPDATE SET
 RETURNING *;
 
 -- name: ListAllBillingSettings :many
--- Mengambil semua billing settings (untuk cron job lintas tenant).
--- Query ini dijalankan tanpa RLS context (superuser/service role).
+-- Mengambil semua billing settings (untuk job cron lintas tenant).
+-- Kueri ini dijalankan tanpa RLS context (superuser/service role).
 SELECT *
 FROM billing_settings;

@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel odps.
+-- Kueri SQL untuk operasi CRUD tabel odps.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel odps dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel odps dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateODP :one
 INSERT INTO odps (

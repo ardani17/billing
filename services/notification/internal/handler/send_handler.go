@@ -8,7 +8,7 @@ import (
 	"github.com/ispboss/ispboss/services/notification/internal/usecase"
 )
 
-// SendHandler menangani HTTP request untuk pengiriman notifikasi.
+// SendHandler menangani HTTP permintaan untuk pengiriman notifikasi.
 // Menyediakan endpoint untuk test send, manual send, dan resend.
 type SendHandler struct {
 	pipeline *usecase.DeliveryPipeline
@@ -49,7 +49,7 @@ func (h *SendHandler) TestSend(c *fiber.Ctx) error {
 }
 
 // ManualSend menangani POST /api/v1/notifications/send.
-// Mengirim notifikasi manual ke pelanggan menggunakan template atau custom body.
+// Mengirim notifikasi manual ke pelanggan menggunakan template atau kustom body.
 func (h *SendHandler) ManualSend(c *fiber.Ctx) error {
 	tenantID, _ := c.Locals("tenant_id").(string)
 	if tenantID == "" {
@@ -97,7 +97,7 @@ func (h *SendHandler) Resend(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, log)
 }
 
-// mapTestSendError memetakan error dari SendTest ke HTTP response yang sesuai.
+// mapTestSendError memetakan error dari SendTest ke HTTP respons yang sesuai.
 func (h *SendHandler) mapTestSendError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrTemplateNotFound):
@@ -109,7 +109,7 @@ func (h *SendHandler) mapTestSendError(c *fiber.Ctx, err error) error {
 	}
 }
 
-// mapManualSendError memetakan error dari SendManual ke HTTP response yang sesuai.
+// mapManualSendError memetakan error dari SendManual ke HTTP respons yang sesuai.
 func (h *SendHandler) mapManualSendError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrCustomerNotFound):
@@ -123,7 +123,7 @@ func (h *SendHandler) mapManualSendError(c *fiber.Ctx, err error) error {
 	}
 }
 
-// mapResendError memetakan error dari Resend ke HTTP response yang sesuai.
+// mapResendError memetakan error dari Resend ke HTTP respons yang sesuai.
 func (h *SendHandler) mapResendError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrLogNotFound):

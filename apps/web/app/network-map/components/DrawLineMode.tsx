@@ -8,17 +8,17 @@ import { createCable } from '../lib/api';
 // ---------------------------------------------------------------------------
 
 interface DrawLineModeProps {
-  /** Collected polyline coordinates from map clicks */
+  /** Koordinat polyline yang dikumpulkan dari klik peta*/
   points: [number, number][];
   onCreated?: () => void;
   onCancel: () => void;
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Fungsi bantus
 // ---------------------------------------------------------------------------
 
-/** Calculate straight-line distance between consecutive points using Haversine. */
+/** Hitung straight-line distance between consecutive points using Haversine.*/
 function haversineDistance(
   lat1: number,
   lng1: number,
@@ -57,7 +57,7 @@ function formatDistance(meters: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Component — Form to save a cable route after drawing polyline
+// Komponen - Form untuk menyimpan rute kabel setelah menggambar polyline
 // ---------------------------------------------------------------------------
 
 export default function DrawLineMode({
@@ -114,7 +114,7 @@ export default function DrawLineMode({
         Simpan Jalur Kabel
       </h3>
 
-      {/* Distance info */}
+      {/* Distance info*/}
       <div className="mb-3 rounded bg-blue-50 px-3 py-2 text-sm text-blue-700">
         📐 Jarak: {formatDistance(distance)} · {points.length} titik
       </div>

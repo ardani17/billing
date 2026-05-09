@@ -1,4 +1,4 @@
-// Package metrics — implementasi SignalStore menggunakan Redis sorted sets.
+// Package metrics - implementasi SignalStore menggunakan Redis uruted sets.
 // Menyimpan signal data ONT sebagai time-series dengan retensi 30 hari.
 package metrics
 
@@ -15,11 +15,11 @@ import (
 // ttl30Days adalah durasi retensi signal data (30 hari).
 const ttl30Days = 30 * 24 * time.Hour
 
-// Compile-time check: redisSignalStore mengimplementasikan domain.SignalStore.
+// Compile-time cek: redisSignalStore mengimplementasikan domain.SignalStore.
 var _ domain.SignalStore = (*redisSignalStore)(nil)
 
-// redisSignalStore mengimplementasikan domain.SignalStore menggunakan Redis sorted sets.
-// Setiap kombinasi OLT/port/ONT memiliki sorted set dengan key "olt:signal:{olt_id}:{port}:{ont}",
+// redisSignalStore mengimplementasikan domain.SignalStore menggunakan Redis uruted sets.
+// Setiap kombinasi OLT/port/ONT memiliki uruted atur dengan key "olt:signal:{olt_id}:{port}:{ont}",
 // score = unix timestamp, member = JSON-encoded ONTSignalPoint.
 type redisSignalStore struct {
 	client redis.Cmdable
@@ -30,18 +30,18 @@ func NewRedisSignalStore(client redis.Cmdable) domain.SignalStore {
 	return &redisSignalStore{client: client}
 }
 
-// signalKey mengembalikan key Redis sorted set untuk signal ONT tertentu.
+// signalKey mengembalikan key Redis uruted atur untuk signal ONT tertentu.
 func signalKey(oltID string, portIndex, ontIndex int) string {
 	return fmt.Sprintf("olt:signal:%s:%d:%d", oltID, portIndex, ontIndex)
 }
 
 // Store menyimpan satu data point signal untuk ONT.
-// Data di-encode ke JSON dan disimpan di sorted set dengan score = unix timestamp.
-// TTL 30 hari di-set via EXPIRE setiap kali Store dipanggil.
+// Data di-encode ke JSON dan disimpan di uruted atur dengan score = unix timestamp.
+// TTL 30 hari di-atur via EXPIRE setiap kali Store dipanggil.
 func (s *redisSignalStore) Store(ctx context.Context, oltID string, portIndex, ontIndex int, signal domain.ONTSignalPoint) error {
 	key := signalKey(oltID, portIndex, ontIndex)
 
-	// Encode signal ke JSON sebagai member sorted set
+	// Encode signal ke JSON sebagai member uruted atur
 	data, err := json.Marshal(signal)
 	if err != nil {
 		return fmt.Errorf("gagal marshal signal: %w", err)
@@ -66,8 +66,8 @@ func (s *redisSignalStore) Store(ctx context.Context, oltID string, portIndex, o
 	return nil
 }
 
-// Query mengambil data point signal dalam rentang waktu [from, to].
-// Mengembalikan slice ONTSignalPoint sorted ascending berdasarkan timestamp.
+// Kueri mengambil data point signal dalam rentang waktu [from, to].
+// Mengembalikan slice ONTSignalPoint uruted ascending berdasarkan timestamp.
 func (s *redisSignalStore) Query(ctx context.Context, oltID string, portIndex, ontIndex int, from, to time.Time) ([]domain.ONTSignalPoint, error) {
 	key := signalKey(oltID, portIndex, ontIndex)
 
@@ -80,7 +80,7 @@ func (s *redisSignalStore) Query(ctx context.Context, oltID string, portIndex, o
 		return nil, fmt.Errorf("gagal ZRANGEBYSCORE signal: %w", err)
 	}
 
-	// Parse setiap member menjadi ONTSignalPoint
+	// Parsing setiap member menjadi ONTSignalPoint
 	points := make([]domain.ONTSignalPoint, 0, len(results))
 	for _, z := range results {
 		point, err := parseSignalMember(z)
@@ -98,7 +98,7 @@ func (s *redisSignalStore) Query(ctx context.Context, oltID string, portIndex, o
 func (s *redisSignalStore) GetLatest(ctx context.Context, oltID string, portIndex, ontIndex int) (*domain.ONTSignalPoint, error) {
 	key := signalKey(oltID, portIndex, ontIndex)
 
-	// ZREVRANGEBYSCORE +inf -inf LIMIT 0 1 — ambil member dengan score tertinggi
+	// ZREVRANGEBYSCORE +inf -inf LIMIT 0 1 - ambil member dengan score tertinggi
 	results, err := s.client.ZRevRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
 		Min:    "-inf",
 		Max:    "+inf",
@@ -122,7 +122,7 @@ func (s *redisSignalStore) GetLatest(ctx context.Context, oltID string, portInde
 	return &point, nil
 }
 
-// parseSignalMember mengekstrak ONTSignalPoint dari member sorted set.
+// parseSignalMember mengekstrak ONTSignalPoint dari member uruted atur.
 // Format member: "{unix_timestamp}:{json_signal}"
 func parseSignalMember(z redis.Z) (domain.ONTSignalPoint, error) {
 	memberStr, ok := z.Member.(string)

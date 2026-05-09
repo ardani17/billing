@@ -1,4 +1,4 @@
-// gateway_usecase_test.go berisi unit test untuk GatewayUsecase — config management.
+// gateway_usecase_test.go berisi unit test untuk GatewayUsecase - config management.
 package usecase
 
 import (
@@ -12,10 +12,8 @@ import (
 )
 
 // =============================================================================
-// Test: CreateConfig — input valid (enkripsi key, simpan config)
 // =============================================================================
 
-// TestCreateConfig_ValidInput menguji pembuatan config dengan input valid.
 func TestCreateConfig_ValidInput(t *testing.T) {
 	s := setupGatewayUsecase()
 	ctx := context.Background()
@@ -86,7 +84,7 @@ func TestCreateConfig_ValidInput(t *testing.T) {
 }
 
 // =============================================================================
-// Test: CreateConfig — custom expiry days
+// Tes: CreateConfig - kustom expiry days
 // =============================================================================
 
 // TestCreateConfig_CustomExpiryDays menguji pembuatan config dengan expiry days kustom.
@@ -114,10 +112,8 @@ func TestCreateConfig_CustomExpiryDays(t *testing.T) {
 }
 
 // =============================================================================
-// Test: CreateConfig — invalid methods (return ErrInvalidEnabledMethods)
 // =============================================================================
 
-// TestCreateConfig_InvalidMethods menguji error saat enabled_methods tidak valid.
 func TestCreateConfig_InvalidMethods(t *testing.T) {
 	s := setupGatewayUsecase()
 	ctx := context.Background()
@@ -144,10 +140,8 @@ func TestCreateConfig_InvalidMethods(t *testing.T) {
 }
 
 // =============================================================================
-// Test: CreateConfig — duplicate provider (return ErrGatewayConfigDuplicate)
 // =============================================================================
 
-// TestCreateConfig_DuplicateProvider menguji error saat provider sudah ada.
 func TestCreateConfig_DuplicateProvider(t *testing.T) {
 	s := setupGatewayUsecase()
 	ctx := context.Background()

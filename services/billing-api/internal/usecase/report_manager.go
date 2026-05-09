@@ -69,7 +69,7 @@ func (rm *ReportManager) GetDashboardData(ctx context.Context, tenantID string) 
 	if rm.dashboardCache != nil {
 		return rm.dashboardCache.GetDashboardData(ctx, tenantID)
 	}
-	// Fallback: ambil langsung dari aggregation repo tanpa cache
+	// Cadangan: ambil langsung dari aggregation repo tanpa cache
 	return rm.aggregationRepo.GetDashboardData(ctx, tenantID)
 }
 

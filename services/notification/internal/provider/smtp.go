@@ -11,7 +11,7 @@ import (
 )
 
 // =============================================================================
-// SMTPAdapter — adapter untuk pengiriman pesan Email via SMTP
+// SMTPAdapter - adapter untuk pengiriman pesan Email via SMTP
 // =============================================================================
 
 // SMTPAdapter mengimplementasikan domain.EmailProvider menggunakan net/smtp.
@@ -40,7 +40,7 @@ func NewSMTPAdapter(host string, port int, username, password, fromName, fromEma
 // Send mengirim pesan email ke penerima melalui SMTP server.
 // Mengembalikan SendResult dengan status "sent" jika berhasil atau "failed" jika gagal.
 func (a *SMTPAdapter) Send(ctx context.Context, req domain.EmailMessage) (domain.SendResult, error) {
-	// Generate message ID unik berbasis timestamp
+	// Buat message ID unik berbasis timestamp
 	messageID := generateMessageID(a.host)
 
 	// Bangun pesan MIME dengan header dan body HTML

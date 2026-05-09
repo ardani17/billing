@@ -69,7 +69,7 @@ func (uc *IsolirUsecase) sumRevenueAtRisk(ctx context.Context, tenantID string) 
 // Digunakan oleh endpoint GET /v1/isolir/pending-syncs.
 func (uc *IsolirUsecase) GetPendingSyncs(ctx context.Context, tenantID string,
 	status *domain.SyncStatus, page, pageSize int) (*domain.PendingSyncListResult, error) {
-	// Validasi dan default paginasi
+	// Validasi dan bawaan paginasi
 	if page < 1 {
 		page = 1
 	}

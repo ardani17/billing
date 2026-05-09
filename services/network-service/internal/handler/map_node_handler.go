@@ -1,4 +1,4 @@
-// map_node_handler.go menangani HTTP request untuk manajemen map node.
+// map_node_handler.go menangani HTTP permintaan untuk manajemen map node.
 // Endpoint foto dan riwayat ada di map_node_handler_photo.go.
 package handler
 
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// MapNodeHandler menangani HTTP request untuk operasi map node.
+// MapNodeHandler menangani HTTP permintaan untuk operasi map node.
 type MapNodeHandler struct {
 	manager  domain.MapNodeManager
 	validate *validator.Validate
@@ -28,7 +28,7 @@ func NewMapNodeHandler(manager domain.MapNodeManager) *MapNodeHandler {
 }
 
 // ListNodes menangani GET /nodes.
-// Parse query params bounding box (sw_lat, sw_lng, ne_lat, ne_lng) dan filter.
+// Parsing kueri params bounding box (sw_lat, sw_lng, ne_lat, ne_lng) dan filter.
 func (h *MapNodeHandler) ListNodes(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -45,7 +45,7 @@ func (h *MapNodeHandler) ListNodes(c *fiber.Ctx) error {
 		ODPID:         c.Query("odp_id"),
 	}
 
-	// Parse bounding box (opsional)
+	// Parsing bounding box (opsional)
 	for _, p := range []struct {
 		key string
 		dst *float64
@@ -71,7 +71,7 @@ func (h *MapNodeHandler) ListNodes(c *fiber.Ctx) error {
 }
 
 // CreateNode menangani POST /nodes.
-// Parse body, validasi, extract tenant_id, lalu buat map node baru.
+// Parsing body, validasi, extract tenant_id, lalu buat map node baru.
 func (h *MapNodeHandler) CreateNode(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -112,7 +112,7 @@ func (h *MapNodeHandler) GetNode(c *fiber.Ctx) error {
 }
 
 // UpdateNode menangani PUT /nodes/:id.
-// Parse body, validasi, lalu update lokasi dan/atau custom fields node.
+// Parsing body, validasi, lalu perbarui lokasi dan/atau kustom field node.
 func (h *MapNodeHandler) UpdateNode(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -137,7 +137,7 @@ func (h *MapNodeHandler) UpdateNode(c *fiber.Ctx) error {
 }
 
 // DeleteNode menangani DELETE /nodes/:id.
-// Soft-delete map node dan catat riwayat perubahan.
+// Soft-hapus map node dan catat riwayat perubahan.
 func (h *MapNodeHandler) DeleteNode(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -152,7 +152,6 @@ func (h *MapNodeHandler) DeleteNode(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-// mapError memetakan domain error map node ke HTTP error response.
 func (h *MapNodeHandler) mapError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrMapNodeNotFound):

@@ -9,7 +9,7 @@ import (
 
 // --- Enum: Provider Payment Gateway ---
 
-// GatewayProvider mendefinisikan provider payment gateway yang didukung.
+// GatewayProvider mendefinisikan provider gateway pembayaran yang didukung.
 type GatewayProvider string
 
 const (
@@ -17,9 +17,9 @@ const (
 	GatewayMidtrans GatewayProvider = "midtrans"
 )
 
-// --- Enum: Status Payment Link ---
+// --- Enum: Status Link pembayaran ---
 
-// PaymentLinkStatus mendefinisikan status payment link.
+// PaymentLinkStatus mendefinisikan status link pembayaran.
 type PaymentLinkStatus string
 
 const (
@@ -42,9 +42,9 @@ const (
 	WebhookDuplicate WebhookProcessingStatus = "duplicate"
 )
 
-// --- Entity: Konfigurasi Gateway per Tenant ---
+// --- Entitas: Konfigurasi Gateway per Tenant ---
 
-// GatewayConfig merepresentasikan konfigurasi payment gateway per tenant.
+// GatewayConfig merepresentasikan konfigurasi gateway pembayaran per tenant.
 type GatewayConfig struct {
 	ID                     string          `json:"id"`
 	TenantID               string          `json:"tenant_id"`
@@ -59,9 +59,9 @@ type GatewayConfig struct {
 	UpdatedAt              time.Time       `json:"updated_at"`
 }
 
-// --- Entity: Payment Link ---
+// --- Entitas: Link pembayaran ---
 
-// PaymentLink merepresentasikan payment link yang digenerate via gateway.
+// PaymentLink merepresentasikan link pembayaran yang digenerate via gateway.
 type PaymentLink struct {
 	ID              string            `json:"id"`
 	TenantID        string            `json:"tenant_id"`
@@ -79,18 +79,18 @@ type PaymentLink struct {
 	UpdatedAt       time.Time         `json:"updated_at"`
 }
 
-// --- Entity: Junction Payment Link ↔ Invoice ---
+// --- Entitas: Junction Link pembayaran ↔ Invoice ---
 
-// PaymentLinkInvoice merepresentasikan junction antara payment link dan invoice.
+// PaymentLinkInvoice merepresentasikan junction antara link pembayaran dan invoice.
 type PaymentLinkInvoice struct {
 	ID            string `json:"id"`
 	PaymentLinkID string `json:"payment_link_id"`
 	InvoiceID     string `json:"invoice_id"`
 }
 
-// --- Entity: Log Webhook (append-only) ---
+// --- Entitas: Log Webhook (append-only) ---
 
-// WebhookLog merepresentasikan log webhook request (append-only).
+// WebhookLog merepresentasikan log webhook permintaan (append-only).
 type WebhookLog struct {
 	ID               string                  `json:"id"`
 	TenantID         *string                 `json:"tenant_id,omitempty"`
@@ -105,7 +105,7 @@ type WebhookLog struct {
 	CreatedAt        time.Time               `json:"created_at"`
 }
 
-// --- Error Domain: error khusus domain payment gateway ---
+// --- Error Domain: error khusus domain gateway pembayaran ---
 
 var (
 	// ErrGatewayConfigNotFound dikembalikan saat konfigurasi gateway tidak ditemukan
@@ -114,13 +114,13 @@ var (
 	// ErrGatewayConfigDuplicate dikembalikan saat konfigurasi gateway untuk provider sudah ada
 	ErrGatewayConfigDuplicate = errors.New("konfigurasi gateway untuk provider ini sudah ada")
 
-	// ErrPaymentLinkNotFound dikembalikan saat payment link tidak ditemukan
+	// ErrPaymentLinkNotFound dikembalikan saat link pembayaran tidak ditemukan
 	ErrPaymentLinkNotFound = errors.New("payment link tidak ditemukan")
 
-	// ErrPaymentLinkAlreadyActive dikembalikan saat payment link aktif sudah ada
+	// ErrPaymentLinkAlreadyActive dikembalikan saat link pembayaran aktif sudah ada
 	ErrPaymentLinkAlreadyActive = errors.New("payment link aktif sudah ada untuk customer ini")
 
-	// ErrPaymentLinkExpired dikembalikan saat payment link sudah expired
+	// ErrPaymentLinkExpired dikembalikan saat link pembayaran sudah expired
 	ErrPaymentLinkExpired = errors.New("payment link sudah expired")
 
 	// ErrWebhookSignatureInvalid dikembalikan saat signature webhook tidak valid
@@ -132,7 +132,7 @@ var (
 	// ErrWebhookIPNotWhitelisted dikembalikan saat IP webhook tidak ada dalam whitelist
 	ErrWebhookIPNotWhitelisted = errors.New("IP webhook tidak ada dalam whitelist")
 
-	// ErrGatewayUnavailable dikembalikan saat payment gateway tidak tersedia
+	// ErrGatewayUnavailable dikembalikan saat gateway pembayaran tidak tersedia
 	ErrGatewayUnavailable = errors.New("payment gateway tidak tersedia")
 
 	// ErrGatewayInvalidAPIKey dikembalikan saat API key gateway tidak valid

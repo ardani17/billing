@@ -19,7 +19,7 @@ const (
 	SplitterType1x32 = "1:32"
 )
 
-// --- ODP Entity ---
+// --- ODP Entitas ---
 
 // ODP merepresentasikan Optical Distribution Point (splitter) per tenant.
 // Setiap ODP terhubung ke satu OLT pada PON port tertentu dan memiliki
@@ -42,7 +42,7 @@ type ODP struct {
 	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
-// --- Splitter Capacity Helper ---
+// --- Splitter Capacity Fungsi bantu ---
 
 // SplitterCapacity mengembalikan kapasitas port berdasarkan tipe splitter.
 // Mengembalikan 0 jika tipe splitter tidak dikenali.

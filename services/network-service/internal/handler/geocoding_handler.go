@@ -1,5 +1,5 @@
-// geocoding_handler.go menangani HTTP request untuk reverse geocoding.
-// Menerima parameter lat dan lng, return alamat lengkap.
+// geocoding_handler.go menangani HTTP permintaan untuk reverse geocoding.
+// Menerima parameter lat dan lng, kembalikan alamat lengkap.
 package handler
 
 import (
@@ -12,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// GeocodingHandler menangani HTTP request untuk reverse geocoding.
+// GeocodingHandler menangani HTTP permintaan untuk reverse geocoding.
 type GeocodingHandler struct {
 	manager domain.GeocodingManager
 }
@@ -23,7 +23,7 @@ func NewGeocodingHandler(manager domain.GeocodingManager) *GeocodingHandler {
 }
 
 // ReverseGeocode menangani GET /geocode/reverse.
-// Menerima parameter lat dan lng, return alamat hasil reverse geocoding.
+// Menerima parameter lat dan lng, kembalikan alamat hasil reverse geocoding.
 func (h *GeocodingHandler) ReverseGeocode(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -59,7 +59,7 @@ func (h *GeocodingHandler) ReverseGeocode(c *fiber.Ctx) error {
 	return domain.SuccessResponse(c, fiber.StatusOK, result)
 }
 
-// mapError memetakan domain error geocoding ke HTTP error response.
+// mapError memetakan domain error geocoding ke HTTP error respons.
 func (h *GeocodingHandler) mapError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrGeocodingFailed):

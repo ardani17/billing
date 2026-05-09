@@ -9,7 +9,7 @@ var (
 	// ErrTemplateSlugExists dikembalikan saat slug template sudah ada di tenant yang sama
 	ErrTemplateSlugExists = errors.New("slug template sudah ada")
 
-	// ErrTemplateNotDeletable dikembalikan saat template default tidak bisa dihapus
+	// ErrTemplateNotDeletable dikembalikan saat template bawaan tidak bisa dihapus
 	ErrTemplateNotDeletable = errors.New("template default tidak bisa dihapus")
 
 	// ErrConfigNotFound dikembalikan saat konfigurasi notifikasi tidak ditemukan untuk tenant

@@ -1,4 +1,4 @@
-// cable_route_handler.go menangani HTTP request untuk manajemen cable route.
+// cable_route_handler.go menangani HTTP permintaan untuk manajemen cable route.
 // Termasuk: CRUD dan list dengan bounding box.
 package handler
 
@@ -13,7 +13,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// CableRouteHandler menangani HTTP request untuk operasi cable route.
+// CableRouteHandler menangani HTTP permintaan untuk operasi cable route.
 type CableRouteHandler struct {
 	manager  domain.CableRouteManager
 	validate *validator.Validate
@@ -28,7 +28,7 @@ func NewCableRouteHandler(manager domain.CableRouteManager) *CableRouteHandler {
 }
 
 // ListRoutes menangani GET /cables.
-// Parse query params bounding box dan filter, return daftar cable route.
+// Parsing kueri params bounding box dan filter, kembalikan daftar cable route.
 func (h *CableRouteHandler) ListRoutes(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -42,7 +42,7 @@ func (h *CableRouteHandler) ListRoutes(c *fiber.Ctx) error {
 		ToNodeID:   c.Query("to_node_id"),
 	}
 
-	// Parse bounding box (opsional)
+	// Parsing bounding box (opsional)
 	if v := c.Query("min_lat"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
@@ -81,7 +81,7 @@ func (h *CableRouteHandler) ListRoutes(c *fiber.Ctx) error {
 }
 
 // CreateRoute menangani POST /cables.
-// Parse body, validasi, extract tenant_id, lalu buat cable route baru.
+// Parsing body, validasi, extract tenant_id, lalu buat cable route baru.
 func (h *CableRouteHandler) CreateRoute(c *fiber.Ctx) error {
 	tenantID := tenant.FromContext(c.UserContext())
 	if tenantID == "" {
@@ -122,7 +122,7 @@ func (h *CableRouteHandler) GetRoute(c *fiber.Ctx) error {
 }
 
 // UpdateRoute menangani PUT /cables/:id.
-// Parse body, validasi, lalu update cable route.
+// Parsing body, validasi, lalu perbarui cable route.
 func (h *CableRouteHandler) UpdateRoute(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -143,7 +143,7 @@ func (h *CableRouteHandler) UpdateRoute(c *fiber.Ctx) error {
 }
 
 // DeleteRoute menangani DELETE /cables/:id.
-// Soft-delete cable route.
+// Soft-hapus cable route.
 func (h *CableRouteHandler) DeleteRoute(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -157,7 +157,7 @@ func (h *CableRouteHandler) DeleteRoute(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-// mapError memetakan domain error cable route ke HTTP error response.
+// mapError memetakan domain error cable route ke HTTP error respons.
 func (h *CableRouteHandler) mapError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrCableRouteNotFound):

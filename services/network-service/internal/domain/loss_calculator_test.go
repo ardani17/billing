@@ -8,13 +8,10 @@ import (
 )
 
 // =============================================================================
-// Helper: Generator untuk LossCalculatorInput yang valid
 // =============================================================================
 
-// validSplitterTypeGen menghasilkan tipe splitter yang valid secara acak.
 var validSplitterTypeGen = rapid.SampledFrom(ValidSplitterTypes)
 
-// drawValidLossInput menghasilkan LossCalculatorInput yang valid untuk property testing.
 // Jarak 0-100km, count 0-20, power -10 sampai 10 dBm, sensitivity -30 sampai -20 dBm.
 func drawValidLossInput(t *rapid.T) LossCalculatorInput {
 	return LossCalculatorInput{
@@ -30,14 +27,13 @@ func drawValidLossInput(t *rapid.T) LossCalculatorInput {
 }
 
 // =============================================================================
-// Property 4: Loss Calculator Decomposition
 // =============================================================================
 
 // TestLossCalculatorDecomposition memverifikasi bahwa total_loss_db selalu
 // sama dengan penjumlahan komponen: fiber + splitter + connector + splice + safety_margin,
 // dan total_loss_db selalu >= 3.0 dB (karena safety margin selalu disertakan).
 //
-// **Validates: Requirements 11.2, 11.3, 11.4**
+// **Memvalidasi: Kebutuhan 11.2, 11.3, 11.4**
 func TestLossCalculatorDecomposition(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		input := drawValidLossInput(t)
@@ -72,13 +68,12 @@ func TestLossCalculatorDecomposition(t *testing.T) {
 }
 
 // =============================================================================
-// Property 5: Loss Calculator Signal Formula
 // =============================================================================
 
 // TestLossCalculatorSignalFormula memverifikasi bahwa estimated_signal_at_ont
 // selalu sama dengan sfp_tx_power - (total_loss - safety_margin).
 //
-// **Validates: Requirements 11.5**
+// **Memvalidasi: Kebutuhan 11.5**
 func TestLossCalculatorSignalFormula(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		input := drawValidLossInput(t)
@@ -100,14 +95,12 @@ func TestLossCalculatorSignalFormula(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test: Contoh kalkulasi spesifik
+// Unit Tes: Contoh kalkulasi spesifik
 // =============================================================================
 
-// TestCalculateLossSpecificExample memverifikasi kalkulasi loss dengan input spesifik:
 // distance_olt_odp=5km, distance_odp_ont=0.5km, 1 splitter 1:8, 4 konektor,
 // 2 splice, SFP=5dBm, ONT sensitivity=-28dBm.
 //
-// Expected:
 //   - fiber_loss = (5 + 0.5) * 0.35 = 1.925
 //   - splitter_loss = 10.5 * 1 = 10.5
 //   - connector_loss = 4 * 0.5 = 2.0

@@ -1,5 +1,4 @@
 // recurring_expense_worker_test.go berisi integration tests untuk RecurringExpenseWorker.
-// Test: auto-create recurring expenses, skip non-matching days, error handling.
 package worker
 
 import (
@@ -14,8 +13,6 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
-
-// --- Mock ExpenseRepository untuk recurring expense worker tests ---
 
 // mockExpenseRepo mengimplementasikan domain.ExpenseRepository untuk testing.
 type mockExpenseRepo struct {
@@ -95,14 +92,9 @@ func (m *mockExpenseRepo) SumByCategory(_ context.Context, _ string, _, _ time.T
 	return nil, nil
 }
 
-// --- Helper ---
-
-// newWorkerTestLogger membuat zerolog.Logger yang discard output (untuk tests).
 func newWorkerTestLogger() zerolog.Logger {
 	return zerolog.New(io.Discard)
 }
-
-// --- Test: Auto-create recurring expenses ---
 
 func TestRecurringExpenseWorker_HandleRecurringExpense_CreatesExpenses(t *testing.T) {
 	expenseRepo := newMockExpenseRepo()
@@ -133,7 +125,7 @@ func TestRecurringExpenseWorker_HandleRecurringExpense_CreatesExpenses(t *testin
 		t.Fatalf("expected no error, got: %v", err)
 	}
 
-	// Verifikasi bahwa expense baru dibuat (recurring-1 + 1 baru)
+	// Verifikasi bahwa expense baru dibuat (berulang-1 + 1 baru)
 	totalExpenses := 0
 	for _, e := range expenseRepo.expenses {
 		if e.DeletedAt == nil {
@@ -295,7 +287,7 @@ func TestRecurringExpenseWorker_CreatedExpenseIsNotRecurring(t *testing.T) {
 	task := asynq.NewTask(TaskRecurringExpense, nil)
 	_ = worker.handleRecurringExpense(context.Background(), task)
 
-	// Verifikasi expense baru bukan recurring
+	// Verifikasi expense baru bukan berulang
 	for id, e := range expenseRepo.expenses {
 		if id != "recurring-1" && e.IsRecurring {
 			t.Fatalf("created expense %s should not be recurring", id)
@@ -303,7 +295,7 @@ func TestRecurringExpenseWorker_CreatedExpenseIsNotRecurring(t *testing.T) {
 	}
 }
 
-// --- Test: Task type constant ---
+// --- Tes: Task type constant ---
 
 func TestRecurringExpenseWorker_TaskTypeConstant(t *testing.T) {
 	if TaskRecurringExpense != "expense.recurring" {

@@ -1,5 +1,4 @@
 // package_usecase.go berisi business logic untuk manajemen paket (CRUD).
-// Mengimplementasikan Create, GetByID, Update, Delete, List pada PackageUsecase.
 package usecase
 
 import (
@@ -38,8 +37,8 @@ func NewPackageUsecase(
 	}
 }
 
-// Create membuat paket baru dengan validasi type-conditional.
-// Flow: validasi → cek duplikat nama → auto-generate profile → create → audit log.
+// Buat membuat paket baru dengan validasi type-conditional.
+// Alur: validasi -> cek duplikat nama -> auto-buat profile -> buat -> audit log.
 func (uc *packageUsecase) Create(ctx context.Context, tenantID string, req domain.CreatePackageRequest, actor domain.ActorInfo) (*domain.Package, error) {
 	pkgType := domain.PackageType(req.Type)
 
@@ -58,7 +57,7 @@ func (uc *packageUsecase) Create(ctx context.Context, tenantID string, req domai
 		}
 	}
 
-	// Validasi burst fields (all-or-nothing)
+	// Validasi burst field (all-atau-nothing)
 	if err := domain.ValidateBurstFields(req.BurstDownloadMbps, req.BurstUploadMbps, req.BurstThresholdMbps, req.BurstTimeSeconds); err != nil {
 		return nil, err
 	}
@@ -88,7 +87,7 @@ func (uc *packageUsecase) Create(ctx context.Context, tenantID string, req domai
 		return nil, domain.ErrPackageNameDuplicate
 	}
 
-	// Auto-generate profile name jika tidak disediakan
+	// Auto-buat profile name jika tidak disediakan
 	mikrotikProfile := req.MikrotikProfileName
 	hotspotProfile := req.HotspotProfileName
 	if pkgType == domain.PackageTypePPPoE && mikrotikProfile == "" {
@@ -98,19 +97,19 @@ func (uc *packageUsecase) Create(ctx context.Context, tenantID string, req domai
 		hotspotProfile = domain.GenerateProfileName(req.Name)
 	}
 
-	// Default shared_users = 1 untuk voucher
+	// Bawaan shared_users = 1 untuk voucher
 	sharedUsers := 1
 	if req.SharedUsers != nil {
 		sharedUsers = *req.SharedUsers
 	}
 
-	// Default installation_fee = 0
+	// Bawaan installation_fee = 0
 	var installationFee int64
 	if req.InstallationFee != nil {
 		installationFee = *req.InstallationFee
 	}
 
-	// Build entity paket
+	// Bangun entity paket
 	pkg := &domain.Package{
 		TenantID:            tenantID,
 		Type:                pkgType,
@@ -186,18 +185,18 @@ func (uc *packageUsecase) GetByID(ctx context.Context, id string, includeAudit b
 	return detail, nil
 }
 
-// Update memperbarui data paket.
-// Flow: fetch → merge → validasi → cek duplikat → update → audit → event.
+// Perbarui memperbarui data paket.
+// Alur: ambil -> gabungkan -> validasi -> cek duplikat -> perbarui -> audit -> event.
 func (uc *packageUsecase) Update(ctx context.Context, id string, req domain.UpdatePackageRequest, actor domain.ActorInfo) (*domain.Package, error) {
 	existing, err := uc.packageRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	// Merge request ke existing (hanya field non-zero/non-nil)
+	// Merge permintaan ke existing (hanya field non-zero/non-nil)
 	merged := applyPackageUpdates(existing, req)
 
-	// Validasi type-conditional pada hasil merge
+	// Validasi type-conditional pada hasil gabungkan
 	if err := uc.validateMergedPackage(merged); err != nil {
 		return nil, err
 	}
@@ -213,7 +212,7 @@ func (uc *packageUsecase) Update(ctx context.Context, id string, req domain.Upda
 		}
 	}
 
-	// Update ke database
+	// Perbarui ke database
 	updated, err := uc.packageRepo.Update(ctx, merged)
 	if err != nil {
 		return nil, fmt.Errorf("usecase: gagal memperbarui paket: %w", err)
@@ -225,14 +224,14 @@ func (uc *packageUsecase) Update(ctx context.Context, id string, req domain.Upda
 		uc.writeAuditLog(ctx, existing.TenantID, id, "package.updated", actor, changes)
 	}
 
-	// Publish event jika harga berubah
+	// Terbitkan event jika harga berubah
 	uc.publishPriceChangeEvent(existing, updated)
 
 	return updated, nil
 }
 
-// Delete menghapus paket secara permanen (hard delete).
-// Flow: fetch → verifikasi nama → cek customer count → hapus → audit log.
+// Hapus menghapus paket secara permanen (hapus permanen).
+// Alur: ambil -> verifikasi nama -> cek jumlah pelanggan -> hapus -> audit log.
 func (uc *packageUsecase) Delete(ctx context.Context, id string, confirmName string, actor domain.ActorInfo) error {
 	pkg, err := uc.packageRepo.GetByID(ctx, id)
 	if err != nil {
@@ -253,7 +252,7 @@ func (uc *packageUsecase) Delete(ctx context.Context, id string, confirmName str
 		return domain.ErrPackageHasCustomers
 	}
 
-	// Hard delete
+	// Hard hapus
 	if err := uc.packageRepo.Delete(ctx, id); err != nil {
 		if errors.Is(err, domain.ErrPackageHasCustomers) || errors.Is(err, domain.ErrPackageHasVouchers) {
 			return err
@@ -265,7 +264,7 @@ func (uc *packageUsecase) Delete(ctx context.Context, id string, confirmName str
 	return nil
 }
 
-// List mengambil daftar paket dengan paginasi, filter, dan sorting.
+// List mengambil daftar paket dengan paginasi, filter, dan pengurutan.
 func (uc *packageUsecase) List(ctx context.Context, params domain.PackageListParams) (*domain.PackageListResult, error) {
 	if params.Page < 1 {
 		params.Page = 1
@@ -276,7 +275,7 @@ func (uc *packageUsecase) List(ctx context.Context, params domain.PackageListPar
 	return uc.packageRepo.List(ctx, params)
 }
 
-// --- Helper methods (method pada packageUsecase) ---
+// --- Fungsi bantu methods (method pada packageUsecase) ---
 
 // writeAuditLog menulis audit log. Tidak mengembalikan error agar operasi utama tidak gagal.
 func (uc *packageUsecase) writeAuditLog(ctx context.Context, tenantID, entityID, action string, actor domain.ActorInfo, changes map[string]interface{}) {
@@ -345,7 +344,7 @@ func (uc *packageUsecase) publishPriceChangeEvent(old, updated *domain.Package) 
 	})
 }
 
-// validateMergedPackage memvalidasi paket hasil merge sebelum update.
+// validateMergedPackage memvalidasi paket hasil gabungkan sebelum perbarui.
 func (uc *packageUsecase) validateMergedPackage(pkg *domain.Package) error {
 	// Validasi field wajib per tipe
 	if pkg.Type.IsMonthlyBilling() {
@@ -373,7 +372,7 @@ func (uc *packageUsecase) validateMergedPackage(pkg *domain.Package) error {
 		}
 	}
 
-	// Validasi burst fields (all-or-nothing)
+	// Validasi burst field (all-atau-nothing)
 	if err := domain.ValidateBurstFields(pkg.BurstDownloadMbps, pkg.BurstUploadMbps, pkg.BurstThresholdMbps, pkg.BurstTimeSeconds); err != nil {
 		return err
 	}

@@ -1,5 +1,4 @@
 // export_worker_test.go berisi integration tests untuk ExportWorker.
-// Test: payload parsing, status update flow, error handling.
 package worker
 
 import (
@@ -12,8 +11,6 @@ import (
 
 	"github.com/ispboss/ispboss/services/billing-api/internal/domain"
 )
-
-// --- Mock ReportJobRepository untuk worker tests ---
 
 // mockJobRepo mengimplementasikan domain.ReportJobRepository untuk testing.
 type mockJobRepo struct {
@@ -67,7 +64,7 @@ func (m *mockJobRepo) CleanupOld(_ context.Context, _ time.Time) error {
 	return nil
 }
 
-// --- Test: Export task payload parsing ---
+// --- Tes: Export task payload parsing ---
 
 func TestExportWorker_HandleExportTask_InvalidPayload(t *testing.T) {
 	jobRepo := newMockJobRepo()
@@ -79,7 +76,6 @@ func TestExportWorker_HandleExportTask_InvalidPayload(t *testing.T) {
 		logger:        logger,
 	}
 
-	// Task dengan payload tidak valid
 	task := asynq.NewTask(TaskReportExport, []byte("invalid json"))
 	err := worker.handleExportTask(context.Background(), task)
 	if err == nil {
@@ -88,7 +84,6 @@ func TestExportWorker_HandleExportTask_InvalidPayload(t *testing.T) {
 }
 
 func TestExportWorker_HandleExportTask_PayloadParsing(t *testing.T) {
-	// Verifikasi bahwa payload bisa di-parse dengan benar
 	payload := exportPayload{
 		JobID:      "job-123",
 		TenantID:   "tenant-abc",
@@ -124,8 +119,6 @@ func TestExportWorker_HandleExportTask_PayloadParsing(t *testing.T) {
 	}
 }
 
-// --- Test: Status update flow ---
-
 func TestExportWorker_StatusUpdateFlow(t *testing.T) {
 	jobRepo := newMockJobRepo()
 	jobRepo.jobs["job-123"] = &domain.ReportJob{
@@ -137,7 +130,6 @@ func TestExportWorker_StatusUpdateFlow(t *testing.T) {
 		CreatedAt:  time.Now(),
 	}
 
-	// Simulasi update status ke processing
 	err := jobRepo.UpdateStatus(context.Background(), "job-123", domain.JobProcessing, "", "")
 	if err != nil {
 		t.Fatalf("gagal update status: %v", err)
@@ -150,7 +142,6 @@ func TestExportWorker_StatusUpdateFlow(t *testing.T) {
 		t.Fatalf("expected status processing, got %s", jobRepo.statusUpdates[0].Status)
 	}
 
-	// Simulasi update status ke completed
 	err = jobRepo.UpdateStatus(context.Background(), "job-123", domain.JobCompleted, "/exports/revenue.xlsx", "")
 	if err != nil {
 		t.Fatalf("gagal update status: %v", err)
@@ -167,8 +158,6 @@ func TestExportWorker_StatusUpdateFlow(t *testing.T) {
 	}
 }
 
-// --- Test: Failed status update ---
-
 func TestExportWorker_FailedStatusUpdate(t *testing.T) {
 	jobRepo := newMockJobRepo()
 	jobRepo.jobs["job-456"] = &domain.ReportJob{
@@ -176,7 +165,6 @@ func TestExportWorker_FailedStatusUpdate(t *testing.T) {
 		Status: domain.JobPending,
 	}
 
-	// Simulasi update status ke failed
 	err := jobRepo.UpdateStatus(context.Background(), "job-456", domain.JobFailed, "", "gagal generate laporan")
 	if err != nil {
 		t.Fatalf("gagal update status: %v", err)
@@ -190,7 +178,7 @@ func TestExportWorker_FailedStatusUpdate(t *testing.T) {
 	}
 }
 
-// --- Test: Task type constants ---
+// --- Tes: Task type constants ---
 
 func TestExportWorker_TaskTypeConstant(t *testing.T) {
 	if TaskReportExport != "report.export" {

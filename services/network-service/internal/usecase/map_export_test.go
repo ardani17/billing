@@ -1,5 +1,3 @@
-// map_export_test.go — unit test dan property test untuk MapExportManager.
-// Menggunakan mock in-memory repository dan pgregory.net/rapid untuk PBT.
 // Semua komentar dalam Bahasa Indonesia.
 package usecase
 
@@ -16,10 +14,8 @@ import (
 )
 
 // =============================================================================
-// Helper: membuat MapExportManager dengan mock dependencies
 // =============================================================================
 
-// newTestExportManager membuat instance MapExportManager dengan mock repository.
 func newTestExportManager() (domain.MapExportManager, *mockMapNodeRepo, *mockCableRouteRepo) {
 	nodeRepo := newMockMapNodeRepo()
 	cableRepo := newMockCableRouteRepo()
@@ -27,7 +23,6 @@ func newTestExportManager() (domain.MapExportManager, *mockMapNodeRepo, *mockCab
 	return mgr, nodeRepo, cableRepo
 }
 
-// seedNodeForExport membuat node di mock repo untuk testing export.
 func seedNodeForExport(nodeRepo *mockMapNodeRepo, id, tenantID, nodeType string, lat, lng float64) {
 	nodeRepo.mu.Lock()
 	defer nodeRepo.mu.Unlock()
@@ -41,7 +36,6 @@ func seedNodeForExport(nodeRepo *mockMapNodeRepo, id, tenantID, nodeType string,
 	}
 }
 
-// seedCableForExport membuat cable route di mock repo untuk testing export.
 func seedCableForExport(cableRepo *mockCableRouteRepo, id, tenantID, routeType string, coords [][2]float64) {
 	cableRepo.mu.Lock()
 	defer cableRepo.mu.Unlock()
@@ -57,11 +51,9 @@ func seedCableForExport(cableRepo *mockCableRouteRepo, id, tenantID, routeType s
 }
 
 // =============================================================================
-// Unit Test 1: TestExportKML_OutputStructure — verifikasi struktur output KML
 // =============================================================================
 
 // TestExportKML_OutputStructure memverifikasi bahwa export KML menghasilkan
-// dokumen XML yang valid dengan folder per tipe node.
 func TestExportKML_OutputStructure(t *testing.T) {
 	mgr, nodeRepo, _ := newTestExportManager()
 	ctx := context.Background()
@@ -89,7 +81,6 @@ func TestExportKML_OutputStructure(t *testing.T) {
 		t.Fatal("FileBytes seharusnya tidak nil untuk export sync")
 	}
 
-	// Verifikasi output mengandung elemen KML
 	output := string(result.FileBytes)
 	if !strings.Contains(output, "<kml") {
 		t.Error("output seharusnya mengandung tag <kml>")
@@ -103,7 +94,7 @@ func TestExportKML_OutputStructure(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 2: TestExportCSV_Columns — verifikasi kolom CSV
+// Unit Tes 2: TestExportCSV_Columns - verifikasi kolom CSV
 // =============================================================================
 
 // TestExportCSV_Columns memverifikasi bahwa export CSV menghasilkan
@@ -140,7 +131,7 @@ func TestExportCSV_Columns(t *testing.T) {
 }
 
 // =============================================================================
-// Unit Test 3: TestExportAsync_LargeDataset — verifikasi async job creation
+// Unit Tes 3: TestExportAsync_LargeDataset - verifikasi async job creation
 // =============================================================================
 
 // TestExportAsync_LargeDataset memverifikasi bahwa export dengan dataset besar
@@ -185,17 +176,15 @@ func TestExportAsync_LargeDataset(t *testing.T) {
 }
 
 // =============================================================================
-// Property Test 6: GeoJSON Export/Import Round-Trip
 // =============================================================================
 
 // TestPropertyGeoJSONRoundTrip memverifikasi bahwa export ke GeoJSON
-// menghasilkan data yang bisa di-parse kembali dengan koordinat dan tipe
 // yang sama. Round-trip mempertahankan data geospasial.
 //
-// **Validates: Requirements 6.6**
+// **Memvalidasi: Kebutuhan 6.6**
 func TestPropertyGeoJSONRoundTrip(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate jumlah node acak (1-20)
+		// Buat jumlah node acak (1-20)
 		numNodes := rapid.IntRange(1, 20).Draw(t, "numNodes")
 
 		// Buat node dengan koordinat acak
@@ -206,16 +195,16 @@ func TestPropertyGeoJSONRoundTrip(t *testing.T) {
 			nodeType := domain.ValidNodeTypes[rapid.IntRange(0, 2).Draw(t, fmt.Sprintf("type_%d", i))]
 
 			nodes = append(nodes, &domain.MapNodeWithRef{
-				ID:       fmt.Sprintf("node-%d", i),
-				NodeType: nodeType,
-				Latitude: lat,
+				ID:        fmt.Sprintf("node-%d", i),
+				NodeType:  nodeType,
+				Latitude:  lat,
 				Longitude: lng,
-				Name:     fmt.Sprintf("Node-%d", i),
-				Status:   "online",
+				Name:      fmt.Sprintf("Node-%d", i),
+				Status:    "online",
 			})
 		}
 
-		// Generate cable routes acak (0-5)
+		// Buat cable routes acak (0-5)
 		numCables := rapid.IntRange(0, 5).Draw(t, "numCables")
 		cables := make([]*domain.CableRoute, 0, numCables)
 		for i := 0; i < numCables; i++ {
@@ -243,7 +232,6 @@ func TestPropertyGeoJSONRoundTrip(t *testing.T) {
 			t.Fatalf("exportGeoJSON gagal: %v", err)
 		}
 
-		// Parse kembali GeoJSON
 		var collection geoJSONCollection
 		if err := json.Unmarshal(geoData, &collection); err != nil {
 			t.Fatalf("gagal parse GeoJSON: %v", err)
@@ -256,7 +244,6 @@ func TestPropertyGeoJSONRoundTrip(t *testing.T) {
 				len(collection.Features), expectedFeatures)
 		}
 
-		// Properti 2: setiap node feature memiliki tipe Point
 		pointCount := 0
 		lineCount := 0
 		for _, f := range collection.Features {
@@ -274,7 +261,6 @@ func TestPropertyGeoJSONRoundTrip(t *testing.T) {
 			t.Fatalf("jumlah LineString features: got %d, want %d", lineCount, numCables)
 		}
 
-		// Properti 3: setiap feature memiliki properties node_type atau route_type
 		for _, f := range collection.Features {
 			if f.Geometry.Type == "Point" {
 				if _, ok := f.Properties["node_type"]; !ok {

@@ -1,6 +1,6 @@
 // forecast_engine.go berisi ForecastEngine yang mengimplementasikan
 // domain.ForecastUsecase untuk proyeksi bisnis menggunakan linear regression.
-// Mengambil 6 bulan data historis → regresi linear → 3 bulan proyeksi.
+// Mengambil 6 bulan data historis -> regresi linear -> 3 bulan proyeksi.
 package usecase
 
 import (
@@ -43,8 +43,8 @@ func NewForecastEngine(
 }
 
 // GetForecastReport mengambil proyeksi 3 bulan ke depan berdasarkan data historis.
-// Flow: ambil 6 bulan data → cek minimum 3 bulan → linear regression →
-// generate proyeksi → hitung estimated target date → tambahkan disclaimer.
+// Alur: ambil 6 bulan data -> cek minimum 3 bulan -> linear regression ->
+// buat proyeksi -> hitung estimated target date -> tambahkan disclaimer.
 func (fe *ForecastEngine) GetForecastReport(ctx context.Context, tenantID string) (*domain.ForecastReport, error) {
 	// Ambil data historis revenue, customers, dan receivables
 	revenueHistory, err := fe.aggregationRepo.GetMonthlyRevenueHistory(ctx, tenantID, historyMonths)
@@ -76,7 +76,7 @@ func (fe *ForecastEngine) GetForecastReport(ctx context.Context, tenantID string
 	customerReg := domain.LinearRegression(customerHistory)
 	receivablesReg := domain.LinearRegression(receivablesHistory)
 
-	// Generate proyeksi 3 bulan ke depan
+	// Buat proyeksi 3 bulan ke depan
 	now := time.Now()
 	n := float64(len(revenueHistory))
 	projections := make([]domain.ForecastMonth, projectionMonths)
@@ -121,7 +121,7 @@ func (fe *ForecastEngine) attachTargetEstimates(ctx context.Context, tenantID st
 	// Estimasi pencapaian target revenue bulanan
 	if kpi.MonthlyRevenueTarget != nil && revenueReg.Slope > 0 {
 		target := float64(*kpi.MonthlyRevenueTarget)
-		// Solve: slope * x + intercept = target → x = (target - intercept) / slope
+		// Solve: slope * x + intercept = target -> x = (target - intercept) / slope
 		x := (target - revenueReg.Intercept) / revenueReg.Slope
 		monthsAhead := x - n
 		if monthsAhead > 0 && monthsAhead <= 24 {

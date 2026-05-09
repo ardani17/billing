@@ -1,7 +1,7 @@
 -- Migration: create_geocoding_cache_table
 -- Tabel cache hasil reverse geocoding untuk FTTH Visual Mapping.
 -- Menyimpan hasil geocoding selama 30 hari untuk mengurangi
--- request ke provider eksternal (Nominatim/Google).
+-- permintaan ke provider eksternal (Nominatim/Google).
 
 CREATE TABLE geocoding_cache (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),

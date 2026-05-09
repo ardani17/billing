@@ -1,4 +1,4 @@
-// Package auth menyediakan fungsi untuk membuat dan memvalidasi JWT token.
+// Paket auth menyediakan fungsi untuk membuat dan memvalidasi JWT token.
 // Digunakan oleh semua Go service untuk autentikasi dan otorisasi.
 package auth
 
@@ -78,7 +78,7 @@ func ValidateToken(secret string, tokenString string) (*Claims, error) {
 		return nil, ErrEmptyToken
 	}
 
-	// Parse token dengan validasi signature menggunakan HMAC
+	// Parsing token dengan validasi signature menggunakan HMAC
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 		// Pastikan metode signing sesuai dengan yang diharapkan (HMAC)

@@ -8,18 +8,16 @@ import { deleteNode, deleteCable } from '../lib/api';
 // ---------------------------------------------------------------------------
 
 interface DeleteModeProps {
-  /** The type of entity to delete */
   targetType: 'node' | 'cable';
-  /** The ID of the entity to delete */
   targetId: string;
-  /** Display name for the confirmation dialog */
+  /** Nama tampilan untuk dialog konfirmasi*/
   targetName?: string;
   onDeleted?: () => void;
   onCancel: () => void;
 }
 
 // ---------------------------------------------------------------------------
-// Component — Confirmation dialog for soft delete
+// Komponen - Dialog konfirmasi untuk hapus lunak
 // ---------------------------------------------------------------------------
 
 export default function DeleteMode({

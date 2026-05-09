@@ -1,4 +1,4 @@
-// gateway_link_walled.go berisi method GatewayUsecase untuk walled garden dan sinkronisasi amount.
+// gateway_link_walled.go berisi method GatewayUsecase untuk walled garden dan sinkronisasi nominal.
 // Endpoint publik untuk halaman captive portal pelanggan yang diisolir.
 package usecase
 
@@ -11,7 +11,7 @@ import (
 )
 
 // GetWalledGardenPaymentInfo mengambil info pembayaran untuk walled garden.
-// Jika tidak ada link aktif atau link sudah expired, generate link baru on-demand.
+// Jika tidak ada link aktif atau link sudah expired, buat link baru on-demand.
 // Mengembalikan URL pembayaran, total tunggakan, dan detail invoice.
 func (uc *GatewayUsecase) GetWalledGardenPaymentInfo(ctx context.Context, customerID string) (*domain.WalledGardenPaymentInfo, error) {
 	// Ambil data customer
@@ -38,13 +38,13 @@ func (uc *GatewayUsecase) GetWalledGardenPaymentInfo(ctx context.Context, custom
 	// Cek apakah ada link aktif
 	link, _ := uc.linkRepo.GetActiveByCustomer(ctx, customerID)
 
-	// Jika link ada tapi sudah expired, expire dan set nil agar di-generate ulang
+	// Jika link ada tapi sudah expired, expire dan atur nil agar di-buat ulang
 	if link != nil && link.ExpiresAt.Before(time.Now()) {
 		_ = uc.expireActiveLink(ctx, customerID)
 		link = nil
 	}
 
-	// Jika tidak ada link aktif, generate on-demand
+	// Jika tidak ada link aktif, buat on-demand
 	if link == nil {
 		link, err = uc.generateWalledGardenLink(ctx, customer, invoices)
 		if err != nil {
@@ -68,7 +68,7 @@ func (uc *GatewayUsecase) GetWalledGardenPaymentInfo(ctx context.Context, custom
 	}, nil
 }
 
-// generateWalledGardenLink membuat payment link baru untuk walled garden.
+// generateWalledGardenLink membuat link pembayaran baru untuk walled garden.
 // Menggunakan semua invoice terbuka customer.
 func (uc *GatewayUsecase) generateWalledGardenLink(
 	ctx context.Context,
@@ -87,14 +87,14 @@ func (uc *GatewayUsecase) generateWalledGardenLink(
 	})
 }
 
-// SyncPaymentLinkAmount menyinkronkan jumlah payment link setelah invoice berubah.
+// SyncPaymentLinkAmount menyinkronkan jumlah link pembayaran setelah invoice berubah.
 // Dipanggil saat ada event invoice.payment_recorded atau invoice.penalty_added.
-// Expire link lama, generate link baru dengan jumlah terbaru.
+// Expire link lama, buat link baru dengan jumlah terbaru.
 func (uc *GatewayUsecase) SyncPaymentLinkAmount(ctx context.Context, invoiceID string) error {
-	// Cari payment link aktif yang mencakup invoice ini
+	// Cari link pembayaran aktif yang mencakup invoice ini
 	links, err := uc.linkRepo.ListByInvoice(ctx, invoiceID)
 	if err != nil {
-		return fmt.Errorf("gagal mencari payment links: %w", err)
+		return fmt.Errorf("gagal mencari payment link: %w", err)
 	}
 
 	// Cari link aktif
@@ -114,7 +114,7 @@ func (uc *GatewayUsecase) SyncPaymentLinkAmount(ctx context.Context, invoiceID s
 		return fmt.Errorf("gagal expire link aktif: %w", err)
 	}
 
-	// Generate link baru dengan jumlah terbaru
+	// Buat link baru dengan jumlah terbaru
 	invoices, err := uc.invoiceRepo.FindOpenByCustomer(ctx, activeLink.CustomerID)
 	if err != nil || len(invoices) == 0 {
 		return nil // Tidak ada invoice terbuka, tidak perlu link baru

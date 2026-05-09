@@ -42,7 +42,7 @@ func TestSignalStore_Store(t *testing.T) {
 		t.Fatalf("Store gagal: %v", err)
 	}
 
-	// Verifikasi data tersimpan di sorted set
+	// Verifikasi data tersimpan di sorted atur
 	key := signalKey("olt-1", 0, 1)
 	count, err := client.ZCard(ctx, key).Result()
 	if err != nil {
@@ -174,7 +174,7 @@ func TestSignalStore_Query_Empty(t *testing.T) {
 	}
 }
 
-// TestSignalStore_TTL memverifikasi bahwa TTL 30 hari di-set pada key setelah Store.
+// TestSignalStore_TTL memverifikasi bahwa TTL 30 hari di-atur pada key setelah Store.
 func TestSignalStore_TTL(t *testing.T) {
 	mr, store, client := setupSignalTest(t)
 	defer mr.Close()
@@ -193,7 +193,7 @@ func TestSignalStore_TTL(t *testing.T) {
 		t.Fatalf("Store gagal: %v", err)
 	}
 
-	// Verifikasi TTL di-set pada key
+	// Verifikasi TTL di-atur pada key
 	key := signalKey("olt-ttl", 0, 1)
 	ttl := mr.TTL(key)
 	if ttl == 0 {

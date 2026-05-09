@@ -1,4 +1,4 @@
--- Query SQL untuk operasi CRUD tabel password_resets dan email_verifications.
+-- Kueri SQL untuk operasi CRUD tabel password_resets dan email_verifications.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
 -- Token disimpan sebagai SHA-256 hash, plaintext hanya dikirim ke user.
 

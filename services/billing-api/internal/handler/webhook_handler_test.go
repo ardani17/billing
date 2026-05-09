@@ -28,7 +28,6 @@ func setupWebhookTestApp(xenditIPs, midtransIPs []string) (*fiber.App, *mockWebh
 	return app, repo
 }
 
-// postWebhook helper untuk kirim POST request ke endpoint webhook.
 func postWebhook(app *fiber.App, path string, payload map[string]interface{}) (*fiber.Response, int) {
 	body, _ := json.Marshal(payload)
 	req := httptest.NewRequest("POST", path, bytes.NewReader(body))
@@ -37,7 +36,6 @@ func postWebhook(app *fiber.App, path string, payload map[string]interface{}) (*
 	return nil, resp.StatusCode
 }
 
-// findLog mencari webhook log berdasarkan external_id di mock repo.
 func findLog(repo *mockWebhookLogRepo, extID string) (string, bool) {
 	for _, l := range repo.logs {
 		if l.ExternalID == extID {
@@ -48,7 +46,6 @@ func findLog(repo *mockWebhookLogRepo, extID string) (string, bool) {
 }
 
 func TestWebhookHandler_HandleXendit_ValidIP(t *testing.T) {
-	// Fiber c.IP() mengembalikan "0.0.0.0" untuk httptest request
 	app, repo := setupWebhookTestApp([]string{"0.0.0.0"}, nil)
 	body, _ := json.Marshal(map[string]interface{}{
 		"external_id": "pl-abc-123", "status": "PAID", "amount": 150000,
@@ -117,14 +114,14 @@ func TestWebhookHandler_HandleMidtrans_InvalidIP(t *testing.T) {
 
 func TestWebhookHandler_EmptyWhitelist_SkipsIPCheck(t *testing.T) {
 	app, _ := setupWebhookTestApp(nil, nil)
-	// Xendit tanpa whitelist → harus 200
+	// Xendit tanpa whitelist -> harus 200
 	_, code := postWebhook(app, "/webhooks/xendit", map[string]interface{}{
 		"external_id": "pl-no-wl-1", "status": "EXPIRED",
 	})
 	if code != fiber.StatusOK {
 		t.Fatalf("xendit: expected 200, got %d", code)
 	}
-	// Midtrans tanpa whitelist → harus 200
+	// Midtrans tanpa whitelist -> harus 200
 	_, code2 := postWebhook(app, "/webhooks/midtrans", map[string]interface{}{
 		"order_id": "pl-no-wl-2", "transaction_status": "capture",
 	})

@@ -13,14 +13,13 @@ import (
 )
 
 // =============================================================================
-// Mock LogRepository — implementasi mock untuk pengujian LogHandler
 // =============================================================================
 
 type mockLogRepo struct {
-	logs      map[string]*domain.NotificationLog
+	logs       map[string]*domain.NotificationLog
 	listResult *domain.LogListResult
-	listErr   error
-	getErr    error
+	listErr    error
+	getErr     error
 }
 
 func newMockLogRepo() *mockLogRepo {
@@ -80,7 +79,6 @@ func (m *mockLogRepo) LastSentToCustomer(_ context.Context, _, _ string) (*time.
 }
 
 // =============================================================================
-// Helper — middleware untuk set tenant_id di Fiber locals
 // =============================================================================
 
 func testTenantMiddleware(tenantID string) fiber.Handler {
@@ -91,14 +89,12 @@ func testTenantMiddleware(tenantID string) fiber.Handler {
 }
 
 // =============================================================================
-// Test: LogHandler.List — 200 dengan pagination
 // =============================================================================
 
 func TestLogHandler_List_Success(t *testing.T) {
 	repo := newMockLogRepo()
 	now := time.Now()
 
-	// Siapkan data mock untuk list result
 	repo.listResult = &domain.LogListResult{
 		Data: []*domain.NotificationLog{
 			{
@@ -158,7 +154,6 @@ func TestLogHandler_List_Success(t *testing.T) {
 		t.Fatalf("expected success=true, got false")
 	}
 
-	// Verifikasi data pagination ada di response
 	dataMap, ok := apiResp.Data.(map[string]interface{})
 	if !ok {
 		t.Fatalf("expected data to be a map, got %T", apiResp.Data)
@@ -186,14 +181,13 @@ func TestLogHandler_List_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: LogHandler.GetByID — 200 sukses
+// Tes: LogHandler.GetByID - 200 sukses
 // =============================================================================
 
 func TestLogHandler_GetByID_Success(t *testing.T) {
 	repo := newMockLogRepo()
 	now := time.Now()
 
-	// Siapkan data mock
 	repo.logs["log-abc"] = &domain.NotificationLog{
 		ID:           "log-abc",
 		TenantID:     "tenant-1",
@@ -243,7 +237,7 @@ func TestLogHandler_GetByID_Success(t *testing.T) {
 }
 
 // =============================================================================
-// Test: LogHandler.GetByID — 404 tidak ditemukan
+// Tes: LogHandler.GetByID - 404 tidak ditemukan
 // =============================================================================
 
 func TestLogHandler_GetByID_NotFound(t *testing.T) {

@@ -20,7 +20,7 @@ func NewCableRouteRepo(db DBTX) *CableRouteRepo {
 	return &CableRouteRepo{db: db}
 }
 
-// scanCableRoute memindai satu baris hasil query ke domain.CableRoute.
+// scanCableRoute memindai satu baris hasil kueri ke domain.CableRoute.
 func scanCableRoute(row pgx.Row) (*domain.CableRoute, error) {
 	var cr domain.CableRoute
 	err := row.Scan(
@@ -34,7 +34,7 @@ func scanCableRoute(row pgx.Row) (*domain.CableRoute, error) {
 	return &cr, nil
 }
 
-// scanCableRouteRows memindai banyak baris hasil query ke slice domain.CableRoute.
+// scanCableRouteRows memindai banyak baris hasil kueri ke slice domain.CableRoute.
 func scanCableRouteRows(rows pgx.Rows) ([]*domain.CableRoute, error) {
 	defer rows.Close()
 	var results []*domain.CableRoute
@@ -53,7 +53,7 @@ func scanCableRouteRows(rows pgx.Rows) ([]*domain.CableRoute, error) {
 	return results, rows.Err()
 }
 
-// Create membuat cable route baru dan mengembalikan route yang dibuat.
+// Buat membuat cable route baru dan mengembalikan route yang dibuat.
 func (r *CableRouteRepo) Create(ctx context.Context, route *domain.CableRoute) (*domain.CableRoute, error) {
 	row := r.db.QueryRow(ctx,
 		`INSERT INTO cable_routes (tenant_id, from_node_id, to_node_id, route_type, coordinates, distance_meters, core_count, description)
@@ -85,7 +85,7 @@ func (r *CableRouteRepo) GetByID(ctx context.Context, id string) (*domain.CableR
 	return result, nil
 }
 
-// Update memperbarui data cable route dan mengembalikan route yang diperbarui.
+// Perbarui memperbarui data cable route dan mengembalikan route yang diperbarui.
 func (r *CableRouteRepo) Update(ctx context.Context, route *domain.CableRoute) (*domain.CableRoute, error) {
 	row := r.db.QueryRow(ctx,
 		`UPDATE cable_routes SET route_type = $2, coordinates = $3, distance_meters = $4, core_count = $5, description = $6, updated_at = NOW()
@@ -104,7 +104,7 @@ func (r *CableRouteRepo) Update(ctx context.Context, route *domain.CableRoute) (
 	return result, nil
 }
 
-// SoftDelete melakukan soft-delete cable route (set deleted_at).
+// SoftDelete melakukan hapus lunak cable route (atur deleted_at).
 func (r *CableRouteRepo) SoftDelete(ctx context.Context, id string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE cable_routes SET deleted_at = NOW(), updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL`, id,
@@ -159,5 +159,5 @@ func (r *CableRouteRepo) ListByNode(ctx context.Context, nodeID string) ([]*doma
 	return results, nil
 }
 
-// Compile-time check: CableRouteRepo mengimplementasikan domain.CableRouteRepository.
+// Compile-time cek: CableRouteRepo mengimplementasikan domain.CableRouteRepository.
 var _ domain.CableRouteRepository = (*CableRouteRepo)(nil)

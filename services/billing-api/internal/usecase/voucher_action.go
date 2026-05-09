@@ -39,8 +39,8 @@ func NewVoucherActionUsecase(
 }
 
 // BulkVoid mem-void beberapa voucher sekaligus.
-// Flow: fetch voucher by IDs → untuk setiap voucher, cek status == tersedia →
-// transisi ke void → tulis voucher audit log (voucher.voided) →
+// Alur: ambil voucher by IDs -> untuk setiap voucher, cek status == tersedia ->
+// transisi ke void -> tulis voucher audit log (voucher.voided) ->
 // kembalikan BulkActionResult dengan jumlah sukses/gagal dan detail kegagalan.
 func (uc *VoucherActionUsecase) BulkVoid(ctx context.Context, ids []string, actor domain.ActorInfo) (*domain.BulkActionResult, error) {
 	result := &domain.BulkActionResult{
@@ -93,7 +93,7 @@ func (uc *VoucherActionUsecase) BulkVoid(ctx context.Context, ids []string, acto
 			continue
 		}
 
-		// Update status di database
+		// Perbarui status di database
 		_, updateErr := uc.voucherRepo.UpdateStatus(ctx, id, domain.VoucherStatusVoid)
 		if updateErr != nil {
 			result.FailureCount++
@@ -125,8 +125,8 @@ func (uc *VoucherActionUsecase) BulkVoid(ctx context.Context, ids []string, acto
 }
 
 // BulkAssign meng-assign beberapa voucher ke reseller (admin assignment, tanpa potong saldo, tanpa snapshot).
-// Flow: validasi reseller ada → fetch voucher by IDs → untuk setiap voucher, cek status == tersedia →
-// assign ke reseller → tulis voucher audit log (voucher.assigned) →
+// Alur: validasi reseller ada -> ambil voucher by IDs -> untuk setiap voucher, cek status == tersedia ->
+// assign ke reseller -> tulis voucher audit log (voucher.assigned) ->
 // kembalikan BulkActionResult dengan jumlah sukses/gagal dan detail kegagalan.
 func (uc *VoucherActionUsecase) BulkAssign(ctx context.Context, ids []string, resellerID string, actor domain.ActorInfo) (*domain.BulkActionResult, error) {
 	result := &domain.BulkActionResult{
@@ -174,7 +174,7 @@ func (uc *VoucherActionUsecase) BulkAssign(ctx context.Context, ids []string, re
 			continue
 		}
 
-		// Assign voucher ke reseller via repository (admin assignment, tanpa snapshot)
+		// Assign voucher ke reseller via repositori (admin assignment, tanpa snapshot)
 		bulkResults, bulkErr := uc.voucherRepo.BulkAssign(ctx, []string{id}, resellerID)
 		if bulkErr != nil {
 			result.FailureCount++
@@ -222,7 +222,7 @@ func (uc *VoucherActionUsecase) BulkAssign(ctx context.Context, ids []string, re
 }
 
 // ExportCSV mengekspor daftar voucher ke format CSV berdasarkan filter yang diberikan.
-// Flow: fetch voucher dengan filter → format sebagai CSV bytes → kembalikan.
+// Alur: ambil voucher dengan filter -> format sebagai CSV bytes -> kembalikan.
 func (uc *VoucherActionUsecase) ExportCSV(ctx context.Context, params domain.VoucherListParams) ([]byte, error) {
 	// Set page_size besar untuk mengambil semua data (export tidak menggunakan paginasi)
 	params.Page = 1
@@ -290,7 +290,7 @@ func (uc *VoucherActionUsecase) ExportCSV(ctx context.Context, params domain.Vou
 	return buf.Bytes(), nil
 }
 
-// --- Helper functions ---
+// --- Fungsi bantu functions ---
 
 // formatInt64Ptr memformat pointer int64 ke string, mengembalikan string kosong jika nil.
 func formatInt64Ptr(v *int64) string {

@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// Uptime Report — laporan uptime router dari network-service
+// Laporan uptime - laporan uptime router dari network-service
 // =============================================================================
 
 // RouterUptimeItem berisi data uptime per router.
@@ -13,7 +13,7 @@ type RouterUptimeItem struct {
 	UptimePercentage float64 `json:"uptime_percentage"`
 	TotalDowntimeMin int     `json:"total_downtime_minutes"`
 	RebootCount      int     `json:"reboot_count"`
-	StatusLabel      string  `json:"status_label"` // Excellent, Good, Fair, Poor
+	StatusLabel      string  `json:"status_label"` // Sangat baik, baik, cukup, buruk
 }
 
 // DowntimeEvent berisi satu event downtime.
@@ -36,7 +36,7 @@ type UptimeReport struct {
 }
 
 // =============================================================================
-// Traffic Report — laporan traffic jaringan dari network-service
+// Laporan traffic - laporan traffic jaringan dari network-service
 // =============================================================================
 
 // RouterTraffic berisi traffic per router.
@@ -72,7 +72,7 @@ type TrafficReport struct {
 }
 
 // =============================================================================
-// Signal Quality Report — laporan kualitas signal OLT dari network-service
+// Laporan kualitas sinyal - laporan kualitas signal OLT dari network-service
 // =============================================================================
 
 // DegradingONT berisi ONT dengan signal memburuk.
@@ -105,7 +105,7 @@ type SignalQualityReport struct {
 }
 
 // =============================================================================
-// Capacity Report — laporan kapasitas jaringan dari network-service
+// Laporan kapasitas - laporan kapasitas jaringan dari network-service
 // =============================================================================
 
 // RouterCapacity berisi kapasitas per router.

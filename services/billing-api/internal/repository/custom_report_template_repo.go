@@ -53,7 +53,7 @@ func mapCustomReportTemplateRow(row CustomReportTemplate) *domain.CustomReportTe
 
 // --- Implementasi domain.CustomReportTemplateRepository ---
 
-// Create membuat template laporan custom baru dan mengembalikan template yang dibuat.
+// Buat membuat template laporan kustom baru dan mengembalikan template yang dibuat.
 func (r *CustomReportTemplateRepo) Create(ctx context.Context, template *domain.CustomReportTemplate) (*domain.CustomReportTemplate, error) {
 	metricsJSON, err := json.Marshal(template.Metrics)
 	if err != nil {
@@ -88,7 +88,7 @@ func (r *CustomReportTemplateRepo) GetByID(ctx context.Context, id string) (*dom
 	return mapCustomReportTemplateRow(row), nil
 }
 
-// Delete menghapus template laporan secara permanen.
+// Hapus menghapus template laporan secara permanen.
 func (r *CustomReportTemplateRepo) Delete(ctx context.Context, id string) error {
 	err := r.queries.DeleteCustomReportTemplate(ctx, stringToUUID(id))
 	if err != nil {

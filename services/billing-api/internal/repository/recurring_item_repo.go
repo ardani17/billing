@@ -12,9 +12,9 @@ import (
 )
 
 // RecurringItemRepo mengimplementasikan domain.CustomerRecurringItemRepository dengan membungkus
-// sqlc-generated Queries untuk operasi customer recurring items.
+// sqlc-generated Queries untuk operasi customer item berulangs.
 type RecurringItemRepo struct {
-	// queries adalah sqlc-generated Queries untuk operasi customer recurring items.
+	// queries adalah sqlc-generated Queries untuk operasi customer item berulangs.
 	queries *Queries
 }
 
@@ -25,7 +25,7 @@ func NewRecurringItemRepo(queries *Queries) *RecurringItemRepo {
 	}
 }
 
-// --- Helper function untuk konversi nullable date ---
+// --- Fungsi bantu function untuk konversi nullable date ---
 
 // dateToTimePtr mengkonversi pgtype.Date ke *time.Time.
 // Mengembalikan nil jika Date tidak valid (NULL).
@@ -46,7 +46,7 @@ func timePtrToDate(t *time.Time) pgtype.Date {
 	return pgtype.Date{Time: *t, Valid: true}
 }
 
-// --- Helper function untuk mapping sqlc CustomerRecurringItem → domain.CustomerRecurringItem ---
+// --- Helper function untuk mapping sqlc CustomerRecurringItem -> domain.CustomerRecurringItem ---
 
 // mapRecurringItemRow memetakan CustomerRecurringItem (sqlc model) ke domain.CustomerRecurringItem.
 func mapRecurringItemRow(row CustomerRecurringItem) *domain.CustomerRecurringItem {
@@ -66,7 +66,7 @@ func mapRecurringItemRow(row CustomerRecurringItem) *domain.CustomerRecurringIte
 
 // --- Implementasi domain.CustomerRecurringItemRepository ---
 
-// Create membuat recurring item baru dan mengembalikan item yang dibuat.
+// Buat membuat item berulang baru dan mengembalikan item yang dibuat.
 func (r *RecurringItemRepo) Create(ctx context.Context, item *domain.CustomerRecurringItem) (*domain.CustomerRecurringItem, error) {
 	row, err := r.queries.CreateRecurringItem(ctx, CreateRecurringItemParams{
 		TenantID:    stringToUUID(item.TenantID),
@@ -83,7 +83,7 @@ func (r *RecurringItemRepo) Create(ctx context.Context, item *domain.CustomerRec
 	return mapRecurringItemRow(row), nil
 }
 
-// GetByID mengambil recurring item berdasarkan ID.
+// GetByID mengambil item berulang berdasarkan ID.
 // Mengembalikan ErrRecurringItemNotFound jika tidak ditemukan.
 func (r *RecurringItemRepo) GetByID(ctx context.Context, id string) (*domain.CustomerRecurringItem, error) {
 	row, err := r.queries.GetRecurringItemByID(ctx, stringToUUID(id))
@@ -96,7 +96,7 @@ func (r *RecurringItemRepo) GetByID(ctx context.Context, id string) (*domain.Cus
 	return mapRecurringItemRow(row), nil
 }
 
-// Update memperbarui recurring item dan mengembalikan item yang diperbarui.
+// Perbarui memperbarui item berulang dan mengembalikan item yang diperbarui.
 // Mengembalikan ErrRecurringItemNotFound jika tidak ditemukan.
 func (r *RecurringItemRepo) Update(ctx context.Context, item *domain.CustomerRecurringItem) (*domain.CustomerRecurringItem, error) {
 	row, err := r.queries.UpdateRecurringItem(ctx, UpdateRecurringItemParams{
@@ -114,7 +114,7 @@ func (r *RecurringItemRepo) Update(ctx context.Context, item *domain.CustomerRec
 	return mapRecurringItemRow(row), nil
 }
 
-// Deactivate menonaktifkan recurring item (set is_active = false).
+// Deactivate menonaktifkan item berulang (atur is_active = false).
 func (r *RecurringItemRepo) Deactivate(ctx context.Context, id string) error {
 	err := r.queries.DeactivateRecurringItem(ctx, stringToUUID(id))
 	if err != nil {
@@ -123,7 +123,7 @@ func (r *RecurringItemRepo) Deactivate(ctx context.Context, id string) error {
 	return nil
 }
 
-// ListByCustomer mengambil semua recurring item untuk customer tertentu.
+// ListByCustomer mengambil semua item berulang untuk customer tertentu.
 func (r *RecurringItemRepo) ListByCustomer(ctx context.Context, customerID string) ([]*domain.CustomerRecurringItem, error) {
 	rows, err := r.queries.ListRecurringItemsByCustomer(ctx, stringToUUID(customerID))
 	if err != nil {
@@ -137,7 +137,7 @@ func (r *RecurringItemRepo) ListByCustomer(ctx context.Context, customerID strin
 	return result, nil
 }
 
-// ListActiveByCustomer mengambil recurring item aktif untuk customer pada tanggal periode tertentu.
+// ListActiveByCustomer mengambil item berulang aktif untuk customer pada tanggal periode tertentu.
 // Item aktif: is_active = true, start_date <= periodDate, dan (end_date IS NULL atau end_date > periodDate).
 func (r *RecurringItemRepo) ListActiveByCustomer(ctx context.Context, customerID string, periodDate time.Time) ([]*domain.CustomerRecurringItem, error) {
 	rows, err := r.queries.ListActiveRecurringItemsByCustomer(ctx, ListActiveRecurringItemsByCustomerParams{

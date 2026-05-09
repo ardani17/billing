@@ -1,5 +1,4 @@
 // credit_note_usecase_test.go berisi unit test untuk CreditNoteUsecase.
-// Menguji pembuatan credit note dengan update saldo kredit pelanggan.
 package usecase
 
 import (
@@ -14,7 +13,6 @@ import (
 )
 
 // =============================================================================
-// Mock repositories khusus untuk CreditNoteUsecase tests
 // =============================================================================
 
 // mockCreditNoteRepo adalah implementasi in-memory dari domain.CreditNoteRepository.
@@ -56,7 +54,6 @@ func (m *mockCreditNoteRepo) ListByInvoice(_ context.Context, invoiceID string) 
 }
 
 // =============================================================================
-// Helper untuk membuat CreditNoteUsecase dengan mock repos
 // =============================================================================
 
 type creditNoteUsecaseSetup struct {
@@ -88,10 +85,9 @@ func setupCreditNoteUsecase() *creditNoteUsecaseSetup {
 }
 
 // =============================================================================
-// Unit Tests — CreditNoteUsecase
+// Unit Tests - CreditNoteUsecase
 // =============================================================================
 
-// TestCreditNote_Create_WithCreditUpdate menguji pembuatan credit note dengan update saldo kredit.
 func TestCreditNote_Create_WithCreditUpdate(t *testing.T) {
 	s := setupCreditNoteUsecase()
 	ctx := context.Background()
@@ -131,7 +127,6 @@ func TestCreditNote_Create_WithCreditUpdate(t *testing.T) {
 	}
 }
 
-// TestCreditNote_Create_WithoutCreditUpdate menguji pembuatan credit note tanpa update saldo.
 func TestCreditNote_Create_WithoutCreditUpdate(t *testing.T) {
 	s := setupCreditNoteUsecase()
 	ctx := context.Background()
@@ -163,7 +158,6 @@ func TestCreditNote_Create_WithoutCreditUpdate(t *testing.T) {
 	}
 }
 
-// TestCreditNote_Create_InvoiceNotFound menguji error saat invoice tidak ditemukan.
 func TestCreditNote_Create_InvoiceNotFound(t *testing.T) {
 	s := setupCreditNoteUsecase()
 	ctx := context.Background()

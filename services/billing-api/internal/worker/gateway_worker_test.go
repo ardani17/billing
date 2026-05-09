@@ -1,6 +1,5 @@
 // gateway_worker_test.go berisi unit test untuk GatewayWorker.
-// Fokus pada handler yang hanya membutuhkan mock repo:
-// - handleExpirePaymentLinks: mencari dan expire batch payment links
+// - handleExpirePaymentLinks: mencari dan expire batch tautan pembayaran
 // - handleCleanupWebhookLogs: menghapus webhook logs lama sesuai retensi
 package worker
 
@@ -17,7 +16,6 @@ import (
 )
 
 // =============================================================================
-// Mock: PaymentLinkRepository (minimal untuk worker test)
 // =============================================================================
 
 // mockLinkRepo mengimplementasikan subset PaymentLinkRepository untuk worker test.
@@ -65,7 +63,6 @@ func (m *mockLinkRepo) ListByInvoice(_ context.Context, _ string) ([]*domain.Pay
 }
 
 // =============================================================================
-// Mock: WebhookLogRepository (minimal untuk worker test)
 // =============================================================================
 
 // mockWebhookRepo mengimplementasikan subset WebhookLogRepository untuk worker test.
@@ -100,7 +97,7 @@ func (m *mockWebhookRepo) ListByPaymentLink(_ context.Context, _ string) ([]*dom
 }
 
 // =============================================================================
-// Test: handleExpirePaymentLinks — mencari dan expire batch
+// Tes: handleExpirePaymentLinks - mencari dan expire batch
 // =============================================================================
 
 func TestHandleExpirePaymentLinks_FindsAndExpiresBatch(t *testing.T) {
@@ -147,7 +144,7 @@ func TestHandleExpirePaymentLinks_EmptyBatch(t *testing.T) {
 }
 
 // =============================================================================
-// Test: handleCleanupWebhookLogs — panggil DeleteOlderThan dengan retensi benar
+// Tes: handleCleanupWebhookLogs - panggil DeleteOlderThan dengan retensi benar
 // =============================================================================
 
 func TestHandleCleanupWebhookLogs_CorrectRetention(t *testing.T) {
@@ -189,10 +186,10 @@ func TestHandleCleanupWebhookLogs_CustomRetention(t *testing.T) {
 	}
 }
 
-// TestHandleCleanupWebhookLogs_DefaultRetention menguji default retensi saat 0.
+// TestHandleCleanupWebhookLogs_DefaultRetention menguji bawaan retensi saat 0.
 func TestHandleCleanupWebhookLogs_DefaultRetention(t *testing.T) {
 	webhookRepo := &mockWebhookRepo{deletedCount: 5}
-	// retentionDays=0 harus default ke 90 di NewGatewayWorker
+	// retentionDays=0 harus bawaan ke 90 di NewGatewayWorker
 	w := NewGatewayWorker(nil, nil, &mockLinkRepo{}, webhookRepo, 0, zerolog.New(io.Discard))
 
 	before := time.Now()
@@ -202,7 +199,7 @@ func TestHandleCleanupWebhookLogs_DefaultRetention(t *testing.T) {
 		t.Fatalf("handleCleanupWebhookLogs gagal: %v", err)
 	}
 
-	// Default 90 hari
+	// Bawaan 90 hari
 	expectedCutoff := before.AddDate(0, 0, -90)
 	diff := webhookRepo.deletedBefore.Sub(expectedCutoff)
 	if diff < -time.Minute || diff > time.Minute {

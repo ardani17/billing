@@ -1,7 +1,7 @@
--- Query SQL untuk aggregasi laporan pelanggan (customer reports).
+-- Kueri SQL untuk aggregasi laporan pelanggan (customer reports).
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
 -- Mencakup: pertumbuhan pelanggan, distribusi, churn analysis, ARPU, CLV.
--- Tabel dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: GetCustomerGrowthData :one
 -- Menghitung data pertumbuhan pelanggan untuk periode tertentu.

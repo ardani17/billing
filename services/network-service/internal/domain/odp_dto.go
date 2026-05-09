@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// ODP Request DTOs — payload dari HTTP request untuk operasi ODP
+// ODP DTO permintaan - payload dari HTTP permintaan untuk operasi ODP
 // =============================================================================
 
 // CreateODPRequest adalah payload untuk POST /api/v1/olt/odp.
@@ -20,7 +20,7 @@ type CreateODPRequest struct {
 }
 
 // UpdateODPRequest adalah payload untuk PUT /api/v1/olt/odp/:id.
-// Semua field bersifat opsional — hanya field yang dikirim yang akan diupdate.
+// Semua field bersifat opsional - hanya field yang dikirim yang akan diupdate.
 type UpdateODPRequest struct {
 	Name      string   `json:"name,omitempty" validate:"omitempty,min=1,max=100"`
 	Address   string   `json:"address,omitempty"`
@@ -30,20 +30,20 @@ type UpdateODPRequest struct {
 }
 
 // ODPListParams berisi parameter untuk list ODP dengan paginasi dan filter.
-// TenantID diisi dari context auth middleware, bukan dari request body.
+// TenantID diisi dari context auth middleware, bukan dari permintaan body.
 type ODPListParams struct {
 	TenantID     string // diisi dari auth context
-	Page         int    // halaman saat ini (default 1)
-	PageSize     int    // jumlah item per halaman (default 20)
+	Page         int    // halaman saat ini (bawaan 1)
+	PageSize     int    // jumlah item per halaman (bawaan 20)
 	OLTID        string // filter berdasarkan olt_id (opsional)
 	PONPortIndex *int   // filter berdasarkan pon_port (opsional)
 }
 
 // =============================================================================
-// ODP Response DTOs — format respons untuk operasi ODP
+// ODP Respons DTOs - format respons untuk operasi ODP
 // =============================================================================
 
-// ODPResponse adalah respons untuk operasi create/update/list ODP.
+// ODPResponse adalah respons untuk operasi buat/perbarui/list ODP.
 // Menyertakan informasi kapasitas (capacity, used_ports) dan lokasi GPS.
 type ODPResponse struct {
 	ID           string    `json:"id"`

@@ -1,4 +1,4 @@
--- Migrasi: membuat tabel payment_gateway_configs untuk menyimpan konfigurasi payment gateway per tenant.
+-- Migrasi: membuat tabel payment_gateway_configs untuk menyimpan konfigurasi gateway pembayaran per tenant.
 -- Mendukung dua provider: Xendit dan Midtrans. Setiap tenant bisa memiliki kedua provider aktif.
 -- API key dan webhook secret disimpan dalam bentuk terenkripsi (AES-256-GCM).
 -- Data dilindungi oleh RLS.
@@ -40,7 +40,7 @@ CREATE POLICY payment_gateway_configs_tenant_insert ON payment_gateway_configs
 ALTER TABLE payment_gateway_configs ADD CONSTRAINT uq_payment_gateway_configs_tenant_provider
     UNIQUE (tenant_id, gateway_provider);
 
--- Partial index: konfigurasi aktif per tenant untuk query cepat
+-- Partial index: konfigurasi aktif per tenant untuk kueri cepat
 CREATE INDEX idx_payment_gateway_configs_tenant_active
     ON payment_gateway_configs(tenant_id, is_active)
     WHERE is_active = true;

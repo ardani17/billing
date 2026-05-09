@@ -51,9 +51,9 @@ func NewDebitNoteUsecase(
 	}
 }
 
-// Create membuat debit note baru dengan items.
-// Flow: validasi pelanggan ada → generate nomor debit note → buat debit note →
-// jika create_invoice: buat invoice terkait → tulis audit log.
+// Buat membuat debit note baru dengan items.
+// Alur: validasi pelanggan ada -> buat nomor debit note -> buat debit note ->
+// jika create_invoice: buat invoice terkait -> tulis audit log.
 func (uc *DebitNoteUsecase) Create(
 	ctx context.Context,
 	tenantID string,
@@ -66,13 +66,13 @@ func (uc *DebitNoteUsecase) Create(
 		return nil, domain.ErrCustomerNotFound
 	}
 
-	// Parse due_date
+	// Parsing due_date
 	dueDate, err := time.Parse("2006-01-02", req.DueDate)
 	if err != nil {
 		return nil, fmt.Errorf("format due_date tidak valid: %w", err)
 	}
 
-	// Generate nomor debit note via sequence atomik
+	// Buat nomor debit note via sequence atomik
 	now := time.Now()
 	seq, err := uc.sequenceRepo.NextSequence(ctx, tenantID, now.Year(), int(now.Month()))
 	if err != nil {
@@ -133,5 +133,3 @@ func (uc *DebitNoteUsecase) Create(
 
 	return created, nil
 }
-
-

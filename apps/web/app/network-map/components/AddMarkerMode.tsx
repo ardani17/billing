@@ -15,7 +15,7 @@ interface AddMarkerModeProps {
 }
 
 // ---------------------------------------------------------------------------
-// Component — Form to create a new ODP at clicked coordinates
+// Komponen - Form untuk membuat ODP baru pada koordinat yang diklik
 // ---------------------------------------------------------------------------
 
 export default function AddMarkerMode({
@@ -31,7 +31,7 @@ export default function AddMarkerMode({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Trigger reverse geocoding on mount
+  // Trigger reverse geocoding saat komponen dipasang
   useEffect(() => {
     let cancelled = false;
     setGeocoding(true);
@@ -85,7 +85,7 @@ export default function AddMarkerMode({
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-3">
-        {/* Coordinates (read-only) */}
+        {/* Coordinates (read-only)*/}
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="mb-1 block text-xs text-gray-500">Latitude</label>
@@ -107,7 +107,7 @@ export default function AddMarkerMode({
           </div>
         </div>
 
-        {/* Address from geocoding */}
+        {/* Address from geocoding*/}
         <div>
           <label className="mb-1 block text-xs text-gray-500">Alamat</label>
           <p className="text-xs text-gray-700">
@@ -115,7 +115,7 @@ export default function AddMarkerMode({
           </p>
         </div>
 
-        {/* Node type */}
+        {/* Node type*/}
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-700">
             Tipe Node
@@ -130,7 +130,7 @@ export default function AddMarkerMode({
           </select>
         </div>
 
-        {/* Reference ID */}
+        {/* Reference ID*/}
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-700">
             Reference ID

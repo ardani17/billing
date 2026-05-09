@@ -1,6 +1,6 @@
--- Query SQL untuk operasi pada tabel invoice_sequences.
+-- Kueri SQL untuk operasi pada tabel invoice_sequences.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel invoice_sequences dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel invoice_sequences dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 -- Sequence digunakan untuk auto-increment nomor invoice per tenant per bulan.
 
 -- name: NextInvoiceSequence :one

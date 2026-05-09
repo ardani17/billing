@@ -8,7 +8,7 @@ import (
 )
 
 // GetUptimeReport mengambil laporan uptime router dari network-service.
-// Graceful degradation: jika gagal → cache stale → module_inactive.
+// Graceful degradation: jika gagal -> cache stale -> module_inactive.
 func (nc *NetworkClient) GetUptimeReport(ctx context.Context, tenantID string, periodStart, periodEnd time.Time, routerID string) (*domain.UptimeReport, error) {
 	extra := map[string]string{"router_id": routerID}
 	reqURL, params := nc.buildURL("uptime", tenantID, periodStart, periodEnd, extra)
@@ -19,7 +19,7 @@ func (nc *NetworkClient) GetUptimeReport(ctx context.Context, tenantID string, p
 		return nil, err
 	}
 
-	// Jika tidak ada data dari HTTP maupun cache → module inactive
+	// Jika tidak ada data dari HTTP maupun cache -> module inactive
 	if !stale && lastUpdated == nil && len(report.Routers) == 0 {
 		return &domain.UptimeReport{ModuleInactive: true}, nil
 	}
@@ -30,7 +30,7 @@ func (nc *NetworkClient) GetUptimeReport(ctx context.Context, tenantID string, p
 }
 
 // GetTrafficReport mengambil laporan traffic jaringan dari network-service.
-// Graceful degradation: jika gagal → cache stale → module_inactive.
+// Graceful degradation: jika gagal -> cache stale -> module_inactive.
 func (nc *NetworkClient) GetTrafficReport(ctx context.Context, tenantID string, periodStart, periodEnd time.Time, routerID string) (*domain.TrafficReport, error) {
 	extra := map[string]string{"router_id": routerID}
 	reqURL, params := nc.buildURL("traffic", tenantID, periodStart, periodEnd, extra)
@@ -53,7 +53,7 @@ func (nc *NetworkClient) GetTrafficReport(ctx context.Context, tenantID string, 
 }
 
 // GetSignalQualityReport mengambil laporan kualitas signal OLT dari network-service.
-// Graceful degradation: jika gagal → cache stale → module_inactive.
+// Graceful degradation: jika gagal -> cache stale -> module_inactive.
 func (nc *NetworkClient) GetSignalQualityReport(ctx context.Context, tenantID string, periodStart, periodEnd time.Time, oltID string) (*domain.SignalQualityReport, error) {
 	extra := map[string]string{"olt_id": oltID}
 	reqURL, params := nc.buildURL("signal-quality", tenantID, periodStart, periodEnd, extra)
@@ -76,7 +76,7 @@ func (nc *NetworkClient) GetSignalQualityReport(ctx context.Context, tenantID st
 }
 
 // GetCapacityReport mengambil laporan kapasitas jaringan dari network-service.
-// Graceful degradation: jika gagal → cache stale → module_inactive.
+// Graceful degradation: jika gagal -> cache stale -> module_inactive.
 func (nc *NetworkClient) GetCapacityReport(ctx context.Context, tenantID string) (*domain.CapacityReport, error) {
 	reqURL, params := nc.buildURL("capacity", tenantID, time.Time{}, time.Time{}, nil)
 
@@ -98,7 +98,7 @@ func (nc *NetworkClient) GetCapacityReport(ctx context.Context, tenantID string)
 }
 
 // GetSyncReport mengambil laporan status sync MikroTik dan OLT dari network-service.
-// Graceful degradation: jika gagal → cache stale → module_inactive.
+// Graceful degradation: jika gagal -> cache stale -> module_inactive.
 func (nc *NetworkClient) GetSyncReport(ctx context.Context, tenantID string, periodStart, periodEnd time.Time) (*domain.SyncReport, error) {
 	reqURL, params := nc.buildURL("sync", tenantID, periodStart, periodEnd, nil)
 
@@ -120,7 +120,7 @@ func (nc *NetworkClient) GetSyncReport(ctx context.Context, tenantID string, per
 }
 
 // GetNotificationReport mengambil laporan statistik notifikasi dari network-service.
-// Graceful degradation: jika gagal → cache stale → module_inactive.
+// Graceful degradation: jika gagal -> cache stale -> module_inactive.
 func (nc *NetworkClient) GetNotificationReport(ctx context.Context, tenantID string, periodStart, periodEnd time.Time) (*domain.NotificationReport, error) {
 	reqURL, params := nc.buildURL("notification", tenantID, periodStart, periodEnd, nil)
 

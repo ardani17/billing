@@ -15,8 +15,7 @@ func genNonEmptyNoColon(t *rapid.T, label string) string {
 	return rapid.StringMatching(`[a-zA-Z0-9_\-]{1,30}`).Draw(t, label)
 }
 
-// Feature: notification-service, Property 5: Dedup key format consistency
-// **Validates: Requirements 9.1**
+// **Memvalidasi: Kebutuhan 9.1**
 //
 // Untuk setiap tenant_id, customer_id, template_slug, dan periode string
 // (non-kosong, tanpa karakter ":"), dedup key yang dihasilkan HARUS sama dengan
@@ -29,7 +28,7 @@ func TestProperty_DedupKeyFormatConsistency(t *testing.T) {
 		templateSlug := genNonEmptyNoColon(t, "templateSlug")
 		periode := genNonEmptyNoColon(t, "periode")
 
-		// Generate dedup key
+		// Buat dedup key
 		key := GenerateDedupKey(tenantID, customerID, templateSlug, periode)
 
 		// Verifikasi format: harus sama dengan "{tenantID}:{customerID}:{templateSlug}:{periode}"
@@ -50,7 +49,6 @@ func TestProperty_DedupKeyFormatConsistency(t *testing.T) {
 			)
 		}
 
-		// Verifikasi setiap komponen cocok dengan input asli
 		if parts[0] != tenantID {
 			t.Fatalf("Komponen 0 (tenantID): expected %q, got %q", tenantID, parts[0])
 		}
@@ -67,7 +65,6 @@ func TestProperty_DedupKeyFormatConsistency(t *testing.T) {
 }
 
 // =============================================================================
-// Mock LogRepository untuk Property 6
 // =============================================================================
 
 // dedupMockLogRepo adalah implementasi in-memory dari domain.LogRepository
@@ -110,8 +107,7 @@ func (m *dedupMockLogRepo) LastSentToCustomer(_ context.Context, _, _ string) (*
 	return nil, nil
 }
 
-// Feature: notification-service, Property 6: Deduplication invariant
-// **Validates: Requirements 9.5**
+// **Memvalidasi: Kebutuhan 9.5**
 //
 // Untuk setiap urutan N notifikasi (N >= 2) dengan dedup_key yang sama
 // yang diproses dalam jendela waktu 1 jam, hanya notifikasi pertama yang
@@ -119,13 +115,12 @@ func (m *dedupMockLogRepo) LastSentToCustomer(_ context.Context, _, _ string) (*
 // harus di-skip (CheckDuplicate = true).
 func TestProperty_DeduplicationInvariant(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		// Generate jumlah notifikasi acak (2-10)
+		// Buat jumlah notifikasi acak (2-10)
 		n := rapid.IntRange(2, 10).Draw(t, "n")
 
-		// Generate dedup key acak
+		// Buat dedup key acak
 		dedupKey := genNonEmptyNoColon(t, "dedupKey")
 
-		// Buat mock repo dan dedup checker
 		repo := newDedupMockLogRepo()
 		checker := NewDedupChecker(repo)
 		ctx := context.Background()

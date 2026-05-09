@@ -24,7 +24,7 @@ func NewTokenRepo(queries *Queries) *TokenRepo {
 	}
 }
 
-// --- Helper functions untuk mapping sqlc row → domain types ---
+// --- Helper functions untuk mapping sqlc row -> domain types ---
 
 // mapGetPasswordResetByHashRow memetakan PasswordReset (sqlc model) ke domain.PasswordReset.
 func mapGetPasswordResetByHashRow(row PasswordReset) *domain.PasswordReset {

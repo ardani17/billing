@@ -1,7 +1,7 @@
--- Query SQL untuk data historis yang digunakan oleh forecasting engine.
+-- Kueri SQL untuk data historis yang digunakan oleh forecasting engine.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
 -- Mengambil data 6 bulan terakhir untuk kalkulasi linear regression.
--- Tabel dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: GetMonthlyRevenueHistory :many
 -- Mengambil data historis pendapatan bulanan untuk N bulan terakhir.

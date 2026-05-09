@@ -16,12 +16,11 @@ import (
 )
 
 // BulkImport mengimpor pembayaran dari data CSV.
-// Format CSV: customer_id_seq, amount, payment_method, payment_date, reference_number, notes
 // Batas: maksimal 500 baris. Setiap baris diproses independen.
 func (uc *PaymentUsecase) BulkImport(ctx context.Context, csvData []byte, actor domain.ActorInfo) (*domain.BulkImportResponse, error) {
 	tenantID := tenant.FromContext(ctx)
 
-	// Parse CSV
+	// Parsing CSV
 	reader := csv.NewReader(bytes.NewReader(csvData))
 	reader.TrimLeadingSpace = true
 
@@ -77,7 +76,6 @@ func (uc *PaymentUsecase) BulkImport(ctx context.Context, csvData []byte, actor 
 }
 
 // processBulkRow memproses satu baris CSV untuk bulk import.
-// Format: customer_id_seq, amount, payment_method, payment_date, reference_number, notes
 func (uc *PaymentUsecase) processBulkRow(ctx context.Context, tenantID string, row []string, rowNum int, actor domain.ActorInfo) domain.BulkImportResult {
 	// Validasi jumlah kolom minimal
 	if len(row) < 4 {
@@ -102,7 +100,7 @@ func (uc *PaymentUsecase) processBulkRow(ctx context.Context, tenantID string, r
 		notes = strings.TrimSpace(row[5])
 	}
 
-	// Validasi amount
+	// Validasi nominal
 	amount, err := strconv.ParseInt(amountStr, 10, 64)
 	if err != nil || amount <= 0 {
 		return domain.BulkImportResult{

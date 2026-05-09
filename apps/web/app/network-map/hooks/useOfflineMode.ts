@@ -30,23 +30,17 @@ import {
 export type OfflineStatus = 'online' | 'offline' | 'syncing' | 'synced';
 
 interface UseOfflineModeReturn {
-  /** Current connectivity status */
+  /** Current connectivity status*/
   status: OfflineStatus;
-  /** Whether the app is currently offline */
   isOffline: boolean;
-  /** Number of pending changes waiting to sync */
   pendingCount: number;
-  /** Cache nodes for offline use */
   cacheNodeData: (nodes: MapNodeWithRef[]) => Promise<void>;
-  /** Cache cables for offline use */
   cacheCableData: (cables: CableRoute[]) => Promise<void>;
-  /** Get cached nodes when offline */
   getOfflineNodes: () => Promise<MapNodeWithRef[]>;
-  /** Get cached cables when offline */
   getOfflineCables: () => Promise<CableRoute[]>;
-  /** Queue a change for later sync */
+  /** Antrean a change untuk later sync*/
   queueChange: (change: Omit<PendingChange, 'id' | 'created_at'>) => Promise<void>;
-  /** Manually trigger sync */
+  /** Manually trigger sync*/
   syncNow: () => Promise<void>;
 }
 
@@ -61,17 +55,17 @@ export function useOfflineMode(): UseOfflineModeReturn {
 
   const isOffline = status === 'offline';
 
-  // Register service worker on mount
+  // Daftarkan service worker saat komponen dipasang
   useEffect(() => {
     registerServiceWorker();
     cleanExpiredCache().catch(() => {});
   }, []);
 
-  // Listen for online/offline events
+  // Listen untuk online/offline events
   useEffect(() => {
     function handleOnline() {
       setStatus('online');
-      // Auto-sync when coming back online
+      // Sinkron otomatis saat kembali online
       syncPendingChanges();
     }
 
@@ -82,7 +76,7 @@ export function useOfflineMode(): UseOfflineModeReturn {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Set initial status
+    // Atur status awal
     if (!navigator.onLine) {
       setStatus('offline');
     }
@@ -93,14 +87,13 @@ export function useOfflineMode(): UseOfflineModeReturn {
     };
   }, []);
 
-  // Load pending count on mount
+  // Muat jumlah pending saat mount
   useEffect(() => {
     getPendingChanges()
       .then((changes) => setPendingCount(changes.length))
       .catch(() => {});
   }, []);
 
-  // Sync pending changes to the server
   const syncPendingChanges = useCallback(async () => {
     if (syncingRef.current || !navigator.onLine) return;
     syncingRef.current = true;
@@ -183,7 +176,6 @@ export function useOfflineMode(): UseOfflineModeReturn {
 }
 
 // ---------------------------------------------------------------------------
-// Apply a single pending change to the API
 // ---------------------------------------------------------------------------
 
 async function applyChange(change: PendingChange): Promise<void> {

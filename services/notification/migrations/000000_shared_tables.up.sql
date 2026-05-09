@@ -1,5 +1,5 @@
 -- File helper schema: mendefinisikan tabel shared dari billing-api agar sqlc bisa melakukan inferensi tipe.
--- File ini TIDAK dijalankan sebagai migrasi — hanya digunakan oleh sqlc untuk mengetahui struktur tabel.
+-- File ini TIDAK dijalankan sebagai migrasi - hanya digunakan oleh sqlc untuk mengetahui struktur tabel.
 -- Tabel customers dan tenants sudah dibuat oleh migrasi billing-api di database yang sama.
 
 CREATE TABLE IF NOT EXISTS tenants (

@@ -1,4 +1,4 @@
-// webhook_usecase_event_test.go berisi unit test untuk WebhookUsecase —
+// webhook_usecase_event_test.go berisi unit test untuk WebhookUsecase -
 // event handler sederhana: payment.expired dan payment.failed.
 // Event ini tidak memerlukan transaksi DB (pool), sehingga bisa ditest dengan pool=nil.
 package usecase
@@ -13,21 +13,20 @@ import (
 )
 
 // =============================================================================
-// Test: ProcessWebhook — payment.expired (update link, TIDAK ubah invoice)
 // =============================================================================
 
 // TestProcessWebhook_PaymentExpired menguji bahwa event payment.expired
-// mengupdate status payment link tanpa mengubah status invoice.
+// memperbarui status tautan pembayaran tanpa mengubah status invoice.
 func TestProcessWebhook_PaymentExpired(t *testing.T) {
 	s := setupWebhookUsecase()
 	seedWebhookConfig(s)
 
-	// Buat payment link dan invoice
+	// Buat tautan pembayaran dan invoice
 	s.linkRepo.links["link-1"] = &domain.PaymentLink{
 		ID: "link-1", TenantID: "tenant-1", CustomerID: "cust-1",
 		GatewayProvider: domain.GatewayXendit, GatewayConfigID: "cfg-1",
 		ExternalID: "ext-expired", Amount: 300000,
-		Status: domain.PaymentLinkActive,
+		Status:    domain.PaymentLinkActive,
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
 	}
 	s.invoiceRepo.invoices["inv-1"] = &domain.Invoice{
@@ -37,7 +36,6 @@ func TestProcessWebhook_PaymentExpired(t *testing.T) {
 	}
 	s.linkRepo.junction["link-1"] = []string{"inv-1"}
 
-	// Buat webhook log untuk event expired dengan signature valid
 	expiredBody := map[string]interface{}{
 		"id": "ext-expired", "status": "EXPIRED",
 		"_headers": map[string]interface{}{
@@ -57,7 +55,7 @@ func TestProcessWebhook_PaymentExpired(t *testing.T) {
 		t.Fatalf("expected nil error, got %v", err)
 	}
 
-	// Verifikasi payment link status berubah ke expired
+	// Verifikasi tautan pembayaran status berubah ke expired
 	link := s.linkRepo.links["link-1"]
 	if link.Status != domain.PaymentLinkExpired {
 		t.Fatalf("expected link status expired, got %s", link.Status)
@@ -77,7 +75,7 @@ func TestProcessWebhook_PaymentExpired(t *testing.T) {
 }
 
 // =============================================================================
-// Test: ProcessWebhook — payment.failed (log kegagalan, TIDAK ubah invoice)
+// Tes: ProcessWebhook - payment.failed (log kegagalan, TIDAK ubah invoice)
 // =============================================================================
 
 // TestProcessWebhook_PaymentFailed menguji bahwa event payment.failed
@@ -86,12 +84,12 @@ func TestProcessWebhook_PaymentFailed(t *testing.T) {
 	s := setupWebhookUsecase()
 	seedWebhookConfig(s)
 
-	// Buat payment link dan invoice
+	// Buat tautan pembayaran dan invoice
 	s.linkRepo.links["link-1"] = &domain.PaymentLink{
 		ID: "link-1", TenantID: "tenant-1", CustomerID: "cust-1",
 		GatewayProvider: domain.GatewayXendit, GatewayConfigID: "cfg-1",
 		ExternalID: "ext-failed", Amount: 300000,
-		Status: domain.PaymentLinkActive,
+		Status:    domain.PaymentLinkActive,
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
 	}
 	s.invoiceRepo.invoices["inv-1"] = &domain.Invoice{
@@ -101,7 +99,6 @@ func TestProcessWebhook_PaymentFailed(t *testing.T) {
 	}
 	s.linkRepo.junction["link-1"] = []string{"inv-1"}
 
-	// Buat webhook log untuk event failed dengan signature valid
 	failedBody := map[string]interface{}{
 		"id": "ext-failed", "status": "FAILED",
 		"payment_method": "va_bca",
@@ -128,7 +125,7 @@ func TestProcessWebhook_PaymentFailed(t *testing.T) {
 		t.Fatalf("expected invoice status belum_bayar (tidak berubah), got %s", inv.Status)
 	}
 
-	// Verifikasi payment link status TIDAK berubah (tetap active)
+	// Verifikasi tautan pembayaran status TIDAK berubah (tetap active)
 	link := s.linkRepo.links["link-1"]
 	if link.Status != domain.PaymentLinkActive {
 		t.Fatalf("expected link status active (tidak berubah), got %s", link.Status)

@@ -1,5 +1,5 @@
 -- Migrasi: membuat tabel vouchers untuk menyimpan kode voucher internet.
--- Voucher memiliki lifecycle status (tersedia → terjual → aktif → selesai/expired/void)
+-- Voucher memiliki lifecycle status (tersedia -> terjual -> aktif -> selesai/expired/void)
 -- dengan snapshot harga saat pembelian dan audit trail.
 -- Setiap voucher dimiliki oleh satu tenant dan dilindungi oleh RLS.
 
@@ -41,7 +41,7 @@ CREATE POLICY tenant_insert ON vouchers
 ALTER TABLE vouchers ADD CONSTRAINT uq_vouchers_tenant_code
     UNIQUE (tenant_id, code);
 
--- Composite indexes untuk performa query
+-- Composite indexes untuk performa kueri
 CREATE INDEX idx_vouchers_tenant_status ON vouchers(tenant_id, status);
 CREATE INDEX idx_vouchers_tenant_package ON vouchers(tenant_id, package_id);
 CREATE INDEX idx_vouchers_tenant_reseller ON vouchers(tenant_id, reseller_id);

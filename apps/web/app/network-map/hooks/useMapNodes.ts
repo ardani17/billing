@@ -19,9 +19,8 @@ interface UseMapNodesReturn {
   nodes: MapNodeWithRef[];
   loading: boolean;
   error: string | null;
-  /** Call when the map viewport changes. Debounced internally. */
+  /** Dipanggil saat viewport peta berubah. Debounce dilakukan internal.*/
   onBoundsChange: (bounds: BoundingBox) => void;
-  /** Force a refetch with the current bounds. */
   refetch: () => void;
 }
 
@@ -40,7 +39,7 @@ export function useMapNodes(options: UseMapNodesOptions = {}): UseMapNodesReturn
     async (bounds: BoundingBox) => {
       if (!enabled) return;
 
-      // Cancel any in-flight request
+      // Batalkan permintaan yang masih berjalan
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -83,14 +82,14 @@ export function useMapNodes(options: UseMapNodesOptions = {}): UseMapNodesReturn
     }
   }, [load]);
 
-  // Refetch when filters change (if we already have bounds)
+  // Refetch saat filter berubah jika batas sudah tersedia
   useEffect(() => {
     if (boundsRef.current) {
       load(boundsRef.current);
     }
   }, [load]);
 
-  // Cleanup on unmount
+  // Bersihkan saat komponen dilepas
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);

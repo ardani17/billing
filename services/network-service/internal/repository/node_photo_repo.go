@@ -19,7 +19,7 @@ func NewNodePhotoRepo(db DBTX) *NodePhotoRepo {
 	return &NodePhotoRepo{db: db}
 }
 
-// scanNodePhoto memindai satu baris hasil query ke domain.NodePhoto.
+// scanNodePhoto memindai satu baris hasil kueri ke domain.NodePhoto.
 func scanNodePhoto(row pgx.Row) (*domain.NodePhoto, error) {
 	var p domain.NodePhoto
 	err := row.Scan(
@@ -33,7 +33,7 @@ func scanNodePhoto(row pgx.Row) (*domain.NodePhoto, error) {
 	return &p, nil
 }
 
-// Create membuat record foto baru dan mengembalikan foto yang dibuat.
+// Buat membuat record foto baru dan mengembalikan foto yang dibuat.
 func (r *NodePhotoRepo) Create(ctx context.Context, photo *domain.NodePhoto) (*domain.NodePhoto, error) {
 	row := r.db.QueryRow(ctx,
 		`INSERT INTO node_photos (tenant_id, map_node_id, file_path, file_size_bytes, caption, uploaded_by)
@@ -77,7 +77,7 @@ func (r *NodePhotoRepo) ListByNode(ctx context.Context, nodeID string) ([]*domai
 	return results, rows.Err()
 }
 
-// SoftDelete melakukan soft-delete foto (set deleted_at).
+// SoftDelete melakukan hapus lunak foto (atur deleted_at).
 func (r *NodePhotoRepo) SoftDelete(ctx context.Context, id string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE node_photos SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL`, id,
@@ -100,5 +100,5 @@ func (r *NodePhotoRepo) CountByNode(ctx context.Context, nodeID string) (int, er
 	return count, nil
 }
 
-// Compile-time check: NodePhotoRepo mengimplementasikan domain.NodePhotoRepository.
+// Compile-time cek: NodePhotoRepo mengimplementasikan domain.NodePhotoRepository.
 var _ domain.NodePhotoRepository = (*NodePhotoRepo)(nil)

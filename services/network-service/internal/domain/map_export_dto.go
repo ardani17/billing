@@ -1,7 +1,7 @@
 package domain
 
 // =============================================================================
-// Export Format Constants — format yang didukung untuk export peta
+// Export Format Constants - format yang didukung untuk export peta
 // =============================================================================
 
 const (
@@ -34,7 +34,7 @@ func IsValidExportFormat(format string) bool {
 }
 
 // =============================================================================
-// Export DTOs — request/response untuk export peta
+// Export DTOs - permintaan/respons untuk export peta
 // =============================================================================
 
 // ExportOptions berisi opsi tambahan untuk export peta.
@@ -50,8 +50,8 @@ type ExportOptions struct {
 // Layers menentukan tipe node dan cable route yang akan di-export.
 // Options berisi opsi tambahan seperti ikon dan deskripsi.
 type ExportRequest struct {
-	Format  string       `json:"format" validate:"required,oneof=kml kmz geojson csv"`
-	Layers  []string     `json:"layers" validate:"required,min=1"`
+	Format  string        `json:"format" validate:"required,oneof=kml kmz geojson csv"`
+	Layers  []string      `json:"layers" validate:"required,min=1"`
 	Options ExportOptions `json:"options"`
 }
 
@@ -76,7 +76,7 @@ type ExportStatus struct {
 }
 
 // =============================================================================
-// Import DTOs — request/response untuk import peta
+// Import DTOs - permintaan/respons untuk import peta
 // =============================================================================
 
 // ImportPreviewItem adalah satu item yang terdeteksi dari file import.

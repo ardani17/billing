@@ -1,9 +1,6 @@
 //go:build integration
 
-// map_integration_test.go — integration test end-to-end untuk FTTH Mapping.
-// Menguji alur lengkap: buat node → buat cable route → verifikasi kalkulasi jarak →
-// update lokasi node → verifikasi riwayat perubahan → soft delete → verifikasi trash → restore.
-// Menggunakan mock in-memory repository (sama seperti map_node_manager_test.go).
+// Menguji alur lengkap: buat node -> buat cable route -> verifikasi kalkulasi jarak ->
 // Semua komentar dalam Bahasa Indonesia.
 package usecase
 
@@ -16,21 +13,18 @@ import (
 )
 
 // =============================================================================
-// Integration Test: Alur Lengkap FTTH Mapping
+// Integration Tes: Alur Lengkap FTTH Mapping
 // =============================================================================
 
 // TestIntegration_FullMapWorkflow menguji alur end-to-end:
 // 1. Buat map node (OLT dan ODP)
 // 2. Buat cable route antara kedua node
 // 3. Verifikasi kalkulasi jarak otomatis
-// 4. Update lokasi node
 // 5. Verifikasi riwayat perubahan (created + location_moved)
-// 6. Soft delete node
 // 7. Verifikasi node masuk trash
 // 8. Restore node dari trash
 // 9. Verifikasi node kembali aktif
 func TestIntegration_FullMapWorkflow(t *testing.T) {
-	// --- Inisialisasi semua mock repository ---
 	nodeRepo := newMockMapNodeRepo()
 	photoRepo := newMockNodePhotoRepo()
 	historyRepo := newMockChangeHistoryRepo()
@@ -122,7 +116,6 @@ func TestIntegration_FullMapWorkflow(t *testing.T) {
 	}
 
 	// =========================================================================
-	// Langkah 5: Update lokasi node ODP
 	// =========================================================================
 	t.Log("Langkah 5: Update lokasi node ODP")
 	newLat := -6.9200
@@ -168,7 +161,6 @@ func TestIntegration_FullMapWorkflow(t *testing.T) {
 	}
 
 	// =========================================================================
-	// Langkah 7: Soft delete node ODP
 	// =========================================================================
 	t.Log("Langkah 7: Soft delete node ODP")
 	err = nodeMgr.DeleteNode(ctx, odpNode.ID, "admin-integ")
@@ -265,13 +257,12 @@ func TestIntegration_FullMapWorkflow(t *testing.T) {
 }
 
 // =============================================================================
-// Integration Test: Isolasi Antar Tenant
+// Integration Tes: Isolasi Antar Tenant
 // =============================================================================
 
 // TestIntegration_CrossTenantIsolation memverifikasi bahwa data antar tenant
-// terisolasi — node dari tenant-A tidak terlihat oleh tenant-B.
+// terisolasi - node dari tenant-A tidak terlihat oleh tenant-B.
 func TestIntegration_CrossTenantIsolation(t *testing.T) {
-	// --- Inisialisasi mock repository ---
 	nodeRepo := newMockMapNodeRepo()
 	photoRepo := newMockNodePhotoRepo()
 	historyRepo := newMockChangeHistoryRepo()
@@ -343,7 +334,7 @@ func TestIntegration_CrossTenantIsolation(t *testing.T) {
 	}
 
 	// =========================================================================
-	// Verifikasi isolasi: Search tenant-A tidak mengembalikan data tenant-B
+	// Verifikasi isolasi: Pencarian tenant-A tidak mengembalikan data tenant-B
 	// =========================================================================
 	searchA, err := nodeMgr.Search(ctx, "tenant-A", "olt")
 	if err != nil {

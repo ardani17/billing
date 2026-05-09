@@ -55,7 +55,7 @@ func mapReportJobRow(row ReportJob) *domain.ReportJob {
 
 // --- Implementasi domain.ReportJobRepository ---
 
-// Create membuat job export baru dan mengembalikan job yang dibuat.
+// Buat membuat job export baru dan mengembalikan job yang dibuat.
 func (r *ReportJobRepo) Create(ctx context.Context, job *domain.ReportJob) (*domain.ReportJob, error) {
 	filtersJSON, err := json.Marshal(job.Filters)
 	if err != nil {

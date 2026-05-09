@@ -3,7 +3,7 @@ package domain
 import "time"
 
 // =============================================================================
-// Activity Report — laporan aktivitas admin/user
+// Laporan aktivitas - laporan aktivitas admin/user
 // =============================================================================
 
 // UserActivity berisi aktivitas per user.
@@ -30,7 +30,7 @@ type ActivityReport struct {
 }
 
 // =============================================================================
-// Notification Report — laporan statistik notifikasi dari network-service
+// Laporan notifikasi - laporan statistik notifikasi dari network-service
 // =============================================================================
 
 // ChannelStats berisi statistik per channel notifikasi.
@@ -62,7 +62,7 @@ type NotificationReport struct {
 }
 
 // =============================================================================
-// Sync Report — laporan status sync MikroTik dan OLT dari network-service
+// Laporan sinkronisasi - laporan status sync MikroTik dan OLT dari network-service
 // =============================================================================
 
 // RouterSyncStatus berisi status sync per router.

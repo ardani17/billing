@@ -12,7 +12,7 @@ import (
 	"github.com/ispboss/ispboss/services/network-service/internal/domain"
 )
 
-// Compile-time check: cableRouteManager harus mengimplementasikan domain.CableRouteManager.
+// Compile-time cek: cableRouteManager harus mengimplementasikan domain.CableRouteManager.
 var _ domain.CableRouteManager = (*cableRouteManager)(nil)
 
 // cableRouteManager mengimplementasikan domain.CableRouteManager.
@@ -22,7 +22,7 @@ type cableRouteManager struct {
 	mapNodeRepo    domain.MapNodeRepository
 }
 
-// NewCableRouteManager membuat instance CableRouteManager baru dengan dependensi repository.
+// NewCableRouteManager membuat instance CableRouteManager baru dengan dependensi repositori.
 func NewCableRouteManager(
 	cableRouteRepo domain.CableRouteRepository,
 	mapNodeRepo domain.MapNodeRepository,
@@ -33,7 +33,7 @@ func NewCableRouteManager(
 	}
 }
 
-// parseCoordinates mem-parse json.RawMessage menjadi [][2]float64.
+// parseCoordinates mem-parsing json.RawMessage menjadi [][2]float64.
 // Mengembalikan ErrInvalidCoordArray jika format tidak valid atau kurang dari 2 titik.
 func parseCoordinates(raw json.RawMessage) ([][2]float64, error) {
 	var coords [][2]float64
@@ -64,7 +64,7 @@ func (m *cableRouteManager) CreateRoute(ctx context.Context, tenantID string, re
 		return nil, domain.ErrInvalidRouteType
 	}
 
-	// Parse dan validasi koordinat
+	// Parsing dan validasi koordinat
 	coords, err := parseCoordinates(req.Coordinates)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (m *cableRouteManager) UpdateRoute(ctx context.Context, id string, req doma
 		return nil, err
 	}
 
-	// Update koordinat dan hitung ulang jarak jika diberikan
+	// Perbarui koordinat dan hitung ulang jarak jika diberikan
 	if req.Coordinates != nil {
 		coords, err := parseCoordinates(req.Coordinates)
 		if err != nil {
@@ -120,12 +120,12 @@ func (m *cableRouteManager) UpdateRoute(ctx context.Context, id string, req doma
 		existing.DistanceMeters = domain.CalculateRouteDistance(coords)
 	}
 
-	// Update core_count jika diberikan
+	// Perbarui core_count jika diberikan
 	if req.CoreCount != nil {
 		existing.CoreCount = req.CoreCount
 	}
 
-	// Update description jika diberikan
+	// Perbarui description jika diberikan
 	if req.Description != nil {
 		existing.Description = req.Description
 	}
@@ -138,7 +138,7 @@ func (m *cableRouteManager) UpdateRoute(ctx context.Context, id string, req doma
 	return domain.ToCableRouteResponse(updated), nil
 }
 
-// DeleteRoute melakukan soft-delete cable route.
+// DeleteRoute melakukan hapus lunak cable route.
 func (m *cableRouteManager) DeleteRoute(ctx context.Context, id string) error {
 	if err := m.cableRouteRepo.SoftDelete(ctx, id); err != nil {
 		return fmt.Errorf("gagal menghapus cable route: %w", err)

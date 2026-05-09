@@ -6,7 +6,7 @@ import (
 )
 
 // =============================================================================
-// Tipe Domain — Alokasi Pembayaran FIFO
+// Tipe Domain - Alokasi Pembayaran FIFO
 // =============================================================================
 
 // PaymentAllocation merepresentasikan satu alokasi pembayaran ke invoice.
@@ -36,14 +36,14 @@ type FIFOResult struct {
 }
 
 // =============================================================================
-// AllocatePaymentFIFO — fungsi murni alokasi pembayaran FIFO
+// AllocatePaymentFIFO - fungsi murni alokasi pembayaran FIFO
 // =============================================================================
 
 // AllocatePaymentFIFO mendistribusikan jumlah pembayaran ke invoice secara FIFO.
 // Invoice harus sudah diurutkan berdasarkan due_date ascending (terlama dulu).
 // Mengembalikan alokasi per invoice dan sisa yang masuk ke saldo kredit.
 //
-// Invarian: TotalAllocated + ExcessToCredit == amount
+// Invarian: TotalAllocated + ExcessToCredit == nominal
 // Invarian: Untuk setiap alokasi, AllocatedAmt <= (TotalAmount - PaidAmount)
 // Invarian: Jika AllocatedAmt == (TotalAmount - PaidAmount), NewStatus == lunas
 // Invarian: Jika 0 < AllocatedAmt < (TotalAmount - PaidAmount), NewStatus == bayar_sebagian
@@ -97,13 +97,13 @@ func AllocatePaymentFIFO(invoices []FIFOInput, amount int64) FIFOResult {
 }
 
 // =============================================================================
-// DeterminePostVoidStatus — menentukan status invoice setelah void pembayaran
+// DeterminePostVoidStatus - menentukan status invoice setelah void pembayaran
 // =============================================================================
 
 // DeterminePostVoidStatus menentukan status invoice setelah pembayaran di-void.
-//   - Jika paidAmount == 0 dan dueDate setelah now → belum_bayar
-//   - Jika paidAmount == 0 dan dueDate sebelum/sama dengan now → terlambat
-//   - Jika 0 < paidAmount < totalAmount → bayar_sebagian
+//   - Jika paidAmount == 0 dan dueDate setelah now -> belum_bayar
+//   - Jika paidAmount == 0 dan dueDate sebelum/sama dengan now -> terlambat
+//   - Jika 0 < paidAmount < totalAmount -> bayar_sebagian
 func DeterminePostVoidStatus(paidAmount, totalAmount int64, dueDate time.Time, now time.Time) InvoiceStatus {
 	if paidAmount == 0 {
 		if dueDate.After(now) {
@@ -117,12 +117,12 @@ func DeterminePostVoidStatus(paidAmount, totalAmount int64, dueDate time.Time, n
 	}
 
 	// Jika paidAmount >= totalAmount, seharusnya tidak terjadi setelah void,
-	// tapi kembalikan lunas sebagai fallback aman.
+	// tapi kembalikan lunas sebagai cadangan aman.
 	return InvoiceStatusLunas
 }
 
 // =============================================================================
-// Error Domain — error khusus domain pembayaran
+// Error Domain - error khusus domain pembayaran
 // =============================================================================
 
 var (
@@ -141,7 +141,7 @@ var (
 	// ErrInvalidInvoiceSelection dikembalikan saat pilihan invoice tidak valid
 	ErrInvalidInvoiceSelection = errors.New("pilihan invoice tidak valid")
 
-	// ErrSearchTermTooShort dikembalikan saat kata pencarian kurang dari 2 karakter
+	// ErrPencarianTermTooShort dikembalikan saat kata pencarian kurang dari 2 karakter
 	ErrSearchTermTooShort = errors.New("kata pencarian minimal 2 karakter")
 
 	// ErrCSVTooLarge dikembalikan saat file CSV melebihi batas 500 baris

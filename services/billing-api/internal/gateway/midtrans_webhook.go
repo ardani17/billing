@@ -54,7 +54,7 @@ func (a *MidtransAdapter) VerifyWebhookSignature(_ context.Context, _ map[string
 	return strings.EqualFold(computed, payload.SignatureKey), nil
 }
 
-// ParseWebhookPayload mem-parse body webhook Midtrans menjadi WebhookEvent.
+// ParseWebhookPayload mem-parsing body webhook Midtrans menjadi WebhookEvent.
 // Memetakan transaction_status Midtrans (capture, settlement, expire, deny, cancel)
 // ke event type internal (payment.paid, payment.expired, payment.failed).
 // Mengekstrak payment_type sebagai paid_method.
@@ -74,7 +74,7 @@ func (a *MidtransAdapter) ParseWebhookPayload(body []byte) (*domain.WebhookEvent
 		eventType = "payment.failed"
 	}
 
-	// Parse gross_amount dari string ke int64
+	// Parsing gross_amount dari string ke int64
 	amount := parseMidtransAmount(payload.GrossAmount)
 
 	// Konversi payment_type Midtrans ke format metode internal
@@ -100,11 +100,11 @@ func parseMidtransAmount(amountStr string) int64 {
 }
 
 // mapMidtransPaymentType mengkonversi payment_type Midtrans ke format metode internal.
-// Contoh: "bank_transfer" → "va_*", "gopay" → "ewallet_gopay", "qris" → "qris".
+// Contoh: "bank_transfer" -> "va_*", "gopay" -> "ewallet_gopay", "qris" -> "qris".
 func mapMidtransPaymentType(paymentType string) string {
 	switch paymentType {
 	case "bank_transfer":
-		// Default VA, channel spesifik ditentukan dari field lain jika tersedia
+		// Bawaan VA, channel spesifik ditentukan dari field lain jika tersedia
 		return "va_transfer"
 	case "echannel":
 		return "va_mandiri"

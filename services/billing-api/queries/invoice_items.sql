@@ -1,6 +1,6 @@
--- Query SQL untuk operasi CRUD tabel invoice_items.
+-- Kueri SQL untuk operasi CRUD tabel invoice_items.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel invoice_items dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
+-- Tabel invoice_items dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: BulkCreateInvoiceItems :copyfrom
 -- Bulk insert item invoice menggunakan PostgreSQL COPY protocol.
@@ -13,7 +13,7 @@ INSERT INTO invoice_items (
 );
 
 -- name: ListInvoiceItemsByInvoice :many
--- Mengambil semua item untuk invoice tertentu, diurutkan berdasarkan sort_order.
+-- Mengambil semua item untuk invoice tertentu, diurutkan berdasarkan urut_order.
 SELECT *
 FROM invoice_items
 WHERE invoice_id = $1

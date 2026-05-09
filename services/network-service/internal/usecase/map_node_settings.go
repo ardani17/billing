@@ -24,7 +24,7 @@ func (m *mapNodeManager) GetHistory(ctx context.Context, nodeID string, limit, o
 	return responses, nil
 }
 
-// ListTrashed mengambil daftar node yang ada di trash (sudah di-soft-delete).
+// ListTrashed mengambil daftar node yang ada di trash (sudah di-hapus lunak).
 func (m *mapNodeManager) ListTrashed(ctx context.Context, tenantID string) ([]*domain.MapNodeResponse, error) {
 	nodes, err := m.mapNodeRepo.ListTrashed(ctx, tenantID)
 	if err != nil {
@@ -40,14 +40,14 @@ func (m *mapNodeManager) ListTrashed(ctx context.Context, tenantID string) ([]*d
 }
 
 // GetLabelSettings mengambil konfigurasi label untuk tenant.
-// Mengembalikan default settings jika tenant belum memiliki konfigurasi.
+// Mengembalikan bawaan settings jika tenant belum memiliki konfigurasi.
 func (m *mapNodeManager) GetLabelSettings(ctx context.Context, tenantID string) (*domain.MapLabelSettingsResponse, error) {
 	settings, err := m.labelSettingsRepo.GetByTenantID(ctx, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("gagal mengambil label settings: %w", err)
 	}
 
-	// Jika belum ada konfigurasi, kembalikan default
+	// Jika belum ada konfigurasi, kembalikan bawaan
 	if settings == nil {
 		defaults := domain.NewDefaultLabelSettings(tenantID)
 		return domain.ToMapLabelSettingsResponse(&defaults), nil
@@ -59,7 +59,7 @@ func (m *mapNodeManager) GetLabelSettings(ctx context.Context, tenantID string) 
 // UpdateLabelSettings memperbarui konfigurasi label untuk tenant.
 // Merge dengan settings yang sudah ada, atau buat baru jika belum ada.
 func (m *mapNodeManager) UpdateLabelSettings(ctx context.Context, tenantID string, req domain.UpdateLabelSettingsRequest) (*domain.MapLabelSettingsResponse, error) {
-	// Ambil settings yang sudah ada atau buat default
+	// Ambil settings yang sudah ada atau buat bawaan
 	existing, err := m.labelSettingsRepo.GetByTenantID(ctx, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("gagal mengambil label settings: %w", err)

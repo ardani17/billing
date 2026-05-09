@@ -1,7 +1,6 @@
--- Query SQL untuk operasi CRUD tabel expenses.
+-- Kueri SQL untuk operasi CRUD tabel expenses.
 -- Digunakan oleh sqlc untuk menghasilkan kode Go yang type-safe.
--- Tabel expenses dilindungi RLS, query hanya mengembalikan baris milik tenant aktif.
--- Semua query menyertakan WHERE deleted_at IS NULL untuk mengecualikan soft-deleted.
+-- Tabel expenses dilindungi RLS, kueri hanya mengembalikan baris milik tenant aktif.
 
 -- name: CreateExpense :one
 -- Membuat pengeluaran baru dan mengembalikan semua kolom.
@@ -23,7 +22,7 @@ JOIN expense_categories ec ON ec.id = e.category_id
 WHERE e.id = $1 AND e.deleted_at IS NULL;
 
 -- name: UpdateExpense :one
--- Memperbarui data pengeluaran (kategori, jumlah, deskripsi, tanggal, recurring).
+-- Memperbarui data pengeluaran (kategori, jumlah, deskripsi, tanggal, berulang).
 UPDATE expenses SET
     category_id = $2,
     amount = $3,
@@ -36,7 +35,7 @@ WHERE id = $1 AND deleted_at IS NULL
 RETURNING *;
 
 -- name: SoftDeleteExpense :exec
--- Menghapus pengeluaran secara soft delete (set deleted_at).
+-- Menghapus pengeluaran secara hapus lunak (atur deleted_at).
 UPDATE expenses SET
     deleted_at = NOW(),
     updated_at = NOW()
@@ -58,13 +57,13 @@ WHERE e.tenant_id = $1
 ORDER BY e.expense_date DESC;
 
 -- name: ListRecurringExpenses :many
--- Mengambil semua pengeluaran berulang yang aktif (untuk auto-create bulanan oleh worker).
+-- Mengambil semua pengeluaran berulang yang aktif (untuk auto-buat bulanan oleh worker).
 SELECT * FROM expenses
 WHERE is_recurring = true AND deleted_at IS NULL;
 
 -- name: SumExpensesByCategory :many
 -- Menghitung total pengeluaran per kategori untuk laporan laba rugi.
--- Mengembalikan nama kategori dan total amount, diurutkan berdasarkan total terbesar.
+-- Mengembalikan nama kategori dan total nominal, diurutkan berdasarkan total terbesar.
 SELECT ec.name AS label,
     COALESCE(SUM(e.amount), 0)::bigint AS amount
 FROM expenses e
